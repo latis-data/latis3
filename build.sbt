@@ -1,13 +1,6 @@
 ThisBuild / organization := "io.latis-data"
 ThisBuild / scalaVersion := "2.12.6"
 
-lazy val latis3 = (project in file("."))
-  .settings(commonSettings)
-  .settings(
-    name := "latis3"
-  )
-  .aggregate(core)
-
 lazy val commonSettings = compilerFlags ++ Seq(
   Compile / compile / wartremoverWarnings ++= Warts.allBut(
     Wart.Any,         // false positives
@@ -40,7 +33,7 @@ lazy val compilerFlags = Seq(
 //=== Sub-projects ============================================================
 
 lazy val core = project
+  .settings(commonSettings)
   .settings(
-    name := "latis3-core",
-    commonSettings
+    name := "latis3-core"
   )
