@@ -7,37 +7,47 @@ import org.junit.Assert._
 
 class TestScalarData {
   
+  import TestScalarData._
+  
   @Test
-  def double_scalar(): Unit = {
-    doubleScalar match {
-      //case ScalarData(v: Float) => fail //won't compile
-      case ScalarData(v: Double) => assertEquals(3.14, v, 0)
+  def double_as_data(): Unit = {
+    double match {
+      case ScalarData(v: Double) => assertEquals(1.0, v, 0)
       case _ => fail
     }
   }
   
   @Test
-  def string_scalar(): Unit = {
-    stringScalar match {
-      case ScalarData(v: String) => assertEquals("3.14", v)
+  def double_as_double_data(): Unit = {
+    double match {
+      case DoubleData(v: Double) => assertEquals(1.0, v, 0)
+      //TODO: doesn't match!
       case _ => fail
     }
   }
   
-  @Test
-  def complex_scalar(): Unit = {
-    complexScalar match {
-      case ScalarData(v: Complex) => assertEquals(Complex(1.0, 2.0), v)
-      case _ => fail
-    }
-  }
+//  @Test
+//  def string_scalar(): Unit = {
+//    string match {
+//      case ScalarData(v: String) => assertEquals("3.14", v)
+//      case _ => fail
+//    }
+//  }
 }
 
 object TestScalarData {
   
-  val doubleScalar: ScalarData[Double] = ScalarData(3.14)
-  val stringScalar: ScalarData[String] = ScalarData("3.14")
-  
-  case class Complex(re: Double, im: Double)
-  val complexScalar: ScalarData[Complex] = ScalarData(Complex(1.0, 2.0))
+  val boolean = BooleanData.True
+  val byte    = ByteData(0x01.toByte)
+  val char    = CharData('A')
+  val short   = ShortData(1.toShort)
+  val int     = IntData(1)
+  val float   = FloatData(1.0f)
+  val long    = LongData(1)
+  val double  = ScalarData(1.0)
+  val string  = Text("one")
+  val integer = Integer(BigInt(1))
+  val real    = Real(BigDecimal(1.0))
+  val complex = ComplexData((1.0, 1.0))
+
 }

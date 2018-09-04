@@ -2,8 +2,8 @@ package latis.metadata
 
 /**
  * Trait to provide direct Metadata access.
- * Any class that provides "metadata" can mixin this trait 
- * and then access metadata values via the "apply" method.
+ * This trait can be mixed in with any class that provides "metadata".
+ * Users of that class can then access metadata values via the "apply" method.
  */
 trait MetadataLike {
   

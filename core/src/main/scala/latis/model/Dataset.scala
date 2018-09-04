@@ -15,7 +15,7 @@ case class Dataset(metadata: Metadata, model: DataType, data: Data) extends Meta
    * The model DataType must be consistent with the Data.
    */
   def samples: Iterator[Sample] = data match {
-    case FunctionData(it) => it
+    case SampledFunction(it) => it
     case d: Data => Iterable(Sample(d)).iterator //implicit Sample
   }
   

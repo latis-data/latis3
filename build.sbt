@@ -1,5 +1,5 @@
 ThisBuild / organization := "io.latis-data"
-ThisBuild / scalaVersion := "2.12.6"
+ThisBuild / scalaVersion := "2.11.8"
 
 lazy val commonSettings = compilerFlags ++ Seq(
   // Test suite dependencies
