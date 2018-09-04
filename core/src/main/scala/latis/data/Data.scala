@@ -18,32 +18,12 @@ case class ScalarData[+T](value: T) extends Data
 //-- Tuple ------------------------------------------------------------------//
 
 /**
- * TupleData is a container of other Data objects.
+ * TupleData is a container of zero or more Data objects.
  */
-case class TupleData(d: Data, ds: Data*) extends Data with Seq[Data] {
-  // Note: we use this argument list definition to enforce that
-  //   TupleData has at least one element. This also gives us the desired
-  //   unapplySeq behavior for pattern match extraction.
-  //   It also disambiguates the Seq[Data] arg.
-  
-  // Combine the Data into a single sequence of Data elements
-  val elements: Seq[Data] = d +: ds
-  
-  // Implement Seq methods
-  def apply(index: Int): Data = elements(index)
-  def iterator: Iterator[Data] = elements.iterator
-  def length: Int = elements.length
-}
+case class TupleData(elements: Data*) extends Data
 
 object TupleData {
-  
-  /**
-   * Construct TupleData from a sequence of Data.
-   */
-  def apply(data: Seq[Data]): TupleData = data.length match {
-    case 0 => ??? //TODO: error if empty
-    case _ => TupleData(data.head, data.tail: _*)
-  }
+  def fromSeq(elements: Seq[Data]): TupleData = TupleData(elements: _*)
 }
 
 //-- Function ---------------------------------------------------------------//
