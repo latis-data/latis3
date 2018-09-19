@@ -9,6 +9,7 @@ trait MetadataLike {
   
   /**
    * Abstract method for subtypes to provide metadata.
+   * This could also be a val and part of a constructor.
    */
   def metadata: Metadata
   
@@ -17,4 +18,8 @@ trait MetadataLike {
    */
   def apply(name: String): Option[String] = metadata.getProperty(name)
 
+  /**
+   * Convenience method to get identifier.
+   */
+  def id: String = metadata.getProperty("id", "")
 }

@@ -1,42 +1,24 @@
 package latis.data
 
 /**
- * Contain data for one sample of a Function.
- * The dimensionality is the number of Scalar data elements in the
- * domain of the Function. The rest of the "data" elements
- * represent the range. Range data can be ScalarData or
- * nested FunctionData. TupleData must be flattened
- * to yield only ScalarData or FunctionData. The model can be
- * used to recapture the tuple relations.
+ * Convenience construction and extraction methods for Samples.
+ * Sample is defined to be the Tuple2 (DomainData, RangeData)
+ * in the package object.
+ * Note that Sample takes (and extracts) sequences (Seq),
+ * while DomainData and RangeData use varargs.
  */
-case class Sample(dimensionality: Int, data: Array[Data]) {
-  
-  /**
-   * Return the domain portion of this Sample as Data.
-   */
-  def domain: Data = dimensionality match {
-    case 0 => ??? //TODO: Index(0) ?
-    case 1 => data.head
-    case n => TupleData(data.take(n): _*)
-  }
-  
-  /**
-   * Return the range portion of this Sample as Data.
-   */
-  def range: Data = data.length - dimensionality match {
-    case 0 => ??? //TODO: not possible, no range variables
-    case 1 => data.head
-    case n => TupleData(data.drop(dimensionality): _*)
-  }
-}
-
 object Sample {
   
   /**
-   * Make a Sample from a single Data object.
+   * Construct a Sample from a Seq of domain values and a Seq of range values.
    */
-  def apply(data: Data): Sample = Sample(0, Array(data))
+  def apply(ds: Seq[Any], rs: Seq[Any]): Sample = 
+    (DomainData.fromSeq(ds), RangeData.fromSeq(rs))
   
-  //TODO: add convenience constructors
-
+    /**
+     * Extract Sample values as a pair of Seq for the domain and range values.
+     */
+  def unapply(sample: Sample): Option[(Seq[_], Seq[_])] = sample match {
+    case (DomainData(ds @ _*), RangeData(rs @ _*)) => Option((ds, rs))
+  }
 }
