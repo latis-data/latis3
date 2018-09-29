@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="datatype" abstract="true"/>
+  <xs:element name="scalar"  substitutionGroup="datatype">
+    <xs:complexType>
+      <xs:attribute name="id"/>
+      <xs:attribute name="type">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="index"/>
+            <xs:enumeration value="real"/>
+            <xs:enumeration value="integer"/>
+            <xs:enumeration value="time"/>
+            <xs:enumeration value="text"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="name" type="xs:string"/>
+      <xs:attribute name="long_name" type="xs:string"/>
+      <xs:attribute name="missing_value"/>
+      <xs:attribute name="precision"/>
+      <xs:attribute name="units"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="tuple" substitutionGroup="datatype">
+    <xs:complexType>
+      <xs:choice minOccurs="2" maxOccurs="unbounded">
+        <xs:element ref="datatype" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:choice>
+      <xs:attribute name="id"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="function" substitutionGroup="datatype">
+    <xs:complexType>
+      <xs:choice minOccurs="2" maxOccurs="2">
+	    <xs:element ref="datatype" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:choice>
+      <xs:attribute name="id"/>
+      <xs:attribute name="length"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="adapter">
+    <xs:complexType>
+      <xs:attribute name="class" use="required"/>
+      <xs:attribute name="location" type="xs:anyURI"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="dataset">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element ref="adapter"/>
+        <xs:element ref="datatype" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="dataset" minOccurs="0"/>
+      </xs:choice>
+      <xs:attribute name="id"/>
+      <xs:attribute name="name" type="xs:string"/>
+      <xs:attribute name="ref"/>
+      <xs:attribute name="history" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
