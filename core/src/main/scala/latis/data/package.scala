@@ -2,6 +2,9 @@ package latis
 
 package object data {
   
+  type DomainData = Array[Any]
+  type RangeData = Array[Any]
+  
   /**
    * Define a type alias for samples.
    */

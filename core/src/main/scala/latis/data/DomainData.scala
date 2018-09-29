@@ -1,13 +1,23 @@
 package latis.data
 
 /**
- * Wrapper for independent variables in a Sample.
- * Note that this uses varargs so construction and extraction
- * allow comma separated data values.
+ * Convenient construction and extraction methods for the
+ * DomainData type alias for Array[Any].
  */
-case class DomainData(data: Any*)
-
 object DomainData {
-  def fromSeq(data: Seq[_]): DomainData = DomainData(data: _*)
+  
+  /**
+   * Construct DomainData from a comma separated list of values.
+   */
+  def apply(data: Any*): DomainData = data.toArray
+  
+  /**
+   * Construct DomainData from a Seq of values.
+   */
+  def fromSeq(data: Seq[_]): DomainData = data.toArray
+  
+  /**
+   * Extract a comma separated list of values from DomainData.
+   */
+  def unapplySeq(d: DomainData): Option[Seq[_]] = Option(d.toSeq)
 }
-

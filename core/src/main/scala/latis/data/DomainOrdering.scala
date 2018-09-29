@@ -6,12 +6,13 @@ package latis.data
  * defined in the package object.
  */
 object DomainOrdering extends Ordering[DomainData] {
+  
   def compare(a: DomainData, b: DomainData) = {
-    if (a.data.length != b.data.length) {
+    if (a.length != b.length) {
       val msg = "Can't compare DomainData with different arity."
       throw new UnsupportedOperationException(msg)
     }
-    else comparePairs(a.data zip b.data)(ScalarOrdering)
+    else comparePairs(a zip b)(ScalarOrdering)
   }
   
   /**
