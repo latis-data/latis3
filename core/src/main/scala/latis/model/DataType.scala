@@ -31,6 +31,21 @@ sealed trait DataType extends Traversable[DataType] with MetadataLike {
    * that they appear in the model.
    */
   def getScalars: Vector[Scalar] = toVector.collect { case s: Scalar => s }
+  
+  /**
+   * Return the function arity of this DataType.
+   * For Function, this is the number of top level types (non-flattened) 
+   * in the domain. 
+   * For Scalar and Tuple, there is no domain so the arity is 0.
+   */
+  def arity = this match {
+    case Function(domain, _) => domain match {
+      case _: Scalar => 1
+      case t: Tuple => t.elements.length
+      case _: Function => ??? //deal with Function in the domain, or disallow it
+    }
+    case _ => 0
+  }
     
 }
 
@@ -64,14 +79,8 @@ object Scalar {
  */
 class Tuple(val metadata: Metadata, val elements: DataType*) extends DataType {
   
-  /**
-   * Return the number of elements in this Tuple.
-   * Note that it will only count top level elements,
-   * not nested ones.
-   */
-  def arity: Int = elements.length
-  
   override def toString: String = elements.mkString("(", ", ", ")")
+
 }
 
 object Tuple {

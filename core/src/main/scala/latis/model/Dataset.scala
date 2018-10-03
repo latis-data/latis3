@@ -1,22 +1,27 @@
 package latis.model
 
-import latis.data._
-import latis.metadata._
+import latis.data.Sample
+import latis.data.SampledFunction
+import latis.metadata.Metadata
+import latis.metadata.MetadataLike
+
+import cats.effect.IO
+import fs2.Stream
 
 /**
  * A Dataset is the primary representation of any dataset.
  * It contains global metadata (including provenance), 
  * a representation of the dataset's model (or schema), 
- * and a SampledFunction that provides the data.
+ * and a SampledFunction that encapsulates the data.
  */
 case class Dataset(metadata: Metadata, model: DataType, data: SampledFunction)
   extends MetadataLike {
   
   /**
-   * Return the data as an Iterator of Samples.
-   * The model DataType must be consistent with the Data.
+   * Return the data as an effectful Stream of Samples.
+   * The model DataType must be consistent with the data.
    */
-  def samples: Iterator[Sample] = data.samples
+  def samples: Stream[IO, Sample] = data.samples
   
   /**
    * Present a Dataset as a String.

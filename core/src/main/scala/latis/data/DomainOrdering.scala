@@ -2,11 +2,17 @@ package latis.data
 
 /**
  * Define an Ordering for DomainData.
+ * DaomainData being compared must have the same number of values (arity).
+ * Individual values will be compared pair-wise. If the first pair of
+ * values are equal, then the next pair will be compared.
  * This is used by the implicit SampleOrdering
  * defined in the package object.
  */
 object DomainOrdering extends Ordering[DomainData] {
   
+  /**
+   * Implement the compare method of the Ordering trait.
+   */
   def compare(a: DomainData, b: DomainData) = {
     if (a.length != b.length) {
       val msg = "Can't compare DomainData with different arity."
