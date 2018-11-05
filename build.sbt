@@ -4,6 +4,8 @@ ThisBuild / scalaVersion := "2.11.8"
 lazy val commonSettings = compilerFlags ++ Seq(
   // Test suite dependencies
   libraryDependencies ++= Seq(
+    "co.fs2"          %% "fs2-core"        % "1.0.0",
+    "co.fs2"          %% "fs2-io"          % "1.0.0",
     "junit"            % "junit"           % "4.12"      % Test,
     "com.novocode"     % "junit-interface" % "0.11"      % Test
   )
@@ -14,6 +16,7 @@ lazy val compilerFlags = Seq(
     "-deprecation",
     "-encoding", "utf-8",
     "-feature",
+    "-language:higherKinds"
   ),
   Compile / compile / scalacOptions ++= Seq(
     "-unchecked",

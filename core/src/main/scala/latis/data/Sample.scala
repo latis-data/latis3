@@ -12,8 +12,8 @@ object Sample {
   /**
    * Construct a Sample from a Seq of domain values and a Seq of range values.
    */
-  def apply(ds: Seq[Any], rs: Seq[Any]): Sample = 
-    (DomainData.fromSeq(ds), RangeData.fromSeq(rs))
+  def apply(domainValues: Seq[Any], rangeValues: Seq[Any]): Sample = 
+    (DomainData.fromSeq(domainValues), RangeData.fromSeq(rangeValues))
   
     /**
      * Extract Sample values as a pair of Arrays for the domain and range values.

@@ -2,7 +2,7 @@ package latis.data
 
 /**
  * Define an Ordering to be applied for scalar data values.
- * Since the values can be of any type, we specifically match
+ * Since the values can be of any type, this matches
  * a specific set of common types.
  * Note that this Ordering is designed to be applied among 
  * domain values of the same type (within a sequence of Samples
