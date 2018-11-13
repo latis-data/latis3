@@ -1,13 +1,24 @@
 package latis.model
 
 import latis.metadata._
+import latis.data._
+import scala.collection.TraversableLike
+import scala.collection.mutable.Builder
+import scala.collection.mutable.Stack
+import scala.collection.generic.CanBuildFrom
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * Define the algebraic data type for the LaTiS implementation of the 
  * Functional Data Model.
  */
-sealed trait DataType extends Traversable[DataType] with MetadataLike {
+sealed trait DataType 
+  extends Traversable[DataType] 
+  with TraversableLike[DataType, DataType] 
+  with MetadataLike {
     
+  override protected[this] def newBuilder: Builder[DataType, DataType] = DataType.newBuilder
+  
   /**
    * Experimental implementation of Traversable
    * to support various model operations.
@@ -46,7 +57,103 @@ sealed trait DataType extends Traversable[DataType] with MetadataLike {
     }
     case _ => 0
   }
+  
+  //TODO: Rename Operation?
+  def rename(name: String): DataType = this match {
+    //TODO: add old name to alias?
+    case _: Scalar => Scalar(metadata + ("id" -> name))
+    case Tuple(es @ _*) => Tuple(metadata + ("id" -> name), es: _*)
+    case Function(d, r) => Function(metadata + ("id" -> name), d, r)
+  }
     
+  /**
+   * Return this DataType with all nested Tuples flattened to a single Tuple.
+   * This form is consistent with Samples which don't preserve nested Functions.
+   */
+  def flatten(): DataType = {
+    // Recursive helper function that uses an accumulator (acc)
+    // to accumulate types while in the context of a Tuple
+    // while the recursion results build up the final type.
+    def go(dt: DataType, acc: Seq[DataType]): Seq[DataType] = dt match {
+      case s: Scalar => acc :+ s
+      case Tuple(es @ _*) => es.flatMap(e => acc ++ go(e, Seq()))
+      case Function(d, r) => acc :+ Function(d.flatten(), r.flatten())
+    }
+    
+    val types = go(this, Seq())
+    types.length match {
+      case 1 => types.head
+      case n => Tuple(types: _*)
+    }
+  }
+
+/**
+ * Return the path within this DataType to a given variable ID
+ * as a sequence of SamplePositions.
+ * Note that length of the path reflects the number of nested Functions.
+ */
+  def getPath(id: String): Option[SamplePath] = {
+    
+    // Recursive function to try paths until it finds a match
+    def go(dt: DataType, id: String, currentPath: SamplePath): Option[SamplePath] = {
+      if (id == dt.id) Some(currentPath) //found it  //TODO: use hasName to cover aliases?
+      else dt match { //recurse
+        case _: Scalar => None  //dead end
+        case Function(dtype, rtype) =>
+          val ds = dtype match {
+            case s: Scalar => Seq(s)
+            case Tuple(vs @ _*) => vs
+          }
+          val rs = rtype match {
+            case Tuple(vs @ _*) => vs
+            case _ => Seq(rtype)
+          }
+          
+          val d = (0 until ds.length).iterator map { i => // lazy Iterator allows us to short-circuit
+            go(ds(i), id, currentPath :+ DomainPosition(i))
+          }
+          val r = (0 until rs.length).iterator map { i => // lazy Iterator allows us to short-circuit
+            go(rs(i), id, currentPath :+ RangePosition(i))
+          }
+          
+          (d ++ r) collectFirst { case Some(p) => p } //short-circuit here, take first Some
+      }
+    }
+    
+    go(this.flatten, id, Seq.empty)
+  }
+
+}
+
+object DataType {
+    
+  def fromSeq(vars: Seq[DataType]): DataType = {
+    def go(vs: Seq[DataType], hold: Stack[DataType]): DataType = {
+      vs.headOption match {
+        case Some(s: Scalar) => 
+          go(vs.tail, hold.push(s)) //put on the stack then do the rest
+        case Some(t: Tuple) => 
+          val n = t.elements.length
+          val t2 = Tuple(t.metadata, (0 until n).map(_ => hold.pop).reverse: _*)
+          go(vs.tail, hold.push(t2))
+        case Some(f: Function) => 
+          val c = hold.pop
+          val d = hold.pop
+          val f2 = Function(f.metadata, d, c)
+          go(vs.tail, hold.push(f2))
+        case None => hold.pop //TODO: test that the stack is empty now
+      }
+    }
+    go(vars, Stack())
+  }
+  
+  def newBuilder: Builder[DataType, DataType] = new ArrayBuffer mapResult fromSeq
+
+  implicit def canBuildFrom: CanBuildFrom[DataType, DataType, DataType] =
+    new CanBuildFrom[DataType, DataType, DataType] {
+      def apply(): Builder[DataType, DataType] = newBuilder
+      def apply(from: DataType): Builder[DataType, DataType] = newBuilder
+    }
 }
 
 //-- Scalar -----------------------------------------------------------------//
@@ -55,6 +162,29 @@ sealed trait DataType extends Traversable[DataType] with MetadataLike {
  * The Scalar type represents a single atomic variable.
  */
 class Scalar(val metadata: Metadata) extends DataType {
+  
+  /**
+   * Convert a string value into the appropriate type for this Scalar.
+   */
+  def parseValue(value: String): Any = this("type") match {
+    //TODO: deal with parse errors
+    //TODO: use enumeration, ADT, fdml schema
+    case Some("boolean")    => value.toBoolean
+    case Some("char")       => value.head
+    case Some("short")      => value.toShort
+    case Some("int")        => value.toInt
+    case Some("long")       => value.toLong
+    case Some("float")      => value.toFloat
+    case Some("double")     => value.toDouble
+    case Some("string")     => value
+    case Some("bigInt")     => BigInt(value)
+    case Some("bigDecimal") => BigDecimal(value)
+    //TODO: binary blob
+    //TODO: class, e.g. latis.time.Time?
+    case Some(s) => ??? //unsupported type s
+    case None => ??? //type not defined
+  }
+  
   override def toString: String = id
 }
 

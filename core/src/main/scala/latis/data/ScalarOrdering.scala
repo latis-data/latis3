@@ -23,6 +23,7 @@ object ScalarOrdering extends Ordering[Any] {
     case (a: String,     b: String)     => a compare b
     case (a: BigInt,     b: BigInt)     => a compare b
     case (a: BigDecimal, b: BigDecimal) => a compare b
+    //TODO: Numeric
     case _ => 
       val msg = s"Can't compare Scalar values: $a and $b"
       throw new UnsupportedOperationException(msg)

@@ -30,4 +30,11 @@ object StreamUtils {
    */
   def seqToIOStream[T](seq: Seq[T]): Stream[IO, T] =
     Stream.emits(seq).flatMap(x => Stream.eval( IO(x) ))
+    
+  /**
+   * Unsafely turn an fs2.Stream into a Seq.
+   */
+  def unsafeStreamToSeq[T](stream: Stream[IO, T]): Seq[T] = 
+    stream.compile.toVector.unsafeRunSync
+    
 }

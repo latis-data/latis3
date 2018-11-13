@@ -5,7 +5,12 @@ import latis.util.PropertiesLike
 /**
  * Class to represent metadata as name-value pairs.
  */
-class Metadata(val properties: Map[String, String]) extends PropertiesLike
+class Metadata(val properties: Map[String, String]) extends PropertiesLike {
+  
+  def +(kv: (String,String)): Metadata = Metadata(properties + kv)
+
+  def ++(md: Metadata): Metadata = Metadata(properties ++ md.properties)
+}
 
 
 object Metadata {
