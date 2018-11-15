@@ -8,7 +8,7 @@ lazy val commonSettings = compilerFlags ++ Seq(
     "co.fs2"                 %% "fs2-io"                   % "1.0.0",
     "junit"                   % "junit"                    % "4.12"      % Test,
     "com.novocode"            % "junit-interface"          % "0.11"      % Test,
-    "org.scala-lang.modules"  % "scala-xml_2.11"           % "1.0.6"
+    "org.scala-lang.modules" %% "scala-xml"                % "1.0.6"
   )
 )
 

@@ -1,7 +1,6 @@
 package latis.input
 
 import scala.xml._
-import scala.util.parsing.combinator._
 
 import scala.collection.immutable.Map
 
