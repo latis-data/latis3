@@ -4,10 +4,11 @@ ThisBuild / scalaVersion := "2.11.8"
 lazy val commonSettings = compilerFlags ++ Seq(
   // Test suite dependencies
   libraryDependencies ++= Seq(
-    "co.fs2"          %% "fs2-core"        % "1.0.0",
-    "co.fs2"          %% "fs2-io"          % "1.0.0",
-    "junit"            % "junit"           % "4.12"      % Test,
-    "com.novocode"     % "junit-interface" % "0.11"      % Test
+    "co.fs2"                 %% "fs2-core"                 % "1.0.0",
+    "co.fs2"                 %% "fs2-io"                   % "1.0.0",
+    "junit"                   % "junit"                    % "4.12"      % Test,
+    "com.novocode"            % "junit-interface"          % "0.11"      % Test,
+    "org.scala-lang.modules"  % "scala-xml_2.11"           % "1.0.6"
   )
 )
 

@@ -4,6 +4,7 @@ import latis.data.Sample
 import latis.model.DataType
 import latis.model.Function
 import latis.model.Scalar
+import latis.util.PropertiesLike
 
 import java.net.URI
 
@@ -55,6 +56,7 @@ class TextAdapter(config: TextAdapter.Config, model: DataType)
       case None => false //no marker defined so we are not seeking
     }
   }
+
   
   /**
    * Given a line of text from the data source, return a Boolean 
@@ -68,7 +70,7 @@ class TextAdapter(config: TextAdapter.Config, model: DataType)
       case None     => true //no comment character defined
     }
   }
-
+    
       
   /**
    * Parse a record into a Sample. 
@@ -153,12 +155,16 @@ object TextAdapter {
    * Define a case class of configuration options for a TextAdapter.
    * TODO: document the options
    */
-  case class Config(
-    commentCharacter: Option[String] = None,
-    delimiter: String = ",",
-    linesPerRecord: Int = 1,
-    skipLines: Int = 0,
-    dataMarker: Option[String] = None   //regex
-  ) 
+  case class Config(arguments: (String, String)*) extends PropertiesLike {
+    // properties must be defined before getProperty functions can be called
+    val properties: Map[String, String] = arguments.toMap
+    
+    val commentCharacter: Option[String] = getProperty("commentCharacter")
+    val delimiter: String = getProperty("delimiter", ",")
+    val linesPerRecord: Int = getProperty("linesPerRecord", "1").toInt
+    val skipLines: Int = getProperty("skipLines", "0").toInt
+    val dataMarker: Option[String] = getProperty("dataMarker")
+  }
+
   
 }
