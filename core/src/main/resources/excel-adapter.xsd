@@ -3,10 +3,7 @@
     <xs:redefine schemaLocation="fdml.xsd">
         <xs:attributeGroup name="adapter_attributes">
             <xs:attributeGroup ref="adapter_attributes"/>
-            <xs:attribute name="commentCharacter" type="xs:string"/>
-            <xs:attribute name="dataMarker" type="xs:string"/>
-            <xs:attribute name="delimiter" type="xs:string"/>
-            <xs:attribute name="linesPerRecord" type="xs:int"/>
+            <xs:attribute name="columns" type="xs:string"/>
             <xs:attribute name="skipLines" type="xs:int"/>
         </xs:attributeGroup>
     </xs:redefine>
