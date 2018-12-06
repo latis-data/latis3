@@ -7,6 +7,7 @@ import scala.collection.immutable.Map
 import latis.metadata.Metadata
 import latis.model._
 import latis.input._
+import latis.ops._
 import java.net.URI
 
 /**
@@ -26,8 +27,13 @@ object FDMLReader {
   /** Recursively parse the function XML element into a domain and range.
    *The createDataType function introduces recursion because it calls functions that can also call createDataType.
    */
-  def createModel(functionNode: Node): DataType = {
-    createFunctionDataType(functionNode)
+  def createModel(functionNode: NodeSeq, tupleNode: NodeSeq, scalaNode: NodeSeq): Option[DataType] = {
+    //TODO: implemented creating models only from functions
+    if (functionNode.length > 0) {
+      createFunctionDataType(functionNode)
+    } else {
+      None
+    }
   }
   
   /**
@@ -44,15 +50,15 @@ object FDMLReader {
    * Create domain and range objects with the same code.
    */
   def createDataType(datatype: Node): DataType = {
-    if (datatype.label == "function") createFunctionDataType(datatype) 
-    else if (datatype.label == "scalar") createScalarDataType(datatype)
-    else createTupleDataType(datatype)
+    if (datatype.label == "function") createFunctionDataType(datatype).get 
+    else if (datatype.label == "scalar") createScalarDataType(datatype).get
+    else createTupleDataType(datatype).get
   }
   
   /**
    * Create an Adapter object from XML and the supplied model.
    */
-  def createAdapter(adapterNode: Node, model: DataType): Adapter = {
+  def createAdapter(adapterNode: NodeSeq, model: DataType): Adapter = {
     val adapterClass: Option[String] = getAttribute(adapterNode, "class")
     val attributes: Seq[(String, String)] = getAttributes(adapterNode).filter(_._1 != "class").toSeq
     val config = AdapterFactory(adapterClass, attributes: _*)
@@ -67,43 +73,64 @@ object FDMLReader {
   /**
    * Function datatypes must contain a domain and a range.
    */
-  def createFunctionDataType(functionNode: Node): Function = {
-    val attributes: Map[String, String] = getAttributes(functionNode)   
-    val datatypes: Seq[Node] = functionNode.child.filter(isDatatype(_))
-    val domain: Node  = datatypes.head
-    val range: Node = datatypes.tail.head
-    if (attributes.isEmpty) {
-      Function(createDataType(domain), createDataType(range))
+  def createFunctionDataType(functionNodes: NodeSeq): Option[Function] = {
+    if (functionNodes.length > 0) {
+      val functionNode: Node = functionNodes.head
+      val attributes: Map[String, String] = getAttributes(functionNodes)   
+      val datatypes: Seq[Node] = functionNode.child.filter(isDatatype(_))
+      val domain: Node  = datatypes.head
+      val range: Node = datatypes.tail.head
+      if (attributes.isEmpty) {
+        Some(Function(createDataType(domain), createDataType(range)))
+      } else {
+        Some(Function(Metadata(attributes), createDataType(domain), createDataType(range)))
+      }
     } else {
-      Function(Metadata(attributes), createDataType(domain), createDataType(range))
+      None
     }
   }
   
   /**
    * Scalar datatypes only contain metadata.
    */
-  def createScalarDataType(scalarNode: Node): Scalar = {
-    Scalar(Metadata(getAttributes(scalarNode)))
+  def createScalarDataType(scalarNode: Node): Option[Scalar] = {
+    if (scalarNode.length > 0 ) {
+      Some(Scalar(Metadata(getAttributes(scalarNode))))
+    } else {
+      None
+    }
   }
   
   /**
    * Tuple datatypes can contain an arbitrary number of elements.
    */
-  def createTupleDataType(tupleNode:Node): Tuple = {
+  def createTupleDataType(tupleNode: Node): Option[Tuple] = {
     val attributes: Map[String, String] = getAttributes(tupleNode) 
     val tupleElements: Seq[Node] = tupleNode.child.filter(isDatatype(_))
     val tuple: List[DataType] = tupleElements.map(createDataType(_)).toList
-    if (attributes.isEmpty) {
-      Tuple(tuple: _*)
+    if (tuple.length > 0 ) {
+      if (attributes.isEmpty) {
+        Some(Tuple(tuple: _*))
+      } else {
+        Some(Tuple(Metadata(attributes), tuple: _*))
+      }
     } else {
-      Tuple(Metadata(attributes), tuple: _*)
+      None
     }
+  }
+  
+  /**
+   * Operations are extracted from the operationNode and enumerated in the order appearing in the FDML file.
+   */
+  def createOperation(operationNode: NodeSeq): Seq[Operation] = {
+    // TODO: implementation awaiting merging with new Operations classes.
+    List[Operation]().toSeq 
   }
   
   /**
    * Get the value of this element's attribute with the given name.
    */
-  def getAttribute(xml: Node, name: String): Option[String] = {
+  def getAttribute(xml: NodeSeq, name: String): Option[String] = {
     (xml \ ("@"+name)).text match {
       case s: String if s.length > 0 => Some(s)
       case _ => None
@@ -113,11 +140,16 @@ object FDMLReader {
   /**
    * Get all of the attributes for the specified XML Node.
    */
-  def getAttributes(xml: Node): Map[String, String] = {
-    val seq = for (
-      att <- xml.attributes
-    ) yield (att.key, att.value.text)
-    Map[String, String](seq.toList: _*)
+  def getAttributes(xml: NodeSeq): Map[String, String] = {
+    if (xml.length > 0 ) {
+      val node = xml.head
+      val seq = for (
+        att <- node.attributes
+      ) yield (att.key, att.value.text)
+      Map[String, String](seq.toList: _*)
+    } else {
+      Map[String, String]()
+    }
   }
   
   /**
@@ -127,16 +159,21 @@ object FDMLReader {
     if ( xml.label == "dataset" ) {
       val datasetName = (xml \ "@name").text
       val datasetUri = (xml \ "@uri").text
-      val adapterNode: Node = (xml \ "adapter").head      // convert a NodeSeq to a Node
-      val functionNode: Node = (xml \ "function").head    // convert a NodeSeq to a Node
+      val adapterNode: NodeSeq = (xml \ "adapter")
+      val functionNode: NodeSeq = (xml \ "function")
+      val tupleNode: NodeSeq = (xml \ "tuple")
+      val scalarNode: NodeSeq = (xml \ "scalar")
+      val operationNode: NodeSeq = (xml \ "operation")
       if ( functionNode.length > 0 ) {
         val source = new AdaptedDatasetSource {
           def uri: URI = new URI(datasetUri)
           def metaData: Metadata = Metadata("name" -> datasetName, "id" -> uri.getPath) 
-          val model: DataType = createModel(functionNode)
+          val model: DataType = createModel(functionNode, tupleNode, scalarNode).get
           def adapter: Adapter = createAdapter(adapterNode, model)
         }
-        Some(source.getDataset()) 
+        Some(source.getDataset())
+        //TODO: add operations to dataset
+        //Some(source.getDataset(createOperation(operationNode))) 
       } else {
         None
       }
