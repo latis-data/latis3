@@ -22,7 +22,8 @@ class TestMatrixAdapter {
           ),
           Scalar(Metadata("id" -> "v", "type" -> "double"))
       )
-      val config = TextAdapter.Config(delimiter=",")
+      val config = TextAdapter.Config(("delimiter",","))
+      
       def adapter = new MatrixTextAdapter(config, model)
     }
     
