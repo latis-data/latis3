@@ -1,9 +1,7 @@
 package latis.model
 
-import latis.data.Sample
-import latis.data.SampledFunction
-import latis.metadata.Metadata
-import latis.metadata.MetadataLike
+import latis.data._
+import latis.metadata._
 
 import cats.effect.IO
 import fs2.Stream
@@ -16,18 +14,30 @@ import fs2.Stream
  */
 case class Dataset(metadata: Metadata, model: DataType, data: SampledFunction)
   extends MetadataLike {
+  //TODO: impl FunctionalAlgebra by delegating to Operations?
+
+  def cache(ff: FunctionFactory): Dataset = {
+    //TODO: consider how "cache" relates to "force"; same?
+    //TODO: generic empty vs specific type empty? zero for appending
+    if (data.isEmpty) this
+    else {
+      val d2 = ff.fromSeq(data.unsafeForce.samples)
+      copy(data = d2)
+    }
+  }
   
   /**
-   * Return the data as an effectful Stream of Samples.
-   * The model DataType must be consistent with the data.
+   * Ensure that the data encapsulated by this Dataset is memoized.
+   * It is "unsafe" in that this may perform an unsafe run on a Stream
+   * of Samples in IO.
    */
-  def samples: Stream[IO, Sample] = data.samples
+  def unsafeForce: Dataset = copy(data = data.unsafeForce)
   
   /**
    * Present a Dataset as a String.
    * This will only show type information and will not impact
    * the Data (e.g. lazy data reading should not be triggered).
    */
-  override def toString: String =  s"${this("id")}: $model"
+  override def toString: String =  s"${id}: $model"
   
 }

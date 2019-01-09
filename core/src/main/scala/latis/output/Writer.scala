@@ -16,6 +16,10 @@ class Writer(out: OutputStream) {
   //NOTE: we don't have ownership of output stream so don't close
   //TODO: encode to bytes or T as opposed to String
   
+  /*
+   * TODO: have SampledFunction toString produce the "asc" output?
+   */
+  
   private lazy val printWriter = new PrintWriter(out)
   
   /**
@@ -39,7 +43,7 @@ class Writer(out: OutputStream) {
     val header: Stream[Pure, String] = Stream.emit(dataset.toString)
     
     // Encode each Sample as a String in the Stream
-    val samples: Stream[IO, String] = dataset.samples
+    val samples: Stream[IO, String] = dataset.data.streamSamples
       .flatMap(encodeSample(dataset.model, _))
     
     // Combine the output into a single Stream
@@ -86,6 +90,7 @@ class Writer(out: OutputStream) {
   //TODO: put in StringUtils?
   
   //nested function
+  //TODO: has problems, see hysics after groupBy
   //TODO: indent  
   def encodeFunction(ftype: Function, function: SampledFunction): Stream[IO, String] = {
     val head: Stream[Pure, String] = Stream.emit(s"{$newLine")
@@ -95,7 +100,7 @@ class Writer(out: OutputStream) {
     //  OK since this is a nested Function
     //  can we tell Stream to chunk all?
     val samples: Stream[IO, String] = 
-      function.samples.flatMap(encodeSample(ftype, _)).map(_ + delim)
+      function.streamSamples.flatMap(encodeSample(ftype, _)).map(_ + delim)
       
     val foot: Stream[Pure, String] = Stream.emit("}")
     

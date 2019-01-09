@@ -3,20 +3,20 @@ package latis
 package object data {
   
   /**
-   * Define a type alias for DomainData as an array of values of any type.
+   * Define a type alias for DomainData as a Vector of values of any type.
    */
-  type DomainData = Array[Any]
+  type DomainData = Vector[Any]
   
   /**
-   * Define a type alias for RangeData as an array of values of any type.
+   * Define a type alias for RangeData as a Vector of values of any type.
    */
-  type RangeData = Array[Any]
+  type RangeData = Vector[Any]
   
   /**
-   * Define a type alias for samples as a pair of
-   * DomainData and RangeData.
+   * Define a SamplePath as a Seq of SamplePositions.
+   * Each element in the path implies a nested Function.
    */
-  type Sample = (DomainData, RangeData)
+  type SamplePath = Seq[SamplePosition]
   
   /**
    * Define an implicit Ordering for Samples based on their
@@ -24,6 +24,6 @@ package object data {
    */
   implicit object SampleOrdering extends Ordering[Sample] {
     def compare(a: Sample, b: Sample) = 
-      DomainOrdering.compare(a._1, b._1)
+      DomainOrdering.compare(a.domain, b.domain)
   }
 }

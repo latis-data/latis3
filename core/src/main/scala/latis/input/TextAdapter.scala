@@ -101,33 +101,10 @@ class TextAdapter(config: TextAdapter.Config, model: DataType)
     // from the parsed domain and range values.
     if (rtypes.length != rvals.length) None //invalid record
     else {
-      val ds = (dtypes zip dvals).map(p => parseValue(p._1, p._2))
-      val rs = (rtypes zip rvals).map(p => parseValue(p._1, p._2))
+      val ds = (dtypes zip dvals).map(p => p._1.parseValue(p._2))
+      val rs = (rtypes zip rvals).map(p => p._1.parseValue(p._2))
       Some(Sample(ds, rs))
     }
-  }
-  
-  //TODO: delegate to DataType to parse values? e.g. Time
-  /**
-   * Given a Scalar and a String value, parse the value 
-   * into the desired type.
-   */
-  def parseValue(scalar: Scalar, value: String): Any = scalar("type") match {
-    //TODO: deal with parse errors
-    //TODO: use enumeration, ADT, fdml schema
-    case Some("boolean")    => value.toBoolean
-    case Some("char")       => value.head
-    case Some("short")      => value.toShort
-    case Some("int")        => value.toInt
-    case Some("long")       => value.toLong
-    case Some("float")      => value.toFloat
-    case Some("double")     => value.toDouble
-    case Some("string")     => value
-    case Some("bigInt")     => BigInt(value)
-    case Some("bigDecimal") => BigDecimal(value)
-    //TODO: binary blob
-    //TODO: class, e.g. latis.time.Time?
-    case None => ??? //type not defined
   }
   
   /**

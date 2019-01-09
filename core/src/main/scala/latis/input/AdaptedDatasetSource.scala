@@ -4,7 +4,7 @@ import latis.data.SampledFunction
 import latis.metadata.Metadata
 import latis.model.DataType
 import latis.model.Dataset
-import latis.ops.Operation
+import latis.ops._
 
 import java.net.URI
 
@@ -38,12 +38,12 @@ trait AdaptedDatasetSource extends DatasetSource {
    * Predefined Operations to be applied to the Dataset.
    * Default to none.
    */
-  def operations: Seq[Operation] = Seq.empty
+  def operations: Seq[UnaryOperation] = Seq.empty
   
   /**
    * Construct a Dataset by delegating to the Adapter.
    */
-  def getDataset(ops: Seq[Operation]): Dataset = {
+  def getDataset(ops: Seq[UnaryOperation]): Dataset = {
     
     // Apply the Adapter to the given resource to get the data.
     val data: SampledFunction = adapter(uri)
@@ -52,6 +52,8 @@ trait AdaptedDatasetSource extends DatasetSource {
     val dataset = Dataset(metadata, model, data)
     
     // Apply the operations to the Dataset.
-    ops.foldLeft(dataset)((ds, op) => op(ds))
+    // Note that the operations from this DatasetSource will be applied first.
+    //TODO: allow Adapter to apply operations
+    (operations ++ ops).foldLeft(dataset)((ds, op) => op(ds))
   }
 }

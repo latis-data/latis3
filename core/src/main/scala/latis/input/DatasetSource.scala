@@ -2,6 +2,7 @@ package latis.input
 
 import latis.model.Dataset
 import latis.ops.Operation
+import latis.ops.UnaryOperation
 
 /**
  * A DatasetSource is a provider of a LaTiS Dataset
@@ -13,7 +14,7 @@ trait DatasetSource {
   /**
    * Return the Dataset with the given Operations applied to it.
    */
-  def getDataset(operations: Seq[Operation]): Dataset
+  def getDataset(operations: Seq[UnaryOperation]): Dataset
   
   /**
    * Return the Dataset with no Operations applied to it.

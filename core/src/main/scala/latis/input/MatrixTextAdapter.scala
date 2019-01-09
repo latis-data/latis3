@@ -35,7 +35,7 @@ class MatrixTextAdapter(config: TextAdapter.Config, model: DataType)
       recordStream(uri)  //stream of rows
         .compile.toVector.unsafeRunSync() //unparsed rows as Vector[String]
         .map(_.split(config.delimiter)    //delimited values unparsed: Vector[Array[String]]
-          .map(v => RangeData(parseValue(scalar, v)))  //parsed row: Vector[Array[RangeData]]
+          .map(v => RangeData(scalar.parseValue(v)))  //parsed row: Vector[Array[RangeData]]
         ).toArray                         //convert Vector of rows to Array of rows
     
     ArrayFunction2D(values)

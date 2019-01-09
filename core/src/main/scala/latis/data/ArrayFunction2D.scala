@@ -1,10 +1,6 @@
 package latis.data
 
-import scala.util.Try
-import scala.util.Success
-import scala.util.Failure
-import cats.effect.IO
-import fs2._
+import scala.language.postfixOps
 
 /**
  * A SampledFunction implemented with a 2D array.
@@ -12,19 +8,17 @@ import fs2._
  */
 case class ArrayFunction2D(array: Array[Array[RangeData]]) extends MemoizedFunction {
   
-  def apply(d: DomainData): Stream[Pure, RangeData] = d match {
+  override def apply(d: DomainData): ArrayFunction2D = d match {
     //TODO: support any integral type
     //TODO: handle index out of bounds
-    case DomainData(i: Int, j: Int) => Stream.emit(array(i)(j))
-    case _ => ??? //IO.raiseError(new RuntimeException("Failed to evaluate ArrayFunction2D"))
+    case DomainData(i: Int, j: Int) => ArrayFunction2D(Array(Array(array(i)(j))))
+    case _ => ??? //new RuntimeException("Failed to evaluate ArrayFunction2D")
   }
   
-  def samples: Stream[Pure, Sample] = {
-    val ss: Seq[Sample] = for {
-      i <- 0 until array.length
-      j <- 0 until array(0).length
-    } yield (DomainData(i, j), array(i)(j))
-    
-    Stream.emits(ss)
-  }
+  def samples: Seq[Sample] = 
+    Seq.tabulate(array.length, array(0).length) { 
+      (i, j) => Sample(DomainData(i, j), array(i)(j)) 
+    } flatten
+
 }
+//TODO: fromSeq? CanBuildFrom? See FunctionFactory

@@ -14,16 +14,17 @@ case class IndexedFunction1D(as: Array[Any], vs: Array[Any]) extends MemoizedFun
   //TODO: consider coordinate system function composition
   //TODO: combine with ArrayFunction?
   
-  def apply(dd: DomainData): Stream[Pure, RangeData] = dd match {
+  override def apply(dd: DomainData): IndexedFunction1D = dd match {
     case DomainData(d) =>
       as.search(d)(ScalarOrdering) match {
-        case Found(i) => Stream.emit(RangeData(vs(i)))
+        case Found(i) => IndexedFunction1D(dd.toArray, Array(vs(i)))
         case InsertionPoint(i) => ??? //TODO: interpolate
       }
   }
   
-  def samples: Stream[Pure, Sample] = {
-    val ss = (as zip vs).map(p => (DomainData(p._1), RangeData(p._2)))
-    Stream.emits(ss)
-  }
+  def samples: Seq[Sample] =
+    (as zip vs) map { case (a, v) => Sample(DomainData(a), RangeData(v)) }
+
 }
+
+//TODO: fromSeq? CanBuildFrom? See FunctionFactory

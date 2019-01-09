@@ -9,6 +9,12 @@ package latis.data
  * defined in the package object.
  */
 object DomainOrdering extends Ordering[DomainData] {
+  /*
+   * TODO: what about DomainData extends Ordered? 
+   * impl one, get the other implicitly?
+   * But just an alias for Vector right now
+   * could save us from explicitly using this
+   */
   
   /**
    * Implement the compare method of the Ordering trait.
