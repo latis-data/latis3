@@ -40,7 +40,7 @@ class TestFDMLReader {
     
     assertEquals(dataset.model.arity, 1)
     assertEquals(dataset.metadata.getProperty("name"), None)
-    assertEquals(dataset.toString, "Some(/data/timed_see/composite_lya/composite_lya.dat): time -> (la, source)")
+    assertEquals(dataset.toString, "/data/timed_see/composite_lya/composite_lya.dat: time -> (la, source)")
     
   }
   
