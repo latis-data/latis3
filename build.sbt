@@ -54,3 +54,14 @@ lazy val `dap2-service` = project
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.8" % Test
     )
   )
+
+lazy val server = project
+  .dependsOn(`dap2-service`)
+  .settings(commonSettings)
+  .settings(
+    name := "latis3-server",
+    libraryDependencies ++= Seq(
+      "org.http4s"     %% "http4s-blaze-server" % http4sVersion,
+      "ch.qos.logback"  % "logback-classic"     % "1.2.3" % Runtime
+    )
+  )
