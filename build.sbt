@@ -1,5 +1,5 @@
 ThisBuild / organization := "io.latis-data"
-ThisBuild / scalaVersion := "2.11.8"
+ThisBuild / scalaVersion := "2.11.12"
 
 lazy val commonSettings = compilerFlags ++ Seq(
   // Test suite dependencies
@@ -17,7 +17,8 @@ lazy val compilerFlags = Seq(
     "-deprecation",
     "-encoding", "utf-8",
     "-feature",
-    "-language:higherKinds"
+    "-language:higherKinds",
+    "-Ypartial-unification"
   ),
   Compile / compile / scalacOptions ++= Seq(
     "-unchecked",
