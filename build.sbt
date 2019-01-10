@@ -30,6 +30,31 @@ lazy val compilerFlags = Seq(
   )
 )
 
+lazy val dockerSettings = Seq(
+  docker / imageNames := {
+    Seq(ImageName(s"${organization.value}/latis3:${version.value}"))
+  },
+  docker / dockerfile := {
+    val classpath = Seq(
+      (Runtime / managedClasspath).value,
+      (Runtime / internalDependencyAsJars).value
+    ).flatten
+    val mainclass = (Compile / packageBin / mainClass).value.getOrElse {
+      sys.error("Expected exactly one main class")
+    }
+    val cp = classpath.files.map { x =>
+      s"/app/${x.getName}"
+    }.mkString(":")
+
+    new Dockerfile {
+      from("openjdk:8-jre-alpine")
+      copy(classpath.files, "/app/")
+      expose(8080)
+      entryPoint("java", "-cp", cp, mainclass)
+    }
+  }
+)
+
 //=== Sub-projects ============================================================
 
 lazy val core = project
@@ -57,7 +82,9 @@ lazy val `dap2-service` = project
 
 lazy val server = project
   .dependsOn(`dap2-service`)
+  .enablePlugins(DockerPlugin)
   .settings(commonSettings)
+  .settings(dockerSettings)
   .settings(
     name := "latis3-server",
     libraryDependencies ++= Seq(
