@@ -71,6 +71,40 @@ object FDMLReader {
   }
   
   /**
+   * Create a sequence of operations from XML that are to be applied to the dataset.
+   */
+  def createOperations(operationNodes: NodeSeq): Seq[UnaryOperation] = {
+    if (operationNodes.length > 0) {
+      val operations = for {
+        node <- operationNodes \ "_"        // wildcard, get all top nodes
+        operation <- createOperation(node)
+      } yield operation
+      operations.toSeq
+    } else {
+      Seq.empty
+    }
+  }
+  
+  /**
+   * For a specified XML operation node, return a unary operation.
+   * ToDo: reflection might be more elegant, but for now pattern matching will suffice
+   */
+  def createOperation(node: Node): Option[UnaryOperation] = {
+    node.label match {
+      case "contains"  => contains(node)
+      case "groupby"   => groupBy(node)
+      case "head"      => head(node)
+      case "pivot"     => pivot(node)
+      case "project"   => project(node)
+      case "rename"    => rename(node)
+      case "select"    => select(node)
+      case "take"      => take(node)
+      case "uncurry"   => uncurry(node)
+      case _           => None
+    }
+  }
+  
+  /**
    * Function datatypes must contain a domain and a range.
    */
   def createFunctionDataType(functionNodes: NodeSeq): Option[Function] = {
@@ -120,14 +154,6 @@ object FDMLReader {
   }
   
   /**
-   * Operations are extracted from the operationNode and enumerated in the order appearing in the FDML file.
-   */
-  def createOperation(operationNode: NodeSeq): Seq[Operation] = {
-    // TODO: implementation awaiting merging with new Operations classes.
-    List[Operation]().toSeq 
-  }
-  
-  /**
    * Get the value of this element's attribute with the given name.
    */
   def getAttribute(xml: NodeSeq, name: String): Option[String] = {
@@ -148,14 +174,14 @@ object FDMLReader {
       ) yield (att.key, att.value.text)
       Map[String, String](seq.toList: _*)
     } else {
-      Map[String, String]()
+      Map.empty
     }
   }
   
   /**
-   * Parse an FDML file and create a dataset.
+   * Parse an FDML file and create an AdaptedDatasetSource.
    */
-  def parse(xml: Elem): Option[Dataset] = {
+  def parse(xml: Elem): Option[AdaptedDatasetSource] = {
     if ( xml.label == "dataset" ) {
       val datasetName = (xml \ "@name").text
       val datasetUri = (xml \ "@uri").text
@@ -167,13 +193,12 @@ object FDMLReader {
       if ( functionNode.length > 0 ) {
         val source = new AdaptedDatasetSource {
           def uri: URI = new URI(datasetUri)
-          def metaData: Metadata = Metadata("name" -> datasetName, "id" -> uri.getPath) 
-          val model: DataType = createModel(functionNode, tupleNode, scalarNode).get
+          override def metadata: Metadata = Metadata("name" -> datasetName, "id" -> uri.getPath) 
+          def model: DataType = createModel(functionNode, tupleNode, scalarNode).get
           def adapter: Adapter = createAdapter(adapterNode, model)
+          override def operations: Seq[UnaryOperation] = createOperations(operationNode)
         }
-        Some(source.getDataset())
-        //TODO: add operations to dataset
-        //Some(source.getDataset(createOperation(operationNode))) 
+        Some(source) 
       } else {
         None
       }
@@ -181,4 +206,95 @@ object FDMLReader {
       None
     }
   }
+  
+  /*
+   * BEGIN parsing of specific operations 
+   */
+  def contains(node: Node): Option[UnaryOperation] = {
+    val vname = (node \ "vname").text
+    val values = for {
+      value <- (node \ "value").iterator
+    } yield value.text
+    if (values.isEmpty) {
+      None
+    } else {
+      Some(Contains(vname, values))
+    }
+  }
+  
+  def groupBy(node: Node): Option[UnaryOperation] = {
+    val vnames = for {
+      vname <- (node \ "vname").iterator
+    } yield vname.text
+    if (vnames.isEmpty) {
+      None
+    } else {
+      Some(GroupBy(vnames.toSeq: _*))
+    }
+  }
+  
+  /**
+   * Head operation not yet implemented.
+   */
+  def head(node: Node): Option[UnaryOperation] = {
+    None
+  }
+  
+  def pivot(node: Node): Option[UnaryOperation] = {
+    val values = for {
+      value <- (node \ "value").iterator
+    } yield value.text
+    val vids = for {
+      vid <- (node \ "vid").iterator
+    } yield vid.text
+    
+    if (values.isEmpty || vids.isEmpty) {
+      None
+    } else {
+      Some(Pivot(values.toSeq, vids.toSeq))
+    }
+  }
+  
+  def project(node: Node): Option[UnaryOperation] = {
+    val vids = for {
+      vid <- (node \ "vid").iterator
+    } yield vid.text
+    if (vids.isEmpty) {
+      None
+    } else {
+      Some(Projection(vids.toSeq: _*))
+    }
+  }
+  
+  /**
+   * Rename operation not yet implemented.
+   */
+  def rename(node: Node): Option[UnaryOperation] = {
+    val vName = (node \ "vname").text
+    val newName = (node \ "newName").text
+    //todo: implement Rename operation
+    //Some(Rename(vName, newName))
+    None
+  }
+  
+  def select(node: Node): Option[UnaryOperation] = {
+    val vName = (node \ "vname").text
+    val operator = (node \ "operator").text
+    val value = (node \ "value").text
+    Some(Selection(vName, operator, value))
+  }
+  
+  /**
+   * Take operation not yet implemented.
+   */
+  def take(node: Node): Option[UnaryOperation] = {
+    None
+  }
+  
+  def uncurry(node: Node): Option[UnaryOperation] = {
+    Some(Uncurry())  
+  }
+  /*
+   *  END parsing of specific operations
+   */
 }
