@@ -106,10 +106,7 @@
                         </xs:sequence>
                     </xs:complexType>
                 </xs:element>
-                <xs:element name="take">
-                    <xs:complexType>
-                        <xs:attribute name="arg" type="xs:int" use="required"/>
-                    </xs:complexType>
+                <xs:element name="take" type="xs:integer">
                 </xs:element>
                 <xs:element name="uncurry"/>
             </xs:choice>

@@ -49,7 +49,7 @@ class TestFDMLReader {
   //TODO: this is just scaffolding for a future test, operations currently not being parsed.
   @Test
   def testWithOperations = {
-    val xmlFile = """<?xml version="1.0" encoding="UTF-8"?>
+    val xmlString = """<?xml version="1.0" encoding="UTF-8"?>
 <dataset name="composite_lyman_alpha" uri="http://lasp.colorado.edu/data/timed_see/composite_lya/composite_lya.dat" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="text-adapter.xsd">
     <adapter class="latis.input.TextAdapter"
         skipLines="5" delimiter="+" commentCharacter="--?" dataMarker="@" linesPerRecord="3"/>
@@ -90,12 +90,12 @@ class TestFDMLReader {
             <operator>+</operator>
             <value>1</value>
         </select>
-        <take arg="1"/>
+        <take>1</take>
         <uncurry/>
     </operation>
 </dataset>
 """
-    val loaded = FDMLReader.load(xmlFile) 
+    val loaded = FDMLReader.load(xmlString) 
     val datasetSource: AdaptedDatasetSource = FDMLReader.parse(loaded).get
     val operations = datasetSource.operations
     assertEquals(operations.toString, "List(Contains(x,WrappedArray(non-empty iterator)), GroupBy(Stream(ix, ?)), Pivot(Stream(44, ?),Stream(44, ?)), Projection(Stream(irradiance, ?)), Selection(la,+,1), Uncurry())")
