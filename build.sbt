@@ -1,8 +1,9 @@
 ThisBuild / organization := "io.latis-data"
 ThisBuild / scalaVersion := "2.12.8"
 
-val fs2Version    = "1.0.2"
-val http4sVersion = "0.20.0-M4"
+val fs2Version        = "1.0.2"
+val http4sVersion     = "0.20.0-M4"
+val pureconfigVersion = "0.10.1"
 
 lazy val commonSettings = compilerFlags ++ Seq(
   libraryDependencies ++= Seq(
@@ -90,7 +91,9 @@ lazy val server = project
   .settings(
     name := "latis3-server",
     libraryDependencies ++= Seq(
-      "org.http4s"     %% "http4s-blaze-server" % http4sVersion,
-      "ch.qos.logback"  % "logback-classic"     % "1.2.3" % Runtime
+      "org.http4s"            %% "http4s-blaze-server"    % http4sVersion,
+      "com.github.pureconfig" %% "pureconfig"             % pureconfigVersion,
+      "com.github.pureconfig" %% "pureconfig-cats-effect" % pureconfigVersion,
+      "ch.qos.logback"         % "logback-classic"        % "1.2.3" % Runtime
     )
   )
