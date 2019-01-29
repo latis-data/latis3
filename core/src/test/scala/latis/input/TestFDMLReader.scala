@@ -100,60 +100,42 @@ class TestFDMLReader {
     val datasetSource: AdaptedDatasetSource = FDMLReader.parse(loaded).get
     val operations = datasetSource.operations.toList
     
-    val containsOp: Contains = operations.filter(isContainsOperation).head.asInstanceOf[Contains]
+    val containsOp: Contains = operations.collect {
+      case op: Contains => op
+    }.head
     val containsOperation = Contains("x", (Seq("y", "z"): _*))
     assertEquals(containsOp.vname, containsOperation.vname)
     
-    val groupByOp: GroupBy = operations.filter(isGroupByOperation).head.asInstanceOf[GroupBy]
+    val groupByOp: GroupBy = operations.collect {
+      case op: GroupBy => op
+    }.head
     val groupByOperation = GroupBy(Seq("ix", "iy"): _*)
     assertEquals(groupByOp.vnames, groupByOperation.vnames)
     
-    val pivotOp: Pivot = operations.filter(isPivotOperation).head.asInstanceOf[Pivot]
+    val pivotOp: Pivot = operations.collect {
+      case op: Pivot => op
+    }.head
     val pivotOperation = Pivot(Seq("44", "55"), Seq("44", "55"))
     assertEquals(pivotOp.values.head, pivotOperation.values.head)
     
-    val projectionOp: Projection = operations.filter(isProjectionOperation).head.asInstanceOf[Projection]
+    val projectionOp: Projection = operations.collect {
+      case op: Projection => op
+    }.head
     val projectionOperation = Projection(Seq("irradiance"): _*)
     assertEquals(projectionOp.vids.head, projectionOperation.vids.head)
     
-    val selectionOp: Selection = operations.filter(isSelectionOperation).head.asInstanceOf[Selection]
+    val selectionOp: Selection = operations.collect {
+      case op: Selection => op
+    }.head
     val selectionOperation = Selection("la", "+", "1")
     assertEquals(selectionOp.vname, selectionOperation.vname)
     assertEquals(selectionOp.operator, selectionOperation.operator)
     assertEquals(selectionOp.value, selectionOperation.value)
     
-    val uncurryOp: Uncurry = operations.filter(uncurryOperation).head.asInstanceOf[Uncurry]
+    val uncurryOp: Uncurry = operations.collect {
+      case op: Uncurry => op
+    }.head
     assertEquals(uncurryOp, Uncurry())
-    
-  }
-  
-  def isContainsOperation(op: UnaryOperation) = op match {
-    case Contains(_, _*)       => true
-    case _                    => false  
-  }
-  
-  def isGroupByOperation(op: UnaryOperation) = op match {
-    case GroupBy(_*)          => true
-    case _                    => false
-  }
-  
-  def isPivotOperation(op: UnaryOperation) = op match {
-    case Pivot(_, _)          => true
-    case _                    => false  
-  }
-  
-  def isProjectionOperation(op: UnaryOperation) = op match {
-    case Projection(_*)       => true
-    case _                    => false
-  }
-  
-  def isSelectionOperation(op: UnaryOperation) = op match {
-    case Selection(_, _, _)   => true
-    case _                    => false
-  }
-  
-  def uncurryOperation(op: UnaryOperation) = op match {
-    case Uncurry()            => true
-    case _                    => false
+   
   }
 }
