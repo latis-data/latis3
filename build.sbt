@@ -1,5 +1,5 @@
 ThisBuild / organization := "io.latis-data"
-ThisBuild / scalaVersion := "2.11.12"
+ThisBuild / scalaVersion := "2.12.8"
 
 val fs2Version    = "1.0.2"
 val http4sVersion = "0.20.0-M4"
@@ -76,7 +76,9 @@ lazy val `dap2-service` = project
       "org.http4s"     %% "http4s-dsl"  % http4sVersion,
       "org.tpolecat"   %% "atto-core"   % "0.6.3",
       "org.scalacheck" %% "scalacheck"  % "1.13.5" % Test,
-      "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.8" % Test
+      "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.8" % Test,
+      "junit"           % "junit"           % "4.12" % Test,
+      "com.novocode"    % "junit-interface" % "0.11" % Test
     )
   )
 
