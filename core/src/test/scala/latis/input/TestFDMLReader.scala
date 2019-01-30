@@ -33,11 +33,10 @@ class TestFDMLReader {
     </dataset>"""
     
     val loaded = FDMLReader.load(xmlFile) 
-    
     val datasetName = (loaded \ "@name").text
     assertEquals(datasetName, "composite_lyman_alpha")
     
-    val datasetSource: AdaptedDatasetSource = FDMLReader.parse(loaded).get
+    val datasetSource: FDMLReader = FDMLReader(xmlFile)
     
     val dataset: Dataset = datasetSource.getDataset(Seq.empty)
     
@@ -96,8 +95,7 @@ class TestFDMLReader {
     </operation>
 </dataset>
 """
-    val loaded = FDMLReader.load(xmlString) 
-    val datasetSource: AdaptedDatasetSource = FDMLReader.parse(loaded).get
+    val datasetSource: FDMLReader = FDMLReader(xmlString)
     val operations = datasetSource.operations.toList
     
     val containsOp: Contains = operations.collect {
