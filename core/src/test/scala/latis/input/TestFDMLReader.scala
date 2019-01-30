@@ -18,7 +18,7 @@ import org.junit.Assert._
 class TestFDMLReader {
   @Test
   def testSimple = {
-    val xmlFile =
+    val xmlString =
       """<?xml version="1.0" encoding="UTF-8"?>
     <dataset name="composite_lyman_alpha" uri="http://lasp.colorado.edu/data/timed_see/composite_lya/composite_lya.dat" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="text-adapter.xsd">
         <adapter class="latis.input.TextAdapter"
@@ -32,11 +32,11 @@ class TestFDMLReader {
       </function>
     </dataset>"""
     
-    val loaded = FDMLReader.load(xmlFile) 
+    val loaded = FDMLReader.load(xmlString) 
     val datasetName = (loaded \ "@name").text
     assertEquals(datasetName, "composite_lyman_alpha")
     
-    val datasetSource: FDMLReader = FDMLReader(xmlFile)
+    val datasetSource: FDMLReader = FDMLReader(xmlString)
     
     val dataset: Dataset = datasetSource.getDataset(Seq.empty)
     
@@ -46,7 +46,6 @@ class TestFDMLReader {
     
   }
   
-  //TODO: this is just scaffolding for a future test, operations currently not being parsed.
   @Test
   def testWithOperations = {
     val xmlString = """<?xml version="1.0" encoding="UTF-8"?>
