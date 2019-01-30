@@ -13,45 +13,23 @@ import java.net.URI
 /**
  * From an FDML file an FDMLReader reader creates a dataset, configures it's adapter, and builds the dataset's model.
  */
-class FDMLReader extends AdaptedDatasetSource {
+class FDMLReader(xmlExpression: String) extends AdaptedDatasetSource {
   
-}
-
-object FDMLReader {
+  val xml = load(xmlExpression)
+  val datasetName = (xml \ "@name").text
+  val datasetUri = (xml \ "@uri").text
+  val adapterNode: NodeSeq = (xml \ "adapter")
+  val functionNode: NodeSeq = (xml \ "function")
+  val tupleNode: NodeSeq = (xml \ "tuple")
+  val scalarNode: NodeSeq = (xml \ "scalar")
+  val operationNode: NodeSeq = (xml \ "operation")  
   
-  def apply(xmltext: String) = {
-    val loaded = load(xmltext)
-    parse(loaded)
-  }
+  def uri: URI = new URI(datasetUri)
+  override def metadata: Metadata = Metadata("name" -> datasetName, "id" -> uri.getPath) 
+  def model: DataType = createModel(functionNode, tupleNode, scalarNode).get
+  def adapter: Adapter = createAdapter(adapterNode, model)
+  override def operations: Seq[UnaryOperation] = createOperations(operationNode)
   
-  /**
-   * Parse an FDML file and create an AdaptedDatasetSource.
-   */
-  def parse(xml: Elem): FDMLReader = {
-    if ( xml.label == "dataset" ) {
-      val datasetName = (xml \ "@name").text
-      val datasetUri = (xml \ "@uri").text
-      val adapterNode: NodeSeq = (xml \ "adapter")
-      val functionNode: NodeSeq = (xml \ "function")
-      val tupleNode: NodeSeq = (xml \ "tuple")
-      val scalarNode: NodeSeq = (xml \ "scalar")
-      val operationNode: NodeSeq = (xml \ "operation")
-      if ( functionNode.length > 0 ) {
-        new FDMLReader {
-          def uri: URI = new URI(datasetUri)
-          override def metadata: Metadata = Metadata("name" -> datasetName, "id" -> uri.getPath) 
-          def model: DataType = createModel(functionNode, tupleNode, scalarNode).get
-          def adapter: Adapter = createAdapter(adapterNode, model)
-          override def operations: Seq[UnaryOperation] = createOperations(operationNode)
-        }
-      } else {
-        throw new RuntimeException("Invalid FDML file, missing root dataset element.")
-      }
-    } else {
-       throw new RuntimeException("Invalid FDML file, missing function element.")  
-    }
-  }
-   
   /**
    * Convert a string containing valid XML to an XML element.
    */
@@ -301,4 +279,12 @@ object FDMLReader {
   /*
    *  END parsing of specific operations
    */
+}
+
+object FDMLReader {
+  
+  def apply(xmltext: String) = {
+    new FDMLReader(xmltext)
+  }
+  
 }
