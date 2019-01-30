@@ -1,10 +1,17 @@
 package latis.util
 
-import scala.concurrent.ExecutionContext
+import latis.input.StreamSource
+
+import java.net.URI
+import java.util.ServiceLoader
 import java.util.concurrent.Executors
-import cats.effect.IO
+
+import scala.collection.JavaConverters.iterableAsScalaIterableConverter
+import scala.concurrent.ExecutionContext
+
 import cats.effect.ContextShift
-import fs2._
+import cats.effect.IO
+import fs2.Stream
 
 /**
  * Utilities for working with fs2 Streams.
@@ -36,5 +43,21 @@ object StreamUtils {
    */
   def unsafeStreamToSeq[T](stream: Stream[IO, T]): Seq[T] = 
     stream.compile.toVector.unsafeRunSync
+    
+  /**
+   * Given a URI for a data source, return an fs2.Stream.
+   * This will inspect StreamSource implementations listed
+   * in META-INF/services/ of jar files in the classpath.
+   */
+  def getStream(uri: URI): Stream[IO, Byte] = {
+    val scheme = uri.getScheme
+    ServiceLoader.load(classOf[StreamSource]).asScala.find(_.supportsScheme(scheme)) match {
+      case Some(source) => source.getStream(uri)
+      case None         => {
+        val msg = s"Failed to find a StreamSource for URI scheme: $scheme"
+        Stream.raiseError[IO](new Exception(msg))
+      }
+    }
+  }
     
 }
