@@ -188,27 +188,19 @@ class FDMLReader(xmlExpression: String) extends AdaptedDatasetSource {
   /*
    * BEGIN parsing of specific operations 
    */
+
+  
   def contains(node: Node): Option[UnaryOperation] = {
-    val vname = (node \ "vname").text
-    val values = for {
-      value <- (node \ "value").iterator
-    } yield value.text
-    if (values.isEmpty  || vname.isEmpty) {
-      None
-    } else {
-      Some(Contains(vname, values))
-    }
+    for {
+      vname  <- Option(node \ "vname").filter(_.nonEmpty)
+      values <- Option(node \ "value").filter(_.nonEmpty)
+    } yield Contains(vname.text, values.map(_.text))
   }
   
   def groupBy(node: Node): Option[UnaryOperation] = {
-    val vnames = for {
-      vname <- (node \ "vname").iterator
-    } yield vname.text
-    if (vnames.isEmpty) {
-      None
-    } else {
-      Some(GroupBy(vnames.toSeq: _*))
-    }
+    for {
+      vnames  <- Option(node \ "vname").filter(_.nonEmpty)
+    } yield GroupBy(vnames.map(_.text).toSeq: _*)
   }
   
   /**
@@ -219,29 +211,16 @@ class FDMLReader(xmlExpression: String) extends AdaptedDatasetSource {
   }
   
   def pivot(node: Node): Option[UnaryOperation] = {
-    val values = for {
-      value <- (node \ "value").iterator
-    } yield value.text
-    val vids = for {
-      vid <- (node \ "vid").iterator
-    } yield vid.text
-    
-    if (values.isEmpty || vids.isEmpty) {
-      None
-    } else {
-      Some(Pivot(values.toSeq, vids.toSeq))
-    }
+    for {
+      values  <- Option(node \ "value").filter(_.nonEmpty)
+      vids <- Option(node \ "vid").filter(_.nonEmpty)
+    } yield Pivot(values.map(_.text), vids.map(_.text)) 
   }
   
   def project(node: Node): Option[UnaryOperation] = {
-    val vids = for {
-      vid <- (node \ "vid").iterator
-    } yield vid.text
-    if (vids.isEmpty) {
-      None
-    } else {
-      Some(Projection(vids.toSeq: _*))
-    }
+    for {
+      vids  <- Option(node \ "vid").filter(_.nonEmpty)
+    } yield Projection(vids.map(_.text).toSeq: _*)
   }
   
   /**
@@ -256,14 +235,11 @@ class FDMLReader(xmlExpression: String) extends AdaptedDatasetSource {
   }
   
   def select(node: Node): Option[UnaryOperation] = {
-    val vName = (node \ "vname").text
-    val operator = (node \ "operator").text
-    val value = (node \ "value").text
-    if (vName.isEmpty || operator.isEmpty || value.isEmpty) {
-      None
-    } else {
-      Some(Selection(vName, operator, value))
-    }
+    for {
+      vname  <- Option(node \ "vname").filter(_.nonEmpty)
+      operator <- Option(node \ "operator").filter(_.nonEmpty)
+      value <- Option(node \ "value").filter(_.nonEmpty)
+    } yield Selection(vname.text, operator.text, value.text)
   }
   
   /**
