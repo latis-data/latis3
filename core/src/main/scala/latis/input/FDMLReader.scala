@@ -174,15 +174,11 @@ class FDMLReader(xmlExpression: String) extends AdaptedDatasetSource {
    * Get all of the attributes for the specified XML Node.
    */
   def getAttributes(xml: NodeSeq): Map[String, String] = {
-    if (xml.length > 0 ) {
-      val node = xml.head
-      val seq = for (
-        att <- node.attributes
-      ) yield (att.key, att.value.text)
-      Map[String, String](seq.toList: _*)
-    } else {
-      Map.empty
-    }
+    val node = xml.head
+    val seq = for (
+      att <- node.attributes
+    ) yield (att.key, att.value.text)
+    seq.toMap
   }
   
   /*
