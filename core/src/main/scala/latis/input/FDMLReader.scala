@@ -85,15 +85,11 @@ class FDMLReader(xmlExpression: String) extends AdaptedDatasetSource {
    * Create a sequence of operations from XML that are to be applied to the dataset.
    */
   def createOperations(operationNodes: NodeSeq): Seq[UnaryOperation] = {
-    if (operationNodes.length > 0) {
-      val operations = for {
+    val operations: Seq[UnaryOperation] = for {
         node <- operationNodes \ "_"        // wildcard, get all top nodes
         operation <- createOperation(node)
       } yield operation
       operations.toSeq
-    } else {
-      Seq.empty
-    }
   }
   
   /**
@@ -197,7 +193,7 @@ class FDMLReader(xmlExpression: String) extends AdaptedDatasetSource {
     val values = for {
       value <- (node \ "value").iterator
     } yield value.text
-    if (values.isEmpty) {
+    if (values.isEmpty  || vname.isEmpty) {
       None
     } else {
       Some(Contains(vname, values))
@@ -263,7 +259,11 @@ class FDMLReader(xmlExpression: String) extends AdaptedDatasetSource {
     val vName = (node \ "vname").text
     val operator = (node \ "operator").text
     val value = (node \ "value").text
-    Some(Selection(vName, operator, value))
+    if (vName.isEmpty || operator.isEmpty || value.isEmpty) {
+      None
+    } else {
+      Some(Selection(vName, operator, value))
+    }
   }
   
   /**
