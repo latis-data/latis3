@@ -53,10 +53,9 @@ object StreamUtils {
     val scheme = uri.getScheme
     ServiceLoader.load(classOf[StreamSource]).asScala.find(_.supportsScheme(scheme)) match {
       case Some(source) => source.getStream(uri)
-      case None         => {
+      case None         =>
         val msg = s"Failed to find a StreamSource for URI scheme: $scheme"
         Stream.raiseError[IO](new Exception(msg))
-      }
     }
   }
     
