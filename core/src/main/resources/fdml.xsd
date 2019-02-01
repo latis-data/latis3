@@ -1,132 +1,129 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
     <xs:element name="datatype" abstract="true"/>
-	   <xs:attributeGroup name="adapter_attributes">
-		      <xs:attribute name="class"/>
-	   </xs:attributeGroup>
-	   <xs:element name="scalar" substitutionGroup="datatype">
-		      <xs:complexType>
-			         <xs:attribute name="id"/>
-			         <xs:attribute name="type">
-			             <xs:simpleType>
-					               <xs:restriction base="xs:string">
-						                  <xs:enumeration value="index"/>
-						                  <xs:enumeration value="real"/>
-						                  <xs:enumeration value="integer"/>
-						                  <xs:enumeration value="time"/>
-						                  <xs:enumeration value="text"/>
-					               </xs:restriction>
-				            </xs:simpleType>
-			         </xs:attribute>
-			         <xs:attribute name="name" type="xs:string"/>
-			         <xs:attribute name="long_name" type="xs:string"/>
-			         <xs:attribute name="missing_value"/>
-			         <xs:attribute name="precision"/>
-			         <xs:attribute name="units"/>
+    <xs:attributeGroup name="adapter_attributes">
+        <xs:attribute name="class"/>
+    </xs:attributeGroup>
+    <xs:element name="scalar" substitutionGroup="datatype">
+        <xs:complexType>
+            <xs:attribute name="id"/>
+            <xs:attribute name="type">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="index"/>
+                        <xs:enumeration value="real"/>
+                        <xs:enumeration value="integer"/>
+                        <xs:enumeration value="time"/>
+                        <xs:enumeration value="text"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="name" type="xs:string"/>
+            <xs:attribute name="long_name" type="xs:string"/>
+            <xs:attribute name="missing_value"/>
+            <xs:attribute name="precision"/>
+            <xs:attribute name="units"/>
         </xs:complexType>
-	   </xs:element>
-	   <xs:element name="tuple" substitutionGroup="datatype">
-		      <xs:complexType>
-			         <xs:choice minOccurs="2" maxOccurs="unbounded">
-				            <xs:element ref="datatype" minOccurs="0" maxOccurs="unbounded"/>
-			         </xs:choice>
-			         <xs:attribute name="id"/>
-		      </xs:complexType>
-	   </xs:element>
-	   <xs:element name="function" substitutionGroup="datatype">
-		      <xs:complexType>
-			         <xs:choice minOccurs="2" maxOccurs="2">
-				            <xs:element ref="datatype"/>
-			         </xs:choice>
-			         <xs:attribute name="id"/>
-			         <xs:attribute name="length"/>
-		      </xs:complexType>
-	   </xs:element>
-	   <xs:element name="adapter">
-		      <xs:complexType>
-			         <xs:attributeGroup ref="adapter_attributes"/>
-		      </xs:complexType>
-	   </xs:element>
-	   <xs:element name="operation">
-		      <xs:complexType>
-			         <xs:choice minOccurs="0" maxOccurs="unbounded">
-				            <xs:element name="contains">
-					               <xs:complexType>
-						                  <xs:sequence>
-							                     <xs:element name="vname" type="xs:string"/>
-							                     <xs:element name="value" type="xs:string" maxOccurs="unbounded"/>
-						                  </xs:sequence>
-					               </xs:complexType>
-				            </xs:element>
-				            <xs:element name="groupby">
-					               <xs:complexType>
-						                  <xs:sequence>
-							                     <xs:element name="vnames" type="xs:string" maxOccurs="unbounded"/>
-						                  </xs:sequence>
-					               </xs:complexType>
-				            </xs:element>
-				            <xs:element name="head"/>
-				            <xs:element name="join">
-					               <xs:complexType>
-						                  <xs:choice minOccurs="2" maxOccurs="unbounded">
-							                     <xs:element ref="dataset"/>
-						                  </xs:choice>
-					               </xs:complexType>
-				            </xs:element>
-				            <xs:element name="pivot">
-					               <xs:complexType>
-						                  <xs:sequence>
-							                     <xs:element name="valuetype" type="xs:string"/>
-							                     <xs:element name="value" type="xs:string" maxOccurs="unbounded"/>
-							                     <xs:element name="vid" type="xs:string" maxOccurs="unbounded"/>
-						                  </xs:sequence>
-					               </xs:complexType>
-				            </xs:element>
-				            <xs:element name="project">
-					               <xs:complexType>
-						                  <xs:sequence>
-							                     <xs:element name="vid" type="xs:string" maxOccurs="unbounded"/>
-						                  </xs:sequence>
-					               </xs:complexType>
-				            </xs:element>
-				            <xs:element name="rename">
-					               <xs:complexType>
-						                  <xs:sequence>
-							                     <xs:element name="vname" type="xs:string"/>
-							                     <xs:element name="newName" type="xs:string"/>
-						                  </xs:sequence>
-					               </xs:complexType>
-				            </xs:element>
-				            <xs:element name="select">
-					               <xs:complexType>
-						                  <xs:sequence>
-							                     <xs:element name="vname" type="xs:string"/>
-							                     <xs:element name="operator" type="xs:string"/>
-							                     <xs:element name="value" type="xs:string"/>
-						                  </xs:sequence>
-					               </xs:complexType>
-				            </xs:element>
-				            <xs:element name="take">
-					               <xs:complexType>
-						                  <xs:attribute name="arg" type="xs:int"/>
-					               </xs:complexType>
-				            </xs:element>
-				            <xs:element name="uncurry"/>
-			         </xs:choice>
-		      </xs:complexType>
-	   </xs:element>
-	   <xs:element name="dataset">
-		      <xs:complexType>
-			         <xs:choice minOccurs="0" maxOccurs="unbounded">
-				            <xs:element ref="adapter"/>
-				            <xs:element ref="datatype" minOccurs="0" maxOccurs="unbounded"/>
-				            <xs:element ref="operation" minOccurs="0" maxOccurs="unbounded"/>
-			         </xs:choice>
-			         <xs:attribute name="id"/>
-			         <xs:attribute name="name" type="xs:string"/>
-			         <xs:attribute name="uri" type="xs:string"/>
-			         <xs:attribute name="ref"/>
-			         <xs:attribute name="history" type="xs:string"/>
-		      </xs:complexType>
+    </xs:element>
+    <xs:element name="tuple" substitutionGroup="datatype">
+        <xs:complexType>
+            <xs:choice minOccurs="2" maxOccurs="unbounded">
+                <xs:element ref="datatype" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:choice>
+            <xs:attribute name="id"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="function" substitutionGroup="datatype">
+        <xs:complexType>
+            <xs:choice minOccurs="2" maxOccurs="2">
+                <xs:element ref="datatype"/>
+            </xs:choice>
+            <xs:attribute name="id"/>
+            <xs:attribute name="length"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="adapter">
+        <xs:complexType>
+            <xs:attributeGroup ref="adapter_attributes"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="operation">
+        <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element name="contains">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="vname" type="xs:string"/>
+                            <xs:element name="value" type="xs:string" maxOccurs="unbounded"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="groupby">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="vname" type="xs:string" maxOccurs="unbounded"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="head"/>
+                <xs:element name="join">
+                    <xs:complexType>
+                        <xs:choice minOccurs="2" maxOccurs="unbounded">
+                            <xs:element ref="dataset"/>
+                        </xs:choice>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="pivot">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="valuetype" type="xs:string"/>
+                            <xs:element name="value" type="xs:string" maxOccurs="unbounded"/>
+                            <xs:element name="vid" type="xs:string" maxOccurs="unbounded"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="project">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="vid" type="xs:string" maxOccurs="unbounded"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="rename">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="vname" type="xs:string"/>
+                            <xs:element name="newName" type="xs:string"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="select">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="vname" type="xs:string"/>
+                            <xs:element name="operator" type="xs:string"/>
+                            <xs:element name="value" type="xs:string"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="take" type="xs:integer">
+                </xs:element>
+                <xs:element name="uncurry"/>
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="dataset">
+        <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element ref="adapter"/>
+                <xs:element ref="datatype" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="operation" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:choice>
+            <xs:attribute name="id"/>
+            <xs:attribute name="name" type="xs:string"/>
+            <xs:attribute name="uri" type="xs:string"/>
+            <xs:attribute name="ref"/>
+            <xs:attribute name="history" type="xs:string"/>
+        </xs:complexType>
     </xs:element>
 </xs:schema>

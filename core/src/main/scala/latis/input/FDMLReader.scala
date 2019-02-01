@@ -13,11 +13,22 @@ import java.net.URI
 /**
  * From an FDML file an FDMLReader reader creates a dataset, configures it's adapter, and builds the dataset's model.
  */
-class FDMLReader {
+class FDMLReader(xmlExpression: String) extends AdaptedDatasetSource {
   
-}
-
-object FDMLReader {
+  val xml = load(xmlExpression)
+  val datasetName = (xml \ "@name").text
+  val datasetUri = (xml \ "@uri").text
+  val adapterNode: NodeSeq = (xml \ "adapter")
+  val functionNode: NodeSeq = (xml \ "function")
+  val tupleNode: NodeSeq = (xml \ "tuple")
+  val scalarNode: NodeSeq = (xml \ "scalar")
+  val operationNode: NodeSeq = (xml \ "operation")  
+  
+  def uri: URI = new URI(datasetUri)
+  override def metadata: Metadata = Metadata("name" -> datasetName, "id" -> uri.getPath) 
+  def model: DataType = createModel(functionNode, tupleNode, scalarNode).get
+  def adapter: Adapter = createAdapter(adapterNode, model)
+  override def operations: Seq[UnaryOperation] = createOperations(operationNode)
   
   /**
    * Convert a string containing valid XML to an XML element.
@@ -71,6 +82,36 @@ object FDMLReader {
   }
   
   /**
+   * Create a sequence of operations from XML that are to be applied to the dataset.
+   */
+  def createOperations(operationNodes: NodeSeq): Seq[UnaryOperation] = {
+    val operations: Seq[UnaryOperation] = for {
+        node <- operationNodes \ "_"        // wildcard, get all top nodes
+        operation <- createOperation(node)
+      } yield operation
+      operations.toSeq
+  }
+  
+  /**
+   * For a specified XML operation node, return a unary operation.
+   * ToDo: reflection might be more elegant, but for now pattern matching will suffice
+   */
+  def createOperation(node: Node): Option[UnaryOperation] = {
+    node.label match {
+      case "contains"  => contains(node)
+      case "groupby"   => groupBy(node)
+      case "head"      => head(node)
+      case "pivot"     => pivot(node)
+      case "project"   => project(node)
+      case "rename"    => rename(node)
+      case "select"    => select(node)
+      case "take"      => take(node)
+      case "uncurry"   => uncurry(node)
+      case _           => None
+    }
+  }
+  
+  /**
    * Function datatypes must contain a domain and a range.
    */
   def createFunctionDataType(functionNodes: NodeSeq): Option[Function] = {
@@ -120,14 +161,6 @@ object FDMLReader {
   }
   
   /**
-   * Operations are extracted from the operationNode and enumerated in the order appearing in the FDML file.
-   */
-  def createOperation(operationNode: NodeSeq): Seq[Operation] = {
-    // TODO: implementation awaiting merging with new Operations classes.
-    List[Operation]().toSeq 
-  }
-  
-  /**
    * Get the value of this element's attribute with the given name.
    */
   def getAttribute(xml: NodeSeq, name: String): Option[String] = {
@@ -141,44 +174,89 @@ object FDMLReader {
    * Get all of the attributes for the specified XML Node.
    */
   def getAttributes(xml: NodeSeq): Map[String, String] = {
-    if (xml.length > 0 ) {
-      val node = xml.head
-      val seq = for (
-        att <- node.attributes
-      ) yield (att.key, att.value.text)
-      Map[String, String](seq.toList: _*)
-    } else {
-      Map[String, String]()
-    }
+    val node = xml.head
+    val seq = for (
+      att <- node.attributes
+    ) yield (att.key, att.value.text)
+    seq.toMap
+  }
+  
+  /*
+   * BEGIN parsing of specific operations 
+   */
+
+  
+  def contains(node: Node): Option[UnaryOperation] = {
+    for {
+      vname  <- Option(node \ "vname").filter(_.nonEmpty)
+      values <- Option(node \ "value").filter(_.nonEmpty)
+    } yield Contains(vname.text, values.map(_.text))
+  }
+  
+  def groupBy(node: Node): Option[UnaryOperation] = {
+    for {
+      vnames  <- Option(node \ "vname").filter(_.nonEmpty)
+    } yield GroupBy(vnames.map(_.text).toSeq: _*)
   }
   
   /**
-   * Parse an FDML file and create a dataset.
+   * Head operation not yet implemented.
    */
-  def parse(xml: Elem): Option[Dataset] = {
-    if ( xml.label == "dataset" ) {
-      val datasetName = (xml \ "@name").text
-      val datasetUri = (xml \ "@uri").text
-      val adapterNode: NodeSeq = (xml \ "adapter")
-      val functionNode: NodeSeq = (xml \ "function")
-      val tupleNode: NodeSeq = (xml \ "tuple")
-      val scalarNode: NodeSeq = (xml \ "scalar")
-      val operationNode: NodeSeq = (xml \ "operation")
-      if ( functionNode.length > 0 ) {
-        val source = new AdaptedDatasetSource {
-          def uri: URI = new URI(datasetUri)
-          def metaData: Metadata = Metadata("name" -> datasetName, "id" -> uri.getPath) 
-          val model: DataType = createModel(functionNode, tupleNode, scalarNode).get
-          def adapter: Adapter = createAdapter(adapterNode, model)
-        }
-        Some(source.getDataset())
-        //TODO: add operations to dataset
-        //Some(source.getDataset(createOperation(operationNode))) 
-      } else {
-        None
-      }
-    } else {
-      None
-    }
+  def head(node: Node): Option[UnaryOperation] = {
+    None
   }
+  
+  def pivot(node: Node): Option[UnaryOperation] = {
+    for {
+      values  <- Option(node \ "value").filter(_.nonEmpty)
+      vids <- Option(node \ "vid").filter(_.nonEmpty)
+    } yield Pivot(values.map(_.text), vids.map(_.text)) 
+  }
+  
+  def project(node: Node): Option[UnaryOperation] = {
+    for {
+      vids  <- Option(node \ "vid").filter(_.nonEmpty)
+    } yield Projection(vids.map(_.text).toSeq: _*)
+  }
+  
+  /**
+   * Rename operation not yet implemented.
+   */
+  def rename(node: Node): Option[UnaryOperation] = {
+    val vName = (node \ "vname").text
+    val newName = (node \ "newName").text
+    //todo: implement Rename operation
+    //Some(Rename(vName, newName))
+    None
+  }
+  
+  def select(node: Node): Option[UnaryOperation] = {
+    for {
+      vname  <- Option(node \ "vname").filter(_.nonEmpty)
+      operator <- Option(node \ "operator").filter(_.nonEmpty)
+      value <- Option(node \ "value").filter(_.nonEmpty)
+    } yield Selection(vname.text, operator.text, value.text)
+  }
+  
+  /**
+   * Take operation not yet implemented.
+   */
+  def take(node: Node): Option[UnaryOperation] = {
+    None
+  }
+  
+  def uncurry(node: Node): Option[UnaryOperation] = {
+    Some(Uncurry())  
+  }
+  /*
+   *  END parsing of specific operations
+   */
+}
+
+object FDMLReader {
+  
+  def apply(xmltext: String) = {
+    new FDMLReader(xmltext)
+  }
+  
 }
