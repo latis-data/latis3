@@ -5,13 +5,13 @@ import latis.model.DataType
 import latis.model.Function
 import latis.model.Scalar
 import latis.util.PropertiesLike
+import latis.util.StreamUtils
 
 import java.net.URI
 
 import cats.effect.IO
 import fs2.Stream
 import fs2.text
-import latis.util.NetUtils
 
 /**
  * Adapter for record-oriented text datasets that can be streamed.
@@ -24,7 +24,7 @@ class TextAdapter(config: TextAdapter.Config, model: DataType)
    * Apply configuration options to the Stream.
    */
   def recordStream(uri: URI): Stream[IO, String] =
-    NetUtils.resolve(uri).getStream
+    StreamUtils.getStream(uri)
       .through(text.utf8Decode)
       .through(text.lines)
       .drop(config.skipLines)
