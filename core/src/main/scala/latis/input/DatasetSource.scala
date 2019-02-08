@@ -3,6 +3,9 @@ package latis.input
 import latis.model.Dataset
 import latis.ops.Operation
 import latis.ops.UnaryOperation
+import scala.collection.JavaConverters.iterableAsScalaIterableConverter
+import java.util.ServiceLoader
+
 
 /**
  * A DatasetSource is a provider of a LaTiS Dataset
@@ -27,22 +30,25 @@ object DatasetSource {
   
   /**
    * Get the DatasetSource for a given dataset by its identifier.
+   * Delegate to known DatasetSourceProviders.
    */
-//  def fromName(datasetId: String): DatasetSource = {
-//    //Look for a matching "reader" property.
+  def fromName(datasetId: String): DatasetSource =
+    ServiceLoader.load(classOf[DatasetSourceProvider]).asScala
+      .flatMap(_.getDatasetSource(datasetId)).headOption
+      .getOrElse(throw new RuntimeException(s"Failed to find source for dataset: $datasetId"))
+      
+//TODO: try CacheManager first
+//TODO: DatasetSourceProvider to Look for a matching "reader" property.
 //    LatisProperties.get(s"reader.${datasetId}.class") match {
 //      case Some(s) =>
 //        Class.forName(s).getConstructor().newInstance().asInstanceOf[DatasetSource]
 //    }
-//    
-////    //TODO: add other sources: tsml. lemr, properties
-////    //import scala.reflect.runtime.currentMirror
-////    val ru = scala.reflect.runtime.universe
-////    val mirror = ru.runtimeMirror(getClass.getClassLoader)
-////    
-////    val cls = LatisProperties.getOrElse("dataset.dir", "datasets") + "." + dsid
-////    
-////    val moduleSymbol = mirror.classSymbol(Class.forName(cls)).companion.asModule
-////    mirror.reflectModule(moduleSymbol).instance.asInstanceOf[DatasetDescriptor]
-//  }
 }
+
+trait DatasetSourceProvider {
+  def getDatasetSource(dsid: String): Option[DatasetSource]
+}
+
+
+
+

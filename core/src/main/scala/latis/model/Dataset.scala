@@ -22,6 +22,9 @@ case class Dataset(metadata: Metadata, model: DataType, data: SampledFunction)
     if (data.isEmpty) this
     else {
       val d2 = ff.fromSeq(data.unsafeForce.samples)
+      //TODO: just pass data and let it decide how to memoize it?
+      //  e.g. RDD could leave it in RDD but invoke "cache" on it
+   //TODO: put in cacheManager?
       copy(data = d2)
     }
   }
