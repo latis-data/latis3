@@ -72,13 +72,8 @@ class FDMLReader(xmlExpression: String) extends AdaptedDatasetSource {
   def createAdapter(adapterNode: NodeSeq, model: DataType): Adapter = {
     val adapterClass: Option[String] = getAttribute(adapterNode, "class")
     val attributes: Seq[(String, String)] = getAttributes(adapterNode).filter(_._1 != "class").toSeq
-    val config = AdapterFactory(adapterClass, attributes: _*)
-    
-    // Reflection is the preferred way to create adapters, but I can't get this to work
     // TODO: this is an unsafe get
-    //val adapterConfig = Class.forName(adapterClass.get).newInstance().asInstanceOf[Adapter].Config(attributes: _*)
-    
-    AdapterFactory(adapterClass, config, model)
+    Class.forName(adapterClass.get).newInstance().asInstanceOf[Adapter]
   }
   
   /**
