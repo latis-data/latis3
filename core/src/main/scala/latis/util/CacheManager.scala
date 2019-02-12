@@ -5,15 +5,30 @@ import latis.model.Dataset
 
 /**
  * A Singleton to hold instances of a Dataset in a Map with
- * the dataset name as the key.
- * This will likely evolve to use more sophisticated caching mechanisms.
+ * the dataset identifier as the key.
  */
-class CacheManager {
+private class CacheManager {
+  /*
+   * TODO: extends DatasetSourceProvider, but as singleton?
+   * resulting DatasetSource?
+   *   getDataset(ops)? 
+   *   could cache same dataset with ops applied?
+   *   or simple apply them
+   *   anonymous wrapper around getDatasetSource(id)?
+   *   or cache entry as DatasetSource?
+   * Or should we bypass DatasetSource and give user Dataset (akin to URI resolver => Stream)
+   *   do we have a good reason to expose DatasetSource?
+   *     no longer need to manage resources, e.g. close (in theory)
+   *     easier to merge later that to break apart
+   */
   
   /**
-   * Maintain the Datasets in a Map.
+   * Maintain Datasets in a Map using the identifier as the key.
+   * TODO: include the time cached so we can invalidate.
    */
   private val cache = mutable.Map[String, Dataset]()
+  
+  //TODO: concurrency issues, serialize methods?
 }
 
 
@@ -29,21 +44,11 @@ object CacheManager {
   private lazy val instance = new CacheManager()
   
   /**
-   * Add a dataset to the cache.
-   * The Dataset will be memoized to ensure that it contains all of its
-   * data so it is no longer coupled to its source.
-   * This will return the cached dataset since the original may be spent
-   * due to TraversableOnce issues.
-   * It is expected that the Dataset has Metadata that defines the name.
+   * Add the given dataset to the cache.
    */
-  def cacheDataset(dataset: Dataset): Dataset = {
-    //Add creation time to metadata for cache invalidation
-    val md = dataset.metadata + ("creation_time" -> System.currentTimeMillis.toString)
-    //TODO: Make sure dataset is memoized (all the Data loaded)
-    val ds = dataset.copy(metadata = md)
-    instance.cache += dataset.id -> ds
-    ds
-  }
+  def cacheDataset(dataset: Dataset): Unit =
+    instance.cache += dataset.id -> dataset
+    //TODO: warn if data not memoized?
   
   /**
    * Optionally get the Dataset with the given name.
@@ -66,4 +71,6 @@ object CacheManager {
    * Remove a single dataset from the cache.
    */
   def removeDataset(name: String): Option[Dataset] = instance.cache.remove(name)
+  
+  //TODO: validate: remove expired datasets? need md term for expiration
 }

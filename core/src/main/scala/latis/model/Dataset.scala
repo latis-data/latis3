@@ -5,6 +5,7 @@ import latis.metadata._
 
 import cats.effect.IO
 import fs2.Stream
+import latis.util.CacheManager
 
 /**
  * A Dataset is the primary representation of any dataset.
@@ -16,18 +17,18 @@ case class Dataset(metadata: Metadata, model: DataType, data: SampledFunction)
   extends MetadataLike {
   //TODO: impl FunctionalAlgebra by delegating to Operations?
 
-  def cache(ff: FunctionFactory): Dataset = {
-    //TODO: consider how "cache" relates to "force"; same?
-    //TODO: generic empty vs specific type empty? zero for appending
-    if (data.isEmpty) this
-    else {
-      val d2 = ff.fromSeq(data.unsafeForce.samples)
-      //TODO: just pass data and let it decide how to memoize it?
-      //  e.g. RDD could leave it in RDD but invoke "cache" on it
-   //TODO: put in cacheManager?
-      copy(data = d2)
-    }
-  }
+  /**
+   * Put a copy of this Dataset into the CacheManager.
+   */
+  def cache(): Unit = CacheManager.cacheDataset(this)
+  //TODO: return Dataset for convenient use?
+  
+  /**
+   * Make a copy of the Dataset with the data stored using
+   * the given SampledFunction implementation.
+   */
+  def restructure(ff: FunctionFactory): Dataset =
+    copy(data = ff.restructure(data))
   
   /**
    * Ensure that the data encapsulated by this Dataset is memoized.
