@@ -21,14 +21,19 @@ case class Dataset(metadata: Metadata, model: DataType, data: SampledFunction)
    * Put a copy of this Dataset into the CacheManager.
    */
   def cache(): Unit = CacheManager.cacheDataset(this)
-  //TODO: return Dataset for convenient use?
   
   /**
    * Make a copy of the Dataset with the data stored using
    * the given SampledFunction implementation.
    */
+  //TODO: "cache", "persist", "memoize", ...?
   def restructure(ff: FunctionFactory): Dataset =
     copy(data = ff.restructure(data))
+    
+  // Rename the dataset by making a new copy with updated metadata.
+  //TODO: impl as an Operation, capture prov
+  def rename(name: String): Dataset =
+    copy(metadata = metadata + ("id" -> name))
   
   /**
    * Ensure that the data encapsulated by this Dataset is memoized.
