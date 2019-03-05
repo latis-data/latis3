@@ -2,33 +2,20 @@ package latis.util
 
 import scala.collection._
 import latis.model.Dataset
+import latis.input.DatasetSource
 
 /**
- * A Singleton to hold instances of a Dataset in a Map with
+ * Manage a cache to hold instances of a Dataset in a Map with
  * the dataset identifier as the key.
  */
-private class CacheManager {
-  /*
-   * TODO: extends DatasetSourceProvider, but as singleton?
-   * resulting DatasetSource?
-   *   getDataset(ops)? 
-   *   could cache same dataset with ops applied?
-   *   or simple apply them
-   *   anonymous wrapper around getDatasetSource(id)?
-   *   or cache entry as DatasetSource?
-   * Or should we bypass DatasetSource and give user Dataset (akin to URI resolver => Stream)
-   *   do we have a good reason to expose DatasetSource?
-   *     no longer need to manage resources, e.g. close (in theory)
-   *     easier to merge later that to break apart
-   */
-  
+class CacheManager extends DatasetSource {
+
   /**
-   * Maintain Datasets in a Map using the identifier as the key.
-   * TODO: include the time cached so we can invalidate.
+   * This method is used by the DatasetSource ServiceLoader to determine
+   * if this can provide the requested Dataset.
    */
-  private val cache = mutable.Map[String, Dataset]()
-  
-  //TODO: concurrency issues, serialize methods?
+  def getDataset(name: String): Option[Dataset] = CacheManager.cache.get(name)
+
 }
 
 
@@ -41,36 +28,37 @@ object CacheManager {
   /**
    * Singleton instance of the CacheManager.
    */
-  private lazy val instance = new CacheManager()
+  //TODO: concurrency issues, serialize methods? Use scalacache!
+  private lazy val cache = mutable.Map[String, Dataset]()
   
   /**
-   * Add the given dataset to the cache.
+   * Add the given Dataset to the cache.
+   * This will also ensure that the Dataset is memoized
+   * via a potentially unsafe read.
    */
-  def cacheDataset(dataset: Dataset): Unit =
-    instance.cache += dataset.id -> dataset
-    //TODO: warn if data not memoized?
+  def cacheDataset(dataset: Dataset): Unit = 
+    cache += dataset.id -> dataset.unsafeForce
   
   /**
    * Optionally get the Dataset with the given name.
    */
-  def getDataset(name: String): Option[Dataset] = {
-    instance.cache.get(name)
-  }
+  def getDataset(name: String): Option[Dataset] = cache.get(name)
   
   /**
    * Return an immutable Map of dataset name to Dataset instance.
    */
-  def getDatasets: immutable.Map[String, Dataset] = instance.cache.toMap  //make immutable
+  def getDatasets: immutable.Map[String, Dataset] = cache.toMap  //make immutable
 
   /**
    * Remove all entries from the cache.
    */
-  def clear: Unit = instance.cache.clear
+  def clear: Unit = cache.clear
   
   /**
    * Remove a single dataset from the cache.
    */
-  def removeDataset(name: String): Option[Dataset] = instance.cache.remove(name)
+  def removeDataset(name: String): Option[Dataset] = cache.remove(name)
   
   //TODO: validate: remove expired datasets? need md term for expiration
 }
+

@@ -6,6 +6,9 @@ import latis.metadata._
 import cats.effect.IO
 import fs2.Stream
 import latis.util.CacheManager
+import latis.input.DatasetSource
+import latis.input.DatasetReader
+import java.net.URI
 
 /**
  * A Dataset is the primary representation of any dataset.
@@ -49,4 +52,11 @@ case class Dataset(metadata: Metadata, model: DataType, data: SampledFunction)
    */
   override def toString: String =  s"${id}: $model"
   
+}
+
+object Dataset {
+  
+  def fromName(name: String): Dataset = DatasetSource.getDataset(name)
+  
+  def fromURI(uri: URI): Dataset = DatasetReader.read(uri)
 }

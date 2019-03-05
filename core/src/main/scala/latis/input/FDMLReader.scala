@@ -13,9 +13,8 @@ import java.net.URI
 /**
  * From an FDML file an FDMLReader reader creates a dataset, configures it's adapter, and builds the dataset's model.
  */
-class FDMLReader(xmlExpression: String) extends AdaptedDatasetSource {
+class FDMLReader(xml: Elem) extends AdaptedDatasetReader {
   
-  val xml = load(xmlExpression)
   val datasetName = (xml \ "@name").text
   val datasetUri = (xml \ "@uri").text
   val adapterNode: NodeSeq = (xml \ "adapter")
@@ -31,9 +30,15 @@ class FDMLReader(xmlExpression: String) extends AdaptedDatasetSource {
   override def operations: Seq[UnaryOperation] = createOperations(operationNode)
   
   /**
-   * Convert a string containing valid XML to an XML element.
+   * This method is used by the DatasetReader ServiceLoader to determine
+   * if this can read a dataset with the given URI. This is based on the
+   * dataset type, not IO errors.
    */
-  def load(xmlText: String): Elem = XML.loadString(xmlText)
+  override def read(uri: URI): Option[Dataset] = {
+    // If the extension is "fdml" then try to load it
+    if (uri.getPath.endsWith(".fdml")) Some(FDMLReader(uri).getDataset)
+    else None
+  }
   
   /** Recursively parse the function XML element into a domain and range.
    *The createDataType function introduces recursion because it calls functions that can also call createDataType.
@@ -253,10 +258,13 @@ class FDMLReader(xmlExpression: String) extends AdaptedDatasetSource {
    */
 }
 
+
 object FDMLReader {
   
-  def apply(xmltext: String) = {
-    new FDMLReader(xmltext)
-  }
+  def apply(xmlText: String) =
+    new FDMLReader(XML.loadString(xmlText))
+  
+  def apply(uri: URI): FDMLReader =
+    new FDMLReader(XML.load(uri.toURL))
   
 }

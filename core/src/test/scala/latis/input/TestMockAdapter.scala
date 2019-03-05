@@ -13,13 +13,13 @@ class TestMockAdapter {
   
   //@Test
   def mock = {
-    val source = new AdaptedDatasetSource {
+    val reader = new AdaptedDatasetReader {
       def uri: URI = new URI("mock")
       def model: DataType = Function(Scalar("a"), Scalar("b"))
       def adapter = new MockAdapter()
     }
     
-    val ds = source.getDataset()
+    val ds = reader.getDataset
     Writer.write(ds)
   }
 }

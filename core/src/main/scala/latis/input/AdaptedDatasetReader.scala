@@ -9,9 +9,9 @@ import latis.ops._
 import java.net.URI
 
 /**
- * DatasetSource that uses an Adapter to get data from the source.
+ * DatasetReader that uses an Adapter to get data from the source.
  */
-trait AdaptedDatasetSource extends DatasetSource {
+trait AdaptedDatasetReader extends DatasetReader {
   
   /**
    * Resolvable identifier of the data source.
@@ -43,7 +43,8 @@ trait AdaptedDatasetSource extends DatasetSource {
   /**
    * Construct a Dataset by delegating to the Adapter.
    */
-  def getDataset(ops: Seq[UnaryOperation]): Dataset = {
+  //def getDataset(ops: Seq[UnaryOperation]): Dataset = {
+  def getDataset: Dataset = {
     
     // Apply the Adapter to the given resource to get the data.
     val data: SampledFunction = adapter(uri)
@@ -54,6 +55,7 @@ trait AdaptedDatasetSource extends DatasetSource {
     // Apply the operations to the Dataset.
     // Note that the operations from this DatasetSource will be applied first.
     //TODO: allow Adapter to apply operations
-    (operations ++ ops).foldLeft(dataset)((ds, op) => op(ds))
+    //(operations ++ ops).foldLeft(dataset)((ds, op) => op(ds))
+    operations.foldLeft(dataset)((ds, op) => op(ds))
   }
 }
