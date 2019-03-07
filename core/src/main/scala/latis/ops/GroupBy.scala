@@ -19,6 +19,7 @@ case class GroupBy(vnames: String*) extends UnaryOperation {
    * Note that this also handles the transpose.
    */
   override def applyToModel(model: DataType): DataType = model match {
+    // TODO: hysics code commented out replaced by GOES-specific code
     //case Function(Tuple(iy, ix, w), f) => Function(Tuple(ix, iy), Function(w, f))
     case Function(Tuple(iw, iy, ix), f) => Function(Tuple(ix, iy), Function(iw, f))
     case _ => ???
