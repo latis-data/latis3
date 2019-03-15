@@ -14,7 +14,8 @@ import java.net.URI
 trait AdaptedDatasetReader extends DatasetReader {
   
   /**
-   * Resolvable identifier of the data source.
+   * A Uniform Resource Identifier (URI) of the data source
+   * from which the Adapter can read data.
    */
   def uri: URI
   
@@ -43,7 +44,6 @@ trait AdaptedDatasetReader extends DatasetReader {
   /**
    * Construct a Dataset by delegating to the Adapter.
    */
-  //def getDataset(ops: Seq[UnaryOperation]): Dataset = {
   def getDataset: Dataset = {
     
     // Apply the Adapter to the given resource to get the data.
@@ -53,9 +53,8 @@ trait AdaptedDatasetReader extends DatasetReader {
     val dataset = Dataset(metadata, model, data)
     
     // Apply the operations to the Dataset.
-    // Note that the operations from this DatasetSource will be applied first.
-    //TODO: allow Adapter to apply operations
-    //(operations ++ ops).foldLeft(dataset)((ds, op) => op(ds))
+    // Note that some operation may be handled by the SampledFunction
+    // that was provided by a "smart" Adapter.
     operations.foldLeft(dataset)((ds, op) => op(ds))
   }
 }

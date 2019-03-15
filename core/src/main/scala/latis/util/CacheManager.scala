@@ -2,19 +2,19 @@ package latis.util
 
 import scala.collection._
 import latis.model.Dataset
-import latis.input.DatasetSource
+import latis.input.DatasetResolver
 
 /**
  * Manage a cache to hold instances of a Dataset in a Map with
  * the dataset identifier as the key.
  */
-class CacheManager extends DatasetSource {
+class CacheManager extends DatasetResolver {
 
   /**
-   * This method is used by the DatasetSource ServiceLoader to determine
+   * This method is used by the DatasetResolver ServiceLoader to determine
    * if this can provide the requested Dataset.
    */
-  def getDataset(name: String): Option[Dataset] = CacheManager.cache.get(name)
+  def getDataset(id: String): Option[Dataset] = CacheManager.cache.get(id)
 
 }
 
@@ -24,11 +24,12 @@ class CacheManager extends DatasetSource {
  * expose the public methods.
  */
 object CacheManager {
+  //TODO: concurrency issues, serialize methods? Use scalacache!
+  //TODO: validate: remove expired datasets? need md term for expiration
   
   /**
    * Singleton instance of the CacheManager.
    */
-  //TODO: concurrency issues, serialize methods? Use scalacache!
   private lazy val cache = mutable.Map[String, Dataset]()
   
   /**
@@ -40,12 +41,12 @@ object CacheManager {
     cache += dataset.id -> dataset.unsafeForce
   
   /**
-   * Optionally get the Dataset with the given name.
+   * Optionally get the Dataset with the given id.
    */
-  def getDataset(name: String): Option[Dataset] = cache.get(name)
+  def getDataset(id: String): Option[Dataset] = cache.get(id)
   
   /**
-   * Return an immutable Map of dataset name to Dataset instance.
+   * Return an immutable Map of dataset id to Dataset instance.
    */
   def getDatasets: immutable.Map[String, Dataset] = cache.toMap  //make immutable
 
@@ -57,8 +58,7 @@ object CacheManager {
   /**
    * Remove a single dataset from the cache.
    */
-  def removeDataset(name: String): Option[Dataset] = cache.remove(name)
+  def removeDataset(id: String): Option[Dataset] = cache.remove(id)
   
-  //TODO: validate: remove expired datasets? need md term for expiration
 }
 

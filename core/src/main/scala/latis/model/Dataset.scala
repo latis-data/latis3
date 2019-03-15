@@ -1,13 +1,13 @@
 package latis.model
 
-import latis.data._
-import latis.metadata._
-
-import cats.effect.IO
-import fs2.Stream
-import latis.util.CacheManager
-import latis.input.DatasetSource
+import latis.data.FunctionFactory
+import latis.data.SampledFunction
 import latis.input.DatasetReader
+import latis.input.DatasetResolver
+import latis.metadata.Metadata
+import latis.metadata.MetadataLike
+import latis.util.CacheManager
+
 import java.net.URI
 
 /**
@@ -18,7 +18,7 @@ import java.net.URI
  */
 case class Dataset(metadata: Metadata, model: DataType, data: SampledFunction)
   extends MetadataLike {
-  //TODO: impl FunctionalAlgebra by delegating to Operations?
+  //TODO: impl FunctionalAlgebra by delegating to Operations? DatasetOps?
 
   /**
    * Put a copy of this Dataset into the CacheManager.
@@ -56,7 +56,13 @@ case class Dataset(metadata: Metadata, model: DataType, data: SampledFunction)
 
 object Dataset {
   
-  def fromName(name: String): Dataset = DatasetSource.getDataset(name)
+  /**
+   * Create a Dataset by using the DatasetResolver ServiceLoader.
+   */
+  def fromName(name: String): Dataset = DatasetResolver.getDataset(name)
   
+  /**
+   * Create a Dataset by using the DatasetReader ServiceLoader.
+   */
   def fromURI(uri: URI): Dataset = DatasetReader.read(uri)
 }
