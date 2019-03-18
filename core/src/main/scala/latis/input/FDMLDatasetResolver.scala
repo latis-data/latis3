@@ -8,7 +8,7 @@ import latis.model.Dataset
 /**
  * Attempt to find a Dataset by mapping the id to a FDML descriptor.
  */
-class FDMLDatasetResolver {
+class FDMLDatasetResolver extends DatasetResolver {
   
   /**
    * Optionally return a Dataset with the given identifier if a FDML
