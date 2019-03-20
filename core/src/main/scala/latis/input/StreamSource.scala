@@ -36,7 +36,7 @@ object StreamSource {
   def getStream(uri: URI): Stream[IO, Byte] =
     ServiceLoader.load(classOf[StreamSource]).asScala
       .flatMap(_.getStream(uri)).headOption.getOrElse {
-        val msg = s"Failed to find a StreamSource for URI: uri"
+        val msg = s"Failed to find a StreamSource for URI: $uri"
         Stream.raiseError[IO](new Exception(msg))
       }
 

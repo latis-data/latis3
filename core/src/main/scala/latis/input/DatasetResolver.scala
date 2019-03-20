@@ -19,7 +19,7 @@ trait DatasetResolver {
    * Optionally return the Dataset with the given identifier.
    * If the DatasetResolver implementation does not support the given Dataset
    * return Null. A failure to read the data could result in an empty Dataset
-   * as opposed to Null.
+   * as opposed to None.
    */
   def getDataset(id: String): Option[Dataset]
 
