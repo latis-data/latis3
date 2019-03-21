@@ -265,6 +265,27 @@ object Function {
     Function(Metadata(), domain, range)
     
   /**
+   * Construct a Function from a Seq of domain variables
+   * and a Seq of range variables. This will make a wrapping
+   * Tuple only if the Seq has more that one element.
+   */
+  //TODO: Use Index if one is empty, error if both are empty?
+  def apply(ds: Seq[DataType], rs: Seq[DataType]): Function = {
+    val domain = ds.length match {
+      case 0 => ??? //TODO: Index
+      case 1 => ds.head
+      case _ => Tuple(ds: _*)
+    }
+    val range = rs.length match {
+      case 0 => ??? //TODO: no range, make domain a function of Index
+      case 1 => rs.head
+      case _ => Tuple(rs: _*)
+    }
+    
+    Function(domain, range)
+  }
+  
+  /**
    * Extract the domain and range types from a Function as a pair.
    */
   def unapply(f: Function): Option[(DataType, DataType)] = 
