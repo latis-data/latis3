@@ -19,6 +19,7 @@ import java.net.URI
 case class Dataset(metadata: Metadata, model: DataType, data: SampledFunction)
   extends MetadataLike {
   //TODO: impl FunctionalAlgebra by delegating to Operations? DatasetOps?
+  //TODO: since data is always a SampledFunction, should model always be a Function?
 
   /**
    * Put a copy of this Dataset into the CacheManager.
