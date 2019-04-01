@@ -261,7 +261,7 @@ class FDMLReader(xml: Elem) extends AdaptedDatasetReader {
 
 object FDMLReader {
   
-  def apply(xmlText: String) =
+  def apply(xmlText: String): FDMLReader =
     new FDMLReader(XML.loadString(xmlText))
   
   def apply(uri: URI): FDMLReader =
