@@ -1,10 +1,14 @@
 package latis.model
 
-import latis.data._
-import latis.metadata._
+import latis.data.FunctionFactory
+import latis.data.SampledFunction
+import latis.input.DatasetReader
+import latis.input.DatasetResolver
+import latis.metadata.Metadata
+import latis.metadata.MetadataLike
+import latis.util.CacheManager
 
-import cats.effect.IO
-import fs2.Stream
+import java.net.URI
 
 /**
  * A Dataset is the primary representation of any dataset.
@@ -14,17 +18,26 @@ import fs2.Stream
  */
 case class Dataset(metadata: Metadata, model: DataType, data: SampledFunction)
   extends MetadataLike {
-  //TODO: impl FunctionalAlgebra by delegating to Operations?
+  //TODO: impl FunctionalAlgebra by delegating to Operations? DatasetOps?
+  //TODO: since data is always a SampledFunction, should model always be a Function?
 
-  def cache(ff: FunctionFactory): Dataset = {
-    //TODO: consider how "cache" relates to "force"; same?
-    //TODO: generic empty vs specific type empty? zero for appending
-    if (data.isEmpty) this
-    else {
-      val d2 = ff.fromSeq(data.unsafeForce.samples)
-      copy(data = d2)
-    }
-  }
+  /**
+   * Put a copy of this Dataset into the CacheManager.
+   */
+  def cache(): Unit = CacheManager.cacheDataset(this)
+  
+  /**
+   * Make a copy of the Dataset with the data stored using
+   * the given SampledFunction implementation.
+   */
+  //TODO: "cache", "persist", "memoize", ...?
+  def restructure(ff: FunctionFactory): Dataset =
+    copy(data = ff.restructure(data))
+    
+  // Rename the dataset by making a new copy with updated metadata.
+  //TODO: impl as an Operation, capture prov
+  def rename(name: String): Dataset =
+    copy(metadata = metadata + ("id" -> name))
   
   /**
    * Ensure that the data encapsulated by this Dataset is memoized.
@@ -40,4 +53,17 @@ case class Dataset(metadata: Metadata, model: DataType, data: SampledFunction)
    */
   override def toString: String =  s"${id}: $model"
   
+}
+
+object Dataset {
+  
+  /**
+   * Create a Dataset by using the DatasetResolver ServiceLoader.
+   */
+  def fromName(name: String): Dataset = DatasetResolver.getDataset(name)
+  
+  /**
+   * Create a Dataset by using the DatasetReader ServiceLoader.
+   */
+  def fromURI(uri: URI): Dataset = DatasetReader.read(uri)
 }

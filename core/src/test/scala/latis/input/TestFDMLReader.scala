@@ -32,8 +32,8 @@ class TestFDMLReader {
       </function>
     </dataset>"""
     
-    val datasetSource: FDMLReader = FDMLReader(xmlString)
-    val dataset: Dataset = datasetSource.getDataset(Seq.empty)
+    val reader: FDMLReader = FDMLReader(xmlString)
+    val dataset: Dataset = reader.getDataset
     
     assertEquals(dataset.model.arity, 1)
     assertEquals(dataset.metadata.getProperty("name"), Some("composite_lyman_alpha"))

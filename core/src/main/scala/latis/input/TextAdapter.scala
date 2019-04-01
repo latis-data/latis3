@@ -24,7 +24,7 @@ class TextAdapter(config: TextAdapter.Config, model: DataType)
    * Apply configuration options to the Stream.
    */
   def recordStream(uri: URI): Stream[IO, String] =
-    StreamUtils.getStream(uri)
+    StreamSource.getStream(uri)
       .through(text.utf8Decode)
       .through(text.lines)
       .drop(config.skipLines)

@@ -24,7 +24,7 @@ case class Sample(domain: DomainData, range: RangeData) {
   /**
    * Return a new Sample with the given value in the given position.
    */
-  def updateValue(samplePosition: SamplePosition, value: Any): Sample = samplePosition match {
+  def updatedValue(samplePosition: SamplePosition, value: Any): Sample = samplePosition match {
     //TODO: insert values if Seq[Any]
     case DomainPosition(n) =>
       if (n < domain.length) Sample(domain.updated(n, value), range)

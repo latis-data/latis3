@@ -100,7 +100,7 @@ trait MemoizedFunction extends SampledFunction {
       case Sample(domain, range) =>
         val outerDomain: DomainData = DomainData.fromSeq(outerIndices.map(domain(_)))
         val innerDomain: DomainData = //TODO: optimize, do it once, need length of domain
-          domain.zipWithIndex.filter(p => ! outerIndices.contains(p._2)).map(_._1)
+          domain.zipWithIndex.filterNot(p => outerIndices.contains(p._2)).map(_._1)
           
         //put into SortedMap and accumulate sorted seq of range values
         val rangeSamples = map.get(outerDomain) match {

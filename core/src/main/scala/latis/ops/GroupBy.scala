@@ -7,20 +7,30 @@ import latis.data._
 /**
  * Operation to restructure a Dataset by defining a new domain
  * made up of the given variables.
+ * Assume that there are no nested Tuples, for now.
+ * Assume that we are grouping by domain variables only, for now,
+ *   so we can easily preserve complex ranges (e.g. nested functions).
  */
 case class GroupBy(vnames: String*) extends UnaryOperation {
-  
-  /*
-   * TODO: Generalize model application
-   * preserve nested Tuples?
-   * 
-   * Assume hysics use case for now:
-   *   (iy, ix, w) -> f  =>  (ix, iy) -> w -> f
-   * Note that this also handles the transpose.
+
+  /**
+   * Apply the groupBy logic to the Dataset model.
    */
   override def applyToModel(model: DataType): DataType = model match {
-    case Function(Tuple(iy, ix, w), f) => Function(Tuple(ix, iy), Function(w, f))
-    case _ => ???
+    case Function(domain, range) =>
+      val (outer, inner) = domain.getScalars.partition(s => vnames.contains(s.id))
+      val innerDomain = inner.length match {
+        case 0 => ??? //TODO: all domain vars regrouped, implies reordering with no new Function
+        case 1 => inner.head
+        case _ => Tuple(inner: _*)
+      }
+      val outerDomain = outer.length match {
+        case 0 => ??? //TODO: error, no gb vars found
+        case 1 => outer.head
+        case _ => Tuple(outer: _*)
+      }
+      Function(outerDomain, Function(innerDomain, range))
+    case _ => ??? //TODO: error, model must be a Function
   }
   
   /**

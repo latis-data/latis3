@@ -14,7 +14,7 @@ class TestTextAdapter {
   
   //@Test
   def test = {
-    val source = new AdaptedDatasetSource {
+    val reader = new AdaptedDatasetReader {
       def uri: URI = new URI(s"file:${System.getProperty("user.home")}/git/latis3/core/src/test/resources/data/data.txt")
       def model: DataType = Function(
           Scalar(Metadata("id" -> "a", "type" -> "string")), 
@@ -24,7 +24,7 @@ class TestTextAdapter {
       def adapter = new TextAdapter(config, model)
     }
     
-    val ds = source.getDataset()
+    val ds = reader.getDataset
     Writer.write(ds)
   }
 }

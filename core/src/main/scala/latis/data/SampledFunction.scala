@@ -135,7 +135,20 @@ object EmptyFunction extends MemoizedFunction {
  * implementation to use for the cache. 
  */
 abstract class FunctionFactory {
-  //TODO "Builder" like other scala Builders?
-  def fromSeq(samples: Seq[Sample]): MemoizedFunction
+  
+  /**
+   * Construct a SampledFunction of the implementing type
+   * from a sequence of Samples.
+   */
+  def fromSamples(samples: Seq[Sample]): MemoizedFunction
+  
+  /**
+   * Copy the data from the given SampledFunction to
+   * a MemoizedFunction of the implementing type.
+   * Default to using a potentially unsafe Seq of Samples.
+   */
+  def restructure(data: SampledFunction): MemoizedFunction =
+    fromSamples(data.unsafeForce.samples)
+    //TODO: no-op if same type
 }
 

@@ -2,18 +2,20 @@ package latis.util
 
 import scala.collection._
 import latis.model.Dataset
+import latis.input.DatasetResolver
 
 /**
- * A Singleton to hold instances of a Dataset in a Map with
- * the dataset name as the key.
- * This will likely evolve to use more sophisticated caching mechanisms.
+ * Manage a cache to hold instances of a Dataset in a Map with
+ * the dataset identifier as the key.
  */
-class CacheManager {
-  
+class CacheManager extends DatasetResolver {
+
   /**
-   * Maintain the Datasets in a Map.
+   * This method is used by the DatasetResolver ServiceLoader to determine
+   * if this can provide the requested Dataset.
    */
-  private val cache = mutable.Map[String, Dataset]()
+  def getDataset(id: String): Option[Dataset] = CacheManager.cache.get(id)
+
 }
 
 
@@ -22,48 +24,41 @@ class CacheManager {
  * expose the public methods.
  */
 object CacheManager {
+  //TODO: concurrency issues, serialize methods? Use scalacache!
+  //TODO: validate: remove expired datasets? need md term for expiration
   
   /**
    * Singleton instance of the CacheManager.
    */
-  private lazy val instance = new CacheManager()
+  private lazy val cache = mutable.Map[String, Dataset]()
   
   /**
-   * Add a dataset to the cache.
-   * The Dataset will be memoized to ensure that it contains all of its
-   * data so it is no longer coupled to its source.
-   * This will return the cached dataset since the original may be spent
-   * due to TraversableOnce issues.
-   * It is expected that the Dataset has Metadata that defines the name.
+   * Add the given Dataset to the cache.
+   * This will also ensure that the Dataset is memoized
+   * via a potentially unsafe read.
    */
-  def cacheDataset(dataset: Dataset): Dataset = {
-    //Add creation time to metadata for cache invalidation
-    val md = dataset.metadata + ("creation_time" -> System.currentTimeMillis.toString)
-    //TODO: Make sure dataset is memoized (all the Data loaded)
-    val ds = dataset.copy(metadata = md)
-    instance.cache += dataset.id -> ds
-    ds
-  }
+  def cacheDataset(dataset: Dataset): Unit = 
+    cache += dataset.id -> dataset.unsafeForce
   
   /**
-   * Optionally get the Dataset with the given name.
+   * Optionally get the Dataset with the given id.
    */
-  def getDataset(name: String): Option[Dataset] = {
-    instance.cache.get(name)
-  }
+  def getDataset(id: String): Option[Dataset] = cache.get(id)
   
   /**
-   * Return an immutable Map of dataset name to Dataset instance.
+   * Return an immutable Map of dataset id to Dataset instance.
    */
-  def getDatasets: immutable.Map[String, Dataset] = instance.cache.toMap  //make immutable
+  def getDatasets: immutable.Map[String, Dataset] = cache.toMap  //make immutable
 
   /**
    * Remove all entries from the cache.
    */
-  def clear: Unit = instance.cache.clear
+  def clear: Unit = cache.clear
   
   /**
    * Remove a single dataset from the cache.
    */
-  def removeDataset(name: String): Option[Dataset] = instance.cache.remove(name)
+  def removeDataset(id: String): Option[Dataset] = cache.remove(id)
+  
 }
+

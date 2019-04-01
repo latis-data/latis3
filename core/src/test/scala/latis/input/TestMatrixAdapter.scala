@@ -13,7 +13,7 @@ class TestMatrixAdapter {
   
   //@Test
   def test = {
-    val source = new AdaptedDatasetSource {
+    val reader = new AdaptedDatasetReader {
       def uri: URI = new URI(s"file:/data/hysics/des_veg_cloud/img1000.txt")
       def model: DataType = Function(
           Tuple(
@@ -27,7 +27,7 @@ class TestMatrixAdapter {
       def adapter = new MatrixTextAdapter(config, model)
     }
     
-    val ds = source.getDataset()
+    val ds = reader.getDataset
     Writer.write(ds)
   }
 }

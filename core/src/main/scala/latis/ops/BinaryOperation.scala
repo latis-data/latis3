@@ -7,4 +7,8 @@ trait BinaryOperation extends Operation {
   def apply(ds1: Dataset, ds2: Dataset): Dataset
   //TODO: provide default impl, delegate for metadata, model, data
   //TODO: enforce inclusion of prov metadata
+  
+  //TODO: partiallyApplyLHS, partiallyApplyRHS => UnaryOperation
+  //TODO: reverse? flip?
+  //  but no state
 }

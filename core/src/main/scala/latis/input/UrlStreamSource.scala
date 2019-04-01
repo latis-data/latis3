@@ -27,11 +27,15 @@ class UrlStreamSource extends StreamSource {
   /**
    * Return a Stream of Bytes (in IO) from the provided URI.
    */
-  def getStream(uri: URI): Stream[IO, Byte] = {
-    //Note that opening the InputStream will be delayed.
-    val fis: IO[InputStream] = IO(uri.toURL.openStream)
-    val chunkSize: Int = 4096 //TODO: tune? config option?
-    readInputStream[IO](fis, chunkSize, blockingExecutionContext)
+  def getStream(uri: URI): Option[Stream[IO, Byte]] = {
+    if (supportsScheme(uri.getScheme)) {
+      //TODO: put logic in StreamUtils? keep InputStream lazy
+      //Note that opening the InputStream will be delayed.
+      val fis: IO[InputStream] = IO(uri.toURL.openStream)
+      val chunkSize: Int = 4096 //TODO: tune? config option?
+      Option(readInputStream[IO](fis, chunkSize, blockingExecutionContext))
+    }
+    else None
   }
   
 }
