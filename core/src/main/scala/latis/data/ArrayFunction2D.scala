@@ -8,10 +8,10 @@ import scala.language.postfixOps
  */
 case class ArrayFunction2D(array: Array[Array[RangeData]]) extends MemoizedFunction {
   
-  override def apply(d: DomainData): ArrayFunction2D = d match {
+  override def apply(d: DomainData): Option[RangeData] = d match {
     //TODO: support any integral type
     //TODO: handle index out of bounds
-    case DomainData(i: Int, j: Int) => ArrayFunction2D(Array(Array(array(i)(j))))
+    case DomainData(i: Int, j: Int) => Option(array(i)(j))
     case _ => ??? //new RuntimeException("Failed to evaluate ArrayFunction2D")
   }
   

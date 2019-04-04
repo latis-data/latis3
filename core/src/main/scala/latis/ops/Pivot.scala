@@ -33,7 +33,8 @@ case class Pivot(values: Seq[Any], vids: Seq[String]) extends MapOperation {
     //Note, model not needed for pivot
     (sample: Sample) => sample match {
       case Sample(domain, RangeData(mf: MemoizedFunction)) =>
-        Sample(domain, values.map( v => mf(DomainData(v)).head.range.head )) //eval nested Function at each requested value, may not be cheap
+        Sample(domain, values.map( v => mf(DomainData(v)).get )) //eval nested Function at each requested value, may not be cheap
+        //TODO: flatMap or deal with errors?
         //TODO: use Fill interpolation? or nearest-neighbor so users don't need to know exact values
         //TODO: requires same value type?
     }

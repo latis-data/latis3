@@ -15,7 +15,7 @@ case class IndexedFunction2D(as: Array[Any], bs: Array[Any], vs: Array[Array[Any
   //TODO: assert that sizes align
   //TODO: should range values be RangeData instead of Any so we can have multiple variables?
   
-  override def apply(dd: DomainData): IndexedFunction2D = dd match {
+  override def apply(dd: DomainData): Option[RangeData] = dd match {
     case DomainData(a, b) =>
       val ia = as.search(a)(ScalarOrdering) match {
         case Found(i) => i
@@ -25,7 +25,7 @@ case class IndexedFunction2D(as: Array[Any], bs: Array[Any], vs: Array[Array[Any
         case Found(i) => i
         case InsertionPoint(i) => ??? //TODO: interpolate
       }
-      IndexedFunction2D(Array(a), Array(b), Array(Array(vs(ia)(ib))))
+      Option(RangeData(vs(ia)(ib)))
     case _ => ??? //TODO: error
   }
   

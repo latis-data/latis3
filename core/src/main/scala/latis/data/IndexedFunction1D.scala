@@ -14,10 +14,10 @@ case class IndexedFunction1D(as: Array[Any], vs: Array[Any]) extends MemoizedFun
   //TODO: consider coordinate system function composition
   //TODO: combine with ArrayFunction?
   
-  override def apply(dd: DomainData): IndexedFunction1D = dd match {
+  override def apply(dd: DomainData): Option[RangeData] = dd match {
     case DomainData(d) =>
       as.search(d)(ScalarOrdering) match {
-        case Found(i) => IndexedFunction1D(dd.toArray, Array(vs(i)))
+        case Found(i) => Option(RangeData(vs(i)))
         case InsertionPoint(i) => ??? //TODO: interpolate
       }
   }

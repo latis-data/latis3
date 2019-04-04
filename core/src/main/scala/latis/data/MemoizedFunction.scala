@@ -33,27 +33,16 @@ trait MemoizedFunction extends SampledFunction {
   
   /**
    * Evaluate this SampledFunction at the given domain value.
-   * Return the result as a SampledFunction with one Sample.
+   * Return the result as an Option of RangeData.
    */
-  /*
-   * TODO: inconvenient for use
-   * to get single range value: head.range.head
-   * consider function composition
-   */
-  override def apply(value: DomainData): MemoizedFunction = {
+  override def apply(value: DomainData): Option[RangeData] = {
     //TODO: implicit Interpolation strategy
     //TODO: take advantage of ordering, find should at least short-circuit
-    val z = samples find {
+    val osample: Option[Sample] = samples find {
       case Sample(d, _) => DomainOrdering.equiv(d, value) //Note, can't use "=="
       case _ => false
     }
- //TODO: try   z.fold(SampledFunction.empty)(s => SampledFunction(s))
-    //see https://github.com/latis-data/latis3/pull/3#discussion_r243677545
-    
-    z match {
-      case Some(sample) => SampledFunction(sample)
-      case None => SampledFunction.empty
-    }
+    osample.map(_.range)
   }
   
   

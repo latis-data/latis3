@@ -4,6 +4,7 @@ import latis.util.StreamUtils._
 import fs2.Stream
 import cats.effect.IO
 import scala.collection.immutable.TreeMap
+import latis.util.StreamUtils
 
 /**
  * SampledFunction represent a (potentially lazy) ordered sequence of Samples.
@@ -17,6 +18,7 @@ import scala.collection.immutable.TreeMap
 trait SampledFunction {
   //TODO: impl scala Traversable? Monoid, Functor, Monad?
   //TODO: should default impl be moved to StreamFunction?
+  //TODO: function evaluation with DomainSet, support topologies
   
   /**
    * Return a Stream of Samples from this SampledFunction.
@@ -30,23 +32,16 @@ trait SampledFunction {
   
   /**
    * Evaluate this SampledFunction at the given domain value.
-   * Return the result as a SampledFunction with one Sample.
+   * Return the result as an Option of RangeData.
    */
-  def apply(v: DomainData): SampledFunction = {
-    /*
-     * TODO: reconsider return type
-     * consider function composition
-     * we generally only want the corresponding range value
-     * compare to how apply(vs: DomainSet) might work
-     */
+  def apply(v: DomainData): Option[RangeData] = {
     //TODO: implicit Interpolation strategy
     val stream = streamSamples find {
       case Sample(d, _) => d == v
       case _ => false
     }
-    StreamFunction(stream)
+    StreamUtils.unsafeStreamToSeq(stream).headOption.map(_.range)
   }
-  //TODO: eval with DomainSet, support topologies => SampledFunction
   
   /**
    * Apply the given predicate to this SampledFunction
