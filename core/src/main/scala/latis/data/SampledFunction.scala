@@ -44,6 +44,19 @@ trait SampledFunction {
   }
   
   /**
+   * Evaluate this SampledFunction at each point in the given DomainSet.
+   * Return a SampledFunction with the new domain set and corresponding
+   * range values.
+   */
+  def apply(domainSet: DomainSet): SampledFunction = {
+    val domainData: Seq[DomainData] = domainSet.elements
+    val rangeData:  Seq[RangeData]  = domainData.flatMap(apply(_))
+    val samples = (domainData zip rangeData).map(p => Sample(p._1, p._2))
+    SampledFunction.fromSeq(samples)
+    //TODO: Stream
+  }
+  
+  /**
    * Apply the given predicate to this SampledFunction
    * to filter out unwanted Samples.
    */
