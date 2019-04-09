@@ -11,21 +11,23 @@ package latis.data
  */
 object ScalarOrdering extends Ordering[Any] {
   
-  def compare(a: Any, b: Any) = (a, b) match {
-    case (a: Boolean,    b: Boolean)    => a compare b
-    case (a: Byte,       b: Byte)       => a compare b
-    case (a: Char,       b: Char)       => a compare b
-    case (a: Short,      b: Short)      => a compare b
-    case (a: Int,        b: Int)        => a compare b
-    case (a: Float,      b: Float)      => a compare b
-    case (a: Long,       b: Long)       => a compare b
-    case (a: Double,     b: Double)     => a compare b
-    case (a: String,     b: String)     => a compare b
-    case (a: BigInt,     b: BigInt)     => a compare b
-    case (a: BigDecimal, b: BigDecimal) => a compare b
-    //TODO: Numeric
-    case _ => 
-      val msg = s"Can't compare Scalar values: $a and $b"
-      throw new UnsupportedOperationException(msg)
-  }
+  def compare(a: Any, b: Any) = a.toString.toDouble compare b.toString.toDouble
+    
+//  def compare(a: Any, b: Any) = (a, b) match {
+//    case (a: Boolean,    b: Boolean)    => a compare b
+//    case (a: Byte,       b: Byte)       => a compare b
+//    case (a: Char,       b: Char)       => a compare b
+//    case (a: Short,      b: Short)      => a compare b
+//    case (a: Int,        b: Int)        => a compare b
+//    case (a: Float,      b: Float)      => a compare b
+//    case (a: Long,       b: Long)       => a compare b
+//    case (a: Double,     b: Double)     => a compare b
+//    case (a: String,     b: String)     => a compare b
+//    case (a: BigInt,     b: BigInt)     => a compare b
+//    case (a: BigDecimal, b: BigDecimal) => a compare b
+//    //TODO: Numeric
+//    case _ => 
+//      val msg = s"Can't compare Scalar values: $a and $b"
+//      throw new UnsupportedOperationException(msg)
+//  }
 }

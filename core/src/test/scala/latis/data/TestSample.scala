@@ -17,6 +17,19 @@ class TestSample {
   @Test
   def ordering(): Unit = {
     val l = List(
+      DomainData(1.2, 3, 1),
+      DomainData(1.1, 4, 0),
+      DomainData(1.2, 3, 2)
+    )
+    val expected = List(0, 1, 2)
+    l.sorted(DomainOrdering) zip expected foreach {
+      case (DomainData(_,_,v), x) => assertEquals(x, v)
+    }
+  }
+  
+  @Test @Ignore
+  def text_ordering(): Unit = {
+    val l = List(
       DomainData(1.2, 3, "a"),
       DomainData(1.1, 4, ""),
       DomainData(1.2, 3, "b")
