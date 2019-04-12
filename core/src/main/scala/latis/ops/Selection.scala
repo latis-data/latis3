@@ -25,7 +25,7 @@ case class Selection(vname: String, operator: String, value: String) extends Fil
     
     // Convert selection value to appropriate type for comparison
     val cval = model.find(_.id == vname) match {
-      case Some(s: Scalar) => s.parseValue(value)
+      case Some(s: Scalar) => value.toDouble //TODO: support orig type  s.parseValue(value)
       case _ => ??? //error
     }
     
