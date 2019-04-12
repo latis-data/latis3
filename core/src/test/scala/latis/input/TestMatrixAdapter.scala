@@ -28,6 +28,6 @@ class TestMatrixAdapter {
     }
     
     val ds = reader.getDataset
-    Writer.write(ds)
+    //Writer.write(ds)
   }
 }
