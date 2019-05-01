@@ -16,7 +16,7 @@ object TextEncoder extends Encoder[IO, String] {
    */
   override def encode(dataset: Dataset): Stream[IO, String] = {
     // Create a Stream with the header
-    val header: Stream[IO, String] = Stream.emit(dataset.toString)
+    val header: Stream[IO, String] = Stream.emit(dataset.toString + lineSeparator)
 
     // Encode each Sample as a String in the Stream
     val samples: Stream[IO, String] =
@@ -33,7 +33,7 @@ object TextEncoder extends Encoder[IO, String] {
     (model, sample) match {
       case (Function(domain, range), Sample(ds, rs)) =>
         (encodeData(domain, ds) ++ encodeData(range, rs))
-          .chunkN(2).map(_.toVector.mkString(" -> "))
+          .chunkN(2).map(_.toVector.mkString(" -> ") + lineSeparator)
     }
   }
 
