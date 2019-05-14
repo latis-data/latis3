@@ -39,8 +39,8 @@ object TextEncoder extends Encoder[IO, String] {
   def encodeSample(model: DataType, sample: Sample): Stream[IO, String] = {
     (model, sample) match {
       case (Function(domain, range), Sample(ds, rs)) =>
-        (encodeData(domain, ds) zip encodeData(range, rs)) map { p =>
-          " " * functionIndent + s"${p._1} -> ${p._2}$lineSeparator"
+        (encodeData(domain, ds) zip encodeData(range, rs)) map { case (d, r) =>
+          " " * functionIndent + s"${d} -> ${r}$lineSeparator"
         }
     }
   }
