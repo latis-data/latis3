@@ -7,8 +7,15 @@ import fs2.Stream
 
 import latis.data._
 import latis.model._
+import latis.util.StreamUtils
 
 object TextEncoder extends Encoder[IO, String] {
+  
+  /**
+   * Track the level of Function nesting so we can indent.
+   */
+  //TODO: handle via recursion, doesn't work with lazy stream
+  private var functionIndent: Int = 0
 
   /**
    * Encode the Stream of Samples from the given Dataset as a Stream
@@ -32,8 +39,9 @@ object TextEncoder extends Encoder[IO, String] {
   def encodeSample(model: DataType, sample: Sample): Stream[IO, String] = {
     (model, sample) match {
       case (Function(domain, range), Sample(ds, rs)) =>
-        (encodeData(domain, ds) ++ encodeData(range, rs))
-          .chunkN(2).map(_.toVector.mkString(" -> ") + lineSeparator)
+        (encodeData(domain, ds) zip encodeData(range, rs)) map { case (d, r) =>
+          " " * functionIndent + s"${d} -> ${r}$lineSeparator"
+        }
     }
   }
 
@@ -50,6 +58,7 @@ object TextEncoder extends Encoder[IO, String] {
           .chunkN(es.length)
           .map(_.toVector.mkString("(", ",", ")"))
 
+      // Nested Function
       case f: Function => ds.pop match {
         case sf: SampledFunction => encodeFunction(f, sf)
         case _ => ??? //Oops, model and data not consistent
@@ -59,21 +68,18 @@ object TextEncoder extends Encoder[IO, String] {
     go(model)
   }
 
-  //nested function
-  //TODO: has problems, see hysics after groupBy
-  //TODO: indent
+  // Nested function
   def encodeFunction(ftype: Function, function: SampledFunction): Stream[IO, String] = {
     val head: Stream[IO, String] = Stream.emit(s"{$lineSeparator")
+    functionIndent += 2
 
-    val delim = lineSeparator //TODO: FirstThenOther?
-                        //TODO: chunkN map to Vector then mkString? need to know length,
-                        //  OK since this is a nested Function
-                        //  can we tell Stream to chunk all?
     val samples: Stream[IO, String] =
-      function.streamSamples.flatMap(encodeSample(ftype, _)).map(_ + delim)
-
+      function.streamSamples.flatMap(encodeSample(ftype, _))
+    
+    functionIndent -= 2
     val foot: Stream[IO, String] = Stream.emit("}")
 
-    head ++ samples ++ foot
+    // Combine nested function into a stingle string
+    (head ++ samples ++ foot).fold1((a: String, b: String) => a + b)
   }
 }
