@@ -30,7 +30,7 @@ package object data {
    */
   implicit object SampleOrdering extends Ordering[Sample] {
     def compare(a: Sample, b: Sample) = 
-      DomainOrdering.compare(a.domain, b.range)
+      DomainOrdering.compare(a.domain, b.domain)
   }
   
   /**
