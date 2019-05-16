@@ -21,4 +21,27 @@ case class ArrayFunction2D(array: Array[Array[RangeData]]) extends MemoizedFunct
     } flatten
 
 }
-//TODO: fromSeq? CanBuildFrom? See FunctionFactory
+
+object ArrayFunction2D extends FunctionFactory {
+
+  def fromSamples(samples: Seq[Sample]): MemoizedFunction = samples match {
+    case Seq() => ???              // TODO: figure out how to handle error
+    case _ =>
+      println("ArrayFunction2D.fromSamples called")
+      samples.last.domain match {
+        case x +: xs => 
+          val y = xs.head
+          val xSize: Int = x.toString.toInt
+          val ySize: Int = y.toString.toInt
+          val array = Array.ofDim[RangeData](xSize + 1, ySize + 1)
+          for {
+            i <- 0 until xSize
+            j <- 0 until ySize
+          } array(i)(j) = Vector(samples(i + j * xSize).range)
+          ArrayFunction2D(array)
+        case _ => ???              // TODO: figure out how to handle error
+      }
+  }
+    
+}
+  
