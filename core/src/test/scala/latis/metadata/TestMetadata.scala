@@ -2,8 +2,9 @@ package latis.metadata
 
 import org.junit._
 import org.junit.Assert._
+import org.scalatest.junit.JUnitSuite
 
-class TestMetadata {
+class TestMetadata extends JUnitSuite {
   
   /**
    * Instance of Metadata for testing.

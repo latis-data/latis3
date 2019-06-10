@@ -1,9 +1,10 @@
 package latis.util.dap2
 
 import org.junit._, Assert._
+import org.scalatest.junit.JUnitSuite
 import latis.util.dap2.ast._
 
-class TestConstraintParser {
+class TestConstraintParser extends JUnitSuite {
 
   /**
    * Helper for reducing boilerplate.
@@ -16,7 +17,7 @@ class TestConstraintParser {
    * @param assertion assertion for a successful parse
    */
   private def testParse(expr: String)(assertion: ConstraintExpression => Unit): Unit =
-    ConstraintParser.parse(expr).fold(fail, assertion)
+    ConstraintParser.parse(expr).fold(fail(_), assertion)
 
   @Test
   def no_constraints(): Unit =

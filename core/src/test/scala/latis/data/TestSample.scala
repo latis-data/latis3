@@ -2,8 +2,9 @@ package latis.data
 
 import org.junit._
 import org.junit.Assert._
+import org.scalatest.junit.JUnitSuite
 
-class TestSample {
+class TestSample extends JUnitSuite {
   
   @Test
   def sample_extract(): Unit = {

@@ -9,8 +9,9 @@ import latis.output.Writer
 import java.net.URI
 
 import org.junit.Test
+import org.scalatest.junit.JUnitSuite
 
-class TestTextAdapter {
+class TestTextAdapter extends JUnitSuite {
   
   //@Test
   def test = {

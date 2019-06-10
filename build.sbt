@@ -64,8 +64,8 @@ lazy val core = project
     name := "latis3-core",
     libraryDependencies ++= Seq(
       "org.scala-lang.modules" %% "scala-xml"       % "1.0.6",
-      "junit"                   % "junit"           % "4.12" % Test,
-      "com.novocode"            % "junit-interface" % "0.11" % Test
+      "junit"                   % "junit"           % "4.12"  % Test,
+      "org.scalatest"          %% "scalatest"       % "3.0.5" % Test
     )
   )
 
@@ -78,8 +78,8 @@ lazy val `dap2-service` = project
       "org.tpolecat"   %% "atto-core"   % "0.6.3",
       "org.scalacheck" %% "scalacheck"  % "1.13.5" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.8" % Test,
-      "junit"           % "junit"           % "4.12" % Test,
-      "com.novocode"    % "junit-interface" % "0.11" % Test
+      "junit"           % "junit"           % "4.12"  % Test,
+      "org.scalatest"  %% "scalatest"       % "3.0.5" % Test
     )
   )
 

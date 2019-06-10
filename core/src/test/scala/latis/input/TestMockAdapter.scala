@@ -8,8 +8,9 @@ import latis.output.Writer
 import java.net.URI
 
 import org.junit.Test
+import org.scalatest.junit.JUnitSuite
 
-class TestMockAdapter {
+class TestMockAdapter extends JUnitSuite {
   
   //@Test
   def mock = {
