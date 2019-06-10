@@ -2,9 +2,10 @@ package latis.model
 
 import org.junit._
 import org.junit.Assert._
+import org.scalatest.junit.JUnitSuite
 import latis.metadata.Metadata
 
-class TestFunction {
+class TestFunction extends JUnitSuite {
   
   @Test
   def extract = {

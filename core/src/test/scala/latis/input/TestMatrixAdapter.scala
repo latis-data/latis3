@@ -8,8 +8,9 @@ import latis.model.Tuple
 import latis.output.Writer
 
 import java.net.URI
+import org.scalatest.junit.JUnitSuite
 
-class TestMatrixAdapter {
+class TestMatrixAdapter extends JUnitSuite {
   
   //@Test
   def test = {

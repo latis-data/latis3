@@ -15,8 +15,9 @@ import scala.xml._
 import org.junit.Test
 import org.junit.Assert._
 import org.junit.Ignore
+import org.scalatest.junit.JUnitSuite
 
-class TestFDMLReader {
+class TestFDMLReader extends JUnitSuite {
   @Test @Ignore //This might have broken with commit c2458afccf7a4bd1ae71ea0dabeea35ce7ea9bea
   def testSimple = {
     val xmlString =
