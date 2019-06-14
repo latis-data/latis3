@@ -49,7 +49,7 @@ object OpF {
   }
 }
 
-object adt {
+object ast {
   type Op = Fix[OpF]
 
   def dataset(ds: Dataset): Op =
