@@ -19,7 +19,7 @@ class TestGranuleListJoin {
   //TODO: ScalaTest flat spec?
   
   @Test
-  def test {
+  def test() = {
     //granule list dataset: i -> uri
     val gl: Dataset = {
       val md = Metadata("test_dataset")
@@ -28,13 +28,14 @@ class TestGranuleListJoin {
         Scalar(Metadata("id" -> "uri", "type" -> "string"))
       )
       val data = SampledFunction(
+        //TODO: generate test data files
         Sample(DomainData(0), RangeData(s"file://${System.getProperty("user.home")}/git/latis3/core/src/test/resources/data/data.txt")),
         Sample(DomainData(1), RangeData(s"file://${System.getProperty("user.home")}/git/latis3/core/src/test/resources/data/data2.txt"))
       )
       Dataset(md, model, data)
     }
     
-    //model for granule
+    //model for granule: a -> (b, c, d)
     def model: DataType = Function(
       Scalar(Metadata("id" -> "a", "type" -> "short")),
       Tuple(

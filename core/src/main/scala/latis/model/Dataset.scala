@@ -30,7 +30,11 @@ case class Dataset(metadata: Metadata, model: DataType, data: SampledFunction)
    * Make a copy of the Dataset with the data stored using
    * the given SampledFunction implementation.
    */
-  //TODO: "cache", "persist", "memoize", ...?
+  /*
+   * TODO: "cache", "persist", "memoize", ...?
+   * use restructure to change the form of the data for (computation optimization?), could be lazy
+   * use "cache" to force read, operations, and memoize data to release resources, unsafe
+   */
   def restructure(ff: FunctionFactory): Dataset =
     copy(data = ff.restructure(data))
     
