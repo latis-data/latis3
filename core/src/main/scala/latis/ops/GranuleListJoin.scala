@@ -4,26 +4,38 @@ import latis.data._
 import latis.model._
 import latis.input.Adapter
 import java.net.URI
+import latis.input.AdapterConfig
+import latis.input.AdapterFactory
+import latis.metadata.Metadata
 
 /**
  * Given a "granule list" Dataset and an Adapter to parse each granule,
  * combine the data from each granule into a single Dataset.
  * The dataset must have a "uri" variable that is not in a nested Function.
+ * This assumes that each granule has the same model and can be appended
+ * to the previous granule.
  */
-case class GranuleListJoin(adapter: Adapter) extends UnaryOperation {
+case class GranuleListJoin(model: DataType, adapter: Adapter) extends UnaryOperation {
   
-  /*
-   * TODO: model needs to become model of first dataset
-   *   same for metedata, for now
-   * A full join operation could preserve that
-   *   assuming append join here via flatMap
-   *   generalize to any join? 
-   * adapter probably already needs the model
-   * how would we construct/config a GLJ dataset?
-   * 
+  /**
+   * Override to append "_merged" to the dataset name.
    */
+  override def applyToMetadata(md: Metadata): Metadata = {
+    val dsname = md.getProperty("id").map(_ + "_merged").getOrElse("")
+    super.applyToMetadata(md) + ("id" -> dsname)
+  }
   
+  /**
+   * Replace the original model (of the granule list dataset) 
+   * with the model of the granules. 
+   */
+  override def applyToModel(_model: DataType): DataType = model
   
+  /**
+   * Apply the Adapter to each URI in the granule list dataset
+   * to generate a SampledFunction for each and wrap them all
+   * in a CompositeSampledFunction.
+   */
   override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
     
     // Get the position of the "uri" value within a Sample
@@ -39,10 +51,21 @@ case class GranuleListJoin(adapter: Adapter) extends UnaryOperation {
         case Some(s: String) =>
           val uri = new URI(s) //TODO: error
           adapter(uri).unsafeForce //Note, we need a MemoizedFunction for flatMap
+        case _ => ??? //TODO: error if type is wrong, position should be valid
       }
     }
-      
+//TODO: use composite SF ?      
     data.flatMap(f)
   }
   
 }
+
+
+object GranuleListJoin {
+
+  def apply(model: DataType, config: AdapterConfig): GranuleListJoin =
+    GranuleListJoin(model, AdapterFactory.makeAdapter(model, config))
+}
+
+
+
