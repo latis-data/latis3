@@ -11,30 +11,29 @@ import latis.data._
 import latis.metadata.Metadata
 import latis.model._
 
-sealed trait SExpr
-final case class Gte(variable: String, value: String) extends SExpr
-final case class Lt(variable: String, value: String)  extends SExpr
+sealed trait SOp
+final case object Eq  extends SOp
+final case object Gt  extends SOp
+final case object Gte extends SOp
+final case object Lt  extends SOp
+final case object Lte extends SOp
 
-object SExpr {
-  // implicit class SExprOps(variable: String) {
-  //   def >=(value: String): SExpr =
-  //     Gte(variable, value)
-
-  //   def <(value: String): SExpr =
-  //     Lt(variable, value)
-  // }
-
-  implicit val showSExpr: Show[SExpr] = Show.show {
-    case Gte(vr, vl) => s"$vr >= $vl"
-    case Lt(vr, vl)  => s"$vr < $vl"
+object SOp {
+  implicit val showSOp: Show[SOp] = Show.show {
+    case Eq  => "="
+    case Gt  => ">"
+    case Gte => ">="
+    case Lt  => "<"
+    case Lte => "<="
   }
 }
 
+// TODO: Add VariableF?
 sealed trait OpF[F]
-final case class DatasetF[F](ds: Dataset)                    extends OpF[F]
-final case class JoinF[F](ds1: F, ds2: F)                    extends OpF[F]
-final case class ProjectF[F](ds: F, variables: List[String]) extends OpF[F]
-final case class SelectF[F](ds: F, sexpr: SExpr)             extends OpF[F]
+final case class DatasetF[F](ds: Dataset)                            extends OpF[F]
+final case class JoinF[F](ds1: F, ds2: F)                            extends OpF[F]
+final case class ProjectF[F](ds: F, variables: List[String])         extends OpF[F]
+final case class SelectF[F](ds: F, sop: SOp, vr: String, vl: String) extends OpF[F]
 
 object OpF {
   // implicit val traverseOpF: Traverse[OpF] = new Traverse[OpF] {
@@ -52,13 +51,22 @@ object OpF {
       case DatasetF(ds)   => DatasetF(ds)
       case JoinF(a, b)    => JoinF(f(a), f(b))
       case ProjectF(a, v) => ProjectF(f(a), v)
-      case SelectF(a, s)  => SelectF(f(a), s)
+      case SelectF(a, s, vr, vl)  => SelectF(f(a), s, vr, vl)
     }
   }
 }
 
-object ast {
+object Op {
   type Op = Fix[OpF]
+
+  def renderSelect(e: SelectF[_]): String = e match {
+    case SelectF(_, sop, vr, vl) =>
+      show"$vr $sop $vl"
+  }
+}
+
+object ast {
+  import Op._
 
   def dataset(ds: Dataset): Op =
     Fix(DatasetF(ds))
@@ -72,8 +80,8 @@ object ast {
   def project(ds: Op, variables: List[String]): Op =
     Fix(ProjectF(ds, variables))
 
-  def select(ds: Op, sexpr: SExpr): Op =
-    Fix(SelectF(ds, sexpr))
+  def select(ds: Op, sop: SOp, vr: String, vl: String): Op =
+    Fix(SelectF(ds, sop, vr, vl))
 
   // type EvalError[A] = Either[String, A]
   val evalAlg: Algebra[OpF, Dataset] =
@@ -82,8 +90,8 @@ object ast {
       case JoinF(Dataset(m, t, d1), Dataset(_, _, d2)) =>
         val f = SampledFunction(d1.streamSamples ++ d2.streamSamples)
         Dataset(m, t, f)
-      case SelectF(ds, expr) =>
-        Selection(expr.show)(ds)
+      case s @ SelectF(ds, sop, vr, vl) =>
+        Selection(renderSelect(s))(ds)
       case ProjectF(ds, vars) =>
         Projection(vars: _*)(ds)
     }
@@ -91,11 +99,83 @@ object ast {
   val eval: Op => Dataset =
     scheme.cata(evalAlg)
 
+  // NOTE: By using TransM we could capture cases where the selections
+  // lead to a contradiction. We could even split this simplification
+  // up into two: one that may fail (when the comparisons may not
+  // overlap) and one that always works (when the comparisions will
+  // always overlap).
   val simplifySelections: Trans[OpF, OpF, Op] =
     Trans {
-      case SelectF(Fix(SelectF(r, Gte(vaI, vlI))), Gte(vaO, vlO)) if vaI == vaO =>
-        val vl = if (vlI.toInt >= vlO.toInt) vlI else vlO
-        SelectF(r, Gte(vaI, vl))
+      // x >= a, x >= b ===> x >= max(a, b)
+      case SelectF(Fix(SelectF(r, Gte, varA, a)), Gte, varB, b)
+          if varA == varB =>
+        val vl = if (a.toInt >= b.toInt) a else b
+        SelectF(r, Gte, varA, vl)
+      // x <= a, x <= b ===> x <= min(a, b)
+      case SelectF(Fix(SelectF(r, Lte, varA, a)), Lte, varB, b)
+          if varA == varB =>
+        val vl = if (a.toInt <= b.toInt) a else b
+        SelectF(r, Lte, varA, vl)
+      // x = a, x = b, a = b ===> x = a
+      case SelectF(Fix(SelectF(r, Eq, varA, a)), Eq, varB, b)
+          if varA == varB && a.toInt == b.toInt =>
+        SelectF(r, Eq, varA, a)
+      // x >= a, x <= b, a = b ===> x = a
+      case SelectF(Fix(SelectF(r, Gte, varA, a)), Lte, varB, b)
+          if varA == varB && a.toInt == b.toInt =>
+        SelectF(r, Eq, varA, a)
+      // x <= a, x >= b, a = b ===> x <= a
+      case SelectF(Fix(SelectF(r, Lte, varA, a)), Gte, varB, b)
+          if varA == varB && a.toInt == b.toInt =>
+        SelectF(r, Lte, varA, a)
+      // x = a, x >= b, a >= b ===> x = a
+      case SelectF(Fix(SelectF(r, Eq, varA, a)), Gte, varB, b)
+          if varA == varB && a.toInt >= b.toInt =>
+        SelectF(r, Eq, varA, a)
+      // x >= a, x = b, b >= a ===> x = b
+      case SelectF(Fix(SelectF(r, Gte, varA, a)), Eq, varB, b)
+          if varA == varB && b.toInt >= a.toInt =>
+        SelectF(r, Eq, varA, b)
+      // x = a, x <= b, a <= b ===> x = a
+      case SelectF(Fix(SelectF(r, Eq, varA, a)), Lte, varB, b)
+          if varA == varB && a.toInt <= b.toInt =>
+        SelectF(r, Eq, varA, a)
+      // x <= a, x = b, b <= a ===> x = b
+      case SelectF(Fix(SelectF(r, Lte, varA, a)), Eq, varB, b)
+          if varA == varB && b.toInt <= a.toInt =>
+        SelectF(r, Eq, varA, b)
+      // x = a, x > b, a > b ===> x = a
+      case SelectF(Fix(SelectF(r, Eq, varA, a)), Gt, varB, b)
+          if varA == varB && a.toInt > b.toInt =>
+        SelectF(r, Eq, varA, a)
+      // x > a, x = b, b > a ===> x = b
+      case SelectF(Fix(SelectF(r, Gt, varA, a)), Eq, varB, b)
+          if varA == varB && b.toInt > a.toInt =>
+        SelectF(r, Eq, varA, b)
+      // x = a, x < b, a < b ===> x = a
+      case SelectF(Fix(SelectF(r, Eq, varA, a)), Lt, varB, b)
+          if varA == varB && a.toInt < b.toInt =>
+        SelectF(r, Eq, varA, a)
+      // x < a, x = b, b < a ===> x = b
+      case SelectF(Fix(SelectF(r, Lt, varA, a)), Eq, varB, b)
+          if varA == varB && b.toInt < a.toInt =>
+        SelectF(r, Eq, varA, b)
+      // x >= a, x > b, b > a ===> x > b
+      case SelectF(Fix(SelectF(r, Gte, varA, a)), Gt, varB, b)
+          if varA == varB && b.toInt > a.toInt =>
+        SelectF(r, Gt, varA, b)
+      // x > a, x >= b, a > b ===> x > a
+      case SelectF(Fix(SelectF(r, Gt, varA, a)), Gte, varB, b)
+          if varA == varB && a.toInt > b.toInt =>
+        SelectF(r, Gt, varA, a)
+        // x <= a, x < b, b < a ===> x < b
+      case SelectF(Fix(SelectF(r, Lte, varA, a)), Lt, varB, b)
+          if varA == varB && b.toInt < a.toInt =>
+        SelectF(r, Lt, varA, b)
+      // x < a, x <= b, a < b ===> x < a
+      case SelectF(Fix(SelectF(r, Lt, varA, a)), Lte, varB, b)
+          if varA == varB && a.toInt < b.toInt =>
+        SelectF(r, Lt, varA, a)
       case x => x
     }
 
