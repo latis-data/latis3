@@ -3,6 +3,7 @@ package latis.ops
 import scala.language.implicitConversions
 
 import cats._
+import cats.implicits._
 import higherkindness.droste._
 import higherkindness.droste.data.Fix
 
@@ -10,23 +11,30 @@ import latis.data._
 import latis.metadata.Metadata
 import latis.model._
 
-// sealed trait SExpr
-// final case class Gte(variable: String, value: String) extends SExpr
-// final case class Lt(variable: String, value: String)  extends SExpr
-//
-// object SExpr {
-//   def >=(variable: String, value: String): SExpr =
-//     Gte(variable, value)
-//
-//   def <(variable: String, value: String): SExpr =
-//     Lt(variable, value)
-// }
+sealed trait SExpr
+final case class Gte(variable: String, value: String) extends SExpr
+final case class Lt(variable: String, value: String)  extends SExpr
+
+object SExpr {
+  // implicit class SExprOps(variable: String) {
+  //   def >=(value: String): SExpr =
+  //     Gte(variable, value)
+
+  //   def <(value: String): SExpr =
+  //     Lt(variable, value)
+  // }
+
+  implicit val showSExpr: Show[SExpr] = Show.show {
+    case Gte(vr, vl) => s"$vr >= $vl"
+    case Lt(vr, vl)  => s"$vr < $vl"
+  }
+}
 
 sealed trait OpF[F]
 final case class DatasetF[F](ds: Dataset)                    extends OpF[F]
 final case class JoinF[F](ds1: F, ds2: F)                    extends OpF[F]
 final case class ProjectF[F](ds: F, variables: List[String]) extends OpF[F]
-final case class SelectF[F](ds: F, sexpr: String)            extends OpF[F]
+final case class SelectF[F](ds: F, sexpr: SExpr)             extends OpF[F]
 
 object OpF {
   // implicit val traverseOpF: Traverse[OpF] = new Traverse[OpF] {
@@ -64,7 +72,7 @@ object ast {
   def project(ds: Op, variables: List[String]): Op =
     Fix(ProjectF(ds, variables))
 
-  def select(ds: Op, sexpr: String): Op =
+  def select(ds: Op, sexpr: SExpr): Op =
     Fix(SelectF(ds, sexpr))
 
   // type EvalError[A] = Either[String, A]
@@ -75,13 +83,24 @@ object ast {
         val f = SampledFunction(d1.streamSamples ++ d2.streamSamples)
         Dataset(m, t, f)
       case SelectF(ds, expr) =>
-        Selection(expr)(ds)
+        Selection(expr.show)(ds)
       case ProjectF(ds, vars) =>
         Projection(vars: _*)(ds)
     }
 
   val eval: Op => Dataset =
     scheme.cata(evalAlg)
+
+  val simplifySelections: Trans[OpF, OpF, Op] =
+    Trans {
+      case SelectF(Fix(SelectF(r, Gte(vaI, vlI))), Gte(vaO, vlO)) if vaI == vaO =>
+        val vl = if (vlI.toInt >= vlO.toInt) vlI else vlO
+        SelectF(r, Gte(vaI, vl))
+      case x => x
+    }
+
+  val simplify: Op => Op =
+    scheme.cata(simplifySelections.algebra)
 
   val ds1: Dataset = Dataset(
     Metadata("ds1"),
