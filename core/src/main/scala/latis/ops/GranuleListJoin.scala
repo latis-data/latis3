@@ -46,16 +46,19 @@ case class GranuleListJoin(model: DataType, adapter: Adapter) extends UnaryOpera
     
     // Make function that can be mapped over the ganules list data.
     // Extract the uri then apply that to the Adapter to get the data for that granule.
-    val f: Sample => MemoizedFunction = (sample: Sample) => {
+    val f: Sample => SampledFunction = (sample: Sample) => {
       sample.getValue(pos) match {
         case Some(s: String) =>
           val uri = new URI(s) //TODO: error
-          adapter(uri).unsafeForce //Note, we need a MemoizedFunction for flatMap
+          adapter(uri)
         case _ => ??? //TODO: error if type is wrong, position should be valid
       }
     }
-//TODO: use composite SF ?      
-    data.flatMap(f)
+    
+    // Create SampledFubnctions for each granule URI 
+    // and combine into a CompositeSampledFunction.
+    // Note the unsafeForce so we can get the Seq out of IO.
+    CompositeSampledFunction(data.unsafeForce.samples.map(f))
   }
   
 }
