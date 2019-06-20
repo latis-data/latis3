@@ -28,6 +28,14 @@ case class CompositeSampledFunction(
    */
   def isEmpty: Boolean = sampledFunctions.exists(! _.isEmpty)
   
+  /*
+   * TODO: Some operations won't behave the same if we delegate to the granules.
+   * e.g. stride, unless each granule sample count is a multiple of the stride
+   * presumably we can't simply override these base methods
+   * can we capture this property as a trait?
+   * distributive?
+   */
+  
   /**
    * Override filter by delegating the predicate application
    * to each component SampledFunction.
