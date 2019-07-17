@@ -8,6 +8,7 @@ import latis.model.Tuple
 import latis.output.TextWriter
 
 import java.net.URI
+import org.junit.Test
 import org.scalatest.junit.JUnitSuite
 
 class TestMatrixAdapter extends JUnitSuite {
@@ -25,10 +26,10 @@ class TestMatrixAdapter extends JUnitSuite {
       )
       val config = TextAdapter.Config(("delimiter",","))
       
-      def adapter = new MatrixTextAdapter(config, model)
+      def adapter = new MatrixTextAdapter(model, config)
     }
     
     val ds = reader.getDataset
-    //Writer.write(ds)
+    TextWriter().write(ds)
   }
 }
