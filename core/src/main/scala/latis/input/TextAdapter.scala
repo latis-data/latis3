@@ -127,11 +127,14 @@ class TextAdapter(model: DataType, config: TextAdapter.Config = TextAdapter.Conf
 
 //=============================================================================
 
-object TextAdapter {
+object TextAdapter extends AdapterFactory {
   
   def apply(model: DataType, config: Config = Config()): TextAdapter = 
     new TextAdapter(model, config)
   
+  /**
+   * Constructor used by the AdapterFactory.
+   */
   def apply(model: DataType, config: AdapterConfig): TextAdapter = 
     new TextAdapter(model, Config(config.properties: _*))
   
@@ -139,33 +142,11 @@ object TextAdapter {
    * Configuration specific to a TextAdapter.
    */
   case class Config(properties: (String, String)*) extends ConfigLike {
-    
     val commentCharacter: Option[String] = get("commentCharacter")
-      
-    val delimiter: String = getOrElse("delimiter", ",")
-      
-    val linesPerRecord: Int = getOrElse("linesPerRecord", 1)
-      
-    val linesToSkip: Int = getOrElse("skipLines", 0)
-      
-    val dataMarker: Option[String] = get("dataMarker")
+    val delimiter: String                = getOrElse("delimiter", ",")
+    val linesPerRecord: Int              = getOrElse("linesPerRecord", 1)
+    val linesToSkip: Int                 = getOrElse("skipLines", 0)
+    val dataMarker: Option[String]       = get("dataMarker")
   }
-  
-//TODO: use case class for compile-time type safety
-//could we dynamically construct this case class from an AdapterConfig?
-//if that's dynamic then not much point in case class type safety
-//rarely create in code? just tests? DSL?
-//  /**
-//   * Define a case class of configuration options for a TextAdapter.
-//   * TODO: document the options here in the scaladoc
-//   */
-//  case class Config(
-//    className: String = "latis.input.TextAdapter", //can be overridden, MatrixAdapter
-//    delimiter: String = ",",
-//    linesPerRecord: Int = 1,
-//    linesToSkip: Int = 0,
-//    commentCharacter: Option[String] = None,
-//    dataMarker: Option[String] = None
-//  ) 
   
 }
