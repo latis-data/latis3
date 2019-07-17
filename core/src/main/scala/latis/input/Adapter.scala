@@ -1,7 +1,6 @@
 package latis.input
 
 import latis.data.SampledFunction
-import latis.util.PropertiesLike
 
 import java.net.URI
 
@@ -12,7 +11,5 @@ import java.net.URI
 trait Adapter {
   
   def apply(uri: URI): SampledFunction
-  
-  case class Config(arguments: (String, String)*) 
-  
 }
+

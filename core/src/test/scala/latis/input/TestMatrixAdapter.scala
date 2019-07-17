@@ -5,7 +5,7 @@ import latis.model.DataType
 import latis.model.Function
 import latis.model.Scalar
 import latis.model.Tuple
-import latis.output.Writer
+import latis.output.TextWriter
 
 import java.net.URI
 import org.scalatest.junit.JUnitSuite

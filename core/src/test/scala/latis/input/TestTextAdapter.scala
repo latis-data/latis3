@@ -4,7 +4,7 @@ import latis.metadata.Metadata
 import latis.model.DataType
 import latis.model.Function
 import latis.model.Scalar
-import latis.output.Writer
+import latis.output.TextWriter
 
 import java.net.URI
 
