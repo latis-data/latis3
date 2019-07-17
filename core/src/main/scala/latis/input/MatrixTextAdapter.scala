@@ -6,7 +6,8 @@ import latis.model._
 import java.net.URI
 
 /**
- * Read a text file which represents a matrix. 
+ * Read a text file which represents a matrix.
+ * Row and column values are 0-based integers.
  * This differs from tabular text data in that columns
  * represent a dimension (i.e. domain variable) and not 
  * a tuple (i.e. range variables).
@@ -14,8 +15,10 @@ import java.net.URI
  * and the row dimension varies from top to bottom. The same 
  * row/column semantics apply to Image data.
  */
-class MatrixTextAdapter(config: TextAdapter.Config, model: DataType)
-  extends TextAdapter(config, model) {
+case class MatrixTextAdapter(
+  model: DataType, 
+  config: TextAdapter.Config = TextAdapter.Config()
+) extends TextAdapter(model, config) {
   //TODO: assume (row, column) -> value  model?
   
   /**

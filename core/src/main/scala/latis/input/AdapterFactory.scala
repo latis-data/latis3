@@ -1,31 +1,22 @@
 package latis.input
 
-import latis.input._
-import latis.model._
+import latis.model.DataType
+import latis.util.ReflectionUtils.callMethodOnCompanionObject
 
 /**
- * Class creates objects and classes based on the class name.
+ * Dynamically construct an Adapter for the given DataType and AdapterConfig.
+ * This assumes that the Adapter specified by the className in the config has
+ * the comparable "apply" method in its companion object.
  */
-class AdapterFactory {
-  
-}
-
 object AdapterFactory {
-  def apply(className: Option[String], config: TextAdapter.Config, model: DataType): Adapter  = className.getOrElse("") match {
-    case "latis.input.TextAdapter" => 
-      new TextAdapter(config, model) 
-    // TODO: error handling strategy needs to be defined
-    case _                         => 
-      val cls = Class.forName(className.get) //TODO: handle ClassNotFoundException?
-      cls.getConstructor().newInstance().asInstanceOf[Adapter]
-    //  new RuntimeException("Non-existant classname was specified in FDML file for Adapter.")
-  }
   
-  def apply(className: Option[String], arguments: (String, String)*) = className.getOrElse("") match {
-    case "latis.input.TextAdapter" => 
-      TextAdapter.Config(arguments: _*)
-    // TODO: error handling strategy needs to be defined
-    case _  => null
-    //  new RuntimeException("Non-existant classname was specified in FDML file for Adapter.")
+  def makeAdapter(model: DataType, config: AdapterConfig): Adapter = {
+    try {
+      callMethodOnCompanionObject(config.className, "apply", model, config).asInstanceOf[Adapter]
+    } catch {
+      case e: Exception =>
+        throw new RuntimeException("Failed to construct Adapter: " + config.className, e)
+    }
   }
+
 }

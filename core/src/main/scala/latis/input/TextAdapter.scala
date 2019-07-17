@@ -12,11 +12,12 @@ import java.net.URI
 import cats.effect.IO
 import fs2.Stream
 import fs2.text
+import latis.util.ConfigLike
 
 /**
  * Adapter for record-oriented text datasets that can be streamed.
  */
-class TextAdapter(config: TextAdapter.Config, model: DataType)
+class TextAdapter(model: DataType, config: TextAdapter.Config = TextAdapter.Config())
   extends StreamingAdapter[String] {
   
   /**
@@ -27,7 +28,7 @@ class TextAdapter(config: TextAdapter.Config, model: DataType)
     StreamSource.getStream(uri)
       .through(text.utf8Decode)
       .through(text.lines)
-      .drop(config.skipLines)
+      .drop(config.linesToSkip)
       .dropWhile(seekingDataMarker)
       .filter(notComment)
       .filter(_.nonEmpty) //filter out empty lines
@@ -127,21 +128,44 @@ class TextAdapter(config: TextAdapter.Config, model: DataType)
 //=============================================================================
 
 object TextAdapter {
-
+  
+  def apply(model: DataType, config: Config = Config()): TextAdapter = 
+    new TextAdapter(model, config)
+  
+  def apply(model: DataType, config: AdapterConfig): TextAdapter = 
+    new TextAdapter(model, Config(config.properties: _*))
+  
   /**
-   * Define a case class of configuration options for a TextAdapter.
-   * TODO: document the options
+   * Configuration specific to a TextAdapter.
    */
-  case class Config(arguments: (String, String)*) extends PropertiesLike {
-    // properties must be defined before getProperty functions can be called
-    val properties: Map[String, String] = arguments.toMap
+  case class Config(properties: (String, String)*) extends ConfigLike {
     
-    val commentCharacter: Option[String] = getProperty("commentCharacter")
-    val delimiter: String = getProperty("delimiter", ",")
-    val linesPerRecord: Int = getProperty("linesPerRecord", "1").toInt
-    val skipLines: Int = getProperty("skipLines", "0").toInt
-    val dataMarker: Option[String] = getProperty("dataMarker")
+    val commentCharacter: Option[String] = get("commentCharacter")
+      
+    val delimiter: String = getOrElse("delimiter", ",")
+      
+    val linesPerRecord: Int = getOrElse("linesPerRecord", 1)
+      
+    val linesToSkip: Int = getOrElse("skipLines", 0)
+      
+    val dataMarker: Option[String] = get("dataMarker")
   }
-
+  
+//TODO: use case class for compile-time type safety
+//could we dynamically construct this case class from an AdapterConfig?
+//if that's dynamic then not much point in case class type safety
+//rarely create in code? just tests? DSL?
+//  /**
+//   * Define a case class of configuration options for a TextAdapter.
+//   * TODO: document the options here in the scaladoc
+//   */
+//  case class Config(
+//    className: String = "latis.input.TextAdapter", //can be overridden, MatrixAdapter
+//    delimiter: String = ",",
+//    linesPerRecord: Int = 1,
+//    linesToSkip: Int = 0,
+//    commentCharacter: Option[String] = None,
+//    dataMarker: Option[String] = None
+//  ) 
   
 }
