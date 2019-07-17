@@ -26,14 +26,16 @@ case class CompositeSampledFunction(
    * A CompositeSampledFunction is empty if it has no component
    * SampledFunctions or each component SampledFunction is empty.
    */
-  def isEmpty: Boolean = sampledFunctions.exists(! _.isEmpty)
+  def isEmpty: Boolean = sampledFunctions.forall(_.isEmpty)
+  //Note: forall does return true if the Seq is empty.
   
   /*
    * TODO: Some operations won't behave the same if we delegate to the granules.
-   * e.g. stride, unless each granule sample count is a multiple of the stride
+   * e.g. stride (using filter), unless each granule sample count is a multiple of the stride
    * presumably we can't simply override these base methods
    * can we capture this property as a trait?
-   * distributive?
+   * distributive? associative?, monoidal, but binary
+   * but unary is just partially applied binary
    */
   
   /**
