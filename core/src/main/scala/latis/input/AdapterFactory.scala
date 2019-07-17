@@ -4,9 +4,17 @@ import latis.model.DataType
 import latis.util.ReflectionUtils.callMethodOnCompanionObject
 
 /**
+ * The companion object of an Adapter class can extend AdapterFactory
+ * to enable it to be constructed via AdapterFactory.makeAdapter.
+ */
+trait AdapterFactory {
+  def apply(model: DataType, config: AdapterConfig): Adapter
+}
+
+/**
  * Dynamically construct an Adapter for the given DataType and AdapterConfig.
  * This assumes that the Adapter specified by the className in the config has
- * the comparable "apply" method in its companion object.
+ * a companion object that extends the AdapterFactory trait.
  */
 object AdapterFactory {
   

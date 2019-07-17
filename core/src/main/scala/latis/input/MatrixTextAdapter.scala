@@ -45,3 +45,14 @@ case class MatrixTextAdapter(
   }
 }
   
+//=============================================================================
+
+object MatrixTextAdapter extends AdapterFactory {
+  
+  /**
+   * Constructor used by the AdapterFactory.
+   */
+  def apply(model: DataType, config: AdapterConfig): TextAdapter = 
+    new TextAdapter(model, TextAdapter.Config(config.properties: _*))
+
+}
