@@ -79,7 +79,6 @@ trait MemoizedFunction extends SampledFunction {
   override def groupBy(paths: SamplePath*): MemoizedFunction = {
     //assume uncurried with grouping vars in domain only, for now
     //TODO: deal with invalid positions
-    implicit val ord = DomainOrdering
     var map = TreeMap[DomainData, Seq[Sample]]()
     
     // Get the indices into the original domain for the new outer domain
