@@ -6,6 +6,7 @@ import cats._
 import cats.implicits._
 import higherkindness.droste._
 import higherkindness.droste.data.Fix
+import higherkindness.droste.util.DefaultTraverse
 
 import latis.data._
 import latis.metadata.Metadata
@@ -36,15 +37,15 @@ final case class ProjectF[F](ds: F, variables: List[String])         extends OpF
 final case class SelectF[F](ds: F, sop: SOp, vr: String, vl: String) extends OpF[F]
 
 object OpF {
-  // implicit val traverseOpF: Traverse[OpF] = new Traverse[OpF] {
-  //   def traverse[G[_]: Applicative, A, B](fa: OpF[A])(f: A => G[B]): G[OpF[B]] =
-  //     fa match {
-  //       case DatasetF(ds)    => (DatasetF(ds): OpF[B]).pure[G]
-  //       case JoinF(ds1, ds2) => (f(ds1), f(ds2)).mapN(JoinF(_, _))
-  //       case ProjectF(ds, v) => f(ds).map(ProjectF(_, v))
-  //       case SelectF(ds, s)  => f(ds).map(SelectF(_, s))
-  //     }
-  // }
+  implicit val traverseOpF: Traverse[OpF] = new DefaultTraverse[OpF] {
+    def traverse[G[_]: Applicative, A, B](fa: OpF[A])(f: A => G[B]): G[OpF[B]] =
+      fa match {
+        case e: DatasetF[B @unchecked] => (e: OpF[B]).pure[G]
+        case JoinF(ds1, ds2)           => (f(ds1), f(ds2)).mapN(JoinF(_, _))
+        case ProjectF(ds, v)           => f(ds).map(ProjectF(_, v))
+        case SelectF(ds, s, vr, vl)    => f(ds).map(SelectF(_, s, vr, vl))
+      }
+  }
 
   implicit val functorOpF: Functor[OpF] = new Functor[OpF] {
     def map[A, B](fa: OpF[A])(f: A => B): OpF[B] = fa match {
