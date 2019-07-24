@@ -17,6 +17,7 @@ import fs2.Stream
  * Utilities for working with fs2 Streams.
  */
 object StreamUtils {
+  //TODO: StreamOps to add methods to a Stream itself?
   
   /**
    * Provide a single blocking ExecutionContext for use with

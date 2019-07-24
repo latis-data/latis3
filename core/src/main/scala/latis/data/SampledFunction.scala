@@ -5,6 +5,7 @@ import fs2.Stream
 import cats.effect.IO
 import scala.collection.immutable.TreeMap
 import latis.util.StreamUtils
+import latis.resample._
 
 /**
  * SampledFunction represent a (potentially lazy) ordered sequence of Samples.
@@ -34,8 +35,12 @@ trait SampledFunction {
    * Evaluate this SampledFunction at the given domain value.
    * Return the result as an Option of RangeData.
    */
-  def apply(v: DomainData): Option[RangeData] = {
-    //TODO: implicit Interpolation strategy
+  def apply(
+    v: DomainData, 
+    interpolation: Interpolation = NoInterpolation(),
+    extrapolation: Extrapolation = NoExtrapolation()
+  ): Option[RangeData] = {
+    //TODO: if not found, delegate to interpolation, but TraversableOnce
     val stream = streamSamples find {
       case Sample(d, _) => d == v
       case _ => false
@@ -48,12 +53,17 @@ trait SampledFunction {
    * Return a SampledFunction with the new domain set and corresponding
    * range values.
    */
-  def apply(domainSet: DomainSet): SampledFunction = {
+  def resample(
+    domainSet: DomainSet, 
+    interpolation: Interpolation = NoInterpolation(),
+    extrapolation: Extrapolation = NoExtrapolation()
+  ): SampledFunction = {
     val domainData: Seq[DomainData] = domainSet.elements
-    val rangeData:  Seq[RangeData]  = domainData.flatMap(apply(_))
+    val rangeData:  Seq[RangeData] = 
+      domainData.flatMap(apply(_, interpolation, extrapolation))
     val samples = (domainData zip rangeData).map(p => Sample(p._1, p._2))
     SampledFunction.fromSeq(samples)
-    //TODO: Stream
+    //TODO: Stream?
   }
   
   /**

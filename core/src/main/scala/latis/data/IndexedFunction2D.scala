@@ -3,6 +3,7 @@ package latis.data
 import scala.collection.Searching._
 import fs2._
 import cats.effect._
+import latis.resample._
 
 /**
  * Manage two-dimensional Function Data as columnar arrays.
@@ -15,7 +16,11 @@ case class IndexedFunction2D(as: Array[Any], bs: Array[Any], vs: Array[Array[Any
   //TODO: assert that sizes align
   //TODO: should range values be RangeData instead of Any so we can have multiple variables?
   
-  override def apply(dd: DomainData): Option[RangeData] = dd match {
+  override def apply(
+    dd: DomainData, 
+    interpolation: Interpolation = NoInterpolation(),
+    extrapolation: Extrapolation = NoExtrapolation()
+  ): Option[RangeData] = dd match {
     case DomainData(a, b) =>
       val ia = as.search(a)(ScalarOrdering) match {
         case Found(i) => i

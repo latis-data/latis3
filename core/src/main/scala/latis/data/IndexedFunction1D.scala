@@ -3,6 +3,7 @@ package latis.data
 import scala.collection.Searching._
 import fs2._
 import cats.effect.IO
+import latis.resample._
 
 /**
  * Manage one-dimensional Function Data as columnar arrays.
@@ -14,7 +15,11 @@ case class IndexedFunction1D(as: Array[Any], vs: Array[Any]) extends MemoizedFun
   //TODO: consider coordinate system function composition
   //TODO: combine with ArrayFunction?
   
-  override def apply(dd: DomainData): Option[RangeData] = dd match {
+  override def apply(
+    dd: DomainData, 
+    interpolation: Interpolation = NoInterpolation(),
+    extrapolation: Extrapolation = NoExtrapolation()
+  ): Option[RangeData] = dd match {
     case DomainData(d) =>
       as.search(d)(ScalarOrdering) match {
         case Found(i) => Option(RangeData(vs(i)))

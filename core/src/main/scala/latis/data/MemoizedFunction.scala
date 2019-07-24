@@ -6,6 +6,7 @@ import cats.effect.IO
 import fs2.Stream
 
 import scala.language.postfixOps
+import latis.resample._
     
 /**
  * This trait is implemented by SampledFunctions that
@@ -35,14 +36,18 @@ trait MemoizedFunction extends SampledFunction {
    * Evaluate this SampledFunction at the given domain value.
    * Return the result as an Option of RangeData.
    */
-  override def apply(value: DomainData): Option[RangeData] = {
-    //TODO: implicit Interpolation strategy
+  override def apply(
+    value: DomainData, 
+    interpolation: Interpolation = NoInterpolation(),
+    extrapolation: Extrapolation = NoExtrapolation()
+  ): Option[RangeData] = {
     //TODO: take advantage of ordering, find should at least short-circuit
     val osample: Option[Sample] = samples find {
       case Sample(d, _) => DomainOrdering.equiv(d, value) //Note, can't use "=="
       case _ => false
     }
     osample.map(_.range)
+    //TODO: interp if not found
   }
   
   

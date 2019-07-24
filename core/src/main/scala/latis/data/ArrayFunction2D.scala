@@ -1,14 +1,19 @@
 package latis.data
 
 import scala.language.postfixOps
+import latis.resample._
 
 /**
  * A SampledFunction implemented with a 2D array.
  * The domain values are 0-based indices as Ints.
  */
 case class ArrayFunction2D(array: Array[Array[RangeData]]) extends MemoizedFunction {
-  
-  override def apply(d: DomainData): Option[RangeData] = d match {
+    
+  override def apply(
+    dd: DomainData, 
+    interpolation: Interpolation = NoInterpolation(),
+    extrapolation: Extrapolation = NoExtrapolation()
+  ): Option[RangeData] = dd match {
     //TODO: support any integral type
     //TODO: handle index out of bounds
     case DomainData(i: Int, j: Int) => Option(array(i)(j))
