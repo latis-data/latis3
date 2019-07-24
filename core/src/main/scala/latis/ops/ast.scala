@@ -274,4 +274,16 @@ object ast {
       Sample(Vector(6), Vector(6, 7))
     )
   )
+
+  val ops1: Op =
+    select(select(ds1, Eq, "val1", "1"), Eq, "val1", "1")
+
+  val ops2: Op =
+    select(select(select(select(ds1, Gte, "val1", "1"), Gte, "val1", "2"), Lt, "val1", "3"), Lt, "val1", "4")
+
+  val ops3: Op =
+    select(select(select(select(ds1, Gte, "val1", "1"), Lt, "val1", "3"), Gte, "val1", "2"), Lt, "val1", "4")
+
+  val ops4: Op =
+  select(select(select(select(project(select(select(select(select(ds1, Gte, "val1", "1"), Lt, "val1", "3"), Gte, "val1", "2"), Lt, "val1", "4"), List("val1")), Gte, "val1", "1"), Lt, "val1", "3"), Gte, "val1", "2"), Lt, "val1", "4")
 }
