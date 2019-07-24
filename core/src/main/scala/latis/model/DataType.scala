@@ -44,6 +44,11 @@ sealed trait DataType
   def getScalars: Vector[Scalar] = toVector.collect { case s: Scalar => s }
   
   /**
+   * Find the DataType of a variable by its identifier.
+   */
+  def findVariable(id: String): Option[DataType] = find(_.id == id)
+  
+  /**
    * Return the function arity of this DataType.
    * For Function, this is the number of top level types (non-flattened) 
    * in the domain. 
@@ -58,7 +63,7 @@ sealed trait DataType
     case _ => 0
   }
   
-  //TODO: Rename Operation?
+  // Used by Rename Operation
   def rename(name: String): DataType = this match {
     //TODO: add old name to alias?
     case _: Scalar => Scalar(metadata + ("id" -> name))
