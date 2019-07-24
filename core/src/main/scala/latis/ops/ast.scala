@@ -3,6 +3,7 @@ package latis.ops
 import scala.language.implicitConversions
 
 import cats._
+import cats.data.State
 import cats.implicits._
 import higherkindness.droste._
 import higherkindness.droste.data.Fix
@@ -99,6 +100,54 @@ object ast {
 
   val eval: Op => Dataset =
     scheme.cata(evalAlg)
+
+  // Reorder uninterrupted sequences of selections so that they may be
+  // simplified. We require uninterrupted sequences because we know
+  // for sure that reordering those will not change the semantics of
+  // the entire operation.
+  //
+  // OpF[OpS[Op]] => OpS[Op]
+
+  type OpS[A] = State[List[SelectF[Unit]], A]
+  val groupSelects: Algebra[OpF, OpS[OpF[Op]]] =
+    Algebra {
+      case op @ SelectF(state, _, _, _) =>
+        state.flatMap { x =>
+          State { ops: List[SelectF[Unit]] =>
+            (op.copy(ds = ()) :: ops, x)
+          }
+        }
+      case DatasetF(ds) => State.pure(DatasetF(ds))
+      case op => emitSelects(op)
+    }
+
+  def emitSelects(opf: OpF[OpS[OpF[Op]]]): OpS[OpF[Op]] =
+    // Classy lenses for recursive position?
+    opf match {
+      case opf @ ProjectF(state, _) =>
+        for {
+          root <- state
+          sseq <- State.get[List[SelectF[Unit]]]
+          seq   = sseq.groupBy(_.sop).values.flatten.foldRight(root) {
+            (s: SelectF[Unit], r: OpF[Op]) => s.copy(ds = Fix(r))
+          }
+          _    <- State.set(List.empty[SelectF[Unit]])
+        } yield opf.copy(ds = Fix(seq))
+      // case JoinF(state1, state2) => ???
+    }
+
+  def reorder(op: Op): Op = {
+    val f: Op => OpS[OpF[Op]] = scheme.cata(groupSelects)
+
+    f(op).flatMap { opf =>
+      for {
+        sseq <- State.get[List[SelectF[Unit]]]
+        seq   = sseq.groupBy(_.sop).values.flatten.foldRight(opf) {
+          (s: SelectF[Unit], r: OpF[Op]) => s.copy(ds = Fix(r))
+        }
+      } yield Fix(seq)
+    }.runEmptyA.value
+  }
 
   // NOTE: By using TransM we could capture cases where the selections
   // lead to a contradiction. We could even split this simplification
