@@ -116,10 +116,10 @@ object ast {
           if varA == varB =>
         val vl = if (a.toInt <= b.toInt) a else b
         SelectF(r, Lte, varA, vl)
-      // x = a, x = b, a = b ===> x = a
-      case SelectF(Fix(SelectF(r, Eq, varA, a)), Eq, varB, b)
-          if varA == varB && a.toInt == b.toInt =>
-        SelectF(r, Eq, varA, a)
+      // x op a, x op b, a = b ===> x op a
+      case SelectF(Fix(SelectF(r, opA, varA, a)), opB, varB, b)
+          if varA == varB && opA == opB && a.toInt == b.toInt =>
+        SelectF(r, opA, varA, a)
       // x >= a, x <= b, a = b ===> x = a
       case SelectF(Fix(SelectF(r, Gte, varA, a)), Lte, varB, b)
           if varA == varB && a.toInt == b.toInt =>
@@ -144,6 +144,7 @@ object ast {
       case SelectF(Fix(SelectF(r, Lte, varA, a)), Eq, varB, b)
           if varA == varB && b.toInt <= a.toInt =>
         SelectF(r, Eq, varA, b)
+
       // x = a, x > b, a > b ===> x = a
       case SelectF(Fix(SelectF(r, Eq, varA, a)), Gt, varB, b)
           if varA == varB && a.toInt > b.toInt =>
@@ -160,6 +161,7 @@ object ast {
       case SelectF(Fix(SelectF(r, Lt, varA, a)), Eq, varB, b)
           if varA == varB && b.toInt < a.toInt =>
         SelectF(r, Eq, varA, b)
+
       // x >= a, x > b, b > a ===> x > b
       case SelectF(Fix(SelectF(r, Gte, varA, a)), Gt, varB, b)
           if varA == varB && b.toInt > a.toInt =>
@@ -176,6 +178,15 @@ object ast {
       case SelectF(Fix(SelectF(r, Lt, varA, a)), Lte, varB, b)
           if varA == varB && a.toInt < b.toInt =>
         SelectF(r, Lt, varA, a)
+
+      // x < a, x < b, a < b ===> x < a
+      case SelectF(Fix(SelectF(r, Lt, varA, a)), Lt, varB, b)
+          if varA == varB && a.toInt < b.toInt =>
+        SelectF(r, Lt, varA, a)
+      // x < a, x < b, b < a ===> x < b
+      case SelectF(Fix(SelectF(r, Lt, varA, a)), Lt, varB, b)
+          if varA == varB && b.toInt < a.toInt =>
+        SelectF(r, Lt, varA, b)
       case x => x
     }
 
