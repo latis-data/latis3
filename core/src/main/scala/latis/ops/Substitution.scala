@@ -13,6 +13,13 @@ case class Substitution() extends BinaryOperation {
   //TODO: if ds1 is memoized, evaluate with the entire domain set?
   //TODO: support aliases? or construct with id to replace?
   
+  /*
+   * TODO: name the target variable instead of matching names
+   * or do in terms of sample path?
+   * require rename
+   * provide in smart constructor
+   */
+  
   /**
    * Apply second Dataset to the first replacing the variable matching the domain
    * variable of the second with its range variable.

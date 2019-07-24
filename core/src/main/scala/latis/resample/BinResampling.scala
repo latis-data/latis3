@@ -33,8 +33,8 @@ case class BinResampling() extends Resampling {
     // Compute the new range data for each bin
     val range: Seq[RangeData] = bins.map(_.result).map(_.map(_.range)) map { maybeRange =>
       maybeRange.getOrElse {
-        RangeData(Double.NaN)
-        //??? //TODO: replace fill value
+        //RangeData(Double.NaN)
+        ??? //TODO: replace fill value
       }
     }
     
@@ -44,6 +44,7 @@ case class BinResampling() extends Resampling {
 
 
 abstract class BinAggregator extends Builder[Sample, Option[Sample]] {
+  //TODO: consider using fold (FP) instead of Builder (OO)
 
   protected var samples: Seq[Sample] = Seq.empty
 
