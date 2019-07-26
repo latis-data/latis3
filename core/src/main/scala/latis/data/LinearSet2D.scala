@@ -29,7 +29,7 @@ case class LinearSet2D(
   override def indexOf(data: DomainData): Int = data match {
     //Note, adding the 0.5 then floor effectively rounds to the nearest index.
     //We could use "round" but it's not clear if rounding up at 0.5 is guaranteed.
-    case DomainData(x: Double, y: Double) => 
+    case DomainData(x: Float, y: Float) => 
       val ix = Math.floor((x - xOffset)/xScale + 0.5).toInt
       val iy = Math.floor((y - yOffset)/yScale + 0.5).toInt
       // Don't extrapolate. Return None if out of bounds.

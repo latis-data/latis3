@@ -25,6 +25,7 @@ sealed trait DataType
    */
   def foreach[U](f: DataType => U): Unit = {
     // Recursive helper function, depth first
+    // Only safe for operating on Scalars?
     def go(v: DataType): Unit = {
       v match {
         case _: Scalar   => //end of this branch
@@ -73,6 +74,7 @@ sealed trait DataType
     
   /**
    * Return this DataType with all nested Tuples flattened to a single Tuple.
+   * A Scalar will remain a Scalar.
    * This form is consistent with Samples which don't preserve nested Functions.
    */
   def flatten(): DataType = {

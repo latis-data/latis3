@@ -28,11 +28,12 @@ case class ArrayFunction2D(array: Array[Array[RangeData]]) extends MemoizedFunct
 }
 
 object ArrayFunction2D extends FunctionFactory {
-
+  // Assumes the samples are a function of index with no gaps
+  // so we can determine the shape of the array from the domain 
+  // of the last sample
   def fromSamples(samples: Seq[Sample]): MemoizedFunction = samples match {
     case Seq() => ???              // TODO: figure out how to handle error
     case _ =>
-      println("ArrayFunction2D.fromSamples called")
       samples.last.domain match {
         case x +: xs => 
           val y = xs.head
@@ -42,7 +43,7 @@ object ArrayFunction2D extends FunctionFactory {
           for {
             i <- 0 until xSize
             j <- 0 until ySize
-          } array(i)(j) = Vector(samples(i + j * xSize).range)
+          } array(i)(j) = samples(i + j * xSize).range
           ArrayFunction2D(array)
         case _ => ???              // TODO: figure out how to handle error
       }

@@ -16,6 +16,7 @@ object DomainData {
     //TODO: support any Numeric
     val squares = (dd1 zip dd2) map {
       case (d1: Double, d2: Double) => Math.pow((d2 - d1), 2)
+      case (d1: Double, d2: Float) => Math.pow((d2 - d1), 2)
       case _                        => ??? //TODO: invalid data type
     }
     Math.sqrt(squares.sum)
