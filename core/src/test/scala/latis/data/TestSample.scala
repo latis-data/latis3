@@ -9,7 +9,7 @@ class TestSample extends JUnitSuite {
   @Test
   def sample_extract(): Unit = {
     TestSample.sample match {
-      case (DomainData(a: Double), RangeData(b: Int)) =>
+      case (DomainData(Real(a)), RangeData(Integer(b))) =>
         assertEquals(1.0, a, 0)
         assertEquals(2, b)
     }

@@ -1,19 +1,18 @@
 package latis.data
 
 import scala.collection.Searching._
-import fs2._
-import cats.effect.IO
 import latis.resample._
 
 /**
- * Manage one-dimensional Function Data as columnar arrays.
- * For evaluation, this uses a binary search on the domain array
- * to get the index into the range array.
+ * Manage one-dimensional SampledFunction Data as columnar sequences.
+ * For evaluation, this uses a binary search on the domain values
+ * to get the index into the range values.
  */
-case class IndexedFunction1D(as: Array[Any], vs: Array[Any]) extends MemoizedFunction {
-  //TODO: consider computable index (regular spacing)
-  //TODO: consider coordinate system function composition
-  //TODO: combine with ArrayFunction?
+case class IndexedFunction1D(xs: Seq[OrderedData], vs: Seq[RangeData]) extends IndexedFunction {
+  //TODO: assert that sizes are consistent
+  //Note, using Seq instead of invariant Array to get variance
+  //TODO: prevent diff types of OrderedData, e.g. mixing NumberData and TextData, or IntData and DoubleData
+  // [T <: OrderedData]
   
   override def apply(
     dd: DomainData, 
@@ -21,15 +20,16 @@ case class IndexedFunction1D(as: Array[Any], vs: Array[Any]) extends MemoizedFun
     extrapolation: Extrapolation = NoExtrapolation()
   ): Option[RangeData] = dd match {
     case DomainData(d) =>
-      as.search(d)(ScalarOrdering) match {
-        case Found(i) => Option(RangeData(vs(i)))
+      searchDomain(xs, d) match {
+        case Found(i) => Option(vs(i))
         case InsertionPoint(i) => ??? //TODO: interpolate
       }
   }
   
+  /**
+   * Provide a sequence of samples to fulfill the MemoizedFunction trait.
+   */
   def samples: Seq[Sample] =
-    (as zip vs) map { case (a, v) => Sample(DomainData(a), RangeData(v)) }
+    (xs zip vs) map { case (x, v) => Sample(DomainData(x), v) }
 
 }
-
-//TODO: fromSeq? CanBuildFrom? See FunctionFactory

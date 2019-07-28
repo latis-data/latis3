@@ -13,9 +13,8 @@ case class ArrayFunction1D(array: Array[RangeData]) extends MemoizedFunction {
     interpolation: Interpolation = NoInterpolation(),
     extrapolation: Extrapolation = NoExtrapolation()
   ): Option[RangeData] = dd match {
-    //TODO: support any integral type
     //TODO: handle index out of bounds
-    case DomainData(i: Int) => Option(array(i))
+    case DomainData(Index(i)) => Option(array(i))
     case _ => ??? //new RuntimeException("Failed to evaluate ArrayFunction1D")
   }
   

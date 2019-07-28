@@ -16,7 +16,7 @@ import latis.model._
  * Note that it is not generally useful to pivot an outer Function into
  * a single Tuple, but no reason to exclude it.
  */
-case class Pivot(values: Seq[Any], vids: Seq[String]) extends MapOperation {
+case class Pivot(values: Seq[OrderedData], vids: Seq[String]) extends MapOperation {
   
   /*
    * TODO: Support general pivot with no specified values

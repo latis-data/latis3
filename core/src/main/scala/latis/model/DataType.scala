@@ -173,10 +173,10 @@ class Scalar(val metadata: Metadata) extends DataType {
   /**
    * Convert a string value into the appropriate type for this Scalar.
    */
-  def parseValue(value: String): Any = this("type") match {
+  def parseValue(value: String): OrderedData = this("type") match {
     //TODO: deal with parse errors
     //TODO: use enumeration, ADT, fdml schema
-    case Some("boolean")    => value.toBoolean
+    //case Some("boolean")    => value.toBoolean
     case Some("char")       => value.head
     case Some("short")      => value.toShort
     case Some("int")        => value.toInt
@@ -184,8 +184,8 @@ class Scalar(val metadata: Metadata) extends DataType {
     case Some("float")      => value.toFloat
     case Some("double")     => value.toDouble
     case Some("string")     => value
-    case Some("bigInt")     => BigInt(value)
-    case Some("bigDecimal") => BigDecimal(value)
+    //case Some("bigInt")     => BigInt(value)
+    //case Some("bigDecimal") => BigDecimal(value)
     //TODO: binary blob
     //TODO: class, e.g. latis.time.Time?
     case Some(s) => ??? //unsupported type s

@@ -48,14 +48,14 @@ class TestResampling extends JUnitSuite {
     assertEquals(12, samples.length)
     // match first sample
     samples.head match {
-      case Sample(DomainData(x: Double, y: Double), RangeData(v: Double)) =>
+      case Sample(DomainData(Real(x), Real(y)), RangeData(Real(v))) =>
         assertEquals(2.0, x, 0)
         assertEquals(2.0, y, 0)
         assertEquals(25.0, v, 0)
     }
     // match last sample
     samples.last match {
-      case Sample(DomainData(x: Double, y: Double), RangeData(v: Double)) =>
+      case Sample(DomainData(Real(x), Real(y)), RangeData(Real(v))) =>
         assertEquals(4.0, x, 0)
         assertEquals(5.0, y, 0)
         assertEquals(300.0, v, 0)

@@ -16,7 +16,7 @@ import latis.resample._
  * with an exception (if an exact match is not found). 
  * Note that StreamFunctions are limited by being traversable once.
  */
-trait SampledFunction {
+trait SampledFunction extends Data {
   //TODO: impl scala Traversable? Monoid, Functor, Monad?
   //TODO: should default impl be moved to StreamFunction?
   //TODO: function evaluation with DomainSet, support topologies

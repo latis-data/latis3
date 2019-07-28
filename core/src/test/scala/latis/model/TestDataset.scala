@@ -16,8 +16,8 @@ object TestDataset extends App {
       Scalar("x"),
       Scalar("a")
     )
-    val xs: Array[Any] = Array(0,1,2)
-    val as: Array[Any] = Array(1,2,3)
+    val xs: Seq[OrderedData] = Seq(0,1,2)
+    val as: Seq[RangeData] = Seq(1,2,3).map(RangeData(_))
     val data = IndexedFunction1D(xs, as)
     
     Dataset(md, model, data)

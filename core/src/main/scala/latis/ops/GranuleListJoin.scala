@@ -44,11 +44,11 @@ case class GranuleListJoin(model: DataType, adapter: Adapter) extends UnaryOpera
       case _ => ??? //TODO: error, no non-nested uri
     }
     
-    // Make function that can be mapped over the ganules list data.
+    // Make function that can be mapped over the granules list data.
     // Extract the uri then apply that to the Adapter to get the data for that granule.
     val f: Sample => SampledFunction = (sample: Sample) => {
       sample.getValue(pos) match {
-        case Some(s: String) =>
+        case Some(Text(s)) =>
           val uri = new URI(s) //TODO: error
           adapter(uri)
         case _ => ??? //TODO: error if type is wrong, position should be valid

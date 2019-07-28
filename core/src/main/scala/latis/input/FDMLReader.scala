@@ -101,7 +101,7 @@ class FDMLReader(xml: Elem) extends AdaptedDatasetReader {
       case "contains"  => contains(node)
       case "groupby"   => groupBy(node)
       case "head"      => head(node)
-      case "pivot"     => pivot(node)
+      //case "pivot"     => pivot(node)
       case "project"   => project(node)
       case "rename"    => rename(node)
       case "select"    => select(node)
@@ -206,12 +206,12 @@ class FDMLReader(xml: Elem) extends AdaptedDatasetReader {
     None
   }
   
-  def pivot(node: Node): Option[UnaryOperation] = {
-    for {
-      values  <- Option(node \ "value").filter(_.nonEmpty)
-      vids <- Option(node \ "vid").filter(_.nonEmpty)
-    } yield Pivot(values.map(_.text), vids.map(_.text)) 
-  }
+//  def pivot(node: Node): Option[UnaryOperation] = {
+//    for {
+//      values  <- Option(node \ "value").filter(_.nonEmpty)
+//      vids <- Option(node \ "vid").filter(_.nonEmpty)
+//    } yield Pivot(values.map(_.text), vids.map(_.text)) 
+//  }
   
   def project(node: Node): Option[UnaryOperation] = {
     for {

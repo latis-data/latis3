@@ -100,7 +100,10 @@ case class Substitution() extends BinaryOperation {
         case DomainPosition(i) =>
           val vals = sample.domain.toSeq
           val slice = vals.drop(i).take(vids.length) //get values to be replaced
-          val sub = sf(DomainData.fromSeq(slice)).get.toSeq //TODO: handle bad eval
+          val sub = sf(DomainData.fromSeq(slice)).get.toSeq.asInstanceOf[Seq[OrderedData]] //TODO: handle bad eval
+      /*
+       * TODO: the range data will be sub'd into the domain so it must be OrderedData
+       */
           val vals2 = vals.splitAt(i) match {
             case (p1, p2) => p1 ++ sub ++ p2.drop(slice.length) //splice in new data
           }
@@ -108,7 +111,11 @@ case class Substitution() extends BinaryOperation {
           Sample(domain, sample.range)
         case RangePosition(i) =>
           val vals = sample.range.toSeq
-          val slice = vals.drop(i).take(vids.length) //get values to be replaced
+          //get values to be replaced
+          val slice = vals.drop(i).take(vids.length).asInstanceOf[Seq[OrderedData]]
+      /*
+       * TODO: to use the range values to eval the sub ds, they must be OrderedData
+       */
           val sub = sf(DomainData.fromSeq(slice)).get.toSeq //TODO: handle bad eval
           val vals2 = vals.splitAt(i) match {
             case (p1, p2) => p1 ++ sub ++ p2.drop(slice.length) //splice in new data

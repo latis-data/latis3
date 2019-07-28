@@ -65,14 +65,14 @@ class TestGranuleListJoin {
     val samples = ds.data.unsafeForce.samples
     assertEquals(2, samples.length)
     samples(0) match {
-      case Sample(DomainData(a: Short), RangeData(b: Int, c: Float, d: String)) =>
+      case Sample(DomainData(Integer(a)), RangeData(Integer(b), Real(c), Text(d))) =>
         assertEquals(2, a)
         assertEquals(4, b)
         assertEquals(3.3f, c, 0)
         assertEquals("c", d)
     }
     samples(1) match {
-      case Sample(DomainData(a: Short), RangeData(b: Int, c: Float, d: String)) =>
+      case Sample(DomainData(Integer(a)), RangeData(Integer(b), Real(c), Text(d))) =>
         assertEquals(3, a)
         assertEquals(6, b)
         assertEquals(4.4f, c, 0)

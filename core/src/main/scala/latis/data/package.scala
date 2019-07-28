@@ -5,12 +5,12 @@ package object data {
   /**
    * Define a type alias for DomainData as a Vector of values of any type.
    */
-  type DomainData = Vector[Any]
+  type DomainData = Vector[OrderedData]
 
   /**
    * Define a type alias for RangeData as a Vector of values of any type.
    */
-  type RangeData = Vector[Any]
+  type RangeData = Vector[Data]
 
   /**
    * Define a type alias for a Sample as a pair (scala Tuple2) of
@@ -46,7 +46,7 @@ package object data {
      * Get the data values from this Sample at the given SamplePosition.
      * The value could represent a Scalar variable or a nested Function.
      */
-    def getValue(samplePosition: SamplePosition): Option[Any] = samplePosition match {
+    def getValue(samplePosition: SamplePosition): Option[Data] = samplePosition match {
       //check index OOB
       case DomainPosition(n) =>
         if (n < domain.length) Some(domain(n))
@@ -57,16 +57,18 @@ package object data {
     }
 
     /**
-     * Return a new Sample with the given value in the given position.
+     * Return a new Sample with the given data value in the given position.
      */
-    def updatedValue(samplePosition: SamplePosition, value: Any): Sample = samplePosition match {
-      //TODO: insert values if Seq[Any]
+    def updatedValue(samplePosition: SamplePosition, value: Data): Sample = samplePosition match {
       case DomainPosition(n) =>
-        if (n < domain.length) Sample(domain.updated(n, value), range)
-        else ??? //TODO: error
+        if (n < domain.length) value match {
+          case data: OrderedData => Sample(domain.updated(n, data), range)
+          case _ => ??? //TODO: error, domain data must have ordering
+        }
+        else ??? //TODO: error, invalid position
       case RangePosition(n) =>
         if (n < range.length) Sample(domain, range.updated(n, value))
-        else ??? //TODO: error
+        else ??? //TODO: error, invalid position
     }
 
     //  def zipPositionWithValue: Seq[(SamplePosition, Any)] = {
@@ -83,38 +85,43 @@ package object data {
    * DaomainData being compared must have the same number of values (arity).
    * Individual values will be compared pair-wise. If the first pair of
    * values are equal, then the next pair will be compared.
-   * This is used by the implicit SampleOrdering
-   * defined in the package object.
+   * This is used by the implicit SampleOrdering defined in the package object.
    */
   implicit object DomainOrdering extends Ordering[DomainData] {
-    /*
-   * TODO: what about DomainData extends Ordered?
-   * impl one, get the other implicitly?
-   * But just an alias for Vector right now
-   * could save us from explicitly using this
-   */
 
     /**
      * Implement the compare method of the Ordering trait.
      */
     def compare(a: DomainData, b: DomainData) = {
+      //TODO: ensure the types are comparable, e.g. number-number
       if (a.length != b.length) {
         val msg = "Can't compare DomainData with different arity."
         throw new UnsupportedOperationException(msg)
-      } else comparePairs(a zip b)(ScalarOrdering)
+      } else {
+        val pairs: Seq[(OrderedData, OrderedData)] = a zip b
+        comparePairs(pairs)
+      }
     }
 
     /**
      * Helper method to compare two sequences of DomainData recursively.
      * If the first pair matches, recursively test the next pair.
      */
-    private def comparePairs[T](ps: Seq[(T, T)])(implicit ord: Ordering[T]): Int =
+    private def comparePairs(ps: Seq[(OrderedData, OrderedData)]): Int =
       ps.toList match {
         case Nil => 0 //all pairs matched
-        case head :: tail => ord.compare(head._1, head._2) match {
-          case 0      => comparePairs(tail) //recurse
-          case c: Int => c
-        }
+        case head :: tail => 
+          val comp = (head._1, head._2) match {
+            case (a: Number, b: Number) => a compare b
+            case (a: Text, b: Text)     => a compare b
+            //TODO:  Compare number to text?
+            //case (a: NumberData, b: TextData) => a compare b.stringValue.toDouble
+            case _ => ??? //TODO: error, invalid pair, check above, use PartiallyOrdered?
+          }
+          comp match {
+            case 0 => comparePairs(tail) //recurse
+            case c => c
+          }
       }
 
   }

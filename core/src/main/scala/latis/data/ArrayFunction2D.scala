@@ -14,9 +14,8 @@ case class ArrayFunction2D(array: Array[Array[RangeData]]) extends MemoizedFunct
     interpolation: Interpolation = NoInterpolation(),
     extrapolation: Extrapolation = NoExtrapolation()
   ): Option[RangeData] = dd match {
-    //TODO: support any integral type
     //TODO: handle index out of bounds
-    case DomainData(i: Int, j: Int) => Option(array(i)(j))
+    case DomainData(Index(i), Index(j)) => Option(array(i)(j))
     case _ => ??? //new RuntimeException("Failed to evaluate ArrayFunction2D")
   }
   

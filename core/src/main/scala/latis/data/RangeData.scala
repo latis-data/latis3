@@ -9,15 +9,15 @@ object RangeData {
   /**
    * Construct RangeData from a comma separated list of values.
    */
-  def apply(data: Any*): RangeData = data.toVector
+  def apply(data: Data*): RangeData = data.toVector
   
   /**
    * Construct RangeData from a Seq of values.
    */
-  def fromSeq(data: Seq[_]): RangeData = data.toVector
+  def fromSeq(data: Seq[Data]): RangeData = data.toVector
   
   /**
    * Extract a comma separated list of values from RangeData.
    */
-  def unapplySeq(d: RangeData): Option[Seq[_]] = Option(d.toSeq)
+  def unapplySeq(d: RangeData): Option[Seq[Data]] = Option(d.toSeq)
 }
