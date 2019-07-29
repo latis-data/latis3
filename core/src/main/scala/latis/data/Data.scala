@@ -13,6 +13,7 @@ trait Data extends Any
 trait OrderedData extends Any with Data 
   // Note, can't make Ordering for any Data.
   // Only number and text makes sense to order.
+//TODO: support equality even if we can't support ordering, see Curry
 
 /**
  * Define a base trait for all numeric data.
@@ -96,6 +97,18 @@ object BinaryData {
 
 
 object Data {
+    
+  // Try to construct Data from anything
+  def apply(thing: Any): Data = thing match {
+    case x: Short  => ShortValue(x)
+    case x: Int    => IntValue(x)
+    case x: Long   => LongValue(x)
+    case x: Float  => FloatValue(x)
+    case x: Double => DoubleValue(x)
+    case x: String => StringValue(x)
+    //TODO: AnyData?
+  }
+  
   //Note, these are implicit so we can construct DomainData from primitive types
     
   //TODO: should we only make LongValue implicit for the Integral types?
