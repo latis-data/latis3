@@ -9,7 +9,7 @@ class TestSample extends JUnitSuite {
   @Test
   def sample_extract(): Unit = {
     TestSample.sample match {
-      case (DomainData(Real(a)), RangeData(Integer(b))) =>
+      case (DomainData(Real(a)), RangeData(Index(b))) =>
         assertEquals(1.0, a, 0)
         assertEquals(2, b)
     }
@@ -24,11 +24,11 @@ class TestSample extends JUnitSuite {
     )
     val expected = List(0, 1, 2)
     l.sorted(DomainOrdering) zip expected foreach {
-      case (DomainData(_,_,v), x) => assertEquals(x, v)
+      case (DomainData(_,_,Integer(v)), x) => assertEquals(x, v)
     }
   }
   
-  @Test @Ignore
+  @Test
   def text_ordering(): Unit = {
     val l = List(
       DomainData(1.2, 3, "a"),
@@ -37,7 +37,7 @@ class TestSample extends JUnitSuite {
     )
     val expected = List("", "a", "b")
     l.sorted(DomainOrdering) zip expected foreach {
-      case (DomainData(_,_,v), x) => assertEquals(x, v)
+      case (DomainData(_,_,Text(v)), x) => assertEquals(x, v)
     }
   }
 }

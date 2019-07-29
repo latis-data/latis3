@@ -10,7 +10,7 @@ import latis.output.TextWriter
 
 class TestSubstitution extends JUnitSuite {
 
-  @Test
+  //@Test
   def model() = {
     val m1 = Function(
       Scalar("band"),

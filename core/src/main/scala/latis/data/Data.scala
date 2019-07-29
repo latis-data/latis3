@@ -1,91 +1,81 @@
 package latis.data
 
-import scala.math.Numeric._
-
-trait Data extends Any
-
-/*
- * TODO: Numeric
- * Numeric is limited, need Fractional to get div
- * consider using spire: rich mathematically correct types some with arbitrary precision
- * 
- * the numeric type (e.g. double vs float vs int) is separable from Time vs Wavelength...
- * there is no real need to allow others to extend the Data types
- * we can have a sealed trait of supported type
- * and use extension instead of type classes
- * extraction via pattern match might be handy (at least for testing), but spoils value class
- * 
- * How can we get Numeric support for the scala libs that use it? 
- * lots of things to impl, extend things like DoubleIsFractional?
- * 
- * Number => Double
- * Integer => Long
- * Real => Double
- * Text => String
- * Complex => (Double, Double)
- * 
- * SampledFunction extends Data
- *   but not Numeric or Ordering
- * 
- * 
- * extend specific type ordering? 
- *   Ordering.Double.IeeeOrdering
- *   Numeric extends Ordering so extending a Numeric instance might do it
- * 
- * have separate traits for domain vs range to prevent putting a SF in the domain?
- * DomainData = Vector[OrderedData]
- * RangeData = Vector[Data]
- * 
- * would PartiallyOrdered help?
- * just because data is numeric doesn't mean that that is the order we want
- * can we specify AsIsOrdering?
- * SF is not Ordered
- * compare(that: Data) not always defined
- * introduce Ordered for Number and Text only?
- * 
- * Note that binary search in IndexedFunction uses ScalarOrdering, can we get that from Ordered?
+/**
+ * The Data trait is the root of all data values that go into a Sample.
  */
+trait Data extends Any
+//TODO: seal? don't forget SampledFunction
 
 /**
  * Define a trait for Data that can be ordered.
  * This is used to ensure that DomainData has an ordering.
  */
 trait OrderedData extends Any with Data 
-/*
- * Note, can't make ordering for any Data
- * only number and text makes sense to order
- * should we allow any combination of text and number to be ordered so we can have a single ordering?
- */
+  // Note, can't make Ordering for any Data.
+  // Only number and text makes sense to order.
 
+/**
+ * Define a base trait for all numeric data.
+ * Implementers of Number must be able to provide Float and Double
+ * values. Note that, Integral provides Int and Long.
+ * Pattern matching on Number with extract a Double value.
+ * This does not include String representations of a numeric value.
+ */
 trait Number extends Any with OrderedData with Ordered[Number] {
-  def doubleValue: Double
+  //TODO: include other numeric types?
+  def toFloat: Float
+  def toDouble: Double
 }
 object Number {
-  //Treat all Number as Doubles, for now
-  def unapply(data: Number): Option[Double] = Option(data.doubleValue)
+  // Extract a Double from a Number
+  def unapply(data: Number): Option[Double] = Option(data.toDouble)
 }
 
-trait Index extends Number {
-  def intValue: Int
-  def doubleValue = intValue.toDouble
+/**
+ * Define a base trait for integral (integer) data.
+ * Implementations of Integral must be able to provide
+ * Int and Long values in addition to Float and Double
+ * required by Number.
+ * This enables specialized Integral types to match any
+ * other Integral type.
+ */
+trait Integral extends Any with Number {
+  def toInt: Int
+  def toLong: Long
 }
+
+/**
+ * Index is an Integral type which can be used in a
+ * pattern match to extract an Int which is suitable for 
+ * indexing a Seq.
+ */
+trait Index extends Any with Integral
 object Index {
-  def unapply(data: Index): Option[Int] = Option(data.intValue)
+  def unapply(data: Integral): Option[Int] = Option(data.toInt)
 }
 
-trait Integer extends Number {
-  def longValue: Long
-  def doubleValue = longValue.toDouble
-}
+/**
+ * Integer is an Integral type which can be used in a
+ * pattern match to extract a Long.
+ */
+trait Integer extends Any with Integral
 object Integer {
-  def unapply(data: Integer): Option[Long] = Option(data.longValue)
+  def unapply(data: Integral): Option[Long] = Option(data.toLong)
 }
 
-trait Real extends Number
+/**
+ * Real is a Number type which can be used in a
+ * pattern match to extract a Double.
+ */
+trait Real extends Any with Number
 object Real {
-  def unapply(data: Real): Option[Double] = Option(data.doubleValue)
+  def unapply(data: Real): Option[Double] = Option(data.toDouble)
 }
 
+/**
+ * Text is a type of Data whose value is represented as a String.
+ * This trait also provide lexical ordering of Text Data.
+ */
 trait Text extends Any with OrderedData with Ordered[Text] {
   def stringValue: String
 }
@@ -93,35 +83,86 @@ object Text {
   def unapply(data: Text): Option[String] = Option(data.stringValue)
 }
 
+/**
+ * BinaryData is a type of Data that encapsulated a Byte Array.
+ * There is no ordering provided for BinaryData.
+ */
 trait BinaryData extends Any with Data {
-  def bytes: Array[Byte]
+  def toBytes: Array[Byte]
 }
 object BinaryData {
-  def unapply(data: BinaryData): Option[Array[Byte]] = Option(data.bytes)
+  def unapply(data: BinaryData): Option[Array[Byte]] = Option(data.toBytes)
 }
+
 
 object Data {
   //Note, these are implicit so we can construct DomainData from primitive types
-  //TODO: put in package object?
-  implicit class DoubleValue(val value: Double) 
-    extends AnyVal with Number {
-      def doubleValue: Double = value
+    
+  //TODO: should we only make LongValue implicit for the Integral types?
+  
+  implicit class ShortValue(val value: Short) 
+    extends AnyVal with Integral {
+      def toInt: Int = value.toInt
+      def toLong: Long = value.toLong
+      def toFloat: Float = value.toFloat
+      def toDouble: Double = value.toDouble
+      override def toString = value.toString
       def compare(that: Number): Int = 
-        doubleValue compare that.doubleValue
+        toDouble compare that.toDouble
   }
   
   implicit class IntValue(val value: Int) 
-    extends AnyVal with Number {
-      def doubleValue: Double = value.toDouble
+    extends AnyVal with Integral {
+      def toInt: Int = value
+      def toLong: Long = value.toLong
+      def toFloat: Float = value.toFloat
+      def toDouble: Double = value.toDouble
+      override def toString = value.toString
       def compare(that: Number): Int = 
-        doubleValue compare that.doubleValue
+        toDouble compare that.toDouble
   }
   
+  implicit class LongValue(val value: Long) 
+    extends AnyVal with Integral {
+      def toInt: Int = value.toInt
+      def toLong: Long = value
+      def toFloat: Float = value.toFloat
+      def toDouble: Double = value.toDouble
+      override def toString = value.toString
+      def compare(that: Number): Int = 
+        toDouble compare that.toDouble
+  }
+  
+  implicit class FloatValue(val value: Float) 
+    extends AnyVal with Real {
+      def toFloat: Float = value
+      def toDouble: Double = value.toDouble
+      override def toString = value.toString
+      def compare(that: Number): Int = 
+        toDouble compare that.toDouble
+  }
+  
+  implicit class DoubleValue(val value: Double) 
+    extends AnyVal with Real {
+      def toFloat: Float = value.toFloat
+      def toDouble: Double = value
+      override def toString = value.toString
+      def compare(that: Number): Int = 
+        toDouble compare that.toDouble
+  }
+
   implicit class StringValue(val value: String) 
     extends AnyVal with Text {
       def stringValue: String = value
+      override def toString = value
       def compare(that: Text): Int = 
         stringValue compare that.stringValue
+  }
+
+  implicit class BinaryValue(val value: Array[Byte]) 
+    extends AnyVal with BinaryData {
+      def toBytes: Array[Byte] = value
+      override def toString = "BLOB"
   }
 
 }
