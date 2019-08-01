@@ -34,17 +34,13 @@ object ArrayFunction2D extends FunctionFactory {
     case Seq() => ???              // TODO: figure out how to handle error
     case _ =>
       samples.last.domain match {
-        case x +: xs => 
-          val y = xs.head
-          val xSize: Int = x.toString.toInt
-          val ySize: Int = y.toString.toInt
-          val array = Array.ofDim[RangeData](xSize + 1, ySize + 1)
-          for {
-            i <- 0 until xSize
-            j <- 0 until ySize
-          } array(i)(j) = samples(i + j * xSize).range
+        case DomainData(Index(x), Index(y)) =>
+          val nx = x + 1
+          val ny = y + 1
+          val array = Array.tabulate(nx, ny)((i, j) =>
+            samples(i * ny + j).range)
           ArrayFunction2D(array)
-        case _ => ???              // TODO: figure out how to handle error
+        case _ => ??? //TODO: error, invalid sample type
       }
   }
     
