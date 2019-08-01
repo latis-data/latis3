@@ -106,7 +106,7 @@ object Data {
     case x: Float  => FloatValue(x)
     case x: Double => DoubleValue(x)
     case x: String => StringValue(x)
-    //TODO: AnyData?
+    //TODO: AnyData? ObjectData?
   }
   
   //Note, these are implicit so we can construct DomainData from primitive types
@@ -114,7 +114,7 @@ object Data {
   //TODO: should we only make LongValue implicit for the Integral types?
   
   implicit class ShortValue(val value: Short) 
-    extends AnyVal with Integral {
+    extends AnyVal with Integral with Serializable {
       def toInt: Int = value.toInt
       def toLong: Long = value.toLong
       def toFloat: Float = value.toFloat
@@ -125,7 +125,7 @@ object Data {
   }
   
   implicit class IntValue(val value: Int) 
-    extends AnyVal with Integral {
+    extends AnyVal with Integral with Serializable {
       def toInt: Int = value
       def toLong: Long = value.toLong
       def toFloat: Float = value.toFloat
@@ -136,7 +136,7 @@ object Data {
   }
   
   implicit class LongValue(val value: Long) 
-    extends AnyVal with Integral {
+    extends AnyVal with Integral with Serializable {
       def toInt: Int = value.toInt
       def toLong: Long = value
       def toFloat: Float = value.toFloat
@@ -147,7 +147,7 @@ object Data {
   }
   
   implicit class FloatValue(val value: Float) 
-    extends AnyVal with Real {
+    extends AnyVal with Real with Serializable {
       def toFloat: Float = value
       def toDouble: Double = value.toDouble
       override def toString = value.toString
@@ -156,7 +156,7 @@ object Data {
   }
   
   implicit class DoubleValue(val value: Double) 
-    extends AnyVal with Real {
+    extends AnyVal with Real with Serializable {
       def toFloat: Float = value.toFloat
       def toDouble: Double = value
       override def toString = value.toString
@@ -165,7 +165,7 @@ object Data {
   }
 
   implicit class StringValue(val value: String) 
-    extends AnyVal with Text {
+    extends AnyVal with Text with Serializable {
       def stringValue: String = value
       override def toString = value
       def compare(that: Text): Int = 
@@ -173,7 +173,7 @@ object Data {
   }
 
   implicit class BinaryValue(val value: Array[Byte]) 
-    extends AnyVal with BinaryData {
+    extends AnyVal with BinaryData with Serializable {
       def toBytes: Array[Byte] = value
       override def toString = "BLOB"
   }
