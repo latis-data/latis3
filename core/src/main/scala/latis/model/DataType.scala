@@ -130,10 +130,26 @@ sealed trait DataType
     go(this.flatten, id, Seq.empty)
   }
 
+  //TODO: beef up
+  //TODO: use missing_value in metadata, scalar.parseValue(s)
+  def makeFillValues: RangeData = RangeData.fromSeq(getFillValue(this, Seq.empty))
+  def getFillValue(dt: DataType, acc: Seq[Data]): Seq[Data] = dt match {
+    case s: Scalar => s.metadata.getProperty("type") match {
+      case Some("double") => acc :+ Data(Double.NaN)
+      case Some("float")  => acc :+ Data(Float.NaN)
+      case Some("long")   => acc :+ Data(Long.MinValue)
+      case Some("int")    => acc :+ Data(Int.MinValue)
+      case Some("string") => acc :+ Data("")
+      //TODO: more
+    }
+    case Tuple(es @ _*) => es.flatMap(getFillValue(_, acc))
+    case _: Function => throw new RuntimeException("Can't make fill values for Function, yet.")
+  }
 }
 
 object DataType {
     
+  //Note, this will only work for a Seq with traversal defined by foreach
   def fromSeq(vars: Seq[DataType]): DataType = {
     def go(vs: Seq[DataType], hold: Stack[DataType]): DataType = {
       vs.headOption match {

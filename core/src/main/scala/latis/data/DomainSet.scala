@@ -1,6 +1,10 @@
 package latis.data
 
+import latis.model.DataType
+
 trait DomainSet {
+  //TODO: need model, no longer just data
+  def model: DataType
   
   def elements: Seq[DomainData]
   
@@ -15,7 +19,8 @@ trait DomainSet {
 
 object DomainSet {
   
-  def apply(_elements: Seq[DomainData]) = new DomainSet {
-    def elements: Seq[DomainData] = _elements
+  def apply(_elements: Seq[DomainData], _model: DataType) = new DomainSet {
+    def model = _model
+    def elements = _elements
   }
 }

@@ -97,6 +97,9 @@ trait SampledFunction extends Data {
   def groupBy(paths: SamplePath*): MemoizedFunction =
     unsafeForce.groupBy(paths: _*)
     
+    
+  def union(that: SampledFunction): SampledFunction = ??? //TODO: impl for Stream
+    
   /**
    * Return this SampledFunction as a MemoizedFunction.
    * It is unsafe in that a StreamFunction has to do an

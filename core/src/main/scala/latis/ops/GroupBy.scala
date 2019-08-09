@@ -12,6 +12,7 @@ import latis.data._
  *   so we can easily preserve complex ranges (e.g. nested functions).
  */
 case class GroupBy(vnames: String*) extends UnaryOperation {
+  //TODO: optional Aggregator, default to nested Function
 
   /**
    * Apply the groupBy logic to the Dataset model.

@@ -8,5 +8,5 @@ import latis.data._
  */
 trait Resampling {
   
-  def resample(sf: SampledFunction, domainSet: DomainSet): SampledFunction
+  def resample(sf: SampledFunction, domainSet: DomainSet, csx: DomainData => DomainData): SampledFunction
 }

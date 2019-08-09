@@ -1,5 +1,8 @@
 package latis.data
 
+import latis.model._
+import latis.metadata.Metadata
+
 /**
  * Define a two-dimensional Cartesian DomainSet in terms of scales and offsets.
  */
@@ -8,6 +11,12 @@ case class LinearSet2D(
   yScale: Double, yOffset: Double, ny: Int
 ) extends DomainSet {
 //TODO: use start, stride semantics; any performance implications?
+  
+  //TODO: construct with model so users can name things, support diff types?
+  def model: DataType = Tuple(
+    Scalar(Metadata("id" -> "_1", "type" -> "double")),
+    Scalar(Metadata("id" -> "_2", "type" -> "double"))
+  )
   
   override def length: Int = nx * ny
   

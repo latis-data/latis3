@@ -7,6 +7,8 @@ import fs2.Stream
 
 import scala.language.postfixOps
 import latis.resample._
+import scala.collection.immutable.SortedMap
+import scala.collection.mutable.Builder
     
 /**
  * This trait is implemented by SampledFunctions that
@@ -106,6 +108,16 @@ trait MemoizedFunction extends SampledFunction {
     // Build SampledFunction from range samples
     //TODO: use MapFunction?
     SampledFunction.fromSeq( map map { p => Sample(p._1, Array(SampledFunction.fromSeq(p._2))) } toSeq )
+  }
+  
+  // Use a SortedMapFunction
+  override def union(that: SampledFunction): SampledFunction = that match {
+    case mf: MemoizedFunction =>
+      val builder: Builder[(DomainData, RangeData), SortedMap[DomainData, RangeData]] = SortedMap.newBuilder
+      this.samples.foreach(s => builder += s)
+      mf.samples.foreach(s => builder += s) //TODO: test keep the original if duplicates
+      SortedMapFunction(builder.result())
+    case _ => ??? //TODO: union as Streams
   }
 }
 

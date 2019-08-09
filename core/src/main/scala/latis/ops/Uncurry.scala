@@ -13,7 +13,7 @@ import fs2._
  *   
  * Assumes Cartesian Product domain set (e.g. same set of bs for each a).
  */
-case class Uncurry() extends UnaryOperation {
+case class Uncurry() extends FlatMapOperation {
     //TODO: assume no Functions in Tuples, for now
     //TODO: neglect function and tuple IDs, for now 
   
@@ -65,7 +65,7 @@ case class Uncurry() extends UnaryOperation {
    * This currently assumes no more than one layer of nested and that nested
    * Functions are not within a Tuple.
    */
-  def makeFlatMapFunction(): Sample => MemoizedFunction = {
+  def flatMapFunction: Sample => MemoizedFunction = {
     (s: Sample) => s match {
       case Sample(ds, rs) => 
         //TODO: recurse for deeper nested functions
@@ -79,11 +79,4 @@ case class Uncurry() extends UnaryOperation {
     }
   }
 
-  /**
-   * Delegate to the SampledFunction implementation to apply the function.
-   */
-  override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
-    val f = makeFlatMapFunction()
-    data.flatMap(f)
-  }
 }
