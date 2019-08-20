@@ -21,6 +21,7 @@ package object data {
   /**
    * Define a SamplePath as a Seq of SamplePositions.
    * Each element in the path implies a nested Function.
+   * An empty SamplePath indicates the outer Function itself.
    */
   type SamplePath = Seq[SamplePosition]
 

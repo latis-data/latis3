@@ -184,7 +184,7 @@ object DataType {
 /**
  * The Scalar type represents a single atomic variable.
  */
-class Scalar(val metadata: Metadata) extends DataType {
+class Scalar(val metadata: Metadata) extends DataType with Serializable {
   
   /**
    * Convert a string value into the appropriate type for this Scalar.
@@ -230,7 +230,7 @@ object Scalar {
 /**
  * A Tuple type represents a group of variables of other DataTypes.
  */
-class Tuple(val metadata: Metadata, val elements: DataType*) extends DataType {
+class Tuple(val metadata: Metadata, val elements: DataType*) extends DataType with Serializable {
   
   override def toString: String = elements.mkString("(", ", ", ")")
 
@@ -267,7 +267,7 @@ object Tuple {
  * from the domain type to the range type.
  */
 class Function(val metadata: Metadata, val domain: DataType, val range: DataType) 
-  extends DataType {
+  extends DataType with Serializable {
   
   override def toString: String = s"$domain -> $range"
 }

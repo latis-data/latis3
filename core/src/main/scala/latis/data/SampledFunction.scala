@@ -6,6 +6,8 @@ import cats.effect.IO
 import scala.collection.immutable.TreeMap
 import latis.util.StreamUtils
 import latis.resample._
+import scala.collection.mutable.ListBuffer
+import latis.ops._
 
 /**
  * SampledFunction represent a (potentially lazy) ordered sequence of Samples.
@@ -61,10 +63,14 @@ trait SampledFunction extends Data {
     val domainData: Seq[DomainData] = domainSet.elements
     val rangeData:  Seq[RangeData] = 
       domainData.flatMap(apply(_, interpolation, extrapolation))
+//TODO: problem if we drop range values, won't match domain values
+//TODO: likely to be slow for outer function in spark, lookup
     val samples = (domainData zip rangeData).map(p => Sample(p._1, p._2))
     SampledFunction.fromSeq(samples)
     //TODO: Stream?
   }
+  
+  //TODO: filterRange, mapRange, flatMapRange,...
   
   /**
    * Apply the given predicate to this SampledFunction
@@ -79,7 +85,7 @@ trait SampledFunction extends Data {
    */
   def map(f: Sample => Sample): SampledFunction =
     StreamFunction(streamSamples.map(f))
-  
+    
   /**
    * Apply the given function to this SampledFunction
    * to modify the Samples.
@@ -96,8 +102,54 @@ trait SampledFunction extends Data {
    */
   def groupBy(paths: SamplePath*): MemoizedFunction =
     unsafeForce.groupBy(paths: _*)
+  //TODO: GroupByVars extends GroupingOperation
     
+  def groupBy(
+    groupByFunction: Sample => Option[DomainData], 
+    aggregation: Aggregation = NoAggregation()
+  ): MemoizedFunction = {
+    import scala.collection.mutable.{SortedMap => mSortedMap}
+    import scala.collection.immutable.{SortedMap => iSortedMap}
     
+    // Make mutable SortedMap to accumulate the Samples for each DomainData.
+    // Note that we can't use a Builder since we need to access existing 
+    //   buffers to append to.
+    val sortedMap: mSortedMap[DomainData, ListBuffer[Sample]] = mSortedMap()
+    
+    // Collect Samples into buffers by DomainData value
+    val stream = streamSamples map { sample =>
+      groupByFunction(sample) match {
+        case Some(dd) =>
+          //TODO: make sure DomainData makes a good key for gets
+          sortedMap.get(dd) match {
+            case Some(buffer) => buffer += sample
+            case None => sortedMap += (dd -> ListBuffer(sample))
+          }
+        case None => //No valid DomainData found so drop Sample
+      } 
+    }
+    stream.compile.drain.unsafeRunSync //make it happen
+
+    // For each buffer, aggregate the Samples to make a new Sample.
+    //val samples = sortedMap map {
+    val samples = sortedMap.toSeq map {
+      case (dd, ss) => aggregation.aggregationFunction(dd, ss)
+    }
+    
+    /*
+     * Need to have an immutable.SortedMap
+     * It would be nice to make a SortedMapFunction since 
+     *   we already went through the trouble of building a SortedMap
+     * would rather avoid copy
+     * TODO: look into performance
+     * 
+     * Note that invalid samples will be dropped
+     * e.g. GroupByBin may have empty bins not represented here.
+     */
+    SortedMapFunction(iSortedMap(samples: _*))
+  }
+    
+  
   def union(that: SampledFunction): SampledFunction = ??? //TODO: impl for Stream
     
   /**

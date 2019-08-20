@@ -15,4 +15,12 @@ trait RangeOperation extends UnaryOperation {
     case Sample(d, r) => Sample(d, rangeFunction(r))
   }
   
+  /*
+   * Implications for Spark RDD
+   * since we don't change the domain (key) there is no need for shuffling
+   * use mapVaues!
+   * mapRange(rangeFunction)
+   * 
+   * could this override map to call mapRange?
+   */
 }

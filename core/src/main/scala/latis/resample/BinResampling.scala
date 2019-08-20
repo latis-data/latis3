@@ -78,34 +78,35 @@ case class BinResampling() extends Resampling {
    */
   
   def resample(sf: SampledFunction, domainSet: DomainSet, csx: DomainData => DomainData = identity): SampledFunction = {
-    
-    // Define a collection of DomainSet bins to aggregate Samples
-    val bins: IndexedSeq[BinAggregator] = 
-      domainSet.elements.map(NearestNeighborAggregator(_)).toIndexedSeq
-
-    // Define function to put a given Sample into the appropriate bin
-    def addSampleToBin(sample: Sample): Unit = {
-      val index = domainSet.indexOf(csx(sample.domain))
-      if (index >= 0 && index < domainSet.length) bins(index).addOne(sample)
-      //else out of bounds so ignore
-    }
-      
-    // Consume the samples from the original SF and put them in the bins of the new DomainSet
-    // Note that Stream does not have foreach but we can map and ignore the return values with drain.
-    sf.streamSamples.map(addSampleToBin).compile.drain.unsafeRunSync
-    
-    // Compute the new range data for each bin
-    val range: Seq[RangeData] = bins.map(_.result) map { maybeRange =>
-      maybeRange.getOrElse {
-        //RangeData(Double.NaN)
- RangeData(Double.NaN, Double.NaN, Double.NaN) //for use after image pivot
- //??? //TODO: replace fill value, need model
- // can we simply use RangeData.empty?
- // would actually prefer to get a NN here
-      }
-    }
-    
-    SetFunction(domainSet, range)
+    ???
+//    
+//    // Define a collection of DomainSet bins to aggregate Samples
+//    val bins: IndexedSeq[BinAggregator] = 
+//      domainSet.elements.map(NearestNeighborAggregator(_)).toIndexedSeq
+//
+//    // Define function to put a given Sample into the appropriate bin
+//    def addSampleToBin(sample: Sample): Unit = {
+//      val index = domainSet.indexOf(csx(sample.domain))
+//      if (index >= 0 && index < domainSet.length) bins(index).addOne(sample)
+//      //else out of bounds so ignore
+//    }
+//      
+//    // Consume the samples from the original SF and put them in the bins of the new DomainSet
+//    // Note that Stream does not have foreach but we can map and ignore the return values with drain.
+//    sf.streamSamples.map(addSampleToBin).compile.drain.unsafeRunSync
+//    
+//    // Compute the new range data for each bin
+//    val range: Seq[RangeData] = bins.map(_.result) map { maybeRange =>
+//      maybeRange.getOrElse {
+//        //RangeData(Double.NaN)
+// RangeData(Double.NaN, Double.NaN, Double.NaN) //for use after image pivot
+// //??? //TODO: replace fill value, need model
+// // can we simply use RangeData.empty?
+// // would actually prefer to get a NN here
+//      }
+//    }
+//    
+//    SetFunction(domainSet, range)
   }
 }
 

@@ -15,7 +15,11 @@ class TestResampling extends JUnitSuite {
   def bin_resampling() = {
     // Define original Function
     val (onx, ony) = (50, 50)
-    val set = LinearSet2D(0.2, 1.0, onx, 0.2, 1.0, ony)
+    //val set = LinearSet2D(0.2, 1.0, onx, 0.2, 1.0, ony)
+    val set = new RegularSet2D(
+      RegularSet1D(1.0, 0.2, onx),
+      RegularSet1D(1.0, 0.2, ony)
+    )
     val values = for {
       ix <- (0 until onx)
       iy <- (0 until ony)
@@ -25,7 +29,10 @@ class TestResampling extends JUnitSuite {
     
     // Define regular grid to resample onto
     val (nx, ny) = (3,4)
-    val domainSet = LinearSet2D(1, 2.0, nx, 1, 2.0, ny)
+    val domainSet = BinSet2D(
+      BinSet1D(2, 1, nx),
+      BinSet1D(2, 1, ny)
+    )
     //domainSet.elements foreach println
     
     //val data = origSF.resample(domainSet, BinResampling())
