@@ -9,9 +9,7 @@ trait GroupingOperation extends UnaryOperation {
    * Specify an Aggregation Operation to use to reduce
    * a collection of Samples to a single RangeData.
    */
-  def aggregation: Aggregation // = NoAggregation()
-  //Note that we can't provide an impl here without causing problems for 
-  // impls to provide aggregation via a case class arg.
+  def aggregation: Aggregation
   
   /**
    * Define a function that optionally creates a DomainData

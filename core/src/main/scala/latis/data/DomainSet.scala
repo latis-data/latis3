@@ -38,6 +38,9 @@ trait DomainSet {
   
   def indexOf(data: DomainData): Int = 
     elements.indexOf(data) //TODO will this work or do we need indexWhere?
+    
+  def map(f: DomainData => DomainData): DomainSet =
+    DomainSet(elements.map(f))
 }
 
 object DomainSet {
