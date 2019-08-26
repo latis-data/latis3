@@ -87,6 +87,16 @@ trait SampledFunction extends Data {
     StreamFunction(streamSamples.map(f))
     
   /**
+   * Apply the given function to this SampledFunction 
+   * to modify only the range of each Sample.
+   */
+  def mapRange(f: RangeData => RangeData): SampledFunction = map {
+    (sample: Sample) => sample match {
+      case Sample(domain, range) => Sample(domain, f(range))
+    }
+  }
+    
+  /**
    * Apply the given function to this SampledFunction
    * to modify the Samples.
    */
@@ -149,6 +159,15 @@ trait SampledFunction extends Data {
     SortedMapFunction(iSortedMap(samples: _*))
   }
     
+  /**
+   * Join two SampledFunctions assuming they have the same domain set.
+   */
+  def join(that: SampledFunction): SampledFunction = {
+    val samples = (this.streamSamples zip that.streamSamples) map {
+      case (Sample(d, r1), Sample(_, r2)) => Sample(d, r1 ++ r2)
+    }
+    StreamFunction(samples)
+  }
   
   def union(that: SampledFunction): SampledFunction = ??? //TODO: impl for Stream
     

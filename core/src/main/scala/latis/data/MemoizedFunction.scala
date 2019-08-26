@@ -110,6 +110,16 @@ trait MemoizedFunction extends SampledFunction {
     SampledFunction.fromSeq( map map { p => Sample(p._1, Array(SampledFunction.fromSeq(p._2))) } toSeq )
   }
   
+  /**
+   * Join two SampledFunctions assuming they have the same domain set.
+   */
+  def join(that: MemoizedFunction): MemoizedFunction = {
+    val samples = (this.samples zip that.samples) map {
+      case (Sample(d, r1), Sample(_, r2)) => Sample(d, r1 ++ r2)
+    }
+    SeqFunction(samples)
+  }
+  
   // Use a SortedMapFunction
   override def union(that: SampledFunction): SampledFunction = that match {
     case mf: MemoizedFunction =>
