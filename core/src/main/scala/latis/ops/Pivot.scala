@@ -8,6 +8,7 @@ import latis.model._
  * Pivot the samples of a nested Function such that each outer sample becomes
  * a single sample with a range that is a Tuple of the range values 
  * corresponding to the given domain values. 
+ *   a -> b -> c  =>  a -> (c_b0, c_b1, ...)
  * The given identifiers are used for the model.
  * Current limitations/assumptions:
  * - One layer of nesting
@@ -15,8 +16,14 @@ import latis.model._
  * - given values exist in every nested Function (unless we have interpolation)
  * Note that it is not generally useful to pivot an outer Function into
  * a single Tuple, but no reason to exclude it.
+ *   a -> b -> c  =>  b -> (c_a0, c_a1, ...)
  */
-case class Pivot(values: Seq[Any], vids: Seq[String]) extends MapOperation {
+case class Pivot(values: Seq[Data], vids: Seq[String]) extends MapOperation {
+  /*
+   * TODO: pivot on given variable
+   * consider transpose
+   */
+  //TODO: auto name new variables foo._1, foo._2, ...
   
   /*
    * TODO: Support general pivot with no specified values

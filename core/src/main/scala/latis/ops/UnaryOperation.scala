@@ -23,7 +23,14 @@ trait UnaryOperation extends Operation {
    * Default to no-op.
    */
   def applyToData(data: SampledFunction, model: DataType): SampledFunction = data
-  //TODO: awkward that this also takes a model: pass Dataset for all?
+  /*
+   * TODO: awkward that this also takes a model: pass Dataset for all?
+   * Make all take dataset, but would be nice to narrow scope, easier to test
+   * cache it knowing that applyToModel will be applied first? ick
+   * Construct Operation with model if it is needed?
+   *   typically when it needs to know sample position
+   */
+  
   
   /**
    * Add provenance to the Dataset's metadata.

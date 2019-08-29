@@ -8,10 +8,8 @@ import scala.language.postfixOps
  */
 case class ArrayFunction2D(array: Array[Array[RangeData]]) extends MemoizedFunction {
   
-  override def apply(d: DomainData): Option[RangeData] = d match {
-    //TODO: support any integral type
-    //TODO: handle index out of bounds
-    case DomainData(i: Int, j: Int) => Option(array(i)(j))
+  override def apply(dd: DomainData): Option[RangeData] = dd match {
+    case DomainData(Index(i), Index(j)) => array.lift(i).flatMap(_.lift(j))
     case _ => ??? //new RuntimeException("Failed to evaluate ArrayFunction2D")
   }
   
@@ -23,23 +21,20 @@ case class ArrayFunction2D(array: Array[Array[RangeData]]) extends MemoizedFunct
 }
 
 object ArrayFunction2D extends FunctionFactory {
-
+  // Assumes the samples are a function of index with no gaps
+  // so we can determine the shape of the array from the domain 
+  // of the last sample
   def fromSamples(samples: Seq[Sample]): MemoizedFunction = samples match {
     case Seq() => ???              // TODO: figure out how to handle error
     case _ =>
-      println("ArrayFunction2D.fromSamples called")
       samples.last.domain match {
-        case x +: xs => 
-          val y = xs.head
-          val xSize: Int = x.toString.toInt
-          val ySize: Int = y.toString.toInt
-          val array = Array.ofDim[RangeData](xSize + 1, ySize + 1)
-          for {
-            i <- 0 until xSize
-            j <- 0 until ySize
-          } array(i)(j) = Vector(samples(i + j * xSize).range)
+        case DomainData(Index(x), Index(y)) =>
+          val nx = x + 1
+          val ny = y + 1
+          val array = Array.tabulate(nx, ny)((i, j) =>
+            samples(i * ny + j).range)
           ArrayFunction2D(array)
-        case _ => ???              // TODO: figure out how to handle error
+        case _ => ??? //TODO: error, invalid sample type
       }
   }
     

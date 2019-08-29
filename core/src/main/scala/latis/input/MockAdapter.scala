@@ -15,9 +15,9 @@ class MockAdapter extends Adapter {
   private def makeStream: Stream[IO, Sample] = {
     //TODO: use canonical test dataset
     val ss = Seq(
-      Sample(Array(0), Array(0)),
-      Sample(Array(1), Array(2)),
-      Sample(Array(2), Array(4))
+      Sample(DomainData(0), RangeData(0)),
+      Sample(DomainData(1), RangeData(2)),
+      Sample(DomainData(2), RangeData(4))
     )
     
     Stream.emits(ss)

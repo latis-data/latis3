@@ -28,7 +28,10 @@ case class Contains(vname: String, values: Any*) extends Filter {
     
     // Define predicate function
     (sample: Sample) => sample.getValue(path) match {
-      case Some(v) => cvals.contains(v) //TODO: would "contains" be more efficient with a HashSet...?
+      //TODO: assumes double
+      case Some(Number(v)) => {
+        cvals.contains(v) //TODO: would "contains" be more efficient with a HashSet...?
+      }
       case None => ??? //TODO: invalid sample position, catch earlier - not for each sample, presumably derived from model so shouldn't happen
     }
   }

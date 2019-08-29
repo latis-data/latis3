@@ -25,6 +25,7 @@ sealed trait DataType
    */
   def foreach[U](f: DataType => U): Unit = {
     // Recursive helper function, depth first
+    // Only safe for operating on Scalars?
     def go(v: DataType): Unit = {
       v match {
         case _: Scalar   => //end of this branch
@@ -68,6 +69,7 @@ sealed trait DataType
     
   /**
    * Return this DataType with all nested Tuples flattened to a single Tuple.
+   * A Scalar will remain a Scalar.
    * This form is consistent with Samples which don't preserve nested Functions.
    */
   def flatten(): DataType = {
@@ -127,6 +129,7 @@ sealed trait DataType
 
 object DataType {
     
+  //Note, this will only work for a Seq with traversal defined by foreach
   def fromSeq(vars: Seq[DataType]): DataType = {
     def go(vs: Seq[DataType], hold: Stack[DataType]): DataType = {
       vs.headOption match {
@@ -166,10 +169,10 @@ class Scalar(val metadata: Metadata) extends DataType {
   /**
    * Convert a string value into the appropriate type for this Scalar.
    */
-  def parseValue(value: String): Any = this("type") match {
+  def parseValue(value: String): Data = this("type") match {
     //TODO: deal with parse errors
     //TODO: use enumeration, ADT, fdml schema
-    case Some("boolean")    => value.toBoolean
+    //case Some("boolean")    => value.toBoolean
     case Some("char")       => value.head
     case Some("short")      => value.toShort
     case Some("int")        => value.toInt
@@ -177,8 +180,8 @@ class Scalar(val metadata: Metadata) extends DataType {
     case Some("float")      => value.toFloat
     case Some("double")     => value.toDouble
     case Some("string")     => value
-    case Some("bigInt")     => BigInt(value)
-    case Some("bigDecimal") => BigDecimal(value)
+    //case Some("bigInt")     => BigInt(value)
+    //case Some("bigDecimal") => BigDecimal(value)
     //TODO: binary blob
     //TODO: class, e.g. latis.time.Time?
     case Some(s) => ??? //unsupported type s

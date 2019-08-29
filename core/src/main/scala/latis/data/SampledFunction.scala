@@ -15,7 +15,7 @@ import latis.util.StreamUtils
  * with an exception (if an exact match is not found). 
  * Note that StreamFunctions are limited by being traversable once.
  */
-trait SampledFunction {
+trait SampledFunction extends Data {
   //TODO: impl scala Traversable? Monoid, Functor, Monad?
   //TODO: should default impl be moved to StreamFunction?
   //TODO: function evaluation with DomainSet, support topologies
@@ -52,7 +52,7 @@ trait SampledFunction {
     val domainData: Seq[DomainData] = domainSet.elements
     val rangeData:  Seq[RangeData]  = domainData.flatMap(apply(_))
     val samples = (domainData zip rangeData).map(p => Sample(p._1, p._2))
-    SampledFunction.fromSeq(samples)
+    SampledFunction(samples)
     //TODO: Stream
   }
   
@@ -69,13 +69,15 @@ trait SampledFunction {
    */
   def map(f: Sample => Sample): SampledFunction =
     StreamFunction(streamSamples.map(f))
-  
+    
   /**
    * Apply the given function to this SampledFunction
    * to modify the Samples.
    */
   def flatMap(f: Sample => MemoizedFunction): SampledFunction =
-    StreamFunction(streamSamples.flatMap(s => Stream.emits(f(s).samples)))
+    StreamFunction(streamSamples.flatMap { s => 
+      Stream.emits(f(s).samples)
+    })
     
   /**
    * Reorganize this SampledFunction such that the variables
@@ -94,7 +96,7 @@ trait SampledFunction {
    */
   def unsafeForce: MemoizedFunction = this match {
     case mf: MemoizedFunction => mf
-    case _ => SampledFunction.fromSeq(unsafeStreamToSeq(streamSamples))
+    case _ => SampledFunction(unsafeStreamToSeq(streamSamples))
   }
 
 }
@@ -104,16 +106,14 @@ trait SampledFunction {
  */
 object SampledFunction {
   
-  def apply(samples: Sample*): MemoizedFunction = samples.length match {
-    case 0 => SampledFunction.empty
-    case n => SeqFunction(samples)
-  }
+  def apply(sample: Sample, samples: Sample*): MemoizedFunction =
+    SeqFunction(sample +: samples)
   
-  def fromSeq(samples: Seq[Sample]): MemoizedFunction = 
-    SampledFunction(samples: _*)
+  def apply(samples: Seq[Sample]): MemoizedFunction = 
+    SeqFunction(samples)
   
-  def apply(samples: Stream[IO, Sample]): SampledFunction = 
-    StreamFunction(samples)
+  def apply(stream: Stream[IO, Sample]): SampledFunction = 
+    StreamFunction(stream)
   
   val empty = EmptyFunction
   

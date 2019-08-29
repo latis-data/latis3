@@ -12,15 +12,15 @@ import org.scalatest.junit.JUnitSuite
 
 class TestMockAdapter extends JUnitSuite {
   
-  //@Test
-  def mock = {
-    val reader = new AdaptedDatasetReader {
-      def uri: URI = new URI("mock")
-      def model: DataType = Function(Scalar("a"), Scalar("b"))
-      def adapter = new MockAdapter()
-    }
-    
-    val ds = reader.getDataset
-    //Writer.write(ds)
-  }
+//  //@Test
+//  def mock = {
+//    val reader = new AdaptedDatasetReader {
+//      def uri: URI = new URI("mock")
+//      def model: DataType = Function(Scalar("a"), Scalar("b"))
+//      def adapter = new MockAdapter()
+//    }
+//    
+//    val ds = reader.getDataset
+//    //Writer.write(ds)
+//  }
 }

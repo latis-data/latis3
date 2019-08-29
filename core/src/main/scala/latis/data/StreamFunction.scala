@@ -10,7 +10,9 @@ import cats.effect.IO
  * A Dataset can be memoized with "force" to ensure that it has a
  * MemoizedFunction that can be more generally evaluated.
  */
-case class StreamFunction(streamSamples: Stream[IO, Sample]) extends SampledFunction {
+case class StreamFunction(
+  streamSamples: Stream[IO, Sample]
+) extends SampledFunction {
   
   /*
    * TODO: can/should we support an empty Stream?

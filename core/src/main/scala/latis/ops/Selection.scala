@@ -13,7 +13,6 @@ case class Selection(vname: String, operator: String, value: String) extends Fil
   //TODO: error if var not found?
   //TODO: enable IndexedFunction to use binary search...
   //TODO: support nested functions, all or none?
-  //TODO: pass any value type? toString then parse?
 
   
   def makePredicate(model: DataType): Sample => Boolean = {
@@ -25,13 +24,16 @@ case class Selection(vname: String, operator: String, value: String) extends Fil
     
     // Convert selection value to appropriate type for comparison
     val cval = model.find(_.id == vname) match {
-      case Some(s: Scalar) => value.toDouble //TODO: support orig type  s.parseValue(value)
+      case Some(s: Scalar) => value.toDouble 
+      //TODO: support orig type  s.parseValue(value)
       case _ => ??? //error
     }
     
     // Define predicate function
     (sample: Sample) => sample.getValue(path) match {
-      case Some(v) => matches(ScalarOrdering.compare(v, cval))
+      case Some(Number(d)) => matches(d compare cval)
+      //TODO: support text data  
+      //case Some(TextData(s)) => matches(s compare cval)
       case None => ??? //TODO: invalid sample position, catch earlier - not for each sample, presumably derived from model so shouldn't happen
     }
   }

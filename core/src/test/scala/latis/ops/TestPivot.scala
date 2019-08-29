@@ -9,12 +9,12 @@ class TestPivot extends JUnitSuite {
 
   @Test
   def rgb = {
-    val spectrum = SampledFunction.fromSeq(Seq(
+    val spectrum = SampledFunction(Seq(
       Sample(DomainData(1), RangeData(11)),
       Sample(DomainData(2), RangeData(22)),
       Sample(DomainData(3), RangeData(33))
     ))
-    val f = SampledFunction.fromSeq(Seq(
+    val f = SampledFunction(Seq(
       Sample(DomainData(0), RangeData(spectrum))
     ))
     

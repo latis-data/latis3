@@ -6,10 +6,8 @@ package latis.data
  */
 case class ArrayFunction1D(array: Array[RangeData]) extends MemoizedFunction {
   
-  override def apply(d: DomainData): Option[RangeData] = d match {
-    //TODO: support any integral type
-    //TODO: handle index out of bounds
-    case DomainData(i: Int) => Option(array(i))
+  override def apply(dd: DomainData): Option[RangeData] = dd match {
+    case DomainData(Index(i)) => array.lift(i)
     case _ => ??? //new RuntimeException("Failed to evaluate ArrayFunction1D")
   }
   
