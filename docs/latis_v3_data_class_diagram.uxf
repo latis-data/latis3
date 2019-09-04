@@ -4,7 +4,7 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>250</x>
+      <x>410</x>
       <y>160</y>
       <w>140</w>
       <h>170</h>
@@ -25,8 +25,8 @@ unapply: Double</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>500</x>
-      <y>60</y>
+      <x>580</x>
+      <y>50</y>
       <w>60</w>
       <h>40</h>
     </coordinates>
@@ -38,7 +38,7 @@ Data
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>340</x>
+      <x>500</x>
       <y>380</y>
       <w>110</w>
       <h>70</h>
@@ -52,7 +52,7 @@ unapply: Long</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>510</x>
+      <x>670</x>
       <y>500</y>
       <w>100</w>
       <h>60</h>
@@ -66,7 +66,7 @@ unapply: Int</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>160</x>
+      <x>320</x>
       <y>380</y>
       <w>130</w>
       <h>70</h>
@@ -80,7 +80,7 @@ unapply: Double</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>640</x>
+      <x>800</x>
       <y>160</y>
       <w>120</w>
       <h>90</h>
@@ -96,7 +96,7 @@ unapply: String</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>790</x>
+      <x>950</x>
       <y>160</y>
       <w>160</w>
       <h>90</h>
@@ -112,7 +112,7 @@ unapply: Array[Byte]</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>460</x>
+      <x>620</x>
       <y>630</y>
       <w>100</w>
       <h>60</h>
@@ -126,7 +126,7 @@ value: Short</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>460</x>
+      <x>620</x>
       <y>710</y>
       <w>100</w>
       <h>60</h>
@@ -140,7 +140,7 @@ value: Int</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>340</x>
+      <x>500</x>
       <y>630</y>
       <w>100</w>
       <h>60</h>
@@ -154,7 +154,7 @@ value: Long</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>190</x>
+      <x>350</x>
       <y>630</y>
       <w>110</w>
       <h>60</h>
@@ -168,7 +168,7 @@ value: Float</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>190</x>
+      <x>350</x>
       <y>710</y>
       <w>110</w>
       <h>60</h>
@@ -182,7 +182,7 @@ value: Double</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>640</x>
+      <x>800</x>
       <y>630</y>
       <w>120</w>
       <h>80</h>
@@ -196,7 +196,7 @@ value: String</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>800</x>
+      <x>960</x>
       <y>630</y>
       <w>160</w>
       <h>80</h>
@@ -210,7 +210,7 @@ value: Array[Byte]</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>110</x>
+      <x>270</x>
       <y>580</y>
       <w>880</w>
       <h>30</h>
@@ -221,18 +221,18 @@ value: Array[Byte]</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>520</x>
-      <y>90</y>
-      <w>200</w>
-      <h>90</h>
+      <x>600</x>
+      <y>80</y>
+      <w>280</w>
+      <h>100</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;40.0;180.0;40.0;180.0;70.0</additional_attributes>
+    <additional_attributes>10.0;10.0;10.0;50.0;260.0;50.0;260.0;80.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>160</x>
+      <x>320</x>
       <y>440</y>
       <w>80</w>
       <h>240</h>
@@ -243,7 +243,7 @@ value: Array[Byte]</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>550</x>
+      <x>710</x>
       <y>550</y>
       <w>60</w>
       <h>130</h>
@@ -254,7 +254,7 @@ value: Array[Byte]</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>380</x>
+      <x>540</x>
       <y>440</y>
       <w>200</w>
       <h>80</h>
@@ -265,7 +265,7 @@ value: Array[Byte]</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>380</x>
+      <x>540</x>
       <y>440</y>
       <w>30</w>
       <h>210</h>
@@ -276,7 +276,7 @@ value: Array[Byte]</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>550</x>
+      <x>710</x>
       <y>550</y>
       <w>60</w>
       <h>210</h>
@@ -287,7 +287,7 @@ value: Array[Byte]</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>160</x>
+      <x>320</x>
       <y>440</y>
       <w>80</w>
       <h>320</h>
@@ -298,7 +298,7 @@ value: Array[Byte]</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>210</x>
+      <x>370</x>
       <y>320</y>
       <w>120</w>
       <h>80</h>
@@ -309,7 +309,7 @@ value: Array[Byte]</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>300</x>
+      <x>460</x>
       <y>320</y>
       <w>110</w>
       <h>80</h>
@@ -320,18 +320,18 @@ value: Array[Byte]</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>300</x>
-      <y>90</y>
-      <w>250</w>
-      <h>90</h>
+      <x>460</x>
+      <y>80</y>
+      <w>170</w>
+      <h>100</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>230.0;10.0;230.0;40.0;10.0;40.0;10.0;70.0</additional_attributes>
+    <additional_attributes>150.0;10.0;150.0;50.0;10.0;50.0;10.0;80.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>690</x>
+      <x>850</x>
       <y>240</y>
       <w>30</w>
       <h>410</h>
@@ -342,7 +342,7 @@ value: Array[Byte]</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>860</x>
+      <x>1020</x>
       <y>240</y>
       <w>30</w>
       <h>410</h>
@@ -353,12 +353,115 @@ value: Array[Byte]</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>520</x>
-      <y>90</y>
-      <w>370</w>
-      <h>90</h>
+      <x>600</x>
+      <y>80</y>
+      <w>450</w>
+      <h>100</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;40.0;350.0;40.0;350.0;70.0</additional_attributes>
+    <additional_attributes>10.0;10.0;10.0;50.0;430.0;50.0;430.0;80.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>70</x>
+      <y>160</y>
+      <w>240</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;trait&gt;&gt;
+SampledFunction
+--
+stream: fs2.Stream[IO, Sample]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>70</x>
+      <y>280</y>
+      <w>200</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;type&gt;&gt;
+Sample
+--
+(DomainData, RangeData)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>70</x>
+      <y>410</y>
+      <w>120</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;type&gt;&gt;
+DomainData
+--
+Vector[Data]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>70</x>
+      <y>500</y>
+      <w>120</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;type&gt;&gt;
+RangeData
+--
+Vector[Data]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>110</x>
+      <y>340</y>
+      <w>30</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;-
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>180</x>
+      <y>340</y>
+      <w>60</w>
+      <h>220</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;-
+m2=1</panel_attributes>
+    <additional_attributes>40.0;10.0;40.0;190.0;10.0;190.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>170</x>
+      <y>220</y>
+      <w>30</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;-
+m2=*</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;60.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>180</x>
+      <y>80</y>
+      <w>450</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>430.0;10.0;430.0;50.0;10.0;50.0;10.0;80.0</additional_attributes>
   </element>
 </diagram>
