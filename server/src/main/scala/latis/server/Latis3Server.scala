@@ -21,22 +21,6 @@ import pureconfig.module.catseffect._
 
 object Latis3Server extends IOApp {
 
-  final case class ServerConf(
-    port: Int,
-    mapping: String
-  )
-
-  final case class ServiceSpec(
-    name: String,
-    version: String,
-    mapping: String,
-    clss: String
-  )
-
-  final case class ServiceConf(
-    services: List[ServiceSpec]
-  )
-
   // Make Coursier use cats-effect IO.
   val cache: FileCache[IO] = FileCache()
 
