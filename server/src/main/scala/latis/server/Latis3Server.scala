@@ -41,10 +41,10 @@ object Latis3Server extends IOApp {
   val cache: FileCache[IO] = FileCache()
 
   val getServerConf: IO[ServerConf] =
-    loadConfigF[IO, ServerConf]
+    loadConfigF[IO, ServerConf]("latis")
 
   val getServiceConf: IO[ServiceConf] =
-    loadConfigF[IO, ServiceConf]
+    loadConfigF[IO, ServiceConf]("latis")
 
   def loadService(cl: URLClassLoader, spec: ServiceSpec): IO[ServiceInterface] =
     IO {
