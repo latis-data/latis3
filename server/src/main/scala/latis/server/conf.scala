@@ -5,6 +5,11 @@ import pureconfig.ConfigFieldMapping
 import pureconfig.KebabCase
 import pureconfig.generic.ProductHint
 
+final case class ServerConf(
+  port: Int,
+  mapping: String
+)
+
 final case class ServiceConf(
   services: List[ServiceSpec]
 )
