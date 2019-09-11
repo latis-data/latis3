@@ -7,16 +7,17 @@ import cats.implicits._
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
 
+import latis.server.ServiceInterface
 import latis.util.dap2.ConstraintParser
 
-class Dap2Service[F[_]: Sync] extends Http4sDsl[F] {
+class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
 
-  val service: HttpRoutes[F] =
+  override def routes: HttpRoutes[IO] =
     HttpRoutes.of {
       // I don't know how to get both the dataset and the constraint
       // expression through the http4s DSL, so I use the DSL to handle
       // the routing and get the query myself.
-      case req @ GET -> Root / "dap2" / _ =>
+      case req @ GET -> Root =>
         val uri = req.uri.renderString
 
         // TODO: This is just for demonstration purposes.
