@@ -8,7 +8,7 @@ import org.http4s._
 import org.http4s.dsl.Http4sDsl
 
 import latis.server.ServiceInterface
-import latis.util.dap2.ConstraintParser
+import latis.util.dap2.parser.ConstraintParser
 
 class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
 

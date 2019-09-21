@@ -1,4 +1,4 @@
-package latis.util.dap2
+package latis.util.dap2.parser
 
 import org.scalacheck._
 import org.scalacheck.ScalacheckShapeless._

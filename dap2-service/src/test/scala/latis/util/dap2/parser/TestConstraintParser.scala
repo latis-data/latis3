@@ -1,8 +1,9 @@
-package latis.util.dap2
+package latis.util.dap2.parser
 
 import org.junit._, Assert._
 import org.scalatest.junit.JUnitSuite
-import latis.util.dap2.ast._
+
+import ast._
 
 class TestConstraintParser extends JUnitSuite {
 
