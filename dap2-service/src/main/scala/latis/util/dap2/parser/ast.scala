@@ -42,23 +42,29 @@ object ast {
    * @param expr constraint expression to pretty print
    */
   def pretty(expr: ConstraintExpression): String = {
-    def prettyOp(op: SelectionOp): String = op match {
-      case Gt        => ">"
-      case Lt        => "<"
-      case Eq        => "="
-      case GtEq      => ">="
-      case LtEq      => "<="
-      case EqEq      => "=="
-      case NeEq      => "!="
-      case Tilde     => "~"
-      case EqTilde   => "=~"
-      case NeEqTilde => "!=~"
-    }
 
     expr.exprs.map {
       case Projection(n)       => n.mkString(",")
       case Selection(n, op, v) => s"$n${prettyOp(op)}$v"
       case Operation(n, args)  => s"$n(${args.mkString(",")})"
     }.mkString("&")
+  }
+
+  /**
+   * Pretty print a selection operator.
+   *
+   * @param op selection operator to pretty print
+   */
+  def prettyOp(op: SelectionOp): String = op match {
+    case Gt        => ">"
+    case Lt        => "<"
+    case Eq        => "="
+    case GtEq      => ">="
+    case LtEq      => "<="
+    case EqEq      => "=="
+    case NeEq      => "!="
+    case Tilde     => "~"
+    case EqTilde   => "=~"
+    case NeEqTilde => "!=~"
   }
 }
