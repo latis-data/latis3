@@ -71,6 +71,7 @@ lazy val core = project
   )
 
 lazy val `dap2-service` = project
+  .dependsOn(core)
   .dependsOn(`service-interface`)
   .settings(commonSettings)
   .settings(
