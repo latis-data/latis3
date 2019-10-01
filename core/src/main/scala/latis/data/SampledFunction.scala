@@ -100,6 +100,26 @@ trait SampledFunction extends Data {
     unsafeForce.groupBy(paths: _*)
     
   /**
+   * Combine the ranges of two SampledFunctions.
+   * The result will have the same number of samples 
+   * assuming they have the same domain set.
+   */
+  def join(that: SampledFunction): SampledFunction = {
+    val samples = (this.streamSamples zip that.streamSamples) map {
+      case (Sample(d, r1), Sample(_, r2)) => Sample(d, r1 ++ r2)
+    }
+    StreamFunction(samples)
+  }
+
+  /**
+   * Combine the samples of two SampledFunctions.
+   * In the case of samples with duplicate domain values,
+   * the sample from the first SampledFunction will be kept.
+   */
+  def union(that: SampledFunction): SampledFunction = ??? //TODO: impl for Stream
+      
+
+  /**
    * Return this SampledFunction as a MemoizedFunction.
    * It is unsafe in that a StreamFunction has to do an
    * unsafe run to get the Samples out of IO.
