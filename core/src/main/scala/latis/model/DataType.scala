@@ -43,7 +43,7 @@ sealed trait DataType
    * that they appear in the model.
    */
   def getScalars: Vector[Scalar] = toVector.collect { case s: Scalar => s }
-  
+
   /**
    * Return the function arity of this DataType.
    * For Function, this is the number of top level types (non-flattened) 
@@ -59,7 +59,7 @@ sealed trait DataType
     case _ => 0
   }
   
-  //TODO: Rename Operation?
+  // Used by Rename Operation
   def rename(name: String): DataType = this match {
     //TODO: add old name to alias?
     case _: Scalar => Scalar(metadata + ("id" -> name))
@@ -125,6 +125,21 @@ sealed trait DataType
     go(this.flatten, id, Seq.empty)
   }
 
+  //TODO: beef up
+  //TODO: use missing_value in metadata, scalar.parseValue(s)
+  def makeFillValues: RangeData = RangeData(getFillValue(this, Seq.empty))
+  def getFillValue(dt: DataType, acc: Seq[Data]): Seq[Data] = dt match {
+    case s: Scalar => s.metadata.getProperty("type") match {
+      case Some("double") => acc :+ Data(Double.NaN)
+      case Some("float")  => acc :+ Data(Float.NaN)
+      case Some("long")   => acc :+ Data(Long.MinValue)
+      case Some("int")    => acc :+ Data(Int.MinValue)
+      case Some("string") => acc :+ Data("")
+      //TODO: more
+    }
+    case Tuple(es @ _*) => es.flatMap(getFillValue(_, acc))
+    case _: Function => throw new RuntimeException("Can't make fill values for Function, yet.")
+  }
 }
 
 object DataType {
