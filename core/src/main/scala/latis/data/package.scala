@@ -72,4 +72,15 @@ package object data {
     //  }
   }
 
+  /**
+   * Placeholder until we get ordering properly enabled.
+   */
+  implicit object DomainOrdering extends Ordering[DomainData] {
+    def compare(d1: DomainData, d2: DomainData): Int = ???
+  }
+  
+  implicit object SampleOrdering extends Ordering[Sample] {
+    def compare(s1: Sample, s2: Sample): Int =
+      DomainOrdering.compare(s1.domain, s2.domain)
+  }
 }
