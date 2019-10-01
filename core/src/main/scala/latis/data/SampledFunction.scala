@@ -71,6 +71,16 @@ trait SampledFunction extends Data {
     StreamFunction(streamSamples.map(f))
     
   /**
+   * Apply the given function to this SampledFunction 
+   * to modify only the range of each Sample.
+   */
+  def mapRange(f: RangeData => RangeData): SampledFunction = map {
+    (sample: Sample) => sample match {
+      case Sample(domain, range) => Sample(domain, f(range))
+    }
+  }
+    
+  /**
    * Apply the given function to this SampledFunction
    * to modify the Samples.
    */
