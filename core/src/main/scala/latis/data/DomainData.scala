@@ -21,6 +21,11 @@ object DomainData {
   }
   
   /**
+   * Construct an empty DomainData.
+   */
+  def apply(): DomainData = List()
+  
+  /**
    * Construct DomainData from a comma separated list of values.
    */
   def apply(d: Data, ds: Data*): DomainData = d +: ds.toList
