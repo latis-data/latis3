@@ -43,7 +43,18 @@ sealed trait DataType
    * that they appear in the model.
    */
   def getScalars: Vector[Scalar] = toVector.collect { case s: Scalar => s }
-
+  
+  /**
+   * Get the DataType of a variable by its identifier.
+   */
+  def getVariable(id: String): Option[DataType] = find(_.id == id)
+  
+  /**
+   * Find the DataType of a variable by its identifier or aliases.
+   */
+  def findVariable(variableName: String): Option[DataType] = find(_.id == variableName)
+  //TODO: support aliases
+  
   /**
    * Return the function arity of this DataType.
    * For Function, this is the number of top level types (non-flattened) 
