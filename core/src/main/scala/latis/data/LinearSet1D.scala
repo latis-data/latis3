@@ -22,8 +22,6 @@ class LinearSet1D(
   def model: DataType = 
     Scalar(Metadata("id" -> "_1", "type" -> "double"))
   
-  def rank: Int = 1
-  
   def shape: Array[Int] = Array(length)
   
   /**

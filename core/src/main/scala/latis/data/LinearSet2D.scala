@@ -24,8 +24,6 @@ class LinearSet2D(set1: LinearSet1D, set2: LinearSet1D) extends DomainSet with S
   override def min: DomainData = set1.min ++ set2.min
   override def max: DomainData = set1.max ++ set2.max
   
-  def rank = 2
-  
   def shape: Array[Int] = Array(set1.length, set2.length)
  
   def elements: IndexedSeq[DomainData] = for {

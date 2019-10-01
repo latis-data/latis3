@@ -17,7 +17,7 @@ trait DomainSet {
   /**
    * Return the number of dimensions covered by this DomainSet.
    */
-  def rank: Int
+  def rank: Int = shape.length
   //TODO: arity?
   
   /**
