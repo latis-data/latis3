@@ -5,6 +5,8 @@ import fs2.Stream
 import cats.effect.IO
 import scala.collection.immutable.TreeMap
 import latis.util.StreamUtils
+import scala.collection.mutable.ListBuffer
+import latis.ops._
 
 /**
  * SampledFunction represent a (potentially lazy) ordered sequence of Samples.
@@ -98,6 +100,45 @@ trait SampledFunction extends Data {
    */
   def groupBy(paths: SamplePath*): MemoizedFunction =
     unsafeForce.groupBy(paths: _*)
+  //TODO: GroupByVars extends GroupingOperation
+    
+  /**
+   * Group samples by the given function then aggregate
+   * the samples in each group.
+   */
+  def groupBy(
+    groupByFunction: Sample => Option[DomainData], 
+    aggregation: Aggregation = NoAggregation()
+  ): MemoizedFunction = {
+    import scala.collection.mutable.{SortedMap => mSortedMap}
+    import scala.collection.immutable.{SortedMap => iSortedMap}
+    
+    // Make mutable SortedMap to accumulate the Samples for each DomainData.
+    // Note that we can't use a Builder since we need to access existing 
+    //   buffers to append to.
+    val sortedMap: mSortedMap[DomainData, ListBuffer[Sample]] = mSortedMap()
+    
+    // Collect Samples into buffers by DomainData value
+    val stream = streamSamples map { sample =>
+      groupByFunction(sample) match {
+        case Some(dd) =>
+          //TODO: make sure DomainData makes a good key for gets
+          sortedMap.get(dd) match {
+            case Some(buffer) => buffer += sample
+            case None => sortedMap += (dd -> ListBuffer(sample))
+          }
+        case None => //No valid DomainData found so drop Sample
+      } 
+    }
+    stream.compile.drain.unsafeRunSync //make it happen
+
+    // For each buffer, aggregate the Samples to make a new Sample.
+    val samples = sortedMap.toSeq map {
+      case (dd, ss) => aggregation.aggregationFunction(dd, ss)
+    }
+
+    SortedMapFunction(iSortedMap(samples: _*))
+  }
     
   /**
    * Combine the ranges of two SampledFunctions.
