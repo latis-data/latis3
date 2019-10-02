@@ -39,10 +39,10 @@ sealed trait DataType
   }
   
   /**
-   * Return a Vector of Scalars in the (depth-first) order 
+   * Return a List of Scalars in the (depth-first) order 
    * that they appear in the model.
    */
-  def getScalars: Vector[Scalar] = toVector.collect { case s: Scalar => s }
+  def getScalars: List[Scalar] = toList.collect { case s: Scalar => s }
   
   /**
    * Get the DataType of a variable by its identifier.
