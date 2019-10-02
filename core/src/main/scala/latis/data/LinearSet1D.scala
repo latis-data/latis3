@@ -22,8 +22,6 @@ class LinearSet1D(
   def model: DataType = 
     Scalar(Metadata("id" -> "_1", "type" -> "double"))
   
-  def shape: Array[Int] = Array(length)
-  
   /**
    * Return the number of values in this DomainSet.
    * Override to simply return the count.

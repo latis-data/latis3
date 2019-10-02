@@ -8,8 +8,6 @@ import latis.model.DataType
  */
 case class SeqSet1D(model: DataType, _elements: IndexedSeq[DomainData]) extends DomainSet {
   
-  def shape: Array[Int] = Array(length)
-  
   def elements: IndexedSeq[DomainData] = _elements
 
 }

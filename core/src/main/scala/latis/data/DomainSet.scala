@@ -17,13 +17,13 @@ trait DomainSet {
   /**
    * Return the number of dimensions covered by this DomainSet.
    */
-  def rank: Int = shape.length
+  def rank: Int = shape.length  //assumes Cartesian
   //TODO: arity?
   
   /**
    * Return an Array with the length of each dimension of this DomainSet.
    */
-  def shape: Array[Int]
+  def shape: Array[Int] = Array(length)  //1D, non-Cartesian
   /*
    * TODO: consider Cartesian vs other topologies: 
    *   e.g. 2D manifold in 3D space: rank 3, shape size 2
@@ -87,4 +87,34 @@ trait DomainSet {
     //TODO: min/max may rule out many sets, e.g. polygon
 }
 
-
+object DomainSet {
+  
+  /**
+   * Defines a DomainSet with a 1D manifold (not Cartesian).
+   * This assumes that the values are Doubles for the sake of the model.
+   */
+  def apply(_elements: IndexedSeq[DomainData]) = new DomainSet {
+    
+    def elements = _elements
+    
+    /**
+     * Returns the rank as determined by inspecting the first element.
+     */
+    override def rank: Int = elements.headOption match {
+      case Some(dd) => dd.length
+      case None => ??? //TODO: empty DomainSet
+    }
+    
+    /**
+     * Defines a model assuming variables are Doubles.
+     * TODO: determine from values
+     */
+    def model: DataType = {
+      val scalars = for {
+        i <- (0 until rank)
+        md = Metadata(s"_$i") + ("type" -> "double")
+      } yield Scalar(md)
+      Tuple(scalars: _*)
+    }
+  }
+}
