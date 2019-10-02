@@ -50,7 +50,7 @@ trait SampledFunction extends Data {
    * Return a SampledFunction with the new domain set and corresponding
    * range values.
    */
-  def apply(domainSet: DomainSet): SampledFunction = {
+  def resample(domainSet: DomainSet): SampledFunction = {
     val domainData: Seq[DomainData] = domainSet.elements
     val rangeData:  Seq[RangeData]  = domainData.flatMap(apply(_))
     val samples = (domainData zip rangeData).map(p => Sample(p._1, p._2))
