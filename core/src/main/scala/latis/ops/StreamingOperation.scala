@@ -13,5 +13,5 @@ trait StreamingOperation {
    */
   
   //TODO: return this.type?
-  def compose(mappingOp: MappingOperation): StreamingOperation
+  def compose(mappingOp: MapOperation): StreamingOperation
 }

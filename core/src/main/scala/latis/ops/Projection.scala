@@ -16,7 +16,7 @@ case class Projection(vids: String*) extends MapOperation {
     model.filter(dt => vids.contains(dt.id))
   }
   
-  override def makeMapFunction(model: DataType): Sample => Sample = {
+  override def mapFunction(model: DataType): Sample => Sample = {
     // Compute sample positions once to minimize Sample processing
     //TODO: error if vid not found, we just drop them here
     val samplePositions = vids.flatMap(model.getPath(_)).map(_.head)

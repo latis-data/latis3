@@ -36,7 +36,7 @@ case class Pivot(values: Seq[Data], vids: Seq[String]) extends MapOperation {
   /**
    * Create function for the MapOperation to apply to the Dataset data (SampledFunction).
    */
-  def makeMapFunction(model: DataType): Sample => Sample = 
+  def mapFunction(model: DataType): Sample => Sample = 
     //Note, model not needed for pivot
     (sample: Sample) => sample match {
       case Sample(domain, RangeData(mf: MemoizedFunction)) =>
