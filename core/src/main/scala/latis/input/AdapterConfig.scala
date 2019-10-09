@@ -16,8 +16,8 @@ case class AdapterConfig(properties: (String, String)*) extends ConfigLike {
    * This will fail upon construction if this
    * property is not defined.
    */
-  val className: String = get("className").getOrElse {
-    val msg = "An adapter must have a className defined."
+  val className: String = get("class").getOrElse {
+    val msg = "An adapter must have a class defined."
     throw new RuntimeException(msg)
   }
 }
