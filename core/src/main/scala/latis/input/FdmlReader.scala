@@ -9,11 +9,13 @@ import latis.model._
 import latis.input._
 import latis.ops._
 import java.net.URI
+import latis.util.ReflectionUtils
+import latis.util.FileUtils
 
 /**
- * From an FDML file an FDMLReader reader creates a dataset, configures it's adapter, and builds the dataset's model.
+ * From an FDML file an FdmlReader reader creates a dataset, configures it's adapter, and builds the dataset's model.
  */
-class FDMLReader(xml: Elem) extends AdaptedDatasetReader {
+class FdmlReader(xml: Elem) extends AdaptedDatasetReader {
   
   val datasetName = (xml \ "@name").text
   val datasetUri = (xml \ "@uri").text
@@ -36,7 +38,7 @@ class FDMLReader(xml: Elem) extends AdaptedDatasetReader {
    */
   override def read(uri: URI): Option[Dataset] = {
     // If the extension is "fdml" then try to load it
-    if (uri.getPath.endsWith(".fdml")) Some(FDMLReader(uri).getDataset)
+    if (uri.getPath.endsWith(".fdml")) Some(FdmlReader(uri).getDataset)
     else None
   }
   
@@ -75,10 +77,14 @@ class FDMLReader(xml: Elem) extends AdaptedDatasetReader {
    * Create an Adapter object from XML and the supplied model.
    */
   def createAdapter(adapterNode: NodeSeq, model: DataType): Adapter = {
-    val adapterClass: Option[String] = getAttribute(adapterNode, "class")
-    val attributes: Seq[(String, String)] = getAttributes(adapterNode).filter(_._1 != "class").toSeq
-    // TODO: this is an unsafe get
-    Class.forName(adapterClass.get).newInstance().asInstanceOf[Adapter]
+    val properties: Seq[(String, String)] = getAttributes(adapterNode).toSeq
+    val config = AdapterConfig(properties: _*)
+    ReflectionUtils.callMethodOnCompanionObject(
+      "latis.input.AdapterFactory", 
+      "makeAdapter", 
+      model, 
+      config
+    ).asInstanceOf[Adapter]
   }
   
   /**
@@ -254,12 +260,15 @@ class FDMLReader(xml: Elem) extends AdaptedDatasetReader {
 }
 
 
-object FDMLReader {
+object FdmlReader {
   
-  def apply(xmlText: String): FDMLReader =
-    new FDMLReader(XML.loadString(xmlText))
+  def apply(xmlText: String): FdmlReader =
+    new FdmlReader(XML.loadString(xmlText))
   
-  def apply(uri: URI): FDMLReader =
-    new FDMLReader(XML.load(uri.toURL))
+  def apply(uri: URI): FdmlReader = FileUtils.resolveUri(uri) match {
+    case Some(uri) => new FdmlReader(XML.load(uri.toURL))
+    case None => throw new RuntimeException(s"FDML URI not found: $uri")
+  }
+    
   
 }
