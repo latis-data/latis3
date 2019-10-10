@@ -19,6 +19,6 @@ class FdmlDatasetResolver extends DatasetResolver {
    * to be expected.
    */
   def getDataset(id: String): Option[Dataset] =
-    FdmlUtils.resolveFdmlUri(id + ".fdml").map(FdmlReader(_).getDataset)
+    FdmlUtils.resolveFdml(id + ".fdml").map(FdmlReader(_).getDataset)
 
 }

@@ -17,13 +17,19 @@ object FdmlUtils {
   /**
    * Optionally return a URI for an FDML file given a Dataset identifier.
    */
-  def resolveFdmlUri(file: String): Option[URI] = {
-    val dir = LatisConfig.getOrElse("latis.fsml.dir", "datasets")
-    //TODO: look in home? $LATIS_HOME?
-    FileUtils.resolveUri(Paths.get(dir, file).toString)
-    // Note on use of toString:
-    // Path.toUri prepends the home directory as the base URI
+  def resolveFdml(uri: URI): Option[URI] = {
+    if (uri.isAbsolute) Some(uri)
+    else {
+      val dir = LatisConfig.getOrElse("latis.fsml.dir", "datasets")
+      //TODO: look in home? $LATIS_HOME?
+      FileUtils.resolveUri(Paths.get(dir, uri.getPath).toString)
+      // Note on use of toString:
+      // Path.toUri prepends the home directory as the base URI
+    }
   }
+  
+  def resolveFdml(uri: String): Option[URI] = 
+    resolveFdml(new URI(uri))
   
   /**
    * Load the FDML XML schema.
@@ -40,9 +46,9 @@ object FdmlUtils {
       .newSchema(schemaSource)
   }
       
-  def validateFdml(fdmlFile: String): Either[String, Unit] = Try {
-    val uri: URI = resolveFdmlUri(fdmlFile) getOrElse {
-      throw new RuntimeException(s"Failed to find the FDML file: $fdmlFile")
+  def validateFdml(fdmlUri: URI): Either[String, Unit] = Try {
+    val uri: URI = resolveFdml(fdmlUri) getOrElse {
+      throw new RuntimeException(s"Failed to find the FDML file: $fdmlUri")
     }
     val source = new StreamSource(uri.toURL.openStream)
     schema.newValidator().validate(source)
@@ -51,4 +57,7 @@ object FdmlUtils {
     case Failure(e) => Left(e.toString) 
     //Note, toString provides line numbers not included in the message
   }
+  
+  def validateFdml(uri: String): Either[String, Unit] =
+    validateFdml(new URI(uri))
 }
