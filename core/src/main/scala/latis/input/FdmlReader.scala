@@ -269,8 +269,7 @@ object FdmlReader {
   
   def apply(uri: URI): FdmlReader = FileUtils.resolveUri(uri) match {
     case Some(uri) =>
-      val validate = LatisConfig.getOrElse("latis.fdml.validate", "false") == "true"
-      //TODO: LatisConfig.getBoolean("latis.fdml.validate", false)
+      val validate = LatisConfig.getOrElse("latis.fdml.validate", false)
       if (validate) FdmlUtils.validateFdml(uri) match {
         case Left(msg) =>
           throw new RuntimeException(s"FDML validation failed for ${uri}\n${msg}")
