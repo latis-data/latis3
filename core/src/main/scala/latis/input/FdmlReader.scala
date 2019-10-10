@@ -11,6 +11,8 @@ import latis.ops._
 import java.net.URI
 import latis.util.ReflectionUtils
 import latis.util.FileUtils
+import latis.util.LatisConfig
+import latis.util.FdmlUtils
 
 /**
  * From an FDML file an FdmlReader reader creates a dataset, configures it's adapter, and builds the dataset's model.
@@ -266,8 +268,17 @@ object FdmlReader {
     new FdmlReader(XML.loadString(xmlText))
   
   def apply(uri: URI): FdmlReader = FileUtils.resolveUri(uri) match {
-    case Some(uri) => new FdmlReader(XML.load(uri.toURL))
-    case None => throw new RuntimeException(s"FDML URI not found: $uri")
+    case Some(uri) =>
+      val validate = LatisConfig.getOrElse("latis.fdml.validate", "false") == "true"
+      //TODO: LatisConfig.getBoolean("latis.fdml.validate", false)
+      if (validate) FdmlUtils.validateFdml(uri) match {
+        case Left(msg) =>
+          throw new RuntimeException(s"FDML validation failed for ${uri}\n${msg}")
+        case _ =>
+      }
+      new FdmlReader(XML.load(uri.toURL))
+    case None => 
+      throw new RuntimeException(s"FDML URI not found: $uri")
   }
     
   
