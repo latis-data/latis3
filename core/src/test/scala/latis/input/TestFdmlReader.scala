@@ -1,23 +1,15 @@
 package latis.input
 
-import latis.metadata.Metadata
-import latis.model.Dataset
-import latis.model.DataType
-import latis.model.Function
-import latis.model.Scalar
-import latis.output.Writer
-import latis.ops._
-
-import java.net.URI
-
-import scala.xml._
-
-import org.junit.Test
 import org.junit.Assert._
 import org.junit.Ignore
+import org.junit.Test
 import org.scalatest.junit.JUnitSuite
+
+import latis.data._
+import latis.model.DataType
+import latis.model.Dataset
+import latis.ops._
 import latis.output.TextWriter
-import latis.util.ReflectionUtils
 import latis.util.FdmlUtils
 
 class TestFdmlReader extends JUnitSuite {
@@ -136,7 +128,7 @@ class TestFdmlReader extends JUnitSuite {
    
   }
   
-  @Test
+  @Test @Ignore //TODO: need to update the schema
   def validation() = {
     val fdmlFile = "data.fdml"
     val z = FdmlUtils.validateFdml(fdmlFile)
@@ -146,6 +138,14 @@ class TestFdmlReader extends JUnitSuite {
   @Test
   def fdml_file = {
     val ds = Dataset.fromName("data")
-    TextWriter(System.out).write(ds)
+    ds match {
+      case Dataset(_,_,sf) => sf.unsafeForce.samples.head match {
+        case Sample(DomainData(Index(a)),RangeData(Integer(b), Real(c), Text(d))) =>
+          assertEquals(0, a)
+          assertEquals(1, b)
+          assertEquals(1.1, c, 0)
+          assertEquals("a", d)
+      }
+    }
   }
 }
