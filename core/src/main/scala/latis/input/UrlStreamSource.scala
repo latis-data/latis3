@@ -9,6 +9,7 @@ import java.net.URI
 import cats.effect.IO
 import fs2.Stream
 import fs2.io.readInputStream
+import latis.util.NetUtils
 
 /**
  * Create an StreamSource from a "file", "http", or "https" URI.
@@ -28,10 +29,14 @@ class UrlStreamSource extends StreamSource {
    * Return a Stream of Bytes (in IO) from the provided URI.
    */
   def getStream(uri: URI): Option[Stream[IO, Byte]] = {
-    if (supportsScheme(uri.getScheme)) {
+    // Make sure the URI is absolute
+    val resolvedUri = NetUtils.resolveUri(uri) getOrElse {
+      throw new RuntimeException(s"Unable to resolve URI: $uri")
+    }
+    if (supportsScheme(resolvedUri.getScheme)) {
       //TODO: put logic in StreamUtils? keep InputStream lazy
       //Note that opening the InputStream will be delayed.
-      val fis: IO[InputStream] = IO(uri.toURL.openStream)
+      val fis: IO[InputStream] = IO(resolvedUri.toURL.openStream)
       val chunkSize: Int = 4096 //TODO: tune? config option?
       Option(readInputStream[IO](fis, chunkSize, blockingExecutionContext))
     }
