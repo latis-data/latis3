@@ -20,7 +20,7 @@ object FdmlUtils {
   def resolveFdml(uri: URI): Option[URI] = {
     if (uri.isAbsolute) Some(uri)
     else {
-      val dir = LatisConfig.getOrElse("latis.fsml.dir", "datasets")
+      val dir = LatisConfig.getOrElse("latis.fdml.dir", "datasets")
       //TODO: look in home? $LATIS_HOME?
       FileUtils.resolveUri(Paths.get(dir, uri.getPath).toString)
       // Note on use of toString:
