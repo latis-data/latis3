@@ -10,7 +10,7 @@ import java.nio.file.Paths
  * Attempt to find a Dataset by mapping the id to a FDML descriptor.
  */
 class FdmlDatasetResolver extends DatasetResolver {
-  
+
   /**
    * Optionally return a Dataset with the given identifier if an FDML
    * definition can be found.
