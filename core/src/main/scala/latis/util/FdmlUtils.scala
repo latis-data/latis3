@@ -28,7 +28,12 @@ object FdmlUtils {
   }
 
   def resolveFdml(uri: String): Option[URI] =
-    resolveFdml(new URI(uri))
+    Try {
+      new URI(uri)
+    } match {
+      case Success(u) => resolveFdml(u)
+      case Failure(e) => None
+    }
 
   /**
    * Load the FDML XML schema.
@@ -59,5 +64,10 @@ object FdmlUtils {
     }
 
   def validateFdml(uri: String): Either[String, Unit] =
-    validateFdml(new URI(uri))
+    Try {
+      new URI(uri)
+    } match {
+      case Success(u) => validateFdml(u)
+      case Failure(e) => Left(e.getMessage)
+    }
 }
