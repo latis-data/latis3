@@ -17,7 +17,7 @@ import latis.util.ConfigLike
 /**
  * Adapter for record-oriented text datasets that can be streamed.
  */
-class TextAdapter(model: DataType, config: TextAdapter.Config = TextAdapter.Config())
+class TextAdapter(model: DataType, config: TextAdapter.Config = new TextAdapter.Config())
   extends StreamingAdapter[String] {
   
   /**
@@ -129,19 +129,19 @@ class TextAdapter(model: DataType, config: TextAdapter.Config = TextAdapter.Conf
 
 object TextAdapter extends AdapterFactory {
   
-  def apply(model: DataType, config: Config = Config()): TextAdapter = 
+  def apply(model: DataType, config: Config = new Config()): TextAdapter = 
     new TextAdapter(model, config)
   
   /**
    * Constructor used by the AdapterFactory.
    */
   def apply(model: DataType, config: AdapterConfig): TextAdapter = 
-    new TextAdapter(model, Config(config.properties: _*))
+    new TextAdapter(model, new Config(config.properties: _*))
   
   /**
    * Configuration specific to a TextAdapter.
    */
-  case class Config(properties: (String, String)*) extends ConfigLike {
+  class Config(val properties: (String, String)*) extends ConfigLike {
     val commentCharacter: Option[String] = get("commentCharacter")
     val delimiter: String                = getOrElse("delimiter", ",")
     val linesPerRecord: Int              = getOrElse("linesPerRecord", 1)

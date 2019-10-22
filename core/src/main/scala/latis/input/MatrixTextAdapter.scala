@@ -17,7 +17,7 @@ import java.net.URI
  */
 case class MatrixTextAdapter(
   model: DataType, 
-  config: TextAdapter.Config = TextAdapter.Config()
+  config: TextAdapter.Config = new TextAdapter.Config()
 ) extends TextAdapter(model, config) {
   //TODO: assume (row, column) -> value  model?
   
@@ -53,6 +53,6 @@ object MatrixTextAdapter extends AdapterFactory {
    * Constructor used by the AdapterFactory.
    */
   def apply(model: DataType, config: AdapterConfig): TextAdapter = 
-    new TextAdapter(model, TextAdapter.Config(config.properties: _*))
+    new TextAdapter(model, new TextAdapter.Config(config.properties: _*))
 
 }

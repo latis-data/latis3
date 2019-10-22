@@ -23,7 +23,7 @@ class TestTextAdapter extends JUnitSuite {
             Scalar(Metadata("id" -> "d", "type" -> "string"))
           )
       )
-      val config = TextAdapter.Config()
+      val config = new TextAdapter.Config()
       def adapter = new TextAdapter(model, config)
     }
     
