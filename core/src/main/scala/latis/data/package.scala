@@ -83,4 +83,14 @@ package object data {
     def compare(s1: Sample, s2: Sample): Int =
       DomainOrdering.compare(s1.domain, s2.domain)
   }
+  
+  implicit object NumberOrdering extends Ordering[Number] {
+    def compare(n1: Number, n2: Number): Int =
+      n1.asDouble compare n2.asDouble
+  }
+  
+  implicit object TextOrdering extends Ordering[Text] {
+    def compare(t1: Text, t2: Text): Int =
+      t1.asString compare t2.asString
+  }
 }
