@@ -59,7 +59,7 @@ object FileUtils {
    * @param path
    *             path to search for files
    * @param ext
-   *            extension of files to search (can be regular expression)
+   *            extension of files to search
    */
   def getFileList(path: String, ext: String): Seq[String] = {
     val file_iter = Files.list(Paths.get(path)).iterator().asScala
