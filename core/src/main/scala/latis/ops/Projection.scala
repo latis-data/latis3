@@ -1,7 +1,7 @@
 package latis.ops
 
 import latis.data._
-import latis.model.DataType
+import latis.model._
 
 /**
  * Operation to project only a given set of variables in a Dataset.
@@ -10,10 +10,31 @@ case class Projection(vids: String*) extends MapOperation {
   //TODO: support nested Functions
   //TODO: support aliases, hasName
   //TODO: support dot notation for nested tuples
+  //TODO: Index place holders
   
   override def applyToModel(model: DataType): DataType = {
-    //TODO: consider how to handle Tuples of 0, 1; preserve namespace
-    model.filter(dt => vids.contains(dt.id))
+    applyToVariable(model).getOrElse {
+      throw new RuntimeException("Nothing projected")
+    }
+  }
+  
+  /**
+   * Recursive method to apply the projection.
+   */
+  private def applyToVariable(v: DataType): Option[DataType] = v match {
+    case s: Scalar => 
+      if (vids.contains(s.id)) Some(s) else None
+    case Tuple(vars @ _*) => 
+      val vs = vars.flatMap(applyToVariable(_))
+      vs.length match {
+        case 0 => None                // drop empty Tuple
+        case 1 => Some(vs.head)       // reduce Tuple of one
+        case _ => Some(Tuple(vs: _*))
+      }
+    case Function(d, r) => (applyToVariable(d), applyToVariable(r)) match {
+      case (Some(d), Some(r)) => Some(Function(d, r))
+      case _ => ???
+    }
   }
   
   override def mapFunction(model: DataType): Sample => Sample = {
