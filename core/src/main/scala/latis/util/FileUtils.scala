@@ -7,6 +7,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.Files
 import scala.collection.JavaConverters._
+import scala.util.Try
 
 import scala.util.Properties
 
@@ -55,18 +56,15 @@ object FileUtils {
 
 
   /**
-   * returns a list of filenames with the extension striped
-   * @param path
-   *             path to search for files
-   * @param ext
-   *            extension of files to search
+   * Searches a given directory for files of a given extension and returns the
+   * filenames.
+   * @param path path to search for files
+   * @param ext extension of files to filter on
    */
-  def getFileList(path: String, ext: String): Seq[String] = {
-    val file_iter = Files.list(Paths.get(path)).iterator().asScala
-    val extLen = ext.length + 1  // add one for the "."
-    file_iter.map(p => p.getFileName.toString)
-      .filter(p => p.endsWith(ext))
-      .map(s => s.substring(0, s.length - extLen))
-      .toList
+  def getFileList(path: Path, ext: String): Try[Seq[Path]] = {
+    Try {
+      val fileIter = Files.list(path).iterator().asScala
+      fileIter.filter(_.toString.endsWith(ext)).toList
+    }
   }
 }
