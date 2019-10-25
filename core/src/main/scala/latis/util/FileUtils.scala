@@ -5,6 +5,9 @@ import java.net.URI
 import java.net.URL
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.nio.file.Files
+import scala.collection.JavaConverters._
+import scala.util.Try
 
 import scala.util.Properties
 
@@ -50,4 +53,18 @@ object FileUtils {
   
   def resolveUri(uri: String): Option[URI] = 
     resolveUri(new URI(uri))
+
+
+  /**
+   * Searches a given directory for files of a given extension and returns the
+   * filenames.
+   * @param path path to search for files
+   * @param ext extension of files to filter on
+   */
+  def getFileList(path: Path, ext: String): Try[Seq[Path]] = {
+    Try {
+      val fileIter = Files.list(path).iterator().asScala
+      fileIter.filter(_.toString.endsWith(ext)).toList
+    }
+  }
 }

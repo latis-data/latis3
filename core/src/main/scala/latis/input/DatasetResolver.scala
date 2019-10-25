@@ -1,10 +1,13 @@
 package latis.input
 
+import latis.util.FileUtils
+import latis.util.LatisConfig
 import latis.model.Dataset
-import latis.ops.Operation
-import latis.ops.UnaryOperation
+
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 import java.util.ServiceLoader
+import scala.util.Properties
+import scala.util.Try
 
 
 /**
@@ -40,5 +43,23 @@ object DatasetResolver {
         throw new RuntimeException(s"Failed to resolve dataset: $id")
       }
   }
-  
+
+
+  /**
+   * Find all datasets and return their IDs.
+   */
+  def getDatasetIds: Try[Seq[String]] = {
+    val suffix = ".fdml"
+    val searchPathFromConfig =
+      LatisConfig.getOrElse("latis.fdml.dir", Properties.userDir)
+    val searchPath = FileUtils.resolvePath(searchPathFromConfig)
+      .toRight(new RuntimeException(s"File not found: $searchPathFromConfig"))
+      .toTry
+
+    searchPath.flatMap {
+      FileUtils.getFileList(_, suffix).map(
+        _.map(_.getFileName.toString.stripSuffix(suffix))
+      )
+    }
+  }
 }
