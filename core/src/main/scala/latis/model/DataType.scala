@@ -192,21 +192,24 @@ object DataType {
  * The Scalar type represents a single atomic variable.
  */
 class Scalar(val metadata: Metadata) extends DataType {
+  //TODO: typesafe type, units,...
   
+  import scala.math.Ordering._
+
   /**
-   * Convert a string value into the appropriate type for this Scalar.
+   * Converts a string value into the appropriate type for this Scalar.
    */
   def parseValue(value: String): Data = this("type") match {
     //TODO: deal with parse errors
     //TODO: use enumeration, ADT, fdml schema
     //case Some("boolean")    => value.toBoolean
-//    case Some("char")       => value.head
-    case Some("short")      => value.toShort
-    case Some("int")        => value.toInt
-    case Some("long")       => value.toLong
-    case Some("float")      => value.toFloat
-    case Some("double")     => value.toDouble
-    case Some("string")     => value
+    //case Some("char")       => Data(value.head)
+    case Some("short")      => Data(value.toShort)
+    case Some("int")        => Data(value.toInt)
+    case Some("long")       => Data(value.toLong)
+    case Some("float")      => Data(value.toFloat)
+    case Some("double")     => Data(value.toDouble)
+    case Some("string")     => Data(value)
     //case Some("bigInt")     => BigInt(value)
     //case Some("bigDecimal") => BigDecimal(value)
     //TODO: binary blob
@@ -215,6 +218,13 @@ class Scalar(val metadata: Metadata) extends DataType {
     case None => ??? //type not defined
   }
 
+  /**
+   * Converts a string value into the appropriate type and units
+   * for this Scalar.
+   */
+  def convertValue(value: String): Data = parseValue(value)
+  //TODO: support units, e.g. "1.2 meters"
+  
   def formatValue(data: Data): String = data match {
     case v: ShortValue => v.asString
     case v: IntValue => v.asString
@@ -225,6 +235,56 @@ class Scalar(val metadata: Metadata) extends DataType {
     case _ => throw new RuntimeException("Not a valid Scalar data value.")
   }
   
+  /**
+   * Defines an Ordering for Data of the type described by this Scalar.
+   * An IllegalArgumentException will be thrown if the compared Data types 
+   * are not consistent with this Scalar.
+   */
+  def ordering: Ordering[Data] = _ordering
+  
+  // Optimization to define Ordering only once
+  private lazy val _ordering = this("type") match {
+    case Some("short") => makeOrdering {
+      case (d1: Data.ShortValue, d2: Data.ShortValue) =>
+        Short.compare(d1.value, d2.value)
+    }
+    case Some("int") => makeOrdering {
+      case (d1: Data.IntValue, d2: Data.IntValue) =>
+        Int.compare(d1.value, d2.value)
+    }
+    case Some("long") => makeOrdering {
+      case (d1: Data.LongValue, d2: Data.LongValue) =>
+        Long.compare(d1.value, d2.value)
+    }
+    case Some("float") => makeOrdering {
+      case (d1: Data.FloatValue, d2: Data.FloatValue) =>
+        Float.compare(d1.value, d2.value)
+    }
+    case Some("double") => makeOrdering {
+      case (d1: Data.DoubleValue, d2: Data.DoubleValue) =>
+        Double.compare(d1.value, d2.value)
+    }
+    case Some("string") => makeOrdering {
+      case (d1: Data.StringValue, d2: Data.StringValue) =>
+        String.compare(d1.value, d2.value)
+    }
+    case Some(s) => 
+      val msg = s"Ordering not supported for data type $s"
+      throw new NotImplementedError(msg)
+  }
+
+  // Convenience method to avoid boilerplate duplication
+  private def makeOrdering(part: PartialFunction[(Data,Data),Int]) = {
+    val error: PartialFunction[(Data,Data),Int] = {
+      case (x: Data, y: Data) =>
+        val msg = s"Incomparable data values: $x $y"
+        throw new IllegalArgumentException(msg)
+    }
+    new Ordering[Data] {
+      def compare(x: Data, y: Data): Int = (part orElse error)(x, y)
+    }
+  }
+
   override def toString: String = id
 }
 
