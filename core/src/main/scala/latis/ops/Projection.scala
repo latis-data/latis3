@@ -33,7 +33,7 @@ case class Projection(vids: String*) extends MapOperation {
       }
     case Function(d, r) => (applyToVariable(d), applyToVariable(r)) match {
       case (Some(d), Some(r)) => Some(Function(d, r))
-      case _ => ???
+      case _ => throw new UnsupportedOperationException("Both domain and range portions must be projected.")
     }
   }
   
