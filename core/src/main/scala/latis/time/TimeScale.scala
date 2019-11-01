@@ -1,22 +1,28 @@
 package latis.time
 
-import latis.units.{MeasurementScale, MeasurementType, Time => TimeType}
+import latis.units.MeasurementScale
+import latis.units.MeasurementType
+import latis.units.{Time => TimeType}
 
 /**
  * Defines the MeasurementScale for time instances.
  * The given epoch serves as the zero of the time scale.
  * The timeUnit specifies the duration of each unit.
+ * 
+ * Since there is no absolute zero for time scales, this uses the 
+ * Java time scale (milliseconds since 1970-01-01T00:00:00) as the standard. 
+ * The zero of a time scale is the offset of its epoch from the default epoch
+ * in its units. For example, "hours since 1970-01-02" would be at the standard
+ * time scale's zero (1970-01-01) one day before it's own zero (i.e. epoch). In
+ * it's units (hours) the zero (one day ago) would be -24.
  */
-class TimeScale(timeUnit: TimeUnit, epoch: String) extends MeasurementScale {
+case class TimeScale(timeUnit: TimeUnit, epoch: String) extends MeasurementScale {
   def unitType: MeasurementType = TimeType
   override def baseMultiplier: Double = timeUnit.baseMultiplier
-  override def zero: Double = - TimeFormat.parseIso(epoch)
+  override def zero: Double = -TimeFormat.parseIso(epoch) / 1000 / baseMultiplier
 }
 
 object TimeScale {
-
-  def apply(timeUnit: TimeUnit, epoch: String): TimeScale =
-    new TimeScale(timeUnit, epoch)
 
   val Default = TimeScale(TimeUnit.Base, "1970-01-01")
 
