@@ -217,13 +217,6 @@ class Scalar(val metadata: Metadata) extends DataType {
     case Some(s) => ??? //unsupported type s
     case None => ??? //type not defined
   }
-
-  /**
-   * Converts a string value into the appropriate type and units
-   * for this Scalar.
-   */
-  def convertValue(value: String): Data = parseValue(value)
-  //TODO: support units, e.g. "1.2 meters"
   
   def formatValue(data: Data): String = data match {
     case v: ShortValue => v.asString
@@ -234,6 +227,13 @@ class Scalar(val metadata: Metadata) extends DataType {
     case v: StringValue => v.asString
     case _ => throw new RuntimeException("Not a valid Scalar data value.")
   }
+
+  /**
+   * Converts a string value into the appropriate type and units
+   * for this Scalar.
+   */
+  def convertValue(value: String): Data = parseValue(value)
+  //TODO: support units, e.g. "1.2 meters"
   
   /**
    * Defines an Ordering for Data of the type described by this Scalar.
