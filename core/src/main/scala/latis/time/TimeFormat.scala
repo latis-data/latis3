@@ -1,7 +1,10 @@
 package latis.time
 
-import java.text.{ParseException, SimpleDateFormat}
-import java.util.{Date, Locale, TimeZone}
+import java.text.ParseException
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 /**
  * TimeFormat support that is thread safe and assumes GMT time zone.
@@ -9,9 +12,11 @@ import java.util.{Date, Locale, TimeZone}
 class TimeFormat(format: String) {
 
   private val sdf: SimpleDateFormat = {
-    val sdf = try new SimpleDateFormat(format, Locale.ENGLISH) catch {
-      case e: Exception => throw new IllegalArgumentException(
-        s"Could not parse '$format' as a time format: ${e.getMessage}")
+    val sdf = try new SimpleDateFormat(format, Locale.ENGLISH)
+    catch {
+      case e: Exception =>
+        val msg = s"Could not parse '$format' as a time format."
+        throw new IllegalArgumentException(msg, e)
     }
     sdf.setTimeZone(TimeZone.getTimeZone("GMT"))
     sdf
@@ -26,7 +31,7 @@ class TimeFormat(format: String) {
       sdf.parse(string).getTime
     } catch {
       case e: ParseException =>
-        val msg = s"Unable to parse time string ($string) with the format $format"
+        val msg = s"Could not parse '$string' with the format $format"
         throw new IllegalArgumentException(msg)
     }
   }
@@ -107,7 +112,9 @@ object TimeFormat {
       else "yyyyMMdd"
     }
     case 10 => "yyyy-MM-dd"
-    case _ => throw new IllegalArgumentException("Failed to determine a date format for " + s)
+    case _ =>
+      val msg = s"Failed to determine a date format for $s"
+      throw new IllegalArgumentException(msg)
   }
 
   /**
@@ -117,7 +124,7 @@ object TimeFormat {
     // Handle the "Z" time zone designation
     val length = s.indexOf("Z") match {
       case n: Int if (n != -1) => n
-      case _ => s.length
+      case _                   => s.length
     }
 
     length match {
@@ -128,7 +135,9 @@ object TimeFormat {
       case 6  => "HHmmss"
       case 8  => "HH:mm:ss"
       case 12 => "HH:mm:ss.SSS"
-      case _ => throw new IllegalArgumentException("Failed to determine a time format for " + s)
+      case _ =>
+        val msg = s"Failed to determine a time format for $s"
+        throw new IllegalArgumentException(msg)
     }
   }
 

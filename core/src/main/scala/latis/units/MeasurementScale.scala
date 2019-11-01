@@ -1,7 +1,5 @@
 package latis.units
 
-import latis.time.TimeFormat
-
 /**
  * A MeasurementScale defines how values of physical
  * quantities should be interpreted. This term was chosen over
