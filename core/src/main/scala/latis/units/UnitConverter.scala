@@ -1,8 +1,6 @@
 package latis.units
 
-class UnitConverter(
-    from: MeasurementScale,
-    to: MeasurementScale) {
+case class UnitConverter(from: MeasurementScale, to: MeasurementScale) {
   //TODO: error if not the same UnitType
 
   private val scaleFactor: Double = from.baseMultiplier / to.baseMultiplier
