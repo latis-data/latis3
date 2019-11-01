@@ -38,7 +38,3 @@ object KiloMeter extends MeasurementScale {
   def unitType: MeasurementType = Length
   override def baseMultiplier: Double = 1000
 }
-
-
-//class MetricUnit(exponent: Int, scale: MeasurementScale)
-//  unit.take(unit.indexOf("second")) match
