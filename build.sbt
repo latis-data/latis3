@@ -1,7 +1,6 @@
 ThisBuild / organization := "io.latis-data"
 ThisBuild / scalaVersion := "2.12.8"
 
-val circeVersion = "0.11.1"
 val coursierVersion   = "2.0.0-RC3-2"
 val fs2Version        = "1.0.2"
 val http4sVersion     = "0.20.10"
@@ -13,10 +12,7 @@ lazy val commonSettings = compilerFlags ++ Seq(
     "org.typelevel" %% "cats-effect"   % "1.1.0",
     "co.fs2"        %% "fs2-core"      % fs2Version,
     "co.fs2"        %% "fs2-io"        % fs2Version,
-    "com.typesafe"   % "config"        % "1.3.4",
-    "io.circe"      %% "circe-core"    % circeVersion,
-    "io.circe"      %% "circe-generic" % circeVersion,
-    "io.circe"      %% "circe-parser"  % circeVersion
+    "com.typesafe"   % "config"        % "1.3.4"
   )
 )
 
