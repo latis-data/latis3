@@ -49,10 +49,10 @@ class TextAdapter(model: DataType, config: TextAdapter.Config = new TextAdapter.
     var foundDataMarker = false
     config.dataMarker match {
       case Some(marker) => {
-        //a little gymnastics to also skip the line with the marker
-        val seeking = ! foundDataMarker
+        //a little gymnastics to also skip the line with the marker (TODO: the line with the marker isn't getting skipped...)
+        //val seeking = ! foundDataMarker
         if (line.matches(marker)) foundDataMarker = true
-        seeking
+        !foundDataMarker //seeking
       }
       case None => false //no marker defined so we are not seeking
     }
