@@ -8,11 +8,11 @@ val pureconfigVersion = "0.10.1"
 
 lazy val commonSettings = compilerFlags ++ Seq(
   libraryDependencies ++= Seq(
-    "org.typelevel" %% "cats-core"     % "1.5.0",
-    "org.typelevel" %% "cats-effect"   % "1.1.0",
-    "co.fs2"        %% "fs2-core"      % fs2Version,
-    "co.fs2"        %% "fs2-io"        % fs2Version,
-    "com.typesafe"   % "config"        % "1.3.4"
+    "org.typelevel" %% "cats-core"   % "1.5.0",
+    "org.typelevel" %% "cats-effect" % "1.1.0",
+    "co.fs2"        %% "fs2-core"    % fs2Version,
+    "co.fs2"        %% "fs2-io"      % fs2Version,
+    "com.typesafe"   % "config"      % "1.3.4"
   )
 )
 
