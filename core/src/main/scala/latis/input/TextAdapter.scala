@@ -39,7 +39,7 @@ class TextAdapter(model: DataType, config: TextAdapter.Config = new TextAdapter.
    */
   private def seekToDataMarker(marker: Option[String]): Pipe[IO, String, String] = marker match {
     case Some(m) => _.dropWhile(! _.matches(m)).drop(1)
-    case None => s: Stream[IO, String] => s
+    case None => identity
   }
 
   
