@@ -14,6 +14,9 @@ import org.junit._
 import org.junit.Assert._
 import latis.ops.Selection
 import latis.ops.Projection
+import latis.dataset.UnadaptedDataset
+import latis.dataset.Dataset
+import latis.util.StreamUtils
 
 class TestGranuleListJoin {
   //TODO: ScalaTest flat spec?
@@ -32,7 +35,7 @@ class TestGranuleListJoin {
         Sample(DomainData(0), RangeData(s"file://${System.getProperty("user.home")}/git/latis3/core/src/test/resources/data/data.txt")),
         Sample(DomainData(1), RangeData(s"file://${System.getProperty("user.home")}/git/latis3/core/src/test/resources/data/data2.txt"))
       )
-      Dataset(md, model, data)
+      new UnadaptedDataset(md, model, data)
     }
     
     //model for granule: a -> (b, c, d)
@@ -53,16 +56,23 @@ class TestGranuleListJoin {
     val glj = GranuleListJoin(model, config)
     //val glj = GranuleListJoin(model, adapter)
     
-    val ops = Seq(
-      Selection("a", ">=", "2"),
-      Selection("a", "<=", "3"),
-      //Projection("a,b,d") //TODO: projection not working
-    )
+//    val ops = Seq(
+//      Selection("a", ">=", "2"),
+//      Selection("a", "<=", "3"),
+//      //Projection("a,b,d") //TODO: projection not working
+//    )
     
-    val ds = ops.foldLeft(glj(gl))((ds, op) => op(ds))
+    val ds = gl.withOperation(glj)
+               .withOperation(Selection("a", ">=", "2"))
+               .withOperation(Selection("a", "<=", "3"))
+               //.withOperation(Projection("a,b,d"))
+    
+    //val ds = ops.foldLeft(glj(gl))((ds, op) => op(ds))
+    //val ds = ops.foldLeft(gl.withOperation(glj))((ds, op) => op(ds))
     //val out = System.out //new FileOutputStream("/data/tmp/data3.txt")
-    //TextWriter(out).write(ds)
-    val samples = ds.data.unsafeForce.samples
+    //TextWriter(System.out).write(ds)
+    //val samples = ds.data.unsafeForce.samples
+    val samples = StreamUtils.unsafeStreamToSeq(ds.samples)
     assertEquals(2, samples.length)
     samples(0) match {
       case Sample(DomainData(Integer(a)), RangeData(Integer(b), Real(c), Text(d))) =>

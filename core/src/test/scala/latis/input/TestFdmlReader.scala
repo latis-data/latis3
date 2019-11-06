@@ -7,10 +7,11 @@ import org.scalatest.junit.JUnitSuite
 
 import latis.data._
 import latis.model.DataType
-import latis.model.Dataset
 import latis.ops._
 import latis.output.TextWriter
 import latis.util.FdmlUtils
+import latis.dataset.Dataset
+import latis.util.StreamUtils
 
 class TestFdmlReader extends JUnitSuite {
   @Test @Ignore //This might have broken with commit c2458afccf7a4bd1ae71ea0dabeea35ce7ea9bea
@@ -138,14 +139,12 @@ class TestFdmlReader extends JUnitSuite {
   @Test
   def fdml_file = {
     val ds = Dataset.fromName("data")
-    ds match {
-      case Dataset(_,_,sf) => sf.unsafeForce.samples.head match {
-        case Sample(DomainData(Index(a)),RangeData(Integer(b), Real(c), Text(d))) =>
-          assertEquals(0, a)
-          assertEquals(1, b)
-          assertEquals(1.1, c, 0)
-          assertEquals("a", d)
-      }
+    StreamUtils.unsafeHead(ds.samples) match {
+      case Sample(DomainData(Index(a)),RangeData(Integer(b), Real(c), Text(d))) =>
+        assertEquals(0, a)
+        assertEquals(1, b)
+        assertEquals(1.1, c, 0)
+        assertEquals("a", d)
     }
   }
 }

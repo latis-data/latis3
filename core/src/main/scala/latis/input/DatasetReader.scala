@@ -1,6 +1,6 @@
 package latis.input
 
-import latis.model.Dataset
+import latis.dataset.Dataset
 import java.net.URI
 import java.util.ServiceLoader
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter

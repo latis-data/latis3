@@ -13,6 +13,7 @@ import latis.util.ReflectionUtils
 import latis.util.FileUtils
 import latis.util.LatisConfig
 import latis.util.FdmlUtils
+import latis.dataset.Dataset
 
 /**
  * From an FDML file an FdmlReader reader creates a dataset, configures its adapter, and builds the dataset's model.

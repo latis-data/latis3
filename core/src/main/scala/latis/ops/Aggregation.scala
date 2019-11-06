@@ -3,7 +3,7 @@ package latis.ops
 import latis.data._
 import latis.model.DataType
 import scala.collection.mutable.Builder
-import latis.model.Dataset
+import latis.dataset.Dataset
 import scala.collection.mutable.ListBuffer
 import fs2.Stream
 
@@ -45,9 +45,6 @@ trait Aggregation extends UnaryOperation {
  * SampledFunction.
  */
 case class NoAggregation() extends Aggregation {
-
-  // No-op
-  override def apply(dataset: Dataset): Dataset = dataset
 
   /**
    * Although the NoAggregation Operation will be a no-op for a Dataset,

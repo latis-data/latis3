@@ -3,7 +3,7 @@ package latis.input
 import latis.util._
 import java.io.File
 import java.net.URI
-import latis.model.Dataset
+import latis.dataset.Dataset
 import java.nio.file.Paths
 
 /**

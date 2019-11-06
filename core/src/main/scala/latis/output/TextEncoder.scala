@@ -7,6 +7,11 @@ import fs2.Stream
 
 import latis.data._
 import latis.model._
+<<<<<<< Upstream, based on origin/master
+=======
+import latis.util.StreamUtils
+import latis.dataset.Dataset
+>>>>>>> 0f065bc snapshot
 
 class TextEncoder extends Encoder[IO, String] {
 
@@ -26,8 +31,13 @@ class TextEncoder extends Encoder[IO, String] {
       Stream.emit(dataset.model.toString + lineSeparator)
 
     // Encode each Sample as a String in the Stream
+<<<<<<< Upstream, based on origin/master
     val samples: Stream[IO, String] = dataset.data.streamSamples
       .map(encodeSample(dataset.model, _) + lineSeparator)
+=======
+    val samples: Stream[IO, String] =
+      dataset.samples.flatMap(encodeSample(dataset.model, _))
+>>>>>>> 0f065bc snapshot
 
     // Combine the output into a single Stream
     header ++ samples

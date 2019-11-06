@@ -1,7 +1,7 @@
 package latis.output
 
 import java.io.OutputStream
-import latis.model.Dataset
+import latis.dataset.Dataset
 import latis.util.StreamUtils._
 import cats.effect.IO
 import fs2._

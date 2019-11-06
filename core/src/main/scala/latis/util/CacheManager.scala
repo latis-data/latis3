@@ -1,7 +1,7 @@
 package latis.util
 
 import scala.collection._
-import latis.model.Dataset
+import latis.dataset.Dataset
 import latis.input.DatasetResolver
 
 /**
