@@ -66,7 +66,7 @@ class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
   private def getEncoder(ext: String): Either[Dap2Error, Encoder[IO, String]] =
     ext match {
       case ""    => getEncoder("html")
-      case "txt" => Right(TextEncoder)
+      case "txt" => Right(new TextEncoder)
       // TODO: Here we may need to dynamically construct an instance
       // of an encoder based on the extension and server/interface
       // configuration.

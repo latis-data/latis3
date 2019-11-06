@@ -9,7 +9,7 @@ import latis.data._
 import latis.model._
 import latis.util.StreamUtils
 
-object TextEncoder extends Encoder[IO, String] {
+class TextEncoder extends Encoder[IO, String] {
   
   /**
    * Track the level of Function nesting so we can indent.
