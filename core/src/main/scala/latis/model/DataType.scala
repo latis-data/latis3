@@ -2,6 +2,7 @@ package latis.model
 
 import latis.metadata._
 import latis.data._
+import latis.data.Data._
 import scala.collection.TraversableLike
 import scala.collection.mutable.Builder
 import scala.collection.mutable.Stack
@@ -199,7 +200,7 @@ class Scalar(val metadata: Metadata) extends DataType {
     //TODO: deal with parse errors
     //TODO: use enumeration, ADT, fdml schema
     //case Some("boolean")    => value.toBoolean
-    case Some("char")       => value.head
+//    case Some("char")       => value.head
     case Some("short")      => value.toShort
     case Some("int")        => value.toInt
     case Some("long")       => value.toLong
@@ -212,6 +213,16 @@ class Scalar(val metadata: Metadata) extends DataType {
     //TODO: class, e.g. latis.time.Time?
     case Some(s) => ??? //unsupported type s
     case None => ??? //type not defined
+  }
+
+  def formatValue(data: Data): String = data match {
+    case v: ShortValue => v.asString
+    case v: IntValue => v.asString
+    case v: LongValue => v.asString
+    case v: FloatValue => v.asString
+    case v: DoubleValue => v.asString
+    case v: StringValue => v.asString
+    case _ => throw new RuntimeException("Not a valid Scalar data value.")
   }
   
   override def toString: String = id
