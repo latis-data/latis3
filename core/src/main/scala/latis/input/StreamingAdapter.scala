@@ -5,6 +5,7 @@ import java.net.URI
 import latis.data._
 import cats.effect.IO
 import fs2._
+import latis.ops.Operation
 
 /**
  * A StreamingAdapter uses record semantics to read data.
@@ -27,7 +28,7 @@ trait StreamingAdapter[R] extends Adapter {
    * Implement the Adapter interface using record semantics.
    * Note that this approach is limited to a single traversal.
    */
-  def apply(uri: URI): SampledFunction =
+  def getData(uri: URI, ops: Seq[Operation] = Seq.empty): SampledFunction =
     StreamFunction(recordStream(uri).map(parseRecord(_)).unNone)
 
 }

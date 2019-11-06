@@ -1,14 +1,27 @@
 package latis.ops
 
-import latis.model.Dataset
+import latis.dataset.Dataset
+import latis.model.DataType
+import latis.data.SampledFunction
 
+/**
+ * Defines an Operation that combines two Datasets into one.
+ */
 trait BinaryOperation extends Operation {
   
-  def apply(ds1: Dataset, ds2: Dataset): Dataset
-  //TODO: provide default impl, delegate for metadata, model, data
-  //TODO: enforce inclusion of prov metadata
+  /**
+   * Combines the models of two Datasets.
+   */
+  def applyToModel(model1: DataType, model2: DataType): DataType
   
-  //TODO: partiallyApplyLHS, partiallyApplyRHS => UnaryOperation
-  //TODO: reverse? flip?
-  //  but no state
+  /**
+   * Combines the Data of two Datasets.
+   */
+  def applyToData(
+    model1: DataType,
+    data1: SampledFunction,
+    model2: DataType,
+    data2: SampledFunction
+  ): SampledFunction
+
 }

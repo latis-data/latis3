@@ -2,7 +2,7 @@ package latis.output
 
 import fs2.Stream
 
-import latis.model.Dataset
+import latis.dataset.Dataset
 
 trait Encoder[F[_], O] {
 

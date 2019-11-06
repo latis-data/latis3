@@ -5,6 +5,7 @@ import latis.data._
 import fs2._
 import java.net.URI
 import cats.effect.IO
+import latis.ops.Operation
 
 /**
  * Prototype for making mock data for testing.
@@ -23,5 +24,6 @@ class MockAdapter extends Adapter {
     Stream.emits(ss)
   }
   
-  def apply(uri: URI): SampledFunction = StreamFunction(makeStream)
+  def getData(uri: URI, ops: Seq[Operation] = Seq.empty): SampledFunction =
+    StreamFunction(makeStream)
 }

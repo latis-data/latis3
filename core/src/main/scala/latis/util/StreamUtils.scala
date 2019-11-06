@@ -43,5 +43,8 @@ object StreamUtils {
    */
   def unsafeStreamToSeq[T](stream: Stream[IO, T]): Seq[T] = 
     stream.compile.toVector.unsafeRunSync
+    
+  def unsafeHead[T](stream: Stream[IO, T]): T =
+    stream.head.compile.toVector.unsafeRunSync.head
      
 }

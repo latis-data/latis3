@@ -17,13 +17,13 @@ import latis.metadata.Metadata
  */
 case class GranuleListJoin(model: DataType, adapter: Adapter) extends UnaryOperation {
   
-  /**
-   * Override to append "_merged" to the dataset name.
-   */
-  override def applyToMetadata(md: Metadata): Metadata = {
-    val dsname = md.getProperty("id").map(_ + "_merged").getOrElse("")
-    super.applyToMetadata(md) + ("id" -> dsname)
-  }
+//  /**
+//   * Override to append "_merged" to the dataset name.
+//   */
+//  override def applyToMetadata(md: Metadata): Metadata = {
+//    val dsname = md.getProperty("id").map(_ + "_merged").getOrElse("")
+//    super.applyToMetadata(md) + ("id" -> dsname)
+//  }
   
   /**
    * Replace the original model (of the granule list dataset) 
@@ -50,7 +50,7 @@ case class GranuleListJoin(model: DataType, adapter: Adapter) extends UnaryOpera
       sample.getValue(pos) match {
         case Some(Text(s)) =>
           val uri = new URI(s) //TODO: error
-          adapter(uri)
+          adapter.getData(uri) //TODO: delegate ops?
         case _ => ??? //TODO: error if type is wrong, position should be valid
       }
     }

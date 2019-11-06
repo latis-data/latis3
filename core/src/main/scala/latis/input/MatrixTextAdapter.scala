@@ -4,6 +4,7 @@ import latis.data._
 import latis.model._
 
 import java.net.URI
+import latis.ops.Operation
 
 /**
  * Read a text file which represents a matrix.
@@ -25,7 +26,7 @@ case class MatrixTextAdapter(
    * Get a Stream of records that represent rows of the matrix
    * then memoize the data as a row-major 2D array.
    */
-  override def apply(uri: URI): SampledFunction = {
+  override def getData(uri: URI, ops: Seq[Operation] = Seq.empty): SampledFunction = {
     
     // The values represent a single scalar in the range of the Function.
     val scalar = model match {

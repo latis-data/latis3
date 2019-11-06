@@ -4,6 +4,7 @@ import latis.model._
 import latis.data._
 
 import scala.language.postfixOps
+import latis.dataset.Dataset
 
 /**
  * Replace a variable in a Dataset by using it to evaluate another Dataset.
@@ -41,18 +42,18 @@ case class Substitution() extends BinaryOperation {
    *   for a Function with a special topology?
    */
   
-  /**
-   * Apply second Dataset to the first replacing the variable matching the domain
-   * variable of the second with its range variable.
-   */
-  def apply(ds1: Dataset, ds2: Dataset): Dataset = {
-    val model = applyToModel(ds1.model, ds2.model)
-    
-    val data = applyToData(ds1, ds2)
-    
-    //TODO: update Metadata
-    Dataset(ds1.metadata, model, data)
-  }
+//  /**
+//   * Apply second Dataset to the first replacing the variable matching the domain
+//   * variable of the second with its range variable.
+//   */
+//  def apply(ds1: Dataset, ds2: Dataset): Dataset = {
+//    val model = applyToModel(ds1.model, ds2.model)
+//    
+//    val data = applyToData(ds1, ds2)
+//    
+//    //TODO: update Metadata
+//    Dataset(ds1.metadata, model, data)
+//  }
 
 //  /*
 //   * Splice a Seq[A]:
@@ -68,23 +69,28 @@ case class Substitution() extends BinaryOperation {
 //      }
 //    }
 //  }
-  
-  def applyToData(ds1: Dataset, ds2: Dataset): SampledFunction = {
+    
+  def applyToData(
+    model1: DataType,
+    data1: SampledFunction,
+    model2: DataType,
+    data2: SampledFunction
+  ): SampledFunction = {
     // Previous processing should have ensured that the model is as expected
     // e.g. the expected values exist sequentially so we can use the index of the first.
     
-    val vids = getDomainVariableIDs(ds2.model)
+    val vids = getDomainVariableIDs(model2)
     
     // Get the sample position of the first ds2 domain variable in ds1.
     //val pos: SamplePosition = ds1.model.getPath(vids.head) match {
-    val path: SamplePath = ds1.model.getPath(vids.head) match {
+    val path: SamplePath = model1.getPath(vids.head) match {
       //TODO: findPath? Option vs empty path
       case Some(p) => p
       case None => ??? //error, variable not found in ds1
     }
     
     // Get the SampledFunction of ds2 to be used for evaluation
-    val sf = ds2.data
+    val sf = data2
     
     // Make a function to modify a ds1 Sample by replacing the value
     // from evaluating ds2 with the value of the matching variable in ds1
@@ -140,7 +146,7 @@ case class Substitution() extends BinaryOperation {
     }
     
     // Apply the substitution function to original data
-    ds1.data.map(f(_, path))
+    data1.map(f(_, path))
   }
   
   
