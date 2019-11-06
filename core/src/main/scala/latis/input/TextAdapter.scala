@@ -1,17 +1,11 @@
 package latis.input
 
-import latis.data.Sample
-import latis.model.DataType
-import latis.model.Function
-import latis.model.Scalar
-import latis.util.PropertiesLike
-import latis.util.StreamUtils
-
 import java.net.URI
 
 import cats.effect.IO
-import fs2.Stream
-import fs2.text
+import fs2.{Pipe, Stream, text}
+import latis.data.Sample
+import latis.model.{DataType, Function}
 import latis.util.ConfigLike
 
 /**
@@ -29,7 +23,7 @@ class TextAdapter(model: DataType, config: TextAdapter.Config = new TextAdapter.
       .through(text.utf8Decode)
       .through(text.lines)
       .drop(config.linesToSkip)
-      .dropWhile(seekingDataMarker)
+      .through(seekToDataMarker(config.dataMarker))
       .filter(notComment)
       .filter(_.nonEmpty) //filter out empty lines
       //TODO: avoid the extra work if linesPerRecord = 1 ?
@@ -39,23 +33,13 @@ class TextAdapter(model: DataType, config: TextAdapter.Config = new TextAdapter.
   
       
   /**
-   * Given a line of text from the data source, return a Boolean
-   * expressing whether we are in the state of seeking the data
-   * marker that indicates that the data starts on the next line.
-   * This is used by the record Stream to drop lines that do not 
-   * need to be parsed.
+   * Given a data marker that indicates that the data starts on
+   * the next line, drop elements of the stream until one matches
+   * the marker. Also drop the line with the marker.
    */
-  private val seekingDataMarker: String => Boolean = (line: String) => {
-    var foundDataMarker = false
-    config.dataMarker match {
-      case Some(marker) => {
-        //a little gymnastics to also skip the line with the marker (TODO: the line with the marker isn't getting skipped...)
-        //val seeking = ! foundDataMarker
-        if (line.matches(marker)) foundDataMarker = true
-        !foundDataMarker //seeking
-      }
-      case None => false //no marker defined so we are not seeking
-    }
+  private def seekToDataMarker(marker: Option[String]): Pipe[IO, String, String] = marker match {
+    case Some(m) => _.dropWhile(! _.matches(m)).drop(1)
+    case None => s: Stream[IO, String] => s
   }
 
   
