@@ -71,6 +71,13 @@ lazy val core = project
     )
   )
 
+lazy val `fdml-validator` = project
+  .dependsOn(core)
+  .settings(commonSettings)
+  .settings(
+    name := "fdml-validator"
+  )
+
 lazy val `dap2-service` = project
   .dependsOn(core)
   .dependsOn(`service-interface`)
