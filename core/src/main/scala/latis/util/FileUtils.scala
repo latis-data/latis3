@@ -3,13 +3,14 @@ package latis.util
 import java.io.File
 import java.net.URI
 import java.net.URL
+import java.nio.file.FileSystems
+import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.nio.file.Files
-import scala.collection.JavaConverters._
-import scala.util.Try
 
+import scala.collection.JavaConverters.asScalaIteratorConverter
 import scala.util.Properties
+import scala.util.Try
 
 /**
  * Utility functions for working with files.
@@ -28,8 +29,11 @@ object FileUtils {
     } else getClass.getResource(File.separator + path) match {
       // Try classpath
       case url: URL => 
-        // Found it
-        Some(Paths.get(url.getPath))
+        // Found it. Split the jar URL to make a FileSystem.
+        val Array(fsUri, file) = url.toString.split("!")
+        val env = new java.util.HashMap[String,String]()
+        val fs = FileSystems.newFileSystem(URI.create(fsUri), env)
+        Some(fs.getPath(file))
       case null => 
         // Not found, try the current working directory
         val fpath = Paths.get(Properties.userDir, path.toString)
