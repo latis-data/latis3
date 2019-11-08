@@ -7,18 +7,17 @@ import fs2.Stream
 
 import latis.data._
 import latis.model._
-import latis.util.StreamUtils
 
 class TextEncoder extends Encoder[IO, String] {
-  
+
   /**
-   * Track the level of Function nesting so we can indent.
+   * Tracks the level of Function nesting so we can indent.
    */
   //TODO: handle via recursion, doesn't work with lazy stream
   private var functionIndent: Int = 0
 
   /**
-   * Encode the Stream of Samples from the given Dataset as a Stream
+   * Encodes the Stream of Samples from the given Dataset as a Stream
    * of Strings.
    */
   override def encode(dataset: Dataset): Stream[IO, String] = {
@@ -35,16 +34,13 @@ class TextEncoder extends Encoder[IO, String] {
   }
 
   /**
-   * Given a Sample and its data model, create a Stream of Strings.
+   * Given a Sample and its data model, creates a Stream of Strings.
    */
   def encodeSample(model: DataType, sample: Sample): String = {
     (model, sample) match {
       case (Function(domain, range), Sample(ds, rs)) =>
         " " * functionIndent +
           s"${encodeData(domain, ds)} -> ${encodeData(range, rs)}"
-//        (encodeData(domain, ds) zip encodeData(range, rs)) map { case (d, r) =>
-//          " " * functionIndent + d + " -> " + r
-//        }
     }
   }
 
@@ -78,17 +74,10 @@ class TextEncoder extends Encoder[IO, String] {
 
     val samples: Seq[String] = function.samples.map(encodeSample(ftype, _))
 
-//    val samples: String = function.streamSamples.flatMap(encodeSample(ftype, _))
-//      function.streamSamples.map {
-//      case  => encodeSample(ftype, s)
-//    }
-
-    //"foo"
-
     functionIndent -= 2
     val foot: String = "}"
 
     // Combine nested function into a single string
-    head ++ samples.mkString(lineSeparator) ++ foot  // .fold1((a: String, b: String) => a + b)
+    head ++ samples.mkString(lineSeparator) ++ foot
   }
 }
