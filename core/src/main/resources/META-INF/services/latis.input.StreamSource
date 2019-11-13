@@ -1,1 +1,2 @@
-latis.input.UrlStreamSource
+latis.input.FileStreamSource
+latis.input.HttpStreamSource

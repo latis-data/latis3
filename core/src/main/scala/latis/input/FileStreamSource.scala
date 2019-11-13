@@ -1,5 +1,6 @@
 package latis.input
 
+import latis.util.NetUtils
 import latis.util.StreamUtils.blockingExecutionContext
 import latis.util.StreamUtils.contextShift
 
@@ -9,21 +10,20 @@ import java.net.URI
 import cats.effect.IO
 import fs2.Stream
 import fs2.io.readInputStream
-import latis.util.NetUtils
 
 /**
- * Create an StreamSource from a "file", "http", or "https" URI.
- * This will simply convert the URI to a URL and open an InputStream.
- * The resource will be released automatically.
+ * Creates a StreamSource from a "file" URI.
+ * This will resolve and convert the URI to a URL
+ * and open an InputStream.
  */
-class UrlStreamSource extends StreamSource {
-  
+class FileStreamSource extends StreamSource {
+  //TODO: confirm that resource is released, even if we don't hit the EOF
+
   /**
-   * The UrlStreamSource supports URIs that can be simply converted to URLs:
-   * "file", "http", and "https".
+   * The FileStreamSource supports relative or absolute file URIs.
    */
   def supportsScheme(uriScheme: String): Boolean =
-    List("file", "http", "https").contains(uriScheme)
+    uriScheme == "file"
   
   /**
    * Return a Stream of Bytes (in IO) from the provided URI.
@@ -34,7 +34,6 @@ class UrlStreamSource extends StreamSource {
       throw new RuntimeException(s"Unable to resolve URI: $uri")
     }
     if (supportsScheme(resolvedUri.getScheme)) {
-      //TODO: put logic in StreamUtils? keep InputStream lazy
       //Note that opening the InputStream will be delayed.
       val fis: IO[InputStream] = IO(resolvedUri.toURL.openStream)
       val chunkSize: Int = 4096 //TODO: tune? config option?
