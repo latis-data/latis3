@@ -3,7 +3,7 @@ ThisBuild / scalaVersion := "2.12.8"
 
 val coursierVersion   = "2.0.0-RC3-2"
 val fs2Version        = "1.0.2"
-val http4sVersion     = "0.20.10"
+val http4sVersion     = "0.20.13"
 val pureconfigVersion = "0.10.1"
 
 lazy val commonSettings = compilerFlags ++ Seq(
@@ -65,10 +65,11 @@ lazy val core = project
   .settings(
     name := "latis3-core",
     libraryDependencies ++= Seq(
-      "org.scala-lang.modules" %% "scala-xml"       % "1.0.6",
-      "io.circe"               %% "circe-core"      % "0.12.3",
-      "junit"                   % "junit"           % "4.12"  % Test,
-      "org.scalatest"          %% "scalatest"       % "3.0.5" % Test
+      "org.scala-lang.modules" %% "scala-xml"           % "1.0.6",
+      "io.circe"               %% "circe-core"          % "0.12.3",
+      "org.http4s"             %% "http4s-blaze-client" % http4sVersion,
+      "junit"                   % "junit"               % "4.12"  % Test,
+      "org.scalatest"          %% "scalatest"           % "3.0.5" % Test
     )
   )
 
