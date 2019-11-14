@@ -235,7 +235,10 @@ class Scalar(val metadata: Metadata) extends DataType {
     case Some("long")       => 8
     case Some("float")      => 4
     case Some("double")     => 8
-    case Some("string")     => ??? //need the actual String to do str.length * 2 (there are 2 bytes per char)
+    case Some("string")     => this("length") match {
+      case Some(length)     => length.toInt //TODO: this conversion can fail, and it's not guaranteed to be the length in bytes unless it's HAPI metadata
+      case None             => ??? //need the actual String to do str.length * 2 (there are 2 bytes per char)
+    } 
     case Some(_) => ??? //unsupported type
     case None => ??? //type not defined
   }
