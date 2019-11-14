@@ -224,6 +224,21 @@ class Scalar(val metadata: Metadata) extends DataType {
     case v: StringValue => v.asString
     case _ => throw new RuntimeException("Not a valid Scalar data value.")
   }
+
+  /**
+   * Returns the size of this Scalar in bytes.
+   */
+  def getSize: Int = this("type") match {
+    //case Some("char")       => 2
+    case Some("short")      => 2
+    case Some("int")        => 4
+    case Some("long")       => 8
+    case Some("float")      => 4
+    case Some("double")     => 8
+    case Some("string")     => ??? //need the actual String to do str.length * 2 (there are 2 bytes per char)
+    case Some(_) => ??? //unsupported type
+    case None => ??? //type not defined
+  }
   
   override def toString: String = id
 }
