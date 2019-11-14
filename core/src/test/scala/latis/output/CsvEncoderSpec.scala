@@ -3,7 +3,7 @@ package latis.output
 import scala.util.Properties.lineSeparator
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
-import latis.model.Dataset
+import latis.dataset.Dataset
 
 class CsvEncoderSpec extends FlatSpec {
 

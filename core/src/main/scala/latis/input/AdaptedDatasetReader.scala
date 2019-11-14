@@ -44,7 +44,7 @@ trait AdaptedDatasetReader extends DatasetReader {
   /**
    * Construct a Dataset by delegating to the Adapter.
    */
-  def getDataset: Dataset = {
+  def getDataset: Dataset =
     new AdaptedDataset(
       metadata,
       model,
@@ -53,15 +53,4 @@ trait AdaptedDatasetReader extends DatasetReader {
       operations
     )
     
-//    // Apply the Adapter to the given resource to get the data.
-//    val data: SampledFunction = adapter(uri)
-//    
-//    // Construct the Dataset so far.
-//    val dataset = Dataset(metadata, model, data)
-//    
-//    // Apply the operations to the Dataset.
-//    // Note that some operation may be handled by the SampledFunction
-//    // that was provided by a "smart" Adapter.
-//    operations.foldLeft(dataset)((ds, op) => op(ds))
-  }
 }

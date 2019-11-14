@@ -1,54 +1,63 @@
 package latis.dataset
 
-import latis.model.DataType
-import latis.metadata.Metadata
-import latis.util.StreamUtils._
-import fs2.Stream
-import latis.data._
-import cats.effect.IO
-import latis.ops.UnaryOperation
-import latis.input.Adapter
 import java.net.URI
-import latis.metadata.MetadataLike
-import latis.input.DatasetResolver
+
+import cats.effect.IO
+import fs2.Stream
+
+import latis.data.Sample
 import latis.input.DatasetReader
+import latis.input.DatasetResolver
+import latis.metadata.Metadata
+import latis.metadata.MetadataLike
+import latis.model.DataType
+import latis.ops.UnaryOperation
 import latis.util.CacheManager
 
+/**
+ * Defines the interface for a LaTiS Dataset.
+ */
 trait Dataset extends MetadataLike {
   
+  /**
+   * Returns the Metadata describing this Dataset.
+   */
   def metadata: Metadata
   
+  /**
+   * Returns the DataType describing the structure of this Dataset
+   * including metadata for each of its variables.
+   */
   def model: DataType
   
+  /**
+   * Returns a lazy fs2.Stream of Samples.
+   */
   def samples: Stream[IO, Sample]
   
+  /**
+   * Returns a new Dataset with the given Operation *logically*
+   * applied to this one.
+   */
   def withOperation(op: UnaryOperation): Dataset
-  //withOperations(operations: Seq[UnaryOperation]): Dataset?
+  //TODO: withOperations(operations: Seq[UnaryOperation]): Dataset?
   
   /**
-   * Causes the data source to be read and releases
+   * Causes the data source to be read and released
    * and existing Operations to be applied.
    */
-  def unsafeForce: UnadaptedDataset = ???
+  def unsafeForce: TappedDataset = ??? //TODO: MemoizedDataset?
   
   /**
-   * Put a copy of this Dataset into the CacheManager.
+   * Puts a copy of this Dataset into the CacheManager.
+   * Note that the data will be memoized, triggering
+   * data reading and operation application.
    */
   def cache(): Unit = CacheManager.cacheDataset(this)
-  
-  /**
-   * Make a copy of the Dataset with the data stored using
-   * the given SampledFunction implementation.
-   */
-  /*
-   * TODO: "cache", "persist", "memoize", ...?
-   * use restructure to change the form of the data for (computation optimization?), could be lazy
-   * use "cache" to force read, operations, and memoize data to release resources, unsafe
-   */
-  //def restructure(ff: FunctionFactory): Dataset = ??? //copy(data = ff.restructure(data))
+  //TODO: use FunctionFactory arg to restructure SF to something optimal
     
   /**
-   * Present a Dataset as a String.
+   * Returns a String representation of this Dataset.
    * This will only show type information and will not impact
    * the Data (e.g. lazy data reading should not be triggered).
    */
@@ -59,12 +68,12 @@ trait Dataset extends MetadataLike {
 object Dataset {
     
   /**
-   * Create a Dataset by using the DatasetResolver ServiceLoader.
+   * Creates a Dataset by using the DatasetResolver ServiceLoader.
    */
   def fromName(name: String): Dataset = DatasetResolver.getDataset(name)
   
   /**
-   * Create a Dataset by using the DatasetReader ServiceLoader.
+   * Creates a Dataset by using the DatasetReader ServiceLoader.
    */
   def fromURI(uri: URI): Dataset = DatasetReader.read(uri)
 

@@ -1,12 +1,10 @@
 package latis.ops
 
-import latis.data._
-import latis.model._
-import latis.input.Adapter
 import java.net.URI
-import latis.input.AdapterConfig
-import latis.input.AdapterFactory
-import latis.metadata.Metadata
+
+import latis.data._
+import latis.input._
+import latis.model.DataType
 
 /**
  * Given a "granule list" Dataset and an Adapter to parse each granule,
@@ -16,14 +14,6 @@ import latis.metadata.Metadata
  * to the previous granule.
  */
 case class GranuleListJoin(model: DataType, adapter: Adapter) extends UnaryOperation {
-  
-//  /**
-//   * Override to append "_merged" to the dataset name.
-//   */
-//  override def applyToMetadata(md: Metadata): Metadata = {
-//    val dsname = md.getProperty("id").map(_ + "_merged").getOrElse("")
-//    super.applyToMetadata(md) + ("id" -> dsname)
-//  }
   
   /**
    * Replace the original model (of the granule list dataset) 

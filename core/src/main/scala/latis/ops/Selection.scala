@@ -1,11 +1,7 @@
 package latis.ops
 
-import latis.data.Data
-import latis.data.Sample
-import latis.data.SampleOps
-import latis.data.SamplePosition
-import latis.model.DataType
-import latis.model.Scalar
+import latis.data._
+import latis.model._
 
 /**
  * Operation to keep only Samples that meet the given selection criterion.

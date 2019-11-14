@@ -1,13 +1,11 @@
 package latis.ops
 
-import latis.dataset.Dataset
-import latis.model.DataType
 import latis.data.SampledFunction
-import latis.dataset.AdaptedDataset
-import latis.dataset.UnadaptedDataset
+import latis.dataset._
+import latis.model.DataType
 
 /**
- * Repackage a BinaryOperation with the initial Dataset
+ * Wraps a BinaryOperation with the initial Dataset
  * to become a UnaryOperation.
  */
 case class PartiallyAppliedBinaryOperation(
@@ -22,8 +20,8 @@ case class PartiallyAppliedBinaryOperation(
     
   override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
     val data0 = dataset match {
-      case ad: AdaptedDataset   => ad.unadapt.data
-      case ud: UnadaptedDataset => ud.data
+      case ad: AdaptedDataset => ad.tap.data
+      case td: TappedDataset  => td.data
     }
     binOp.applyToData(dataset.model, data0, model, data)
   }

@@ -1,9 +1,5 @@
 package latis.input
 
-import latis.util.NetUtils
-import latis.util.StreamUtils.blockingExecutionContext
-import latis.util.StreamUtils.contextShift
-
 import java.io.InputStream
 import java.net.URI
 
@@ -11,8 +7,12 @@ import cats.effect.IO
 import fs2.Stream
 import fs2.io.readInputStream
 
+import latis.util.NetUtils
+import latis.util.StreamUtils.blockingExecutionContext
+import latis.util.StreamUtils.contextShift
+
 /**
- * Creates a StreamSource from a "file" URI.
+ * Creates a StreamSource from a relative or absolute file URI.
  * This will resolve and convert the URI to a URL
  * and open an InputStream.
  */
@@ -20,13 +20,13 @@ class FileStreamSource extends StreamSource {
   //TODO: confirm that resource is released, even if we don't hit the EOF
 
   /**
-   * The FileStreamSource supports relative or absolute file URIs.
+   * Specifies that a "file" URI can be read by this StreamSource.
    */
   def supportsScheme(uriScheme: String): Boolean =
     uriScheme == "file"
   
   /**
-   * Return a Stream of Bytes (in IO) from the provided URI.
+   * Returns a Stream of Bytes (in IO) from the provided URI.
    */
   def getStream(uri: URI): Option[Stream[IO, Byte]] = {
     // Make sure the URI is absolute

@@ -1,8 +1,7 @@
 package latis.ops
 
-import latis.dataset.Dataset
-import latis.model.DataType
 import latis.data.SampledFunction
+import latis.model.DataType
 
 /**
  * Defines an Operation that combines two Datasets into one.

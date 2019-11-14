@@ -1,10 +1,10 @@
 package latis.input
 
-import latis.data._
-
 import fs2._
 import java.net.URI
 import cats.effect.IO
+
+import latis.data._
 import latis.ops.Operation
 
 /**
