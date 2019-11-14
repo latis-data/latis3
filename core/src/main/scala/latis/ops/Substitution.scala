@@ -1,13 +1,12 @@
 package latis.ops
 
-import latis.model._
-import latis.data._
-
 import scala.language.postfixOps
-import latis.dataset.Dataset
+
+import latis.data._
+import latis.model._
 
 /**
- * Replace a variable in a Dataset by using it to evaluate another Dataset.
+ * Replaces a variable in a Dataset by using it to evaluate another Dataset.
  */
 case class Substitution() extends BinaryOperation {
   //TODO: explore consequences of complex types

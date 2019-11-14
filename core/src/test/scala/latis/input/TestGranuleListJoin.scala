@@ -1,21 +1,14 @@
 package latis.input
 
+import org.junit.Assert.assertEquals
+import org.junit.Test
+
+import latis.data._
+import latis.dataset._
+import latis.metadata.Metadata
 import latis.model._
 import latis.ops.GranuleListJoin
-import latis.metadata.Metadata
-import latis.data._
-import latis.util.StreamUtils._
-import cats.effect.IO
-import fs2._
-import latis.output._
-import java.io.FileOutputStream
-
-import org.junit._
-import org.junit.Assert._
 import latis.ops.Selection
-import latis.ops.Projection
-import latis.dataset.UnadaptedDataset
-import latis.dataset.Dataset
 import latis.util.StreamUtils
 
 class TestGranuleListJoin {
@@ -35,7 +28,7 @@ class TestGranuleListJoin {
         Sample(DomainData(0), RangeData(s"file://${System.getProperty("user.home")}/git/latis3/core/src/test/resources/data/data.txt")),
         Sample(DomainData(1), RangeData(s"file://${System.getProperty("user.home")}/git/latis3/core/src/test/resources/data/data2.txt"))
       )
-      new UnadaptedDataset(md, model, data)
+      new TappedDataset(md, model, data)
     }
     
     //model for granule: a -> (b, c, d)

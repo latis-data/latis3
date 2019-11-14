@@ -1,13 +1,13 @@
 package latis.input
 
+import java.net.URI
+
 import latis.data._
 import latis.model._
-
-import java.net.URI
 import latis.ops.Operation
 
 /**
- * Read a text file which represents a matrix.
+ * Reads a text file which represents a matrix.
  * Row and column values are 0-based integers.
  * This differs from tabular text data in that columns
  * represent a dimension (i.e. domain variable) and not 
@@ -23,8 +23,8 @@ case class MatrixTextAdapter(
   //TODO: assume (row, column) -> value  model?
   
   /**
-   * Get a Stream of records that represent rows of the matrix
-   * then memoize the data as a row-major 2D array.
+   * Gets a Stream of records that represent rows of the matrix
+   * then memoizes the data as a row-major 2D array.
    */
   override def getData(uri: URI, ops: Seq[Operation] = Seq.empty): SampledFunction = {
     

@@ -1,19 +1,14 @@
 package latis.input
 
-<<<<<<< Upstream, based on origin/master
-import latis.util.FileUtils
-import latis.util.LatisConfig
-import latis.model.Dataset
-
-=======
-import latis.dataset.Dataset
-import latis.ops.Operation
-import latis.ops.UnaryOperation
->>>>>>> 0f065bc snapshot
-import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 import java.util.ServiceLoader
+
+import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 import scala.util.Properties
 import scala.util.Try
+
+import latis.dataset.Dataset
+import latis.util.FileUtils
+import latis.util.LatisConfig
 
 
 /**

@@ -1,40 +1,35 @@
 package latis.input
 
-import latis.util.NetUtils
-import latis.util.StreamUtils.blockingExecutionContext
-import latis.util.StreamUtils.contextShift
-
-import java.io.InputStream
 import java.net.URI
 
-import cats.effect.IO
-import fs2.io.readInputStream
-import fs2.Stream
+import scala.concurrent.ExecutionContext.Implicits.global
 
-import org.http4s.client._
-import org.http4s.client.blaze._
 import org.http4s.Request
 import org.http4s.Uri
-import scala.concurrent.ExecutionContext.Implicits.global
+import org.http4s.client.blaze.BlazeClientBuilder
+
+import cats.effect.IO
+import fs2.Stream
+
+import latis.util.StreamUtils.contextShift
 
 
 /**
  * Creates an StreamSource from a "http" or "https" URI.
  * This uses the http4s client library to request a Stream.
  * The resource will be released automatically after it is
- * consumed or after a timeout (1m).
+ * consumed or after a timeout (default 1m).
  */
 class HttpStreamSource extends StreamSource {
   
   /**
-   * The UrlStreamSource supports URIs that can be simply converted to URLs:
-   * "file", "http", and "https".
+   * Specifies that "http" or "https" URIs can be read by this StreamSource.
    */
   def supportsScheme(uriScheme: String): Boolean =
     List("http", "https").contains(uriScheme)
   
   /**
-   * Return a Stream of Bytes (in IO) from the provided URI.
+   * Returns a Stream of Bytes (in IO) from the provided URI.
    */
   def getStream(uri: URI): Option[Stream[IO, Byte]] = {
     if (uri.isAbsolute && supportsScheme(uri.getScheme)) {

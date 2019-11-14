@@ -1,12 +1,14 @@
 package latis.output
 
 import scala.util.Properties.lineSeparator
+
 import cats.effect.IO
 import fs2.Stream
+
 import latis.data.Data
 import latis.data.Sample
+import latis.dataset.Dataset
 import latis.model.DataType
-import latis.model.Dataset
 import latis.model.Function
 import latis.model.Scalar
 import latis.ops.Uncurry
@@ -19,9 +21,9 @@ class CsvEncoder extends Encoder[IO, String] {
    * @param dataset dataset to encode
    */
   override def encode(dataset: Dataset): Stream[IO, String] = {
-    val uncurriedDataset = Uncurry()(dataset)
+    val uncurriedDataset = dataset.withOperation(Uncurry())
     // Encode each Sample as a String in the Stream
-    uncurriedDataset.data.streamSamples
+    uncurriedDataset.samples
       .map(encodeSample(uncurriedDataset.model, _) + lineSeparator)
   }
 

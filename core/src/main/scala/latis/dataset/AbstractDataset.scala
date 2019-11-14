@@ -1,14 +1,8 @@
 package latis.dataset
 
-import latis.ops.UnaryOperation
 import latis.metadata.Metadata
 import latis.model.DataType
-import latis.input.Adapter
-import java.net.URI
-import fs2.Stream
-import cats.effect.IO
-import latis.data.Sample
-import latis.data.SampledFunction
+import latis.ops.UnaryOperation
 
 /**
  * Defines metadata and model operations for a Dataset.
@@ -27,25 +21,24 @@ abstract class AbstractDataset(
     // Gather the provenance from each operation
     //TODO: add time label, version, ...
     //TODO: provide new name/id?
-    val provenance: String = 
-      operations.map(_.provenance)
-                .mkString(System.lineSeparator)
-    
+    val provenance: String =
+      operations
+        .map(_.provenance)
+        .mkString(System.lineSeparator)
+
     // Update the provenance metadata
     val history = _metadata.getProperty("history") match {
-      case Some(h) => h + System.lineSeparator + provenance 
-      case None => provenance
+      case Some(h) => h + System.lineSeparator + provenance
+      case None    => provenance
     }
     _metadata + ("history" -> history)
   }
-  
+
   /**
-   * Applies the sequence of Operations to the 
+   * Applies the sequence of Operations to the
    * original model returning the new model.
    */
   def model: DataType =
-    operations.foldLeft(_model)((mod, op) =>
-      op.applyToModel(mod))
-      
-}
+    operations.foldLeft(_model)((mod, op) => op.applyToModel(mod))
 
+}

@@ -1,6 +1,6 @@
 package latis.output
 
-import latis.model.Dataset
+import latis.dataset.Dataset
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import scala.util.Properties.lineSeparator

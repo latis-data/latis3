@@ -1,14 +1,10 @@
 package latis.ops
 
-import latis.data._
-import latis.dataset.Dataset
-import latis.metadata.Metadata
+import latis.data.SampledFunction
 import latis.model.DataType
-import fs2.Stream
-import cats.effect.IO
 
 /**
- * Join two Datasets by appending their Streams of Samples.
+ * Joins two Datasets by appending their Streams of Samples.
  */
 case class Append() extends BinaryOperation {
   //TODO: assert that models are the same
