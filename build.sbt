@@ -66,7 +66,7 @@ lazy val core = project
     name := "latis3-core",
     libraryDependencies ++= Seq(
       "org.scala-lang.modules" %% "scala-xml"       % "1.0.6",
-      "io.circe"               %% "circe-core"      % "0.11.1",
+      "io.circe"               %% "circe-core"      % "0.12.3",
       "junit"                   % "junit"           % "4.12"  % Test,
       "org.scalatest"          %% "scalatest"       % "3.0.5" % Test
     )
