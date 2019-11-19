@@ -7,6 +7,7 @@ import cats.effect.IO
 import fs2.Stream
 import latis.data._
 import latis.data.Data._
+import latis.dataset._
 import latis.model._
 import latis.ops.Uncurry
 
@@ -17,9 +18,9 @@ class JsonEncoder extends Encoder[IO, Json] {
    * of JSON arrays.
    */
   override def encode(dataset: Dataset): Stream[IO, Json] = {
-    val uncurriedDataset = Uncurry()(dataset)
+    val uncurriedDataset = dataset.withOperation(Uncurry())
     // Encode each Sample as a String in the Stream
-    uncurriedDataset.data.streamSamples.map(_.asJson)
+    uncurriedDataset.samples.map(_.asJson)
   }
 
   /** Instance of io.circe.Encoder for Sample. */
