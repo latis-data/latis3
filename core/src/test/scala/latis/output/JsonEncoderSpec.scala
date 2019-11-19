@@ -2,10 +2,10 @@ package latis.output
 
 import io.circe._
 import io.circe.syntax._
-import latis.model.Dataset
 import latis.data.Sample
 import latis.data.RangeData
 import latis.data.DomainData
+import latis.dataset.Dataset
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
