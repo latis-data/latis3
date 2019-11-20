@@ -3,10 +3,7 @@ package latis.util
 import java.io.File
 import java.net.URI
 import java.net.URL
-import java.nio.file.FileSystems
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
+import java.nio.file._
 
 import scala.collection.JavaConverters.asScalaIteratorConverter
 import scala.util.Properties
@@ -31,8 +28,7 @@ object FileUtils {
           Some(Paths.get(url.toURI))
         case "jar" =>
           val Array(fsUri, file) = url.toString.split("!")
-          val env = new java.util.HashMap[String,String]()
-          val fs = FileSystems.newFileSystem(URI.create(fsUri), env)
+          val fs = getOrCreateFileSystem(URI.create(fsUri))
           Some(fs.getPath(file))
         case p => 
           val msg = s"Not able to resolve path for unknown protocol $p"
@@ -49,6 +45,23 @@ object FileUtils {
   
   def resolvePath(path: String): Option[Path] = 
     resolvePath(Paths.get(path))
+    
+  /**
+   * Provides a FileSystem for a given URI.
+   * 
+   * Since using FileSystems.newFileSystem may throw a
+   * FileSystemAlreadyExistsException, this makes sure
+   * we create it only once.
+   */
+  def getOrCreateFileSystem(uri: URI): FileSystem = {
+    try {
+      FileSystems.getFileSystem(uri)
+    } catch {
+      case fsnfe: FileSystemNotFoundException =>
+        val env = new java.util.HashMap[String,String]()
+        FileSystems.newFileSystem(uri, env)
+    }
+  }
   
     
   //TODO: NetUtils?

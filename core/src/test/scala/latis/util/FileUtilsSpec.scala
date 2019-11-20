@@ -21,4 +21,10 @@ class FileUtilsSpec extends FlatSpec {
     val path = Paths.get("org/scalatest/FlatSpec.class")
     FileUtils.resolvePath(path).get.toString should be ("/org/scalatest/FlatSpec.class")
   }
+  
+  // Test reuse of the ZipFileSystem
+  it should "find a second file in the same jar" in {
+    val path = Paths.get("org/scalatest/Assertions.class")
+    FileUtils.resolvePath(path).get.toString should be ("/org/scalatest/Assertions.class")
+  }
 }
