@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<dataset name="matrixData"
+         uri="data/matrixData.txt"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:noNamespaceSchemaLocation="fdml.xsd">
+  <adapter class="latis.input.MatrixTextAdapter"/>
+
+  <function>
+    <tuple>
+      <scalar id="row" type="int"/>
+      <scalar id="column" type="int"/>
+    </tuple>
+    <scalar id="v" type="double"/>
+  </function>
+  
+</dataset>
