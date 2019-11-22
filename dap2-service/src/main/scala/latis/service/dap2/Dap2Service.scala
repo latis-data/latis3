@@ -11,7 +11,7 @@ import org.http4s.Response
 import org.http4s.dsl.Http4sDsl
 
 import latis.input.DatasetResolver
-import latis.model.Dataset
+import latis.dataset.Dataset
 import latis.ops
 import latis.ops.UnaryOperation
 import latis.output.Encoder
@@ -32,7 +32,7 @@ class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
         (for {
           dataset  <- IO.fromEither(getDataset(id))
           ops      <- IO.fromEither(getOperations(req.queryString))
-          result    = ops.foldLeft(dataset)((ds, op) => op(ds))
+          result    = ops.foldLeft(dataset)((ds, op) => ds.withOperation(op))
           encoder  <- IO.fromEither(getEncoder(ext))
           response <- Ok(encoder.encode(result))
         } yield response).handleErrorWith {
