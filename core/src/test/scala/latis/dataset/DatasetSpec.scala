@@ -11,7 +11,7 @@ import latis.ops.Selection
 import latis.util.StreamUtils
 
 class DatasetSpec extends FlatSpec {
-  
+
   val dataset = {
     val metadata = Metadata("test")
     
@@ -51,6 +51,16 @@ class DatasetSpec extends FlatSpec {
         lv.value should be (2l)
         dv.value should be (2.4d)
     }
+  }
+
+  it should "read text data given an fdml" in {
+    val textDs: Dataset = Dataset.fromName("data")
+    textDs shouldBe a [Dataset]
+  }
+
+  it should "read matrix data given an fdml" in {
+    val matrixDs: Dataset = Dataset.fromName("Matrixdata")
+    matrixDs shouldBe a [Dataset]
   }
   
 }
