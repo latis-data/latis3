@@ -30,7 +30,6 @@ class MatrixTextAdapterSpec extends FlatSpec {
   val ds = reader.getDataset
 
   "A MatrixTextAdapter" should "read matix data" in {
-//    val ds: Dataset = Dataset.fromName("matrixData")
     val result = ds.samples.compile.toList.unsafeRunSync()
     val expected = List(
       Sample(DomainData(0, 0), RangeData(5.8e-03)),
