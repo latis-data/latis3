@@ -30,8 +30,7 @@ class DatasetResolverSpec extends FlatSpec {
 
     new TappedDataset(md, model, data)
   }
-  
-  
+
   "The DatasetResolver" should "find a cached dataset before all others" in {
     dataset.cache()
     Dataset.fromName("data").model match {

@@ -20,4 +20,5 @@ class MemoizedDataset(
    * Returns the data as a MemoizedFunction.
    */
   override def data: MemoizedFunction = _data
+
 }
