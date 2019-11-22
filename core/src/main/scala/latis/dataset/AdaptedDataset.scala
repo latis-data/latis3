@@ -15,14 +15,14 @@ import latis.ops.UnaryOperation
  * Defines a Dataset with data provided via an Adapter.
  */
 class AdaptedDataset(
-  metadata: Metadata,
-  model: DataType,
+  _metadata: Metadata,
+  _model: DataType,
   adapter: Adapter,
   uri: URI,
   operations: Seq[UnaryOperation] = Seq.empty
 ) extends AbstractDataset(
-  metadata,
-  model,
+  _metadata,
+  _model,
   operations
 ) {
 
@@ -32,8 +32,8 @@ class AdaptedDataset(
    */
   def withOperation(operation: UnaryOperation): Dataset =
     new AdaptedDataset(
-      metadata,
-      model,
+      _metadata,
+      _model,
       adapter: Adapter,
       uri: URI,
       operations :+ operation
@@ -56,18 +56,24 @@ class AdaptedDataset(
 
     // Apply the adapter handled operations to the model
     // since the Adapter can't.
-    val model2 = adapterOps.foldLeft(model)((mod, op) => op.applyToModel(mod))
+    val model2 = adapterOps.foldLeft(_model)((mod, op) => op.applyToModel(mod))
 
     // Delegate to the Adapter to get the (potentially lazy) data.
     val data = adapter.getData(uri, adapterOps)
 
     // Construct the new Dataset
-    new TappedDataset(metadata, model2, data)
+    new TappedDataset(_metadata, model2, data, otherOps)
   }
 
   /**
    * Returns a Stream of Samples from this Dataset.
    */
-  def samples: Stream[IO, Sample] =
-    tap().samples
+  def samples: Stream[IO, Sample] = tap().samples
+    
+  /**
+   * Transforms this TappedDataset into a MemoizedDataset.
+   * Operations will be applied and the resulting samples
+   * will be read into a MemoizedFunction.
+   */
+  def unsafeForce(): MemoizedDataset = tap().unsafeForce()
 }

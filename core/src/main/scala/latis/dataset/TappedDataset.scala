@@ -20,20 +20,20 @@ import latis.data.SampledFunction
  * to receive further instructions.
  */
 class TappedDataset(
-  metadata: Metadata,
-  model: DataType,
+  _metadata: Metadata,
+  _model: DataType,
   val data: SampledFunction,
   operations: Seq[UnaryOperation] = Seq.empty
-) extends AbstractDataset(metadata, model, operations) {
-  
+) extends AbstractDataset(_metadata, _model, operations) {
+
   /**
    * Returns a copy of this Dataset with the given Operation 
    * appended to its sequence of operations.
    */
   def withOperation(operation: UnaryOperation): Dataset = 
     new TappedDataset(
-      metadata, 
-      model, 
+      _metadata, 
+      _model, 
       data, 
       operations :+ operation
     )
@@ -41,20 +41,38 @@ class TappedDataset(
   /**
    * Applies the operations and returns a Stream of Samples.
    */
-  def samples: Stream[IO, Sample] = {
+  def samples: Stream[IO, Sample] = applyOperations().streamSamples
+  
+  /**
+   * Applies the Operations and returns a SampledFunction.
+   */
+  private def applyOperations(): SampledFunction = {
     //TODO: compile/optimize the operations
-
-    // Recursive function to apply operations to the data
-    def applyOps(ops: Seq[UnaryOperation], mod: DataType, dat: SampledFunction): SampledFunction =
-      ops.headOption match {
-        case Some(op) =>
-          val mod2 = op.applyToModel(mod)
-          val dat2 = op.applyToData(dat, mod)
-          applyOps(ops.tail, mod2, dat2)
-        case None => dat
+    
+    // Defines a function to apply an Operation to a SampledFunction.
+    // The model (DataType) need to ride along to provide context.
+    val f: ((DataType, SampledFunction), UnaryOperation) => (DataType, SampledFunction) =
+      (modat: (DataType, SampledFunction), op: UnaryOperation) => modat match {
+        case (model: DataType, data: SampledFunction) =>
+          val mod2 = op.applyToModel(model)
+          val dat2 = op.applyToData(data, model)
+          (mod2, dat2)
       }
-
-    applyOps(operations, model, data).streamSamples
+        
+    // Apply the operations to the data
+    operations.foldLeft(_model, data)(f)._2
   }
+  
+  /**
+   * Transforms this TappedDataset into a MemoizedDataset.
+   * Operations will be applied and the resulting samples
+   * will be read into a MemoizedFunction.
+   */
+  def unsafeForce(): MemoizedDataset = new MemoizedDataset(
+    metadata,  //from super with ops applied
+    model,     //from super with ops applied
+    applyOperations().unsafeForce
+  )
+
 }
 
