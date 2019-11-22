@@ -46,7 +46,7 @@ trait Dataset extends MetadataLike {
    * Causes the data source to be read and released
    * and existing Operations to be applied.
    */
-  def unsafeForce: TappedDataset = ??? //TODO: MemoizedDataset?
+  def unsafeForce(): MemoizedDataset
   
   /**
    * Puts a copy of this Dataset into the CacheManager.

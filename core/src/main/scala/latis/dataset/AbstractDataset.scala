@@ -5,7 +5,7 @@ import latis.model.DataType
 import latis.ops.UnaryOperation
 
 /**
- * Defines metadata and model operations for a Dataset.
+ * Defines the base capabilities for a Dataset.
  */
 abstract class AbstractDataset(
   _metadata: Metadata,
