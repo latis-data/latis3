@@ -32,7 +32,7 @@ class SampledFunctionSpec extends FlatSpec {
   it should "fail if the domains are not the same" in {
     assertThrows[Exception] {
       val sampledF2: SampledFunction = SampledFunction(
-        List(Sample(List(42), List(9000))))
+        List(Sample(List(42), List(9001))))
       val failJoin = dataSf.join(sampledF2)
     }
   }
