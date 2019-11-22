@@ -2,22 +2,6 @@ package latis.util
 
 import scala.collection._
 import latis.dataset.Dataset
-import latis.input.DatasetResolver
-
-/**
- * Manage a cache to hold instances of a Dataset in a Map with
- * the dataset identifier as the key.
- */
-class CacheManager extends DatasetResolver {
-
-  /**
-   * This method is used by the DatasetResolver ServiceLoader to determine
-   * if this can provide the requested Dataset.
-   */
-  def getDataset(id: String): Option[Dataset] = CacheManager.cache.get(id)
-
-}
-
 
 /**
  * Companion object where we encapsulate the single instance and
