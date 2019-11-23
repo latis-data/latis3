@@ -10,10 +10,14 @@ import latis.ops.UnaryOperation
  * to an external data resource. 
  */
 class MemoizedDataset(
-  metadata: Metadata,
-  model: DataType,
-  data: MemoizedFunction,
+  _metadata: Metadata,
+  _model: DataType,
+  _data: MemoizedFunction,
   operations: Seq[UnaryOperation] = Seq.empty
-) extends TappedDataset(metadata, model, data, operations) {
-  
+) extends TappedDataset(_metadata, _model, _data, operations) {
+
+  /**
+   * Returns the data as a MemoizedFunction.
+   */
+  override def data: MemoizedFunction = _data
 }

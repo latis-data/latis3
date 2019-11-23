@@ -22,9 +22,14 @@ import latis.data.SampledFunction
 class TappedDataset(
   _metadata: Metadata,
   _model: DataType,
-  val data: SampledFunction,
+  _data: SampledFunction,
   operations: Seq[UnaryOperation] = Seq.empty
 ) extends AbstractDataset(_metadata, _model, operations) {
+
+  /**
+   * Returns the data as a SampledFunction.
+   */
+  def data: SampledFunction = _data
 
   /**
    * Returns a copy of this Dataset with the given Operation 
