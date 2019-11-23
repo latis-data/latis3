@@ -15,7 +15,7 @@ import coursier.interop.cats._
 final class ServiceInterfaceLoader(implicit cs: ContextShift[IO]) {
 
   // Make Coursier use cats-effect IO.
-  val cache: FileCache[IO] = FileCache()
+  val cache: FileCache[IO] = FileCache[IO]()
 
   /**
    * Load service interfaces described in the service interface
@@ -53,7 +53,7 @@ final class ServiceInterfaceLoader(implicit cs: ContextShift[IO]) {
       conf.services.map {
         case ServiceSpec(name, version, _, _) =>
           val nameM = ModuleName(s"${name}_2.12")
-          Dependency.of(Module(org"io.latis-data", nameM), version)
+          Dependency(Module(org"io.latis-data", nameM), version)
       }
 
     Fetch(cache).withDependencies(dependencies).io.map(_.toList)

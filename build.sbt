@@ -1,7 +1,7 @@
 ThisBuild / organization := "io.latis-data"
 ThisBuild / scalaVersion := "2.12.8"
 
-val coursierVersion   = "2.0.0-RC3-2"
+val coursierVersion   = "2.0.0-RC5-2"
 val fs2Version        = "1.0.2"
 val http4sVersion     = "0.20.13"
 val pureconfigVersion = "0.10.1"
@@ -107,7 +107,6 @@ lazy val server = project
     name := "latis3-server",
     libraryDependencies ++= Seq(
       "io.get-coursier"       %% "coursier"               % coursierVersion,
-      "io.get-coursier"       %% "coursier-cache"         % coursierVersion,
       "io.get-coursier"       %% "coursier-cats-interop"  % coursierVersion,
       "org.http4s"            %% "http4s-blaze-server"    % http4sVersion,
       "org.http4s"            %% "http4s-core"            % http4sVersion,
