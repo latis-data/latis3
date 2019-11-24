@@ -10,14 +10,22 @@
             <xs:attribute name="type">
                 <xs:simpleType>
                     <xs:restriction base="xs:string">
-                        <xs:enumeration value="index"/>
-                        <xs:enumeration value="real"/>
-                        <xs:enumeration value="integer"/>
-                        <xs:enumeration value="time"/>
-                        <xs:enumeration value="text"/>
+                        <xs:enumeration value="boolean"/>
+                        <xs:enumeration value="byte"/>
+                        <xs:enumeration value="char"/>
+                        <xs:enumeration value="short"/>
+                        <xs:enumeration value="int"/>
+                        <xs:enumeration value="long"/>
+                        <xs:enumeration value="float"/>
+                        <xs:enumeration value="double"/>
+                        <xs:enumeration value="binary"/>
+                        <xs:enumeration value="string"/>
+                        <xs:enumeration value="bigint"/>
+                        <xs:enumeration value="bigdecimal"/>
                     </xs:restriction>
                 </xs:simpleType>
             </xs:attribute>
+            <xs:attribute name="class" type="xs:string"/>
             <xs:attribute name="name" type="xs:string"/>
             <xs:attribute name="long_name" type="xs:string"/>
             <xs:attribute name="missing_value"/>

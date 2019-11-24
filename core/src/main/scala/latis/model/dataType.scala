@@ -7,7 +7,6 @@ import scala.collection.TraversableLike
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
-import scala.collection.mutable.Builder
 import scala.collection.mutable.Stack
 import scala.util.Failure
 import scala.util.Success
@@ -21,7 +20,7 @@ sealed trait DataType
   with TraversableLike[DataType, DataType] 
   with MetadataLike {
     
-  override protected[this] def newBuilder: Builder[DataType, DataType] = DataType.newBuilder
+  override protected[this] def newBuilder: mutable.Builder[DataType, DataType] = DataType.newBuilder
   
   /**
    * Experimental implementation of Traversable
@@ -33,7 +32,7 @@ sealed trait DataType
     def go(v: DataType): Unit = {
       v match {
         case _: Scalar   => //end of this branch
-        case Tuple(vs @ _*) => vs.map(go(_)) //recurse
+        case Tuple(vs @ _*) => vs.foreach(go) //recurse
         case Function(d,r)  => go(d); go(r)  //recurse
       }
       //apply function after taking care of kids = depth first
@@ -175,7 +174,7 @@ object DataType {
         case None => hold.pop //TODO: test that the stack is empty now
       }
     }
-    go(vars, Stack())
+    go(vars, mutable.Stack())
   }
 
   def newBuilder: mutable.Builder[DataType, DataType] = new ArrayBuffer mapResult fromSeq
