@@ -1,19 +1,18 @@
 package latis.input
 
-import scala.xml._
+import java.net.URI
 
-import scala.collection.immutable.Map
-
+import latis.dataset.Dataset
 import latis.metadata.Metadata
 import latis.model._
-import latis.input._
 import latis.ops._
-import java.net.URI
-import latis.util.ReflectionUtils
+import latis.util.FdmlUtils
 import latis.util.FileUtils
 import latis.util.LatisConfig
-import latis.util.FdmlUtils
-import latis.dataset.Dataset
+import latis.util.ReflectionUtils
+
+import scala.collection.immutable.Map
+import scala.xml._
 
 /**
  * From an FDML file an FdmlReader reader creates a dataset, configures its adapter, and builds the dataset's model.
@@ -24,16 +23,16 @@ class FdmlReader(xml: Elem) extends AdaptedDatasetReader {
   val datasetUri = (xml \ "@uri").text
   val adapterNode: NodeSeq = (xml \ "adapter")
   val functionNode: NodeSeq = (xml \ "function")
-  val tupleNode: NodeSeq = (xml \ "tuple")
-  val scalarNode: NodeSeq = (xml \ "scalar")
-  val operationNode: NodeSeq = (xml \ "operation")
+  //val tupleNode: NodeSeq = (xml \ "tuple")
+  //val scalarNode: NodeSeq = (xml \ "scalar")
+  //val operationNode: NodeSeq = (xml \ "operation")
 
   def uri: URI = new URI(datasetUri)
   override def metadata: Metadata =
     Metadata("name" -> datasetName, "id" -> uri.getPath)
-  def model: DataType = createModel(functionNode, tupleNode, scalarNode).get
+  def model: DataType = createModel(functionNode).get
   def adapter: Adapter = createAdapter(adapterNode, model)
-  override def operations: Seq[UnaryOperation] = createOperations(operationNode)
+  //override def operations: Seq[UnaryOperation] = createOperations(operationNode)
 
   /**
    * This method is used by the DatasetReader ServiceLoader to determine
@@ -50,11 +49,8 @@ class FdmlReader(xml: Elem) extends AdaptedDatasetReader {
    *The createDataType function introduces recursion because it calls functions that can also call createDataType.
    */
   def createModel(
-      functionNode: NodeSeq,
-      tupleNode: NodeSeq,
-      scalaNode: NodeSeq
+      functionNode: NodeSeq
   ): Option[DataType] = {
-    //TODO: implemented creating models only from functions
     if (functionNode.length > 0) {
       createFunctionDataType(functionNode)
     } else {

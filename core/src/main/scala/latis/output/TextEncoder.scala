@@ -50,13 +50,14 @@ class TextEncoder extends Encoder[IO, String] {
 
     def go(dt: DataType): String = dt match {
       //TODO: error if ds is empty
-      case s: Scalar => s.formatValue(ds.pop)  //TODO: delegate to dt to produce String?
+      case s: Scalar => ds.pop match {
+        case d: Datum => s.formatValue(d)
+        case _ => ??? //bug, inconsistent data
+      }
 
       case Tuple(es @ _*) =>
-        es
-          .map(go(_))
-          .toVector
-          .mkString("(", ",", ")")
+        es.map(go(_))
+          .mkString("(", ", ", ")")
 
       // Nested Function
       case f: Function => ds.pop match {

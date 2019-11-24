@@ -37,10 +37,16 @@ case class MatrixTextAdapter(
     // Row-major 2D array of parsed data values
     val values: Array[Array[RangeData]] =
       recordStream(uri)  //stream of rows
-        .compile.toVector.unsafeRunSync() //unparsed rows as Vector[String]
-        .map(_.split(config.delimiter)    //delimited values unparsed: Vector[Array[String]]
-          .map(v => RangeData(scalar.parseValue(v)))  //parsed row: Vector[Array[RangeData]]
-        ).toArray                         //convert Vector of rows to Array of rows
+        .compile.toList.unsafeRunSync()  //unparsed rows as List[String]
+        .map {
+          _.split(config.delimiter)  //delimited values unparsed: List[Array[String]]
+          .map { v =>
+            scalar.parseValue(v) match {
+              case Right(d) => RangeData(d)
+              case Left(e)  => scalar.makeFillValues //TODO: improve API
+            }
+          }        //parsed row: List[Array[RangeData]]
+        }.toArray  //convert List of rows to Array of rows
     
     ArrayFunction2D(values)
   }

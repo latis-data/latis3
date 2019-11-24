@@ -23,7 +23,7 @@ class DatasetResolverSpec extends FlatSpec {
     
     val data = {
       val samples = List(
-        Sample(DomainData(Data(1)), RangeData(Data(2)))
+        Sample(DomainData(1), RangeData(2))
       )
       SampledFunction(samples)
     }
