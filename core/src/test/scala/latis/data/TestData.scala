@@ -8,8 +8,8 @@ class TestData extends JUnitSuite {
   
   @Test
   def data_value_equality(): Unit = {
-    val d1 = Data(1.1)
-    val d2 = Data(1.1)
+    val d1: Data = 1.1
+    val d2: Data = 1.1
     assertEquals(d1, d2)
   }
   
@@ -24,8 +24,8 @@ class TestData extends JUnitSuite {
   def double_value_does_not_equal_float_value(): Unit = {
     val d: Double = 1.0d
     val f: Float  = 1.0f
-    val dd = Data(1.0f)
-    val df = Data(1.0d)
+    val dd: Data = 1.0f
+    val df: Data = 1.0d
     
     //Note, Doubles can equals Floats (but not always, e.g. 1.1)
     assertEquals(d, f, 0)

@@ -27,14 +27,14 @@ class TimeSpec extends FlatSpec {
   
   "A numeric time" should "parse a string as a number" in {
     numericTime.parseValue("86400") match {
-      case d: Data.DoubleValue => 
+      case Right(d: Data.DoubleValue) =>
         d.value should be (86400d)
     }
   }
 
   "A formatted time" should "convert an ISO time" in {
     formattedTime.convertValue("2000-001") match {
-      case d: Data.StringValue =>
+      case Right(d: Data.StringValue) =>
         d.value should be("Jan 01, 2000")
     }
   }

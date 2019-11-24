@@ -35,14 +35,18 @@ case class Selection(vname: String, operator: String, value: String)
     }
 
     // Convert selection value to appropriate type for comparison
-    val cdata: Data = scalar.convertValue(value)
+    val cdata: Datum = scalar.convertValue(value) match {
+      case Right(d) => d
+      case Left(e) => throw e
+    }
 
     // Get the Ordering from the Scalar
-    val ordering: Ordering[Data] = scalar.ordering
+    val ordering: Ordering[Datum] = scalar.ordering
 
     // Define predicate function
     (sample: Sample) => sample.getValue(pos) match {
-      case Some(d) => matches(ordering.compare(d, cdata))
+      case Some(d: Datum) => matches(ordering.compare(d, cdata))
+        //TODO: if SF: bug
       case None => ??? //shouldn't happen since the pos came from the model
     }
   }

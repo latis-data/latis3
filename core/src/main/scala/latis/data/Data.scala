@@ -6,6 +6,34 @@ package latis.data
 trait Data extends Any
 //TODO: seal? don't forget SampledFunction
 
+
+/*
+ * Note: traits used for two purposes:
+ *
+ * - mixin properties
+ * For example, Integer, which must be able to provide a Long,
+ * is-a Number which must be able to provide a Double.
+ * Thus, any data that is a subtype of Integer must be able to
+ * provide both Long or Double.
+ *
+ * - pattern matching
+ * For example, a value created as a subtype of Integer will match
+ * Number (to extract a Double) or Integer (to extract a Long) but
+ * won't match Real. Likewise, a Real can match Number but not Integer.
+ * If you simply want to consume a data value as a number, match
+ * on Number and use the Double value.
+ * Neither would match Text even if the string value is "numeric".
+ */
+
+trait Datum extends Any with Data {
+  def asString: String
+}
+
+// Used for default fillValue
+object NullData extends Datum {
+  def asString: String = "null"
+}
+
 /**
  * Define a base trait for all numeric data.
  * Implementers of Number must be able to provide values as various 
@@ -13,14 +41,9 @@ trait Data extends Any
  * Pattern matching on Number will extract a Double value.
  * This does not include String representations of a numeric value.
  */
-trait Number extends Any with Data {
-  //TODO: include other numeric types?
-  def asInt: Int
-  def asLong: Long
-  def asFloat: Float
+trait Number extends Any with Datum {
   def asDouble: Double
-  
-  def asString: String
+  def asString: String = asDouble.toString
 }
 object Number {
   // Extract a Double from a Number
@@ -31,7 +54,11 @@ object Number {
  * Integer is a Number type representing integral data.
  * Pattern matching on Integer will extract a Long.
  */
-trait Integer extends Any with Number
+trait Integer extends Any with Number {
+  def asLong: Long
+  def asDouble: Double = asLong.toDouble
+  override def asString: String = asLong.toString
+}
 object Integer {
   // Extract a Long from an Integer
   def unapply(data: Integer): Option[Long] = Option(data.asLong)
@@ -42,7 +69,12 @@ object Integer {
  * to index a Seq or Array. Pattern matching on Index will
  * extract an Int.
  */
-trait Index extends Any with Integer
+trait Index extends Any with Integer {
+  def asInt: Int
+  def asLong: Long = asInt.toLong
+  override def asDouble: Double = asInt.toDouble
+  override def asString: String = asInt.toString
+}
 object Index {
   // Extract an Int from an Index
   def unapply(data: Index): Option[Int] = Option(data.asInt)
@@ -58,98 +90,80 @@ object Real {
   def unapply(data: Real): Option[Double] = Option(data.asDouble)
 }
 
-//TODO: Boolean
-//TODO: Complex
-
 /**
  * Text is a type of Data whose value is represented as a String.
  */
-trait Text extends Any with Data {
-  def asString: String
-}
+trait Text extends Any with Datum
 object Text {
   // Extract a String from a Text
   def unapply(data: Text): Option[String] = Option(data.asString)
 }
 
-/**
- * BinaryData is a type of Data that represents a binary blob.
- * A pattern match on BinaryData will extract a Byte Array.
- */
-trait BinaryData extends Any with Data {
-  def asBytes: Array[Byte]
-}
-object BinaryData {
-  // Extract a Byte Array from a BinaryData
-  def unapply(data: BinaryData): Option[Array[Byte]] = Option(data.asBytes)
-}
 
 //=============================================================================
 
+// Import latis.data.Data._ to get implicit Data construction from supported types
 object Data {
     
   /**
    * Construct Data from anything.
    */
-  def apply(thing: Any): Data = thing match {
-    case x: Short       => ShortValue(x)
-    case x: Int         => IntValue(x)
-    case x: Long        => LongValue(x)
-    case x: Float       => FloatValue(x)
-    case x: Double      => DoubleValue(x)
-    case x: String      => StringValue(x)
-    case x: Array[Byte] => BinaryValue(x)
-    //TODO: boolean, byte, char
-    //TODO: BigInt, BigDecimal
-    //TODO: AnyData? ObjectData? should be Serializable
-  }
+  //TODO: don't need with implicit construtors?
+//  def apply(thing: Any): Data = thing match {
+//    case x: Short       => ShortValue(x)
+//    case x: Int         => IntValue(x)
+//    case x: Long        => LongValue(x)
+//    case x: Float       => FloatValue(x)
+//    case x: Double      => DoubleValue(x)
+//    case x: String      => StringValue(x)
+//    case x: Array[Byte] => BinaryValue(x)
+//    //TODO: boolean, byte, char
+//    //TODO: BigInt, BigDecimal
+//    //TODO: AnyData? ObjectData? should be Serializable
+//  }
   
   //Note, these are value classes
   //Note, these are implicit so we can construct DomainData from primitive types
-  
-  implicit class ShortValue(val value: Short) 
+
+  implicit class BooleanValue(val value: Boolean)
+    extends AnyVal with Datum with Serializable {
+    def asString: String = value.toString
+  }
+
+  implicit class ByteValue(val value: Byte)
+    extends AnyVal with Index with Serializable {
+    def asInt: Int = value.toInt
+  }
+
+  // single Text character or Integer 0-65535
+  implicit class CharValue(val value: Char)
+    extends AnyVal with Text with Index with Serializable {
+    def asInt: Int = value.toInt
+  }
+
+  implicit class ShortValue(val value: Short)
     extends AnyVal with Index with Serializable {
       def asInt: Int = value.toInt
-      def asLong: Long = value.toLong
-      def asFloat: Float = value.toFloat
-      def asDouble: Double = value.toDouble
-      def asString: String = value.toString
   }
   
   implicit class IntValue(val value: Int) 
     extends AnyVal with Index with Serializable {
       def asInt: Int = value
-      def asLong: Long = value.toLong
-      def asFloat: Float = value.toFloat
-      def asDouble: Double = value.toDouble
-      def asString: String = value.toString
   }
   
   implicit class LongValue(val value: Long) 
     extends AnyVal with Integer with Serializable {
-      def asInt: Int = value.toInt
       def asLong: Long = value
-      def asFloat: Float = value.toFloat
-      def asDouble: Double = value.toDouble
-      def asString: String = value.toString
   }
   
   implicit class FloatValue(val value: Float) 
     extends AnyVal with Real with Serializable {
-      def asInt: Int = value.toInt
-      def asLong: Long = value.toLong
-      def asFloat: Float = value
       def asDouble: Double = value.toDouble
-      def asString: String = value.toString
   }
   
   implicit class DoubleValue(val value: Double) 
     extends AnyVal with Real with Serializable {
-      def asInt: Int = value.toInt
-      def asLong: Long = value.toLong
-      def asFloat: Float = value.toFloat
       def asDouble: Double = value
-      def asString: String = value.toString
   }
 
   implicit class StringValue(val value: String) 
@@ -158,9 +172,17 @@ object Data {
   }
 
   implicit class BinaryValue(val value: Array[Byte]) 
-    extends AnyVal with BinaryData with Serializable {
-      def asBytes: Array[Byte] = value
+    extends AnyVal with Datum with Serializable {
       def asString: String = "BLOB"
   }
 
+  implicit class BigIntValue(val value: BigInt)
+    extends AnyVal with Integer with Serializable {
+    def asLong: Long = value.toLong //won't break but may be wrong
+  }
+
+  implicit class BigDecimalValue(val value: BigDecimal)
+    extends AnyVal with Real with Serializable {
+    def asDouble: Double = value.toDouble //may lose precision
+  }
 }
