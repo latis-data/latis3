@@ -4,7 +4,7 @@ ThisBuild / scalaVersion := "2.12.8"
 val coursierVersion   = "2.0.0-RC5-2"
 val fs2Version        = "1.0.2"
 val http4sVersion     = "0.20.13"
-val pureconfigVersion = "0.10.1"
+val pureconfigVersion = "0.12.1"
 
 lazy val commonSettings = compilerFlags ++ Seq(
   libraryDependencies ++= Seq(

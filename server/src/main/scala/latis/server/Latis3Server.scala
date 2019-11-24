@@ -7,6 +7,7 @@ import org.http4s.HttpRoutes
 import org.http4s.implicits._
 import org.http4s.server.Router
 import org.http4s.server.blaze._
+import pureconfig.ConfigSource
 import pureconfig.generic.auto._
 import pureconfig.module.catseffect._
 
@@ -15,11 +16,14 @@ object Latis3Server extends IOApp {
   val loader: ServiceInterfaceLoader =
     new ServiceInterfaceLoader()
 
+  private val latisConfigSource: ConfigSource =
+    ConfigSource.default.at("latis")
+
   val getServerConf: IO[ServerConf] =
-    loadConfigF[IO, ServerConf]("latis")
+    latisConfigSource.loadF[IO, ServerConf]
 
   val getServiceConf: IO[ServiceConf] =
-    loadConfigF[IO, ServiceConf]("latis")
+    latisConfigSource.loadF[IO, ServiceConf]
 
   def constructRoutes(services: List[(ServiceSpec, ServiceInterface)]): HttpRoutes[IO] = {
     val routes: List[(String, HttpRoutes[IO])] = services.map {
