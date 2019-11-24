@@ -1,17 +1,14 @@
 package latis.input
 
+import latis.data._
+import latis.dataset.Dataset
+import latis.ops._
+import latis.util.FdmlUtils
+import latis.util.StreamUtils
 import org.junit.Assert._
 import org.junit.Ignore
 import org.junit.Test
 import org.scalatest.junit.JUnitSuite
-
-import latis.data._
-import latis.model.DataType
-import latis.ops._
-import latis.output.TextWriter
-import latis.util.FdmlUtils
-import latis.dataset.Dataset
-import latis.util.StreamUtils
 
 class TestFdmlReader extends JUnitSuite {
   @Test @Ignore //This might have broken with commit c2458afccf7a4bd1ae71ea0dabeea35ce7ea9bea
@@ -129,7 +126,7 @@ class TestFdmlReader extends JUnitSuite {
    
   }
   
-  @Test @Ignore //TODO: need to update the schema
+  @Test //@Ignore //TODO: need to update the schema
   def validation() = {
     val fdmlFile = "data.fdml"
     val z = FdmlUtils.validateFdml(fdmlFile)
@@ -137,7 +134,7 @@ class TestFdmlReader extends JUnitSuite {
   }
   
   @Test
-  def fdml_file = {
+  def fdml_file() = {
     val ds = Dataset.fromName("data")
     StreamUtils.unsafeHead(ds.samples) match {
       case Sample(DomainData(Index(a)),RangeData(Integer(b), Real(c), Text(d))) =>

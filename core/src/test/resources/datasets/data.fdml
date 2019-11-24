@@ -7,7 +7,7 @@
   <adapter class="latis.input.TextAdapter"/>
 
   <function>
-    <scalar id="a" type="int"/>
+    <scalar id="a" type="int" class="latis.time.Time"/>
     <tuple>
       <scalar id="b" type="int"/>
       <scalar id="c" type="double"/>

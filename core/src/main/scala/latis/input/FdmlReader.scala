@@ -5,7 +5,6 @@ import java.net.URI
 import latis.dataset.Dataset
 import latis.metadata.Metadata
 import latis.model._
-import latis.ops._
 import latis.util.FdmlUtils
 import latis.util.FileUtils
 import latis.util.LatisConfig
@@ -19,10 +18,10 @@ import scala.xml._
  */
 class FdmlReader(xml: Elem) extends AdaptedDatasetReader {
 
-  val datasetName = (xml \ "@name").text
-  val datasetUri = (xml \ "@uri").text
-  val adapterNode: NodeSeq = (xml \ "adapter")
-  val functionNode: NodeSeq = (xml \ "function")
+  val datasetName: String = (xml \ "@name").text
+  val datasetUri: String = (xml \ "@uri").text
+  val adapterNode: NodeSeq = xml \ "adapter"
+  val functionNode: NodeSeq = xml \ "function"
   //val tupleNode: NodeSeq = (xml \ "tuple")
   //val scalarNode: NodeSeq = (xml \ "scalar")
   //val operationNode: NodeSeq = (xml \ "operation")
@@ -93,35 +92,35 @@ class FdmlReader(xml: Elem) extends AdaptedDatasetReader {
       .asInstanceOf[Adapter]
   }
 
-  /**
-   * Create a sequence of operations from XML that are to be applied to the dataset.
-   */
-  def createOperations(operationNodes: NodeSeq): Seq[UnaryOperation] = {
-    val operations: Seq[UnaryOperation] = for {
-      node <- operationNodes \ "_" // wildcard, get all top nodes
-      operation <- createOperation(node)
-    } yield operation
-    operations.toSeq
-  }
+  ///**
+  // * Create a sequence of operations from XML that are to be applied to the dataset.
+  // */
+  //def createOperations(operationNodes: NodeSeq): Seq[UnaryOperation] = {
+  //  val operations: Seq[UnaryOperation] = for {
+  //    node <- operationNodes \ "_" // wildcard, get all top nodes
+  //    operation <- createOperation(node)
+  //  } yield operation
+  //  operations
+  //}
 
-  /**
-   * For a specified XML operation node, return a unary operation.
-   * ToDo: reflection might be more elegant, but for now pattern matching will suffice
-   */
-  def createOperation(node: Node): Option[UnaryOperation] = {
-    node.label match {
-      case "contains" => contains(node)
-      case "groupby"  => groupBy(node)
-      case "head"     => head(node)
-      //case "pivot"     => pivot(node)
-      case "project" => project(node)
-      case "rename"  => rename(node)
-      case "select"  => select(node)
-      case "take"    => take(node)
-      case "uncurry" => uncurry(node)
-      case _         => None
-    }
-  }
+  ///**
+  // * For a specified XML operation node, return a unary operation.
+  // * ToDo: reflection might be more elegant, but for now pattern matching will suffice
+  // */
+  //def createOperation(node: Node): Option[UnaryOperation] = {
+  //  node.label match {
+  //    case "contains" => contains(node)
+  //    case "groupby"  => groupBy(node)
+  //    case "head"     => head(node)
+  //    //case "pivot"     => pivot(node)
+  //    case "project" => project(node)
+  //    case "rename"  => rename(node)
+  //    case "select"  => select(node)
+  //    case "take"    => take(node)
+  //    case "uncurry" => uncurry(node)
+  //    case _         => None
+  //  }
+  //}
 
   /**
    * Function datatypes must contain a domain and a range.
@@ -130,7 +129,7 @@ class FdmlReader(xml: Elem) extends AdaptedDatasetReader {
     if (functionNodes.length > 0) {
       val functionNode: Node = functionNodes.head
       val attributes: Map[String, String] = getAttributes(functionNodes)
-      val datatypes: Seq[Node] = functionNode.child.filter(isDatatype(_))
+      val datatypes: Seq[Node] = functionNode.child.filter(isDatatype)
       val domain: Node = datatypes.head
       val range: Node = datatypes.tail.head
       if (attributes.isEmpty) {
@@ -153,8 +152,18 @@ class FdmlReader(xml: Elem) extends AdaptedDatasetReader {
    * Scalar datatypes only contain metadata.
    */
   def createScalarDataType(scalarNode: Node): Option[Scalar] = {
-    if (scalarNode.length > 0) {
-      Some(Scalar(Metadata(getAttributes(scalarNode))))
+    if (scalarNode.nonEmpty) {
+      val (classMap, mdMap) = getAttributes(scalarNode).partition(_._1 == "class")
+      val md = Metadata(mdMap)
+      if (classMap.nonEmpty) {
+        val s = ReflectionUtils.callMethodOnCompanionObject(
+          classMap("class"),
+          "apply",
+          md
+        )
+        Option(s.asInstanceOf[Scalar])
+      }
+      else Option(Scalar(md))
     } else {
       None
     }
@@ -165,9 +174,9 @@ class FdmlReader(xml: Elem) extends AdaptedDatasetReader {
    */
   def createTupleDataType(tupleNode: Node): Option[Tuple] = {
     val attributes: Map[String, String] = getAttributes(tupleNode)
-    val tupleElements: Seq[Node] = tupleNode.child.filter(isDatatype(_))
-    val tuple: List[DataType] = tupleElements.map(createDataType(_)).toList
-    if (tuple.length > 0) {
+    val tupleElements: Seq[Node] = tupleNode.child.filter(isDatatype)
+    val tuple: List[DataType] = tupleElements.map(createDataType).toList
+    if (tuple.nonEmpty) {
       if (attributes.isEmpty) {
         Some(Tuple(tuple: _*))
       } else {
@@ -192,80 +201,78 @@ class FdmlReader(xml: Elem) extends AdaptedDatasetReader {
    * Get all of the attributes for the specified XML Node.
    */
   def getAttributes(xml: NodeSeq): Map[String, String] = {
-    val node = xml.head
-    val seq = for (att <- node.attributes) yield (att.key, att.value.text)
+    val node: Node = xml.head
+    val seq: Iterable[(String, String)] = for (att <- node.attributes) yield (att.key, att.value.text)
     seq.toMap
   }
 
-  /*
-   * BEGIN parsing of specific operations
-   */
-
-  def contains(node: Node): Option[UnaryOperation] = {
-    for {
-      vname <- Option(node \ "vname").filter(_.nonEmpty)
-      values <- Option(node \ "value").filter(_.nonEmpty)
-    } yield Contains(vname.text, values.map(_.text))
-  }
-
-  def groupBy(node: Node): Option[UnaryOperation] = {
-    for {
-      vnames <- Option(node \ "vname").filter(_.nonEmpty)
-    } yield GroupBy(vnames.map(_.text).toSeq: _*)
-  }
-
-  /**
-   * Head operation not yet implemented.
-   */
-  def head(node: Node): Option[UnaryOperation] = {
-    None
-  }
-
-//  def pivot(node: Node): Option[UnaryOperation] = {
+//  /*
+//   * BEGIN parsing of specific operations
+//   */
+//
+//  def contains(node: Node): Option[UnaryOperation] = {
 //    for {
-//      values  <- Option(node \ "value").filter(_.nonEmpty)
+//      vname <- Option(node \ "vname").filter(_.nonEmpty)
+//      values <- Option(node \ "value").filter(_.nonEmpty)
+//    } yield Contains(vname.text, values.map(_.text))
+//  }
+//
+//  def groupBy(node: Node): Option[UnaryOperation] = {
+//    for {
+//      vnames <- Option(node \ "vname").filter(_.nonEmpty)
+//    } yield GroupBy(vnames.map(_.text): _*)
+//  }
+//
+//  /**
+//   * Head operation not yet implemented.
+//   */
+//  def head(node: Node): Option[UnaryOperation] = {
+//    None
+//  }
+//
+////  def pivot(node: Node): Option[UnaryOperation] = {
+////    for {
+////      values  <- Option(node \ "value").filter(_.nonEmpty)
+////      vids <- Option(node \ "vid").filter(_.nonEmpty)
+////    } yield Pivot(values.map(_.text), vids.map(_.text))
+////  }
+//
+//  def project(node: Node): Option[UnaryOperation] = {
+//    for {
 //      vids <- Option(node \ "vid").filter(_.nonEmpty)
-//    } yield Pivot(values.map(_.text), vids.map(_.text))
+//    } yield Projection(vids.map(_.text): _*)
+//  }
+//
+//  /**
+//   * Rename operation not yet implemented.
+//   */
+//  def rename(node: Node): Option[UnaryOperation] = {
+//    val vName: String = (node \ "vname").text
+//    val newName = (node \ "newName").text
+//    //todo: implement Rename operation
+//    //Some(Rename(vName, newName))
+//    None
+//  }
+//
+//  def select(node: Node): Option[UnaryOperation] = {
+//    for {
+//      vname <- Option(node \ "vname").filter(_.nonEmpty)
+//      operator <- Option(node \ "operator").filter(_.nonEmpty)
+//      value <- Option(node \ "value").filter(_.nonEmpty)
+//    } yield Selection(vname.text, operator.text, value.text)
+//  }
+//
+//  /**
+//   * Take operation not yet implemented.
+//   */
+//  def take(node: Node): Option[UnaryOperation] = {
+//    None
+//  }
+//
+//  def uncurry(node: Node): Option[UnaryOperation] = {
+//    Some(Uncurry())
 //  }
 
-  def project(node: Node): Option[UnaryOperation] = {
-    for {
-      vids <- Option(node \ "vid").filter(_.nonEmpty)
-    } yield Projection(vids.map(_.text).toSeq: _*)
-  }
-
-  /**
-   * Rename operation not yet implemented.
-   */
-  def rename(node: Node): Option[UnaryOperation] = {
-    val vName = (node \ "vname").text
-    val newName = (node \ "newName").text
-    //todo: implement Rename operation
-    //Some(Rename(vName, newName))
-    None
-  }
-
-  def select(node: Node): Option[UnaryOperation] = {
-    for {
-      vname <- Option(node \ "vname").filter(_.nonEmpty)
-      operator <- Option(node \ "operator").filter(_.nonEmpty)
-      value <- Option(node \ "value").filter(_.nonEmpty)
-    } yield Selection(vname.text, operator.text, value.text)
-  }
-
-  /**
-   * Take operation not yet implemented.
-   */
-  def take(node: Node): Option[UnaryOperation] = {
-    None
-  }
-
-  def uncurry(node: Node): Option[UnaryOperation] = {
-    Some(Uncurry())
-  }
-  /*
- *  END parsing of specific operations
- */
 }
 
 object FdmlReader {
@@ -275,12 +282,12 @@ object FdmlReader {
 
   def apply(uri: URI): FdmlReader = FileUtils.resolveUri(uri) match {
     case Some(uri) =>
-      val validate = LatisConfig.getOrElse("latis.fdml.validate", false)
+      val validate: Boolean = LatisConfig.getOrElse("latis.fdml.validate", false)
       if (validate) FdmlUtils.validateFdml(uri) match {
         case Left(msg) =>
-          throw new RuntimeException(
-            s"FDML validation failed for ${uri}\n${msg}"
-          )
+          throw new RuntimeException {
+            s"FDML validation failed for $uri\n$msg"
+          }
         case _ =>
       }
       new FdmlReader(XML.load(uri.toURL))
