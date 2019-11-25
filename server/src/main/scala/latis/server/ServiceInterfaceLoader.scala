@@ -1,6 +1,6 @@
 package latis.server
 
-import java.io.File
+import java.net.URL
 import java.net.URLClassLoader
 
 import scala.reflect.runtime.{ universe => ru }
@@ -28,13 +28,12 @@ final class ServiceInterfaceLoader(implicit cs: ContextShift[IO]) {
    * This only needs to be called once on server initialization.
    */
   def loadServices(conf: ServiceConf): IO[List[(ServiceSpec, ServiceInterface)]] =
-    for {
-      artifacts <- fetchServiceArtifacts(conf)
-      cl        <- makeClassLoader(artifacts)
-      services  <- conf.services.traverse { spec =>
-        loadService(cl, spec).map((spec, _))
-      }
-    } yield services
+    conf.services.traverse { spec =>
+      for {
+        loader  <- makeClassLoader(spec)
+        service <- loadService(loader, spec)
+      } yield (spec, service)
+    }
 
   private def loadService(cl: URLClassLoader, spec: ServiceSpec): IO[ServiceInterface] =
     IO {
@@ -48,22 +47,25 @@ final class ServiceInterfaceLoader(implicit cs: ContextShift[IO]) {
       constructor().asInstanceOf[ServiceInterface]
     }
 
-  private def fetchServiceArtifacts(conf: ServiceConf): IO[List[File]] = {
-    val dependencies: List[Dependency] =
-      conf.services.map {
-        case ServiceSpec(name, version, _, _) =>
-          val nameM = ModuleName(s"${name}_2.12")
-          Dependency(Module(org"io.latis-data", nameM), version)
-      }
+  private def fetchServiceArtifacts(spec: MavenServiceSpec): IO[List[URL]] = {
+    val dep = {
+      val nameM = ModuleName(s"${spec.name}_2.12")
+      Dependency(Module(org"io.latis-data", nameM), spec.version)
+    }
 
-    Fetch(cache).withDependencies(dependencies).io.map(_.toList)
+    Fetch(cache).addDependencies(dep).io.map(_.toList.map(_.toURI().toURL()))
   }
 
-  private def makeClassLoader(paths: List[File]): IO[URLClassLoader] =
-    IO {
+  private def makeClassLoader(spec: ServiceSpec): IO[URLClassLoader] = for {
+    artifacts <- spec match {
+      case spec: MavenServiceSpec => fetchServiceArtifacts(spec)
+      case spec: JarServiceSpec   => List(spec.path).pure[IO]
+    }
+    loader <- IO {
       new URLClassLoader(
-        paths.map(_.toURI().toURL()).toArray,
+        artifacts.toArray,
         Thread.currentThread().getContextClassLoader()
       )
     }
+  } yield loader
 }
