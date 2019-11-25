@@ -214,7 +214,8 @@ class Scalar(val metadata: Metadata) extends DataType {
   /**
    * Converts a string value into the appropriate type for this Scalar.
    */
-  def parseValue(value: String): Either[Exception, Datum] =
+  def parseValue(value: String): Either[Exception, Datum] = {
+    val vt = valueType
     valueType.parseValue(value) match {
       case Success(data) => Right(data)
       case Failure(t) =>
@@ -222,6 +223,7 @@ class Scalar(val metadata: Metadata) extends DataType {
         val e = new RuntimeException("Oops", t)
         Left(e)
     }
+  }
 
   /**
    * Returns a string representation of the given Datum.

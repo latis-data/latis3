@@ -4,27 +4,44 @@ import latis.data.Data
 import latis.data.Datum
 import latis.metadata.Metadata
 import latis.model.Scalar
+import latis.model.StringValueType
+import latis.units.UnitConverter
 
 /**
  * Time is a Scalar that provides special behavior for formated time values.
  */
 class Time(metadata: Metadata) extends Scalar(metadata) {
   //TODO: make sure this has the id or alias "time"
+  
+  /**
+   * Returns the units from the metadata.
+   */
+  val units: String = this("units").getOrElse {
+    val msg = "A Time variable must have units."
+    throw new RuntimeException(msg)
+  }
 
   /**
-   * Constructs a TimeFormat if the time is represented as a string.
+   * Constructs Some TimeFormat if the time is represented 
+   * as a string. Otherwise returns None.
    */
-  val timeFormat: Option[TimeFormat] = this("type") match {
-    case Some("string") =>
-      this("units") match {
-        case Some(f) =>
-          Some(TimeFormat(f)) //TODO: error handling, invalid format
-        case None =>
-          val msg = "A Time variable must have units."
-          throw new RuntimeException(msg)
-      }
+  val timeFormat: Option[TimeFormat] = valueType match {
+    case StringValueType => Option(TimeFormat(units))
     case _ => None
   }
+  
+  /**
+   * Returns whether this Time represents a formatted
+   * time string.
+   */
+  val isFormatted: Boolean = timeFormat.nonEmpty
+  
+  /**
+   * Returns a TimeScale for use with time conversions.
+   */
+  val timeScale: TimeScale = 
+    if (isFormatted) TimeScale.Default
+    else TimeScale(units)
 
   /**
    * Overrides the basic Scalar Ordering to provide
@@ -38,7 +55,11 @@ class Time(metadata: Metadata) extends Scalar(metadata) {
       def compare(x: Datum, y: Datum): Int = (x, y) match {
         case (t1: Data.StringValue, t2: Data.StringValue) =>
           //TODO: invalid time value
-          format.parse(t1.value) compare format.parse(t2.value)
+          val z = for {
+            v1 <- format.parse(t1.value)
+            v2 <- format.parse(t2.value)
+          } yield v1.compare(v2)
+          z.getOrElse { ??? }
         case _ =>
           val msg = s"Incomparable data values: $x $y"
           throw new IllegalArgumentException(msg)
@@ -52,13 +73,21 @@ class Time(metadata: Metadata) extends Scalar(metadata) {
    * Overrides value conversion to support formatted time strings.
    * This expects a numeric string or ISO format.
    */
-  override def convertValue(value: String): Either[Exception, Datum] =
-    timeFormat map { format =>
-      val time = TimeFormat.parseIso(value) //TODO: error if not ISO
-      Right(Data.StringValue(format.format(time)))
-    } getOrElse {
-      super.convertValue(value) //treat like any other value
+  override def convertValue(value: String): Either[Exception, Datum] = {
+    TimeFormat.parseIso(value).map { time =>
+      timeFormat.map { format =>
+        // this represents a formatted time string
+        Data.StringValue(format.format(time))
+      } getOrElse {
+        // this represents a numeric time value
+        // Convert value to our TimeScale
+        val t2 = UnitConverter(TimeScale.Default, timeScale)
+          .convert(time)  //convert value to our TimeScale
+          .toString  //convert value type via string
+        parseValue(t2).getOrElse { ??? }
+      }
     }
+  }
 
 }
 

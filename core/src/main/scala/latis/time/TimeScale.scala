@@ -17,9 +17,14 @@ import latis.units.{Time => TimeType}
  * it's units (hours) the zero (one day ago) would be -24.
  */
 case class TimeScale(timeUnit: TimeUnit, epoch: String) extends MeasurementScale {
+  
   def unitType: MeasurementType = TimeType
+  
   override def baseMultiplier: Double = timeUnit.baseMultiplier
-  override def zero: Double = -TimeFormat.parseIso(epoch) / 1000 / baseMultiplier
+  
+  override def zero: Double = -TimeFormat.parseIso(epoch).map {
+    _ / 1000 / baseMultiplier
+  }.getOrElse { ??? }
 }
 
 object TimeScale {
