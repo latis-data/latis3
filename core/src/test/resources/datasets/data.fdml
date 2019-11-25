@@ -7,7 +7,10 @@
   <adapter class="latis.input.TextAdapter"/>
 
   <function>
-    <scalar id="a" type="int" class="latis.time.Time"/>
+    <scalar id="time" 
+            units="days since 2000-01-01" 
+            type="double" 
+            class="latis.time.Time"/>
     <tuple>
       <scalar id="b" type="int"/>
       <scalar id="c" type="double"/>

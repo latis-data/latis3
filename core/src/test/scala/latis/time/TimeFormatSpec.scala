@@ -6,7 +6,7 @@ import org.scalatest.Matchers._
 class TimeFormatSpec extends FlatSpec {
   
   "TimeFormat" should "parse an ISO string" in {
-    TimeFormat.parseIso("1970-001T00:00:01") should be (1000)
+    TimeFormat.parseIso("1970-001T00:00:01") should be (Right(1000))
   }
   
   it should "provide a default ISO string" in {
@@ -15,7 +15,7 @@ class TimeFormatSpec extends FlatSpec {
   }
   
   it should "parse a formatted time string" in {
-    TimeFormat("yyyyDDD").parse("1970002") should be (86400000)
+    TimeFormat("yyyyDDD").parse("1970002") should be (Right(86400000))
   }
   
   it should "format a time value" in {
@@ -23,7 +23,7 @@ class TimeFormatSpec extends FlatSpec {
   }
   
   it should "use a specified century for 2-digit years" in {
-    val time = TimeFormat("yyMMdd").setCenturyStart("2100").parse("330501")
+    val time = TimeFormat("yyMMdd").setCenturyStart("2100").parse("330501").getOrElse(0l)
     TimeFormat("yyyy-MM-dd").format(time) should be ("2133-05-01")
   }
 }

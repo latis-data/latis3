@@ -135,13 +135,15 @@ class TestFdmlReader extends JUnitSuite {
   
   @Test
   def fdml_file() = {
+    //TODO: "1.e7".toLong fails
     val ds = Dataset.fromName("data")
+      .withOperation(Selection("time", ">=" , "2000-01-02"))
     StreamUtils.unsafeHead(ds.samples) match {
-      case Sample(DomainData(Index(a)),RangeData(Integer(b), Real(c), Text(d))) =>
-        assertEquals(0, a)
-        assertEquals(1, b)
-        assertEquals(1.1, c, 0)
-        assertEquals("a", d)
+      case Sample(DomainData(Index(t)),RangeData(Integer(b), Real(c), Text(d))) =>
+        assertEquals(1, t)
+        assertEquals(2, b)
+        assertEquals(2.2, c, 0)
+        assertEquals("b", d)
     }
   }
 }
