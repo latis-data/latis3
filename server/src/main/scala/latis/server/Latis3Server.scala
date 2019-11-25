@@ -27,7 +27,7 @@ object Latis3Server extends IOApp {
 
   def constructRoutes(services: List[(ServiceSpec, ServiceInterface)]): HttpRoutes[IO] = {
     val routes: List[(String, HttpRoutes[IO])] = services.map {
-      case (ServiceSpec(_, _, mapping, _), service) => (mapping, service.routes)
+      case (spec, service) => (spec.mapping, service.routes)
     }
     Router(routes:_*)
   }
