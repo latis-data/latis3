@@ -16,7 +16,7 @@ import coursier.interop.cats._
 final class ServiceInterfaceLoader(implicit cs: ContextShift[IO]) {
 
   // Make Coursier use cats-effect IO.
-  val cache: FileCache[IO] = FileCache[IO]()
+  private val cache: FileCache[IO] = FileCache[IO]()
 
   /**
    * Load service interfaces described in the service interface
