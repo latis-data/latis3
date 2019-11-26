@@ -29,7 +29,11 @@ case class TimeScale(timeUnit: TimeUnit, epoch: String) extends MeasurementScale
 
 object TimeScale {
 
-  val Default = TimeScale(TimeUnit.Base, "1970-01-01")
+  /**
+   * Defines the default time scale as Java's default:
+   * milliseconds since 1970.
+   */
+  val Default = TimeScale(TimeUnit(0.001), "1970-01-01")
 
   /**
    * Constructs a TimeScale from a "units" expression of the form:

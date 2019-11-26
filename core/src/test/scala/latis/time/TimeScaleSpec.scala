@@ -13,7 +13,7 @@ class TimeScaleSpec extends FlatSpec {
   }
   
   it should "have the default time unit" in {
-    timeScaleFromFormat.timeUnit should be (TimeUnit.Base)
+    timeScaleFromFormat.timeUnit should be (TimeUnit(0.001))
   }
   
   it should "have the default zero" in {
