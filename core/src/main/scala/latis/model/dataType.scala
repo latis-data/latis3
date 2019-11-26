@@ -238,12 +238,38 @@ class Scalar(val metadata: Metadata) extends DataType {
     parseValue(value)
   //TODO: support units, e.g. "1.2 meters"
 
-  def ordering: Ordering[Datum] = ???
   /**
-   * Defines an Ordering for Data of the type described by this Scalar.
-   * An IllegalArgumentException will be thrown if the compared Data types 
+   * Defines a PartialOrdering for Datums of the type described by this Scalar.
+   * An IllegalArgumentException will be thrown if the compared Datum types
    * are not consistent with this Scalar.
+   * This supports comparison between any two Number types or between
+   * any two Text types. Other types or combinations will have no
+   * Ordering by this default definition.
+   * This can be overridden by Scalar subtypes that need to define a
+   * different ordering.
    */
+  def ordering: PartialOrdering[Datum] = new PartialOrdering[Datum] {
+    //TODO: should we match specific value types?
+    //  avoid conversion to doubles
+    import scala.math.Ordering._
+
+    def tryCompare(x: Datum, y: Datum): Option[Int] = (x, y) match {
+      case (Number(d1), Number(d2)) =>
+        if (d1.isNaN || d2.isNaN) None
+        else Some(Double.compare(d1, d2))
+      case (Text(s1), Text(s2)) =>
+        Some(String.compare(s1, s2))
+      case _ => None
+    }
+
+    def lteq(x: Datum, y: Datum): Boolean = (x, y) match {
+      case (Number(d1), Number(d2)) =>
+        d1 <= d2  //Note, always false for NaNs
+      case (Text(s1), Text(s2)) =>
+        String.compare(s1, s2) <= 0
+      case _ => false
+    }
+  }
 //  def ordering: Option[PartialOrdering[Data]] = valueType match {
 //    case BooleanValueType =>
 //    case ByteValueType =>

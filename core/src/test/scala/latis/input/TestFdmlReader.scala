@@ -126,21 +126,19 @@ class TestFdmlReader extends JUnitSuite {
    
   }
   
-  @Test //@Ignore //TODO: need to update the schema
-  def validation() = {
+  @Test
+  def validation(): Unit = {
     val fdmlFile = "data.fdml"
-    val z = FdmlUtils.validateFdml(fdmlFile)
-    println(z)
+    assertTrue(FdmlUtils.validateFdml(fdmlFile).isRight)
   }
   
   @Test
-  def fdml_file() = {
-    //TODO: "1.e7".toLong fails
+  def fdml_file(): Unit = {
     val ds = Dataset.fromName("data")
       .withOperation(Selection("time", ">=" , "2000-01-02"))
-    StreamUtils.unsafeHead(ds.samples) match {
-      case Sample(DomainData(Index(t)),RangeData(Integer(b), Real(c), Text(d))) =>
-        assertEquals(1, t)
+    StreamUtils.unsafeHead(ds.samples)match {
+      case Sample(DomainData(Number(t)),RangeData(Integer(b), Real(c), Text(d))) =>
+        assertEquals(1, t, 0)
         assertEquals(2, b)
         assertEquals(2.2, c, 0)
         assertEquals("b", d)

@@ -41,13 +41,24 @@ case class Selection(vname: String, operator: String, value: String)
     }
 
     // Get the Ordering from the Scalar
-    val ordering: Ordering[Datum] = scalar.ordering
+    val ordering: PartialOrdering[Datum] = scalar.ordering
 
     // Define predicate function
     (sample: Sample) => sample.getValue(pos) match {
-      case Some(d: Datum) => matches(ordering.compare(d, cdata))
-        //TODO: if SF: bug
-      case None => ??? //shouldn't happen since the pos came from the model
+      case Some(d: Datum) =>
+        ordering.tryCompare(d, cdata).map {
+          matches(_)
+        }.getOrElse {
+          // Not comparable
+          val msg = s"Selection failed to compare values: $d, $cdata"
+          throw new UnsupportedOperationException(msg)
+        }
+      case Some(d: SampledFunction) =>
+        // Bug: Should not find SF at this position
+        ???
+      case None =>
+        // Bug: There should be a Datum at this position
+        ???
     }
   }
 
