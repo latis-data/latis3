@@ -40,7 +40,7 @@ class TimeSpec extends FlatSpec {
   }
   
   "Time ordering" should "compare two formatted time values" in {
-    formattedTime.ordering.compare("Jan 01, 2000", "Feb 01, 2000") should be (-1)
+    formattedTime.ordering.tryCompare("Jan 01, 2000", "Feb 01, 2000") should be (Some(-1))
   }
 
 }

@@ -2,6 +2,7 @@ package latis.time
 
 import latis.data.Data
 import latis.data.Datum
+import latis.data.Text
 import latis.metadata.Metadata
 import latis.model.Scalar
 import latis.model.StringValueType
@@ -44,29 +45,35 @@ class Time(metadata: Metadata) extends Scalar(metadata) {
     else TimeScale(units)
 
   /**
-   * Overrides the basic Scalar Ordering to provide
+   * Overrides the basic Scalar PartialOrdering to provide
    * support for formatted time strings.
    */
-  override def ordering: Ordering[Datum] = _ordering
+  override def ordering: PartialOrdering[Datum] = timeFormat.map { format =>
+    new PartialOrdering[Datum] {
+      // Note, None if data don't match our format
+      def tryCompare(x: Datum, y: Datum): Option[Int] = (x, y) match {
+        case (Text(t1), Text(t2)) =>
+          val cmp = for {
+            v1 <- format.parse(t1)
+            v2 <- format.parse(t2)
+          } yield Option(v1.compare(v2))
+          cmp.getOrElse(None)
+        case _ => None
+      }
 
-  // Optimization to define the Ordering only once.
-  private lazy val _ordering = timeFormat map { format =>
-    new Ordering[Datum] {
-      def compare(x: Datum, y: Datum): Int = (x, y) match {
-        case (t1: Data.StringValue, t2: Data.StringValue) =>
-          //TODO: invalid time value
-          val z = for {
-            v1 <- format.parse(t1.value)
-            v2 <- format.parse(t2.value)
-          } yield v1.compare(v2)
-          z.getOrElse { ??? }
-        case _ =>
-          val msg = s"Incomparable data values: $x $y"
-          throw new IllegalArgumentException(msg)
+      def lteq(x: Datum, y: Datum): Boolean = (x, y) match {
+        case (Text(t1), Text(t2)) =>
+          val cmp = for {
+            v1 <- format.parse(t1)
+            v2 <- format.parse(t2)
+          } yield v1 <= v2
+          cmp.getOrElse(false)
+        case _ => false
       }
     }
-  } getOrElse {
-    super.ordering //not formatted so treat like others
+  }.getOrElse {
+    // Not a formatted time so delegate to super
+    super.ordering
   }
 
   /**
