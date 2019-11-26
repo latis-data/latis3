@@ -1,5 +1,6 @@
 package latis.server
 
+import java.lang.ClassLoader
 import java.net.URL
 import java.net.URLClassLoader
 
@@ -30,12 +31,12 @@ final class ServiceInterfaceLoader(implicit cs: ContextShift[IO]) {
   def loadServices(conf: ServiceConf): IO[List[(ServiceSpec, ServiceInterface)]] =
     conf.services.traverse { spec =>
       for {
-        loader  <- makeClassLoader(spec)
+        loader  <- getClassLoader(spec)
         service <- loadService(loader, spec)
       } yield (spec, service)
     }
 
-  private def loadService(cl: URLClassLoader, spec: ServiceSpec): IO[ServiceInterface] =
+  private def loadService(cl: ClassLoader, spec: ServiceSpec): IO[ServiceInterface] =
     IO {
       val constructor = {
         val m = ru.runtimeMirror(cl)
@@ -56,16 +57,17 @@ final class ServiceInterfaceLoader(implicit cs: ContextShift[IO]) {
     Fetch(cache).addDependencies(dep).io.map(_.toList.map(_.toURI().toURL()))
   }
 
-  private def makeClassLoader(spec: ServiceSpec): IO[URLClassLoader] = for {
-    artifacts <- spec match {
-      case spec: MavenServiceSpec => fetchServiceArtifacts(spec)
-      case spec: JarServiceSpec   => List(spec.path).pure[IO]
-    }
-    loader <- IO {
-      new URLClassLoader(
-        artifacts.toArray,
-        Thread.currentThread().getContextClassLoader()
-      )
-    }
-  } yield loader
+  private def getClassLoader(spec: ServiceSpec): IO[ClassLoader] = spec match {
+    case _: ClassPathServiceSpec =>
+      IO(Thread.currentThread().getContextClassLoader())
+    case spec: MavenServiceSpec  =>
+      fetchServiceArtifacts(spec).flatMap(mkClassLoader)
+    case spec: JarServiceSpec    =>
+      List(spec.path).pure[IO].flatMap(mkClassLoader)
+  }
+
+  private def mkClassLoader(artifacts: List[URL]): IO[ClassLoader] = IO {
+    val parent = Thread.currentThread().getContextClassLoader()
+    new URLClassLoader(artifacts.toArray, parent)
+  }
 }

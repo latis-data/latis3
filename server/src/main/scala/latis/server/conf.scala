@@ -36,6 +36,11 @@ final case class JarServiceSpec(
   clss: String
 ) extends ServiceSpec
 
+final case class ClassPathServiceSpec(
+  mapping: String,
+  clss: String
+) extends ServiceSpec
+
 object ServiceSpec {
   implicit val mssHint: ProductHint[MavenServiceSpec] =
     ProductHint(
@@ -50,11 +55,20 @@ object ServiceSpec {
         "clss" -> "class"
       )
     )
+
+  implicit val cssHint: ProductHint[ClassPathServiceSpec] =
+    ProductHint(
+      ConfigFieldMapping(CamelCase, KebabCase).withOverrides(
+        "clss" -> "class"
+      )
+    )
+
   implicit val coproductHint: CoproductHint[ServiceSpec] =
     new FieldCoproductHint[ServiceSpec]("type") {
       override def fieldValue(name: String): String = name match {
-        case "MavenServiceSpec" => "maven"
-        case "JarServiceSpec"   => "jar"
+        case "MavenServiceSpec"     => "maven"
+        case "JarServiceSpec"       => "jar"
+        case "ClassPathServiceSpec" => "class"
       }
     }
 }
