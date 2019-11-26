@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <dataset name="data"
-         uri="data/data.txt" 
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         uri="data/data.txt"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="fdml.xsd">
   <adapter class="latis.input.TextAdapter"/>
 
   <function>
-    <scalar id="time" 
-            units="days since 2000-01-01" 
-            type="double" 
+    <scalar id="time"
+            units="days since 2000-01-01"
+            type="int"
             class="latis.time.Time"/>
     <tuple>
       <scalar id="b" type="int"/>
@@ -17,5 +17,5 @@
       <scalar id="d" type="string"/>
     </tuple>
   </function>
-  
+
 </dataset>

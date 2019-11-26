@@ -43,7 +43,7 @@ class DatasetResolverSpec extends FlatSpec {
   it should "find a dataset if not cached" in {
     Dataset.fromName("data").model match {
       case Function(d, _) =>
-        d.id should be ("a")
+        d.id should be ("time")
     }
   }
 }

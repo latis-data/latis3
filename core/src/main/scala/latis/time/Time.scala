@@ -74,17 +74,19 @@ class Time(metadata: Metadata) extends Scalar(metadata) {
    * This expects a numeric string or ISO format.
    */
   override def convertValue(value: String): Either[Exception, Datum] = {
-    TimeFormat.parseIso(value).map { time =>
+    TimeFormat.parseIso(value).map { time =>  //time in default units
       timeFormat.map { format =>
         // this represents a formatted time string
         Data.StringValue(format.format(time))
-      } getOrElse {
+      }.getOrElse {
         // this represents a numeric time value
         // Convert value to our TimeScale
         val t2 = UnitConverter(TimeScale.Default, timeScale)
-          .convert(time)  //convert value to our TimeScale
-          .toString  //convert value type via string
-        parseValue(t2).getOrElse { ??? }
+          .convert(time.toDouble)
+        valueType.convertDouble(t2).getOrElse {
+          ??? //Bug: if this type supports unit conversions
+          // then we should be able to convert back from a double
+        }
       }
     }
   }
