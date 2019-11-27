@@ -128,61 +128,74 @@ object Data {
   implicit class BooleanValue(val value: Boolean)
     extends AnyVal with Datum with Serializable {
     def asString: String = value.toString
+    override def toString = s"BooleanValue($value)"
   }
 
   implicit class ByteValue(val value: Byte)
     extends AnyVal with Index with Serializable {
     def asInt: Int = value.toInt
+    override def toString = s"ByteValue($value)"
   }
 
   // single Text character or Integer 0-65535
   implicit class CharValue(val value: Char)
     extends AnyVal with Text with Index with Serializable {
     def asInt: Int = value.toInt
+    override def toString = s"CharValue($value)"
+    //TODO: numeric or single test character?
   }
 
   implicit class ShortValue(val value: Short)
     extends AnyVal with Index with Serializable {
       def asInt: Int = value.toInt
+    override def toString = s"ShortValue($value)"
   }
   
   implicit class IntValue(val value: Int) 
     extends AnyVal with Index with Serializable {
       def asInt: Int = value
+    override def toString = s"IntValue($value)"
   }
   
   implicit class LongValue(val value: Long) 
     extends AnyVal with Integer with Serializable {
       def asLong: Long = value
+    override def toString = s"LongValue($value)"
   }
   
   implicit class FloatValue(val value: Float) 
     extends AnyVal with Real with Serializable {
       def asDouble: Double = value.toDouble
+    override def toString = s"FloatValue($value)"
   }
   
   implicit class DoubleValue(val value: Double) 
     extends AnyVal with Real with Serializable {
       def asDouble: Double = value
+    override def toString = s"DoubleValue($value)"
   }
 
   implicit class StringValue(val value: String) 
     extends AnyVal with Text with Serializable {
       def asString: String = value
+    override def toString = s"StringValue($asString)"
   }
 
   implicit class BinaryValue(val value: Array[Byte]) 
     extends AnyVal with Datum with Serializable {
       def asString: String = "BLOB"
+    override def toString = s"BinaryValue($asString)"
   }
 
   implicit class BigIntValue(val value: BigInt)
     extends AnyVal with Integer with Serializable {
     def asLong: Long = value.toLong //won't break but may be wrong
+    override def toString = s"BigIntValue($value)"
   }
 
   implicit class BigDecimalValue(val value: BigDecimal)
     extends AnyVal with Real with Serializable {
     def asDouble: Double = value.toDouble //may lose precision
+    override def toString = s"BigDecimalValue($value)"
   }
 }
