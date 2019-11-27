@@ -45,6 +45,7 @@ object Latis3Server extends IOApp {
           .withHttpApp {
             Router(mapping -> routes).orNotFound
           }
+          .withoutBanner
           .serve
           .compile
           .drain
