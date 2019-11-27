@@ -280,19 +280,18 @@ object FdmlReader {
   def apply(xmlText: String): FdmlReader =
     new FdmlReader(XML.loadString(xmlText))
 
-  def apply(uri: URI): FdmlReader = FileUtils.resolveUri(uri) match {
-    case Some(uri) =>
-      val validate: Boolean = LatisConfig.getOrElse("latis.fdml.validate", false)
-      if (validate) FdmlUtils.validateFdml(uri) match {
-        case Left(msg) =>
-          throw new RuntimeException {
-            s"FDML validation failed for $uri\n$msg"
-          }
-        case _ =>
-      }
-      new FdmlReader(XML.load(uri.toURL))
-    case None =>
-      throw new RuntimeException(s"FDML URI not found: $uri")
-  }
+  def apply(uri: URI, validate: Boolean = false): FdmlReader =
+    FileUtils.resolveUri(uri) match {
+      case Some(uri) =>
+        if (validate) FdmlUtils.validateFdml(uri) match {
+          case Left(message) =>
+            val msg = s"FDML validation failed for $uri\n$message"
+            throw new RuntimeException(msg)
+          case _ =>
+        }
+        new FdmlReader(XML.load(uri.toURL))
+      case None =>
+        throw new RuntimeException(s"FDML not found: $uri")
+    }
 
 }
