@@ -18,7 +18,9 @@ class FdmlDatasetResolver extends DatasetResolver {
    * if this can provide the requested Dataset, so failures (None) are
    * to be expected.
    */
-  def getDataset(id: String): Option[Dataset] =
-    FdmlUtils.resolveFdml(id + ".fdml").map(FdmlReader(_).getDataset)
+  def getDataset(id: String): Option[Dataset] = {
+    val validate: Boolean = LatisConfig.getOrElse("latis.fdml.validate", false)
+    FdmlUtils.resolveFdml(id + ".fdml").map(FdmlReader(_, validate).getDataset)
+  }
 
 }
