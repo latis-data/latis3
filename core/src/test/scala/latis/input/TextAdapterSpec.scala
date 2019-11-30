@@ -1,7 +1,7 @@
 package latis.input
 
 import latis.metadata.Metadata
-import latis.util.FileUtils.resolveUri
+import latis.util.NetUtils.resolveUri
 import latis.model._
 import java.net.URI
 
@@ -13,7 +13,7 @@ class TextAdapterSpec extends FlatSpec {
 
   "A TextAdapter" should "read text data" in {
     val reader = new AdaptedDatasetReader {
-      def uri: URI = resolveUri("core/src/test/resources/data/data.txt").get
+      def uri: URI = resolveUri("data/data.txt").right.get
       def model: DataType = Function(
         Scalar(Metadata("id" -> "a", "type" -> "int")),
         Tuple(

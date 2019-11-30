@@ -3,12 +3,9 @@
 <dataset id="data"
          title="Test Dataset"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="http://latis-data.io/schemas/1.0/fdml-with-text-adapter.xsd">
+         xsi:noNamespaceSchemaLocation="http://latis-data.io/schemas/1.0/fdml.xsd">
 
-  <source uri="data/data.txt"/>
-
-  <adapter class="latis.input.TextAdapter"
-           skipLines="1"/>
+  <adapter class="latis.input.TextAdapter"/>
 
   <function>
     <scalar id="time"

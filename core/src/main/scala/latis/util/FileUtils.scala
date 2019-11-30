@@ -13,6 +13,7 @@ import scala.util.Try
  * Defines utility functions for working with files.
  */
 object FileUtils {
+  //TODO: rename, IOUtils? UriUtils? keep Path stuff here?
   
   /**
    * Optionally returns an absolute path for the given path.
@@ -62,19 +63,6 @@ object FileUtils {
         FileSystems.newFileSystem(uri, env)
     }
   }
-  
-    
-  //TODO: NetUtils?
-  def resolveUri(uri: URI): Option[URI] = {
-    if (uri.isAbsolute) {
-      // Already complete with scheme
-      Some(uri) 
-    } else resolvePath(uri.getPath).map(_.toUri)
-  }
-  
-  def resolveUri(uri: String): Option[URI] = 
-    resolveUri(new URI(uri))
-
 
   /**
    * Searches a given directory for files of a given extension and returns the

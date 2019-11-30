@@ -8,14 +8,14 @@ import latis.model.Function
 import latis.model.Scalar
 import latis.model.Tuple
 import latis.data.{DomainData, RangeData, Sample}
-import latis.util.FileUtils.resolveUri
+import latis.util.NetUtils.resolveUri
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
 class MatrixTextAdapterSpec extends FlatSpec {
 
   val reader = new AdaptedDatasetReader {
-    def uri: URI = resolveUri("core/src/test/resources/data/matrixData.txt").get
+    def uri: URI = resolveUri("data/matrixData.txt").right.get
     def model: DataType = Function(
       Tuple(
         Scalar(Metadata("id" -> "row", "type" -> "int")),

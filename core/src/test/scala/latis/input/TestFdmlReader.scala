@@ -1,135 +1,37 @@
 package latis.input
 
+import java.net.URI
+
+import org.junit.Assert._
+import org.junit.Test
+import org.scalatest.junit.JUnitSuite
 import latis.data._
 import latis.dataset.Dataset
 import latis.ops._
 import latis.util.FdmlUtils
+import latis.util.NetUtils
 import latis.util.StreamUtils
-import org.junit.Assert._
 import org.junit.Ignore
-import org.junit.Test
-import org.scalatest.junit.JUnitSuite
+
 
 class TestFdmlReader extends JUnitSuite {
-  @Test @Ignore //This might have broken with commit c2458afccf7a4bd1ae71ea0dabeea35ce7ea9bea
-  def testSimple = {
-    val xmlString =
-      """<?xml version="1.0" encoding="UTF-8"?>
-    <dataset name="composite_lyman_alpha" uri="http://lasp.colorado.edu/data/timed_see/composite_lya/composite_lya.dat" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="text-adapter.xsd">
-        <adapter class="latis.input.TextAdapter"
-               skipLines="5" delimiter="+" commentCharacter="--?" dataMarker="@" linesPerRecord="3"/>
-      <function id="LA" length="1">
-         <scalar id="time" type="time" units="yyyyDDD"/>
-         <tuple id="irradiance">
-             <scalar id="la" type="real" name="LymanAlpha" long_name="Lyman-alpha irradiance" units ="1e11 photons/cm^2/sec"/>
-             <scalar id="source" type="integer" name="type" long_name="Source of the data" missing_value = "-999999"/>
-         </tuple>
-      </function>
-    </dataset>"""
-    
-    val reader: FdmlReader = FdmlReader(xmlString)
-    val dataset: Dataset = reader.getDataset
-    
-    assertEquals(dataset.model.arity, 1)
-    assertEquals(dataset.metadata.getProperty("name"), Some("composite_lyman_alpha"))
-    assertEquals(dataset.toString, "/data/timed_see/composite_lya/composite_lya.dat: time -> (la, source)")
-    
-  }
-  
-  @Test @Ignore //This might have broken with commit c2458afccf7a4bd1ae71ea0dabeea35ce7ea9bea
-  def testWithOperations = {
-    val xmlString = """<?xml version="1.0" encoding="UTF-8"?>
-<dataset name="composite_lyman_alpha" uri="http://lasp.colorado.edu/data/timed_see/composite_lya/composite_lya.dat" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="text-adapter.xsd">
-    <adapter class="latis.input.TextAdapter"
-        skipLines="5" delimiter="+" commentCharacter="--?" dataMarker="@" linesPerRecord="3"/>
-    <function id="LA" length="1">
-        <scalar id="time" type="time" units="yyyyDDD"/>
-        <tuple id="irradiance">
-            <scalar id="la" type="real" name="LymanAlpha" long_name="Lyman-alpha irradiance" units ="1e11 photons/cm^2/sec"/>
-            <scalar id="source" type="integer" name="type" long_name="Source of the data" missing_value = "-999999"/>
-        </tuple>
-    </function>
-    <operation>
-        <contains>
-            <vname>x</vname>
-            <value>y</value>
-            <value>z</value>
-        </contains>
-        <groupby>
-            <vname>ix</vname>
-            <vname>iy</vname>
-        </groupby>
-        <head/>
-        <pivot>
-            <valuetype>real</valuetype>
-            <value>44</value>
-            <value>55</value>
-            <vid>44</vid>
-            <vid>55</vid>
-        </pivot>
-        <project>
-            <vid>irradiance</vid>
-        </project>
-        <rename>
-            <vname>irradiance</vname>
-            <newName>intensity</newName>
-        </rename>
-        <select>
-            <vname>la</vname>
-            <operator>+</operator>
-            <value>1</value>
-        </select>
-        <take>1</take>
-        <uncurry/>
-    </operation>
-</dataset>
-"""
-    val datasetSource: FdmlReader = FdmlReader(xmlString)
-    val operations = datasetSource.operations.toList
-    
-    val containsOp: Contains = operations.collect {
-      case op: Contains => op
-    }.head
-    val containsOperation = Contains("x", (Seq("y", "z"): _*))
-    assertEquals(containsOp.vname, containsOperation.vname)
-    
-    val groupByOp: GroupBy = operations.collect {
-      case op: GroupBy => op
-    }.head
-    val groupByOperation = GroupBy(Seq("ix", "iy"): _*)
-    assertEquals(groupByOp.vnames, groupByOperation.vnames)
-    
-    val pivotOp: Pivot = operations.collect {
-      case op: Pivot => op
-    }.head
-    val pivotOperation = Pivot(Seq("44", "55"), Seq("44", "55"))
-    assertEquals(pivotOp.values.head, pivotOperation.values.head)
-    
-    val projectionOp: Projection = operations.collect {
-      case op: Projection => op
-    }.head
-    val projectionOperation = Projection(Seq("irradiance"): _*)
-    assertEquals(projectionOp.vids.head, projectionOperation.vids.head)
-    
-    val selectionOp: Selection = operations.collect {
-      case op: Selection => op
-    }.head
-    val selectionOperation = Selection("la", "+", "1")
-    assertEquals(selectionOp.vname, selectionOperation.vname)
-    assertEquals(selectionOp.operator, selectionOperation.operator)
-    assertEquals(selectionOp.value, selectionOperation.value)
-    
-    val uncurryOp: Uncurry = operations.collect {
-      case op: Uncurry => op
-    }.head
-    assertEquals(uncurryOp, Uncurry())
-   
-  }
-  
+
   @Test
   def validation(): Unit = {
-    val fdmlFile = "data.fdml"
-    assertTrue(FdmlUtils.validateFdml(fdmlFile).isRight)
+    val fdmlFile = "datasets/data.fdml"
+    val v = FdmlUtils.validateFdml(fdmlFile)
+    assertTrue(v.isRight)
+  }
+
+  @Test
+  def validate_on_load(): Unit = {
+    try {
+      FdmlReader(new URI("datasets/invalid.fdml"), true)
+      fail("Validation did not work.")
+    } catch {
+      case e: Exception =>
+        assertTrue(e.getMessage.contains("'{source}' is expected"))
+    }
   }
   
   @Test
@@ -144,4 +46,86 @@ class TestFdmlReader extends JUnitSuite {
         assertEquals("b", d)
     }
   }
+
+  @Test
+  def match_schema_location_in_multiline_xml() = {
+    val pattern = """.*noNamespaceSchemaLocation\s*=\s*"(.*?)".*""".r
+    val xml = System.lineSeparator +  " foo " +
+      """ xsi:noNamespaceSchemaLocation="http://latis-data.io/schemas/1.0/fdml.xsd"> """ +
+      System.lineSeparator +  " bar "
+    xml.replaceAll("\n", " ") match {   //pattern match doesn't like the new lines
+      case pattern(uri) =>
+        assertEquals("http://latis-data.io/schemas/1.0/fdml.xsd", uri)
+    }
+  }
+
+  @Test @Ignore //TODO: avoid matching comments
+  def match_first_schema_location_in_multiline_xml() = {
+    val pattern = """.*noNamespaceSchemaLocation\s*=\s*"(.*?)".*""".r
+    val xml = System.lineSeparator +  " foo " +
+      """ xsi:noNamespaceSchemaLocation="http://latis-data.io/schemas/1.0/fdml.xsd"> """ +
+      """ <!--xsi:noNamespaceSchemaLocation="not the second one"--> """ +
+      System.lineSeparator +  " bar "
+    xml.replaceAll("\n", " ") match {   //pattern match doesn't like the new lines
+      case pattern(uri) =>
+        assertEquals("http://latis-data.io/schemas/1.0/fdml.xsd", uri)
+    }
+  }
+
+  @Test
+  def get_schema_location() = {
+    val uri = FdmlUtils.getSchemaLocation(new URI("datasets/data.fdml")).right.get.toString
+    assertEquals("http://latis-data.io/schemas/1.0/fdml-with-text-adapter.xsd", uri)
+  }
+
+  /*
+  scalar metadata
+    id (or identifier? vs uuid)
+    alias (cs-list)
+    origName (or origId? e.g. might not be valid id format)
+    title (or longName, label?)
+    description
+    type
+    class
+    units (or richer element, later)
+    fillValue
+    missingValue
+    size (bytes, binary only? or use length?)
+    length (characters, string only; charset? UTF-8, for formatting vs storage)
+    coverage for domain variables
+      "min/max" see iso 8601 intervals
+    resolution for domain vars, in current units
+    validRange for range vars?
+      same "/" notation (until v2)
+
+  real, integer, text, ...?
+    with hook for default impl
+    maybe later
+
+  separate metadata element? or multiple?
+    maybe later
+
+  Allow any key-value?
+    with optional metadata schema ref
+    diff namespace? "ext", "hapi"?
+
+  Function
+    length (for nested function, not often expressed in data source)
+    shape (or dims? e.g. indicates cartesian)
+      "*" for unlimited/unknown?
+
+  Dataset
+    id
+    title
+    description
+    history
+    other global properties
+  URI for dataset
+    feels lost as attribute
+    richer location element
+      e.g. database connection info
+
+  Adapter specific
+
+   */
 }

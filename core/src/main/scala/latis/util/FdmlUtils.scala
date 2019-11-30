@@ -1,73 +1,73 @@
 package latis.util
 
-import javax.xml._
-import java.nio.file._
-import javax.xml.validation.SchemaFactory
-import javax.xml.transform.stream.StreamSource
-import scala.util.Try
-import scala.util.Right
-import scala.util.Success
-import scala.util.Failure
 import java.net.URI
+
+import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.Schema
+import javax.xml.validation.SchemaFactory
+
+import cats.implicits._
 
 object FdmlUtils {
 
-  /**
-   * Optionally return a URI for an FDML file given a Dataset identifier.
-   */
-  def resolveFdml(uri: URI): Option[URI] = {
-    if (uri.isAbsolute) Some(uri)
-    else {
-      val dir = LatisConfig.getOrElse("latis.fdml.dir", "datasets")
-      //TODO: look in home? $LATIS_HOME?
-      FileUtils.resolveUri(Paths.get(dir, uri.getPath).toString)
-      // Note on use of toString:
-      // Path.toUri prepends the home directory as the base URI
+  /** Returns a StreamSource for the given XML URI. */
+  def getXmlSource(uri: URI): Either[LatisException, StreamSource] =
+    NetUtils.resolveUri(uri).flatMap { u =>
+      Either.catchNonFatal {
+        new StreamSource(u.toURL.openStream)
+      }.leftMap(LatisException(s"Failed to read XML: $uri", _))
     }
-  }
 
-  def resolveFdml(uri: String): Option[URI] =
-    Try {
-      new URI(uri)
-    } match {
-      case Success(u) => resolveFdml(u)
-      case Failure(e) => None
+  /** Constructs a Schema from the given URI. */
+  def getSchema(uri: URI): Either[LatisException, Schema] =
+    NetUtils.resolveUri(uri).flatMap { u =>
+      Either.catchNonFatal {
+        SchemaFactory
+          .newInstance("http://www.w3.org/2001/XMLSchema")
+          .newSchema(new StreamSource(u.toURL.openStream)) /////////////use getXmlSource
+      }.leftMap(LatisException(s"Failed to read schema: $uri", _))
     }
 
   /**
-   * Load the FDML XML schema.
+   * Constructs a Schema from the schemaLocation in the given FDML.
    */
-  lazy val schema: Schema = {
-    val schemaSource: StreamSource = {
-      val uri: URI = FileUtils.resolveUri("fdml.xsd") getOrElse {
-        throw new RuntimeException("Failed to find the FDML schema file.")
+  def getSchemaFromFdml(fdmlUri: URI): Either[LatisException, Schema] =
+    getSchemaLocation(fdmlUri).flatMap(getSchema)
+
+  /**
+   * Finds the schemaLocation definition in the given FDML.
+   * It is only required in order to support validation.
+   */
+  def getSchemaLocation(fdmlUri: URI): Either[LatisException, URI] = {
+    val pattern = """.*noNamespaceSchemaLocation\s*=\s*"(.*?)".*""".r
+    NetUtils.readUriIntoString(fdmlUri).flatMap { xml =>
+      val z = xml.replaceAll("\n", " ")
+      z match {  //pattern match doesn't like the new lines
+        case pattern(uri) => NetUtils.resolveUri(uri)
+        case _ => Either.left(LatisException(s"Schema location not defined in $fdmlUri"))
       }
-      new StreamSource(uri.toURL.openStream) //TODO: handle errors
     }
-    SchemaFactory
-      .newInstance("http://www.w3.org/2001/XMLSchema")
-      .newSchema(schemaSource)
   }
 
-  def validateFdml(fdmlUri: URI): Either[String, Unit] =
-    Try {
-      val uri: URI = resolveFdml(fdmlUri) getOrElse {
-        throw new RuntimeException(s"Failed to find the FDML file: $fdmlUri")
+  /**
+   * Validates the given FDML.
+   */
+  def validateFdml(fdmlUri: URI): Either[LatisException, Unit] = {
+    val isValid = for {
+      schema <- getSchemaFromFdml(fdmlUri)
+      fdml   <- getXmlSource(fdmlUri) //TODO: avoid reading fdml twice? reuse xml StreamSource?
+      valid  <- Either.catchNonFatal {
+        schema.newValidator().validate(fdml)
       }
-      val source = new StreamSource(uri.toURL.openStream)
-      schema.newValidator().validate(source)
-    } match {
-      case Success(v) => Right(())
-      case Failure(e) => Left(e.toString)
-      //Note, toString provides line numbers not included in the message
-    }
+    } yield valid
+    isValid.leftMap(t => LatisException(s"Validation failed for $fdmlUri\n$t", t))
+    // Note, the validation Exception's toString provides line numbers that the message doesn't.
+  }
 
-  def validateFdml(uri: String): Either[String, Unit] =
-    Try {
-      new URI(uri)
-    } match {
-      case Success(u) => validateFdml(u)
-      case Failure(e) => Left(e.getMessage)
-    }
+  /**
+   * Validates FDML represented by the given URI.
+   */
+  def validateFdml(uri: String): Either[LatisException, Unit] =
+    NetUtils.parseUri(uri).flatMap(validateFdml(_))
+
 }
