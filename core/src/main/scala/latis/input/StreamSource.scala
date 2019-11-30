@@ -4,6 +4,9 @@ import cats.effect.IO
 import fs2.Stream
 import java.net.URI
 import java.util.ServiceLoader
+
+import latis.util.LatisException
+
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 
 /**
@@ -37,7 +40,7 @@ object StreamSource {
     ServiceLoader.load(classOf[StreamSource]).asScala
       .flatMap(_.getStream(uri)).headOption.getOrElse {
         val msg = s"Failed to find a StreamSource for URI: $uri"
-        Stream.raiseError[IO](new Exception(msg))
+        Stream.raiseError[IO](LatisException(msg))
       }
 
 }

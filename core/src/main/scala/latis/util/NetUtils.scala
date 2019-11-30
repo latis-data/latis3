@@ -1,29 +1,45 @@
 package latis.util
 
-import java.io.File
 import java.net.URI
-import java.net.URL
-import java.nio.file.Path
-import java.nio.file.Paths
 
-import scala.util.Properties
+import cats.implicits._
+import fs2.text
+import latis.input.StreamSource
 
-/**
- * Utility functions for working with URIs.
- */
 object NetUtils {
-  
+
   /**
-   * Optionally return a URI by resolving the given URI
-   * which may be a relative path to a file.
+   * Creates a URI from the given string.
    */
-  def resolveUri(uri: URI): Option[URI] = {
-    if (uri.isAbsolute) {
-      // Already complete with scheme
-      Some(uri) 
-    } else FileUtils.resolvePath(uri.getPath).map(_.toUri)
-  }
-  
-  def resolveUri(uri: String): Option[URI] = 
-    resolveUri(new URI(uri))
+  def parseUri(uri: String): Either[LatisException, URI] =
+    Either.catchNonFatal {
+      new URI(uri)
+    }.leftMap {
+      LatisException(s"Failed to parse URI: $uri", _)
+    }
+
+  def resolveUri(uri: URI): Either[LatisException, URI] =
+    if (uri.isAbsolute) Either.right(uri) //Already complete with scheme
+    else Either.catchNonFatal {
+      //TODO: either-ify FileUtils
+      FileUtils.resolvePath(uri.getPath) match {
+        case Some(p) => p.toUri
+        case None => throw LatisException("FileUtils failed to resolve path")
+      }
+    }.leftMap(LatisException(s"Failed to resolve URI: $uri", _))
+
+  def resolveUri(uri: String): Either[LatisException, URI] =
+    parseUri(uri).flatMap(resolveUri)
+
+  def readUriIntoString(uri: URI): Either[LatisException, String] =
+    StreamSource
+      .getStream(uri)
+      .through(text.utf8Decode)
+      .compile
+      .toList
+      .attempt
+      .unsafeRunSync
+      .map(_.mkString)
+      .leftMap(LatisException(s"Failed to read URI: $uri", _))
+
 }

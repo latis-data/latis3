@@ -6,7 +6,6 @@ import java.net.URI
 import cats.effect.IO
 import fs2.Stream
 import fs2.io.readInputStream
-
 import latis.util.NetUtils
 import latis.util.StreamUtils.blockingExecutionContext
 import latis.util.StreamUtils.contextShift
@@ -31,6 +30,7 @@ class FileStreamSource extends StreamSource {
   def getStream(uri: URI): Option[Stream[IO, Byte]] = {
     // Make sure the URI is absolute
     val resolvedUri = NetUtils.resolveUri(uri) getOrElse {
+      //TODO: leftMap
       throw new RuntimeException(s"Unable to resolve URI: $uri")
     }
     if (supportsScheme(resolvedUri.getScheme)) {

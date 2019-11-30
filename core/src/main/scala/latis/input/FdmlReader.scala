@@ -7,9 +7,11 @@ import latis.metadata.Metadata
 import latis.model._
 import latis.util.FdmlUtils
 import latis.util.FileUtils
-import latis.util.LatisConfig
+import latis.util.LatisException
+import latis.util.NetUtils
 import latis.util.ReflectionUtils
 
+import cats.implicits._
 import scala.collection.immutable.Map
 import scala.xml._
 
@@ -18,20 +20,23 @@ import scala.xml._
  */
 class FdmlReader(xml: Elem) extends AdaptedDatasetReader {
 
-  val datasetName: String = (xml \ "@name").text
-  val datasetUri: String = (xml \ "@uri").text
-  val adapterNode: NodeSeq = xml \ "adapter"
-  val functionNode: NodeSeq = xml \ "function"
-  //val tupleNode: NodeSeq = (xml \ "tuple")
-  //val scalarNode: NodeSeq = (xml \ "scalar")
-  //val operationNode: NodeSeq = (xml \ "operation")
-
-  def uri: URI = new URI(datasetUri)
+  // Defines global metadata
+  val datasetName: String = (xml \ "@id").text
   override def metadata: Metadata =
-    Metadata("name" -> datasetName, "id" -> uri.getPath)
-  def model: DataType = createModel(functionNode).get
+    Metadata("id" -> datasetName)
+
+  // Defines the location of the dataset as a URI
+  val locationNode: NodeSeq = xml \ "source"
+  val locationUri: String = (locationNode \ "@uri").text
+  def uri: URI = new URI(locationUri)
+
+  // Defines the Adapter for reading the data
+  val adapterNode: NodeSeq = xml \ "adapter"
   def adapter: Adapter = createAdapter(adapterNode, model)
-  //override def operations: Seq[UnaryOperation] = createOperations(operationNode)
+
+  // Defines the model of the dataset
+  val functionNode: NodeSeq = xml \ "function"
+  def model: DataType = createModel(functionNode).get
 
   /**
    * This method is used by the DatasetReader ServiceLoader to determine
@@ -44,11 +49,13 @@ class FdmlReader(xml: Elem) extends AdaptedDatasetReader {
     else None
   }
 
-  /** Recursively parse the function XML element into a domain and range.
-   *The createDataType function introduces recursion because it calls functions that can also call createDataType.
+  /**
+   * Recursively parse the function XML element into a domain and range.
+   * The createDataType function introduces recursion because it calls
+   * functions that can also call createDataType.
    */
   def createModel(
-      functionNode: NodeSeq
+    functionNode: NodeSeq
   ): Option[DataType] = {
     if (functionNode.length > 0) {
       createFunctionDataType(functionNode)
@@ -280,18 +287,13 @@ object FdmlReader {
   def apply(xmlText: String): FdmlReader =
     new FdmlReader(XML.loadString(xmlText))
 
-  def apply(uri: URI, validate: Boolean = false): FdmlReader =
-    FileUtils.resolveUri(uri) match {
-      case Some(uri) =>
-        if (validate) FdmlUtils.validateFdml(uri) match {
-          case Left(message) =>
-            val msg = s"FDML validation failed for $uri\n$message"
-            throw new RuntimeException(msg)
-          case _ =>
-        }
-        new FdmlReader(XML.load(uri.toURL))
-      case None =>
-        throw new RuntimeException(s"FDML not found: $uri")
+  def apply(uri: URI, validate: Boolean = false): FdmlReader = {
+    if (validate) FdmlUtils.validateFdml(uri).leftMap(throw _)
+    val xml: String = NetUtils.readUriIntoString(uri) match {
+      case Right(x) => x
+      case Left(e)  => throw e
     }
+    FdmlReader(xml)
+  }
 
 }
