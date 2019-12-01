@@ -1,17 +1,16 @@
 package latis.input
 
 import java.net.URI
-
 import org.junit.Assert._
+import org.junit.Ignore
 import org.junit.Test
 import org.scalatest.junit.JUnitSuite
+
 import latis.data._
 import latis.dataset.Dataset
 import latis.ops._
 import latis.util.FdmlUtils
-import latis.util.NetUtils
 import latis.util.StreamUtils
-import org.junit.Ignore
 
 
 class TestFdmlReader extends JUnitSuite {
@@ -48,7 +47,7 @@ class TestFdmlReader extends JUnitSuite {
   }
 
   @Test
-  def match_schema_location_in_multiline_xml() = {
+  def match_schema_location_in_multiline_xml(): Unit = {
     val pattern = """.*noNamespaceSchemaLocation\s*=\s*"(.*?)".*""".r
     val xml = System.lineSeparator +  " foo " +
       """ xsi:noNamespaceSchemaLocation="http://latis-data.io/schemas/1.0/fdml.xsd"> """ +
@@ -60,7 +59,7 @@ class TestFdmlReader extends JUnitSuite {
   }
 
   @Test @Ignore //TODO: avoid matching comments
-  def match_first_schema_location_in_multiline_xml() = {
+  def match_first_schema_location_in_multiline_xml(): Unit = {
     val pattern = """.*noNamespaceSchemaLocation\s*=\s*"(.*?)".*""".r
     val xml = System.lineSeparator +  " foo " +
       """ xsi:noNamespaceSchemaLocation="http://latis-data.io/schemas/1.0/fdml.xsd"> """ +
@@ -73,7 +72,7 @@ class TestFdmlReader extends JUnitSuite {
   }
 
   @Test
-  def get_schema_location() = {
+  def get_schema_location(): Unit = {
     val uri = FdmlUtils.getSchemaLocation(new URI("datasets/data.fdml")).right.get.toString
     assertEquals("http://latis-data.io/schemas/1.0/fdml-with-text-adapter.xsd", uri)
   }

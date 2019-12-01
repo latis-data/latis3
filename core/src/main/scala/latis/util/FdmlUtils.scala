@@ -1,12 +1,10 @@
 package latis.util
 
+import cats.implicits._
 import java.net.URI
-
 import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.Schema
 import javax.xml.validation.SchemaFactory
-
-import cats.implicits._
 
 object FdmlUtils {
 
@@ -42,9 +40,11 @@ object FdmlUtils {
     val pattern = """.*noNamespaceSchemaLocation\s*=\s*"(.*?)".*""".r
     NetUtils.readUriIntoString(fdmlUri).flatMap { xml =>
       val z = xml.replaceAll("\n", " ")
-      z match {  //pattern match doesn't like the new lines
-        case pattern(uri) => NetUtils.resolveUri(uri)
-        case _ => Either.left(LatisException(s"Schema location not defined in $fdmlUri"))
+      z match { //pattern match doesn't like the new lines
+        case pattern(uri) =>
+          NetUtils.resolveUri(uri)
+        case _ =>
+          Either.left(LatisException(s"Schema location not defined in $fdmlUri"))
       }
     }
   }
@@ -56,11 +56,11 @@ object FdmlUtils {
     val isValid = for {
       schema <- getSchemaFromFdml(fdmlUri)
       fdml   <- getXmlSource(fdmlUri) //TODO: avoid reading fdml twice? reuse xml StreamSource?
-      valid  <- Either.catchNonFatal {
-        schema.newValidator().validate(fdml)
-      }
+      valid  <- Either.catchNonFatal(schema.newValidator().validate(fdml))
     } yield valid
-    isValid.leftMap(t => LatisException(s"Validation failed for $fdmlUri\n$t", t))
+    isValid.leftMap(
+      t => LatisException(s"Validation failed for $fdmlUri\n$t", t)
+    )
     // Note, the validation Exception's toString provides line numbers that the message doesn't.
   }
 
@@ -68,6 +68,5 @@ object FdmlUtils {
    * Validates FDML represented by the given URI.
    */
   def validateFdml(uri: String): Either[LatisException, Unit] =
-    NetUtils.parseUri(uri).flatMap(validateFdml(_))
-
+    NetUtils.parseUri(uri).flatMap(validateFdml)
 }

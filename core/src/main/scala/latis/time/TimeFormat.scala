@@ -1,6 +1,5 @@
 package latis.time
 
-import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -51,7 +50,7 @@ class TimeFormat(format: String) {
         sdf.set2DigitYearStart(new Date(t))
       case Left(e) =>
         throw e
-    } 
+    }
     this
   }
 
@@ -84,10 +83,10 @@ object TimeFormat {
    * e.g. for each sample of a dataset, it is recommended that a
    * TimeFormat object be created with fromIsoValue and reused.
    */
-  def parseIso(time: String): Either[Exception, Long] = 
+  def parseIso(time: String): Either[Exception, Long] =
     for {
       formatter <- fromIsoValue(time)
-      tvalue  <- formatter.parse(time)
+      tvalue    <- formatter.parse(time)
     } yield tvalue
 
   /**
@@ -115,7 +114,7 @@ object TimeFormat {
   /**
    * Matches the date portion of an ISO time to a format string.
    */
-  private def getDateFormatString(s: String): Either[Exception, String] = 
+  private def getDateFormatString(s: String): Either[Exception, String] =
     s.length match {
       case 4 => Right("yyyy")
       case 6 => Right("yyMMdd") //Note, yyyyMM is not ISO compliant
@@ -131,7 +130,7 @@ object TimeFormat {
       case _ =>
         val msg = s"Failed to determine a date format for $s"
         Left(new IllegalArgumentException(msg))
-  }
+    }
 
   /**
    * Matches the time portion of an ISO time to a format string.

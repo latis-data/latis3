@@ -1,9 +1,9 @@
 package latis.util
 
-import java.net.URI
-
 import cats.implicits._
 import fs2.text
+import java.net.URI
+
 import latis.input.StreamSource
 
 object NetUtils {
@@ -20,13 +20,14 @@ object NetUtils {
 
   def resolveUri(uri: URI): Either[LatisException, URI] =
     if (uri.isAbsolute) Either.right(uri) //Already complete with scheme
-    else Either.catchNonFatal {
-      //TODO: either-ify FileUtils
-      FileUtils.resolvePath(uri.getPath) match {
-        case Some(p) => p.toUri
-        case None => throw LatisException("FileUtils failed to resolve path")
-      }
-    }.leftMap(LatisException(s"Failed to resolve URI: $uri", _))
+    else
+      Either.catchNonFatal {
+        //TODO: either-ify FileUtils
+        FileUtils.resolvePath(uri.getPath) match {
+          case Some(p) => p.toUri
+          case None    => throw LatisException("FileUtils failed to resolve path")
+        }
+      }.leftMap(LatisException(s"Failed to resolve URI: $uri", _))
 
   def resolveUri(uri: String): Either[LatisException, URI] =
     parseUri(uri).flatMap(resolveUri)
@@ -41,5 +42,4 @@ object NetUtils {
       .unsafeRunSync
       .map(_.mkString)
       .leftMap(LatisException(s"Failed to read URI: $uri", _))
-
 }
