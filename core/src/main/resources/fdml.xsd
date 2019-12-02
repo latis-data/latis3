@@ -35,37 +35,7 @@
     <xs:element name="datatype" abstract="true"/>
     <xs:element name="scalar" substitutionGroup="datatype">
         <xs:complexType>
-            <xs:attribute name="id" use="required"/>
-            <xs:attribute name="type" use="required">
-                <xs:simpleType>
-                    <xs:restriction base="xs:string">
-                        <xs:enumeration value="boolean"/>
-                        <xs:enumeration value="byte"/>
-                        <xs:enumeration value="char"/>
-                        <xs:enumeration value="short"/>
-                        <xs:enumeration value="int"/>
-                        <xs:enumeration value="long"/>
-                        <xs:enumeration value="float"/>
-                        <xs:enumeration value="double"/>
-                        <xs:enumeration value="binary"/>
-                        <xs:enumeration value="string"/>
-                        <xs:enumeration value="bigint"/>
-                        <xs:enumeration value="bigdecimal"/>
-                    </xs:restriction>
-                </xs:simpleType>
-            </xs:attribute>
-            <xs:attribute name="class" type="xs:string"/>
-            <xs:attribute name="alias" type="xs:string"/>
-            <xs:attribute name="origName" type="xs:string"/>
-            <xs:attribute name="title" type="xs:string"/>
-            <xs:attribute name="description" type="xs:string"/>
-            <xs:attribute name="fillValue" type="xs:string"/>
-            <xs:attribute name="missingValue" type="xs:string"/>
-            <xs:attribute name="units" type="xs:string"/>
-            <xs:attribute name="length" type="xs:int"/>
-            <xs:attribute name="coverage" type="xs:string"/>
-            <xs:attribute name="validRange" type="xs:string"/>
-            <xs:attribute name="resolution" type="xs:string"/>
+            <xs:attributeGroup ref="scalar_attributes"/>
         </xs:complexType>
     </xs:element>
     <xs:element name="tuple" substitutionGroup="datatype">
@@ -85,4 +55,38 @@
             <xs:attribute name="shape"/>
         </xs:complexType>
     </xs:element>
+
+    <xs:attributeGroup name="scalar_attributes">
+        <xs:attribute name="id" use="required"/>
+        <xs:attribute name="type" use="required">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="boolean"/>
+                    <xs:enumeration value="byte"/>
+                    <xs:enumeration value="char"/>
+                    <xs:enumeration value="short"/>
+                    <xs:enumeration value="int"/>
+                    <xs:enumeration value="long"/>
+                    <xs:enumeration value="float"/>
+                    <xs:enumeration value="double"/>
+                    <xs:enumeration value="binary"/>
+                    <xs:enumeration value="string"/>
+                    <xs:enumeration value="bigint"/>
+                    <xs:enumeration value="bigdecimal"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="class" type="xs:string"/>
+        <xs:attribute name="alias" type="xs:string"/>
+        <xs:attribute name="title" type="xs:string"/>
+        <xs:attribute name="description" type="xs:string"/>
+        <xs:attribute name="missingValue" type="xs:string"/>
+        <xs:attribute name="units" type="xs:string"/>
+        <xs:attribute name="length" type="xs:int"/>
+        <xs:attribute name="coverage" type="xs:string"/>
+        <xs:attribute name="validRange" type="xs:string"/>
+        <xs:attribute name="cadence" type="xs:string"/>
+        <xs:attribute name="resolution" type="xs:string"/>
+    </xs:attributeGroup>
+
 </xs:schema>
