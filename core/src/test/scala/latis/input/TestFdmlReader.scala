@@ -18,8 +18,21 @@ class TestFdmlReader extends JUnitSuite {
   @Test
   def validation(): Unit = {
     val fdmlFile = "datasets/data.fdml"
-    val v = FdmlUtils.validateFdml(fdmlFile)
-    assertTrue(v.isRight)
+    FdmlUtils.validateFdml(fdmlFile) match {
+      case Right(_) => //pass
+      case Left(e) =>
+        println(e.getMessage)
+        fail
+    }
+  }
+
+  @Test
+  def validate_file_not_found(): Unit = {
+    val fdmlFile = "nope.fdml"
+    FdmlUtils.validateFdml(fdmlFile) match {
+      case Left(e) =>
+        assertTrue(e.getMessage.contains("Failed to read URI"))
+    }
   }
 
   @Test
@@ -77,54 +90,4 @@ class TestFdmlReader extends JUnitSuite {
     assertEquals("http://latis-data.io/schemas/1.0/fdml-with-text-adapter.xsd", uri)
   }
 
-  /*
-  scalar metadata
-    id (or identifier? vs uuid)
-    alias (cs-list)
-    origName (or origId? e.g. might not be valid id format)
-    title (or longName, label?)
-    description
-    type
-    class
-    units (or richer element, later)
-    fillValue
-    missingValue
-    size (bytes, binary only? or use length?)
-    length (characters, string only; charset? UTF-8, for formatting vs storage)
-    coverage for domain variables
-      "min/max" see iso 8601 intervals
-    resolution for domain vars, in current units
-    validRange for range vars?
-      same "/" notation (until v2)
-
-  real, integer, text, ...?
-    with hook for default impl
-    maybe later
-
-  separate metadata element? or multiple?
-    maybe later
-
-  Allow any key-value?
-    with optional metadata schema ref
-    diff namespace? "ext", "hapi"?
-
-  Function
-    length (for nested function, not often expressed in data source)
-    shape (or dims? e.g. indicates cartesian)
-      "*" for unlimited/unknown?
-
-  Dataset
-    id
-    title
-    description
-    history
-    other global properties
-  URI for dataset
-    feels lost as attribute
-    richer location element
-      e.g. database connection info
-
-  Adapter specific
-
-   */
 }
