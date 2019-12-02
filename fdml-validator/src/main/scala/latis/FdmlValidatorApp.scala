@@ -51,7 +51,7 @@ object FdmlValidatorApp extends IOApp {
     _   <- IO(println(s"Validating ${uri.toString()}"))
     res <- FdmlUtils.validateFdml(uri) match {
       case Right(_)  => IO(println("valid")).as(Valid)
-      case Left(msg) => IO(println(msg)).as(Invalid)
+      case Left(err) => IO(println(err.message)).as(Invalid)
     }
     _   <- IO(print(System.lineSeparator()))
   } yield res
