@@ -9,7 +9,7 @@
                 <xs:element ref="adapter"/>
                 <xs:element ref="datatype"/>
             </xs:sequence>
-            <xs:attribute name="id" type="xs:string"/>
+            <xs:attribute name="id" type="xs:string" use="required"/>
             <xs:attribute name="title" type="xs:string"/>
             <xs:attribute name="description" type="xs:string"/>
             <xs:attribute name="history" type="xs:string"/>
@@ -18,7 +18,7 @@
 
     <xs:element name="source">
         <xs:complexType>
-            <xs:attribute name="uri" type="xs:string"/>
+            <xs:attribute name="uri" type="xs:string" use="required"/>
         </xs:complexType>
     </xs:element>
 
@@ -29,7 +29,7 @@
     </xs:element>
 
     <xs:attributeGroup name="adapter_attributes">
-        <xs:attribute name="class"/>
+        <xs:attribute name="class" use="required"/>
     </xs:attributeGroup>
 
     <xs:element name="datatype" abstract="true"/>
@@ -52,7 +52,6 @@
                 <xs:element ref="datatype"/>
             </xs:choice>
             <xs:attribute name="id"/>
-            <xs:attribute name="shape"/>
         </xs:complexType>
     </xs:element>
 
