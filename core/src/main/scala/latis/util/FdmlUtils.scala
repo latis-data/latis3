@@ -5,6 +5,7 @@ import java.net.URI
 import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.Schema
 import javax.xml.validation.SchemaFactory
+import org.xml.sax.SAXParseException
 
 object FdmlUtils {
 
@@ -58,9 +59,20 @@ object FdmlUtils {
       fdml   <- getXmlSource(fdmlUri) //TODO: avoid reading fdml twice? reuse xml StreamSource?
       valid  <- Either.catchNonFatal(schema.newValidator().validate(fdml))
     } yield valid
-    isValid.leftMap(
-      t => LatisException(s"Validation failed for $fdmlUri\n$t", t)
-    )
+    isValid.leftMap { t =>
+      val baseMessage = s"Validation failed for $fdmlUri"
+      t match {
+        case spe: SAXParseException =>
+          val msg = baseMessage +
+            System.lineSeparator +
+            s"  at line ${spe.getLineNumber}, column ${spe.getColumnNumber}" +
+            System.lineSeparator +
+            "  " + spe.getMessage
+          LatisException(msg, spe)
+        case le: LatisException => le
+        case _                  => LatisException(cause = t)
+      }
+    }
     // Note, the validation Exception's toString provides line numbers that the message doesn't.
   }
 

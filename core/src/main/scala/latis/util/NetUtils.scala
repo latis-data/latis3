@@ -27,7 +27,9 @@ object NetUtils {
           case Some(p) => p.toUri
           case None    => throw LatisException("FileUtils failed to resolve path")
         }
-      }.leftMap(LatisException(s"Failed to resolve URI: $uri", _))
+      }.leftMap {
+        LatisException(s"Failed to resolve URI: $uri", _)
+      }
 
   def resolveUri(uri: String): Either[LatisException, URI] =
     parseUri(uri).flatMap(resolveUri)
@@ -41,5 +43,7 @@ object NetUtils {
       .attempt
       .unsafeRunSync
       .map(_.mkString)
-      .leftMap(LatisException(s"Failed to read URI: $uri", _))
+      .leftMap {
+        LatisException(s"Failed to read URI: $uri", _)
+      }
 }
