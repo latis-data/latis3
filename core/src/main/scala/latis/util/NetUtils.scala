@@ -39,10 +39,9 @@ object NetUtils {
       .getStream(uri)
       .through(text.utf8Decode)
       .compile
-      .toList
+      .string
       .attempt
       .unsafeRunSync
-      .map(_.mkString)
       .leftMap {
         LatisException(s"Failed to read URI: $uri", _)
       }
