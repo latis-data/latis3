@@ -34,17 +34,17 @@ object FdmlUtils {
     getSchemaLocation(fdmlUri).flatMap(getSchema)
 
   /**
-   * Finds the schemaLocation definition in the given FDML.
+   * Finds the schema location definition in the given FDML.
    * It is only required in order to support validation.
    */
   def getSchemaLocation(fdmlUri: URI): Either[LatisException, URI] = {
-    val pattern = """.*noNamespaceSchemaLocation\s*=\s*"(.*?)".*""".r
+    val pattern = """noNamespaceSchemaLocation\s*=\s*"(.*?)"""".r
     NetUtils.readUriIntoString(fdmlUri).flatMap { xml =>
-      val z = xml.replaceAll("\n", " ")
-      z match { //pattern match doesn't like the new lines
-        case pattern(uri) =>
+      pattern.findFirstMatchIn(xml) match {
+        case Some(m) =>
+          val uri = m.group(1)
           NetUtils.resolveUri(uri)
-        case _ =>
+        case None =>
           Either.left(LatisException(s"Schema location not defined in $fdmlUri"))
       }
     }
