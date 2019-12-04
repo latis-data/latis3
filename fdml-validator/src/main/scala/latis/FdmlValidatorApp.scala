@@ -3,27 +3,22 @@ package latis
 import java.net.URI
 import java.nio.file.Paths
 
-import cats.effect.ExitCode
-import cats.effect.IO
-import cats.effect.IOApp
-import cats.implicits._
-
 import latis.util.FdmlUtils
 
-object FdmlValidatorApp extends IOApp {
+object FdmlValidatorApp {
 
   sealed trait Validation
   final case object Valid extends Validation
   final case object Invalid extends Validation
 
-  private val usage: IO[Unit] = IO {
-    println("No files or URLs specified.")
-  }
+  private def usage(): Unit = println("No files or URLs specified.")
 
-  private def invalidArg(arg: String): IO[Validation] = IO {
+  private def invalidArg(arg: String): Validation = {
     println(s"Invalid argument: $arg")
     print(System.lineSeparator())
-  }.as(Invalid)
+
+    Invalid
+  }
 
   /**
    * Converts user input to a URI.
@@ -47,25 +42,30 @@ object FdmlValidatorApp extends IOApp {
   }
 
   /** Validates FDML file at given URI. */
-  private def validate(uri: URI): IO[Validation] = for {
-    _   <- IO(println(s"Validating ${uri.toString()}"))
-    res <- FdmlUtils.validateFdml(uri) match {
-      case Right(_)  => IO(println("valid")).as(Valid)
-      case Left(err) => IO(println(err.message)).as(Invalid)
-    }
-    _   <- IO(print(System.lineSeparator()))
-  } yield res
+  private def validate(uri: URI): Validation = {
+    println(s"Validating ${uri.toString()}")
 
-  def run(args: List[String]): IO[ExitCode] = args match {
-    case Nil => usage.as(ExitCode.Error)
-    case xs  => xs.traverse { x =>
-      toUri(x).map(validate).getOrElse(invalidArg(x))
-    }.map { rs =>
-      if (rs.forall(_ == Valid)) {
-        ExitCode.Success
-      } else {
-        ExitCode.Error
-      }
+    val res = FdmlUtils.validateFdml(uri) match {
+      case Right(_)  => { println("valid"); Valid }
+      case Left(err) => { println(err.message); Invalid }
     }
+
+    print(System.lineSeparator())
+
+    res
+  }
+
+  def main(args: Array[String]): Unit = args.toList match {
+    case Nil => usage()
+    case xs  =>
+      val results = xs.map { x =>
+        toUri(x).fold(invalidArg(x))(validate)
+      }
+
+      if (results.forall(_ == Valid)) {
+        System.exit(0)
+      } else {
+        System.exit(1)
+      }
   }
 }
