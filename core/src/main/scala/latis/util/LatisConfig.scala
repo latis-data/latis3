@@ -23,13 +23,13 @@ object LatisConfig {
 
   def getOrElse(path: String, default: String): String =
     getString(path).getOrElse(default)
-    
+
   def getInt(path: String): Option[Int] =
     ifExists(path)(config.getInt)
 
   def getOrElse(path: String, default: Int): Int =
     getInt(path).getOrElse(default)
-    
+
   def getBoolean(path: String): Option[Boolean] =
     ifExists(path)(config.getBoolean)
 

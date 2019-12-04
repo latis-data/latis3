@@ -4,6 +4,7 @@ import java.io.File
 import java.net.URI
 import java.net.URL
 import java.nio.file._
+
 import scala.collection.JavaConverters.asScalaIteratorConverter
 import scala.util.Properties
 import scala.util.Try
@@ -58,7 +59,7 @@ object FileUtils {
     try {
       FileSystems.getFileSystem(uri)
     } catch {
-      case fsnfe: FileSystemNotFoundException =>
+      case _: FileSystemNotFoundException =>
         val env = new java.util.HashMap[String, String]()
         FileSystems.newFileSystem(uri, env)
     }

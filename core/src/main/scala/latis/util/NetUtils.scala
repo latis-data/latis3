@@ -1,8 +1,9 @@
 package latis.util
 
+import java.net.URI
+
 import cats.implicits._
 import fs2.text
-import java.net.URI
 
 import latis.input.StreamSource
 

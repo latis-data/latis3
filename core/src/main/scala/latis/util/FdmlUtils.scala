@@ -1,10 +1,11 @@
 package latis.util
 
-import cats.implicits._
 import java.net.URI
 import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.Schema
 import javax.xml.validation.SchemaFactory
+
+import cats.implicits._
 import org.xml.sax.SAXParseException
 
 object FdmlUtils {

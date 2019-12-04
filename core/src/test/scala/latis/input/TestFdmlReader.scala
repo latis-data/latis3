@@ -2,10 +2,8 @@ package latis.input
 
 import java.net.URI
 
-import org.http4s.CharsetRange.*
+import org.junit._
 import org.junit.Assert._
-import org.junit.Ignore
-import org.junit.Test
 import org.scalatest.junit.JUnitSuite
 
 import latis.data._
