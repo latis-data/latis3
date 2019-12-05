@@ -27,7 +27,7 @@ class TextAdapter(model: DataType, config: TextAdapter.Config = new TextAdapter.
       .getStream(uri)
       .through(text.utf8Decode)
       .through(text.lines)
-      .drop(config.linesToSkip)
+      .drop(config.linesToSkip.toLong)
       .through(seekToDataMarker(config.dataMarker))
       .filter(notComment)
       .filter(_.nonEmpty) //filter out empty lines

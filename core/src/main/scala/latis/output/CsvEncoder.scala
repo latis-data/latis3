@@ -38,7 +38,7 @@ class CsvEncoder extends Encoder[IO, String] {
         scalars.zip(datas).map {
           case (s: Scalar, d: Datum) =>
             s.formatValue(d)
-          //TODO: case _ => bug
+          case _ => ???
         }.mkString(",")
     }
 }

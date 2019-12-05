@@ -49,7 +49,7 @@ case class Projection(vids: String*) extends MapOperation {
     // Sort since the FDM requires original order of variables.
     // TODO: could we allow range to be reordered?
     import scala.language.postfixOps
-    val domainIndices: Seq[Int] = samplePositions.collect { case DomainPosition(i) => i } sorted
+    //val domainIndices: Seq[Int] = samplePositions.collect { case DomainPosition(i) => i } sorted
     val rangeIndices: Seq[Int]  = samplePositions.collect { case RangePosition(i)  => i } sorted
 
     (sample: Sample) => sample match {

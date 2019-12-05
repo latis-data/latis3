@@ -1,7 +1,5 @@
 package latis.ops
 
-import scala.language.postfixOps
-
 import latis.data._
 import latis.model._
 
@@ -104,9 +102,9 @@ case class Substitution() extends BinaryOperation {
       case (head :: tail) if (tail.isEmpty) =>
         head match {
           case DomainPosition(i) =>
-            val vals  = sample.domain.toSeq
+            val vals  = sample.domain
             val slice = vals.slice(i, i + vids.length) //get values to be replaced
-            val sub   = sf(DomainData(slice)).get.toSeq //TODO: handle bad eval
+            val sub   = sf(DomainData(slice)).get //TODO: handle bad eval
             /*
              * TODO: the range data will be sub'd into the domain so it must be Ordered Data
              */
@@ -116,17 +114,17 @@ case class Substitution() extends BinaryOperation {
             val domain = DomainData(vals2)
             Sample(domain, sample.range)
           case RangePosition(i) =>
-            val vals = sample.range.toSeq
+            val vals = sample.range
             //get values to be replaced
             val slice = vals.slice(i, i + vids.length)
             /*
              * TODO: to use the range values to eval the sub ds, they must be Ordered Data
              */
-            val sub = sf(DomainData(slice)).get.toSeq //TODO: handle bad eval
+            val sub = sf(DomainData(slice)).get //TODO: handle bad eval
             val vals2 = vals.splitAt(i) match {
               case (p1, p2) => p1 ++ sub ++ p2.drop(slice.length) //splice in new data
             }
-            val range = RangeData(vals)
+            val range = RangeData(vals2)
             Sample(sample.domain, range)
         }
       // Tail not empty, recurse
@@ -172,7 +170,7 @@ case class Substitution() extends BinaryOperation {
       case s: Scalar =>
         if ((vids.length == 1) && (s.id == vids.head)) range
         else s
-      case tup @ Tuple(es @ _*) =>
+      case Tuple(es @ _*) =>
         es.map(_.id).indexOfSlice(vids) match {
           case -1 => Tuple(es.map(go): _*) //no match, keep recursing
           case index =>
@@ -199,7 +197,7 @@ case class Substitution() extends BinaryOperation {
       d match {
         case s: Scalar => Seq(s.id)
         case t: Tuple  => t.getScalars.map(_.id) //flattens nested Tuples
-        case _         => ??? //TODO: can't have Function in domain
+        case _ => ??? //TODO: can't have Function in domain
       }
     case _ => ??? //TODO invalid dataset type for ds2, must be Function
   }

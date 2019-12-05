@@ -1,7 +1,5 @@
 package latis.data
 
-import scala.language.postfixOps
-
 /**
  * A SampledFunction implemented with a 2D array.
  * The domain values are 0-based indices as Ints.
