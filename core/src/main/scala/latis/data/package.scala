@@ -28,8 +28,6 @@ package object data {
    */
   type SamplePath = Seq[SamplePosition]
 
-
-
   /**
    * Define implicit class to provide operations on Sample objects.
    */
@@ -44,12 +42,8 @@ package object data {
      * The value could represent a Scalar variable or a nested Function.
      */
     def getValue(samplePosition: SamplePosition): Option[Data] = samplePosition match {
-      case DomainPosition(n) =>
-        if (n < domain.length) Some(domain(n))
-        else None
-      case RangePosition(n) =>
-        if (n < range.length) Some(range(n))
-        else None
+      case DomainPosition(n) => domain.lift(n)
+      case RangePosition(n)  => range.lift(n)
     }
 
     /**
@@ -78,19 +72,19 @@ package object data {
   implicit object DomainOrdering extends Ordering[DomainData] {
     def compare(d1: DomainData, d2: DomainData): Int = ???
   }
-  
+
   implicit object SampleOrdering extends Ordering[Sample] {
     def compare(s1: Sample, s2: Sample): Int =
       DomainOrdering.compare(s1.domain, s2.domain)
   }
-  
+
   implicit object NumberOrdering extends Ordering[Number] {
     def compare(n1: Number, n2: Number): Int =
-      n1.asDouble compare n2.asDouble
+      n1.asDouble.compare(n2.asDouble)
   }
-  
+
   implicit object TextOrdering extends Ordering[Text] {
     def compare(t1: Text, t2: Text): Int =
-      t1.asString compare t2.asString
+      t1.asString.compare(t2.asString)
   }
 }
