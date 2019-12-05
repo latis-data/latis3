@@ -1,8 +1,7 @@
 package latis.ops
 
-import latis.model._
-import latis.metadata._
 import latis.data._
+import latis.model._
 
 /**
  * Operation to restructure a Dataset by defining a new domain
@@ -32,14 +31,14 @@ case class GroupBy(vnames: String*) extends UnaryOperation {
       Function(outerDomain, Function(innerDomain, range))
     case _ => ??? //TODO: error, model must be a Function
   }
-  
+
   /**
    * Convert the variable information from the model into SamplePaths
    * that can be applied to the model-agnostic SampledFunction.
    */
   override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
-    val paths = vnames.flatMap(model.getPath(_))  //TODO: deal with invalid vname
+    val paths = vnames.flatMap(model.getPath) //TODO: deal with invalid vname
     data.groupBy(paths: _*)
   }
-  
+
 }

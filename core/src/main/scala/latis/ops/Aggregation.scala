@@ -1,11 +1,9 @@
 package latis.ops
 
+import scala.collection.mutable.ListBuffer
+
 import latis.data._
 import latis.model.DataType
-import scala.collection.mutable.Builder
-import latis.dataset.Dataset
-import scala.collection.mutable.ListBuffer
-import fs2.Stream
 
 /**
  * Reduce a Function to a 0-arity (constant) function.
@@ -20,7 +18,7 @@ trait Aggregation extends UnaryOperation {
    */
   def aggregationFunction: (DomainData, Iterable[Sample]) => Sample =
     (dd: DomainData, samples: Iterable[Sample]) => {
-      val agg = makeAggregator(dd) ++= samples //TODO: test performance when streaming orig samples into NN agg, lazy?
+      val agg   = makeAggregator(dd) ++= samples //TODO: test performance when streaming orig samples into NN agg, lazy?
       val range = RangeData(agg.result())
       //TODO: use fill value if result is empty
       Sample(dd, range)
@@ -31,9 +29,9 @@ trait Aggregation extends UnaryOperation {
    * assume outer Function, for now
    */
   override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
-    val dd = DomainData()
+    val dd      = DomainData()
     val samples = data.unsafeForce.samples
-    val range = aggregationFunction(dd, samples).range
+    val range   = aggregationFunction(dd, samples).range
     //TODO: just make a SF with the 0-arity DomainData?
     ConstantFunction(range)
   }
@@ -49,15 +47,15 @@ case class NoAggregation() extends Aggregation {
   /**
    * Although the NoAggregation Operation will be a no-op for a Dataset,
    * in some cases (e.g. GroupByBin) we want to use the Aggregator via
-   * composition with this Aggregation. (Note that GBB also needs the model 
-   * update for general aggregation.) The Aggregator here will simply 
+   * composition with this Aggregation. (Note that GBB also needs the model
+   * update for general aggregation.) The Aggregator here will simply
    * collect the Samples added to it and build a SampledFunction from them.
    */
   def makeAggregator(domain: DomainData = DomainData()): Aggregator = new Aggregator {
     private val buffer: ListBuffer[Sample] = ListBuffer()
-    def +=(sample: Sample) = { buffer += sample; this }
+    def +=(sample: Sample)                 = { buffer += sample; this }
     def result(): List[Data] =
-      if (buffer.length > 0) List(SampledFunction(buffer))
+      if (buffer.nonEmpty) List(SampledFunction(buffer))
       else List.empty
   }
 }
@@ -69,7 +67,7 @@ case class NoAggregation() extends Aggregation {
  */
 trait Aggregator {
   //TODO: consider using fold (FP) instead of builder (OO)
-  
+
   /**
    * Add a Sample to this aggregation.
    */
@@ -79,10 +77,10 @@ trait Aggregator {
    * Add a collection of Samples to this Aggregator.
    */
   def ++=(samples: Iterable[Sample]): this.type = {
-    samples foreach +=
+    samples.foreach(+=)
     this
   }
-  
+
   /**
    * Produce the final aggregated result:
    * the aggregation of Samples reduced to a List of Data.

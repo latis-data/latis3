@@ -7,12 +7,11 @@ import latis.model._
  * This only impacts the model.
  */
 class Rename(origName: String, newName: String) extends UnaryOperation {
-  
-  override def applyToModel(model: DataType): DataType = {
-    model map {
+
+  override def applyToModel(model: DataType): DataType =
+    model.map {
       case v if (v.id == origName) => v.rename(newName)
       //TODO: support aliases with hasName
       case v => v
     }
-  }
 }

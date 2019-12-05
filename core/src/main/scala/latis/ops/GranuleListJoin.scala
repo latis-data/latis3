@@ -14,26 +14,26 @@ import latis.model.DataType
  * to the previous granule.
  */
 case class GranuleListJoin(model: DataType, adapter: Adapter) extends UnaryOperation {
-  
+
   /**
-   * Replace the original model (of the granule list dataset) 
-   * with the model of the granules. 
+   * Replace the original model (of the granule list dataset)
+   * with the model of the granules.
    */
   override def applyToModel(_model: DataType): DataType = model
-  
+
   /**
    * Apply the Adapter to each URI in the granule list dataset
    * to generate a SampledFunction for each and wrap them all
    * in a CompositeSampledFunction.
    */
   override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
-    
+
     // Get the position of the "uri" value within a Sample
     val pos: SamplePosition = model.getPath("uri") match {
       case Some(path) if (path.length == 1) => path.head
       case _ => ??? //TODO: error, no non-nested uri
     }
-    
+
     // Make function that can be mapped over the granule list data.
     // Extract the uri then apply that to the Adapter to get the data for that granule.
     val f: Sample => SampledFunction = (sample: Sample) => {
@@ -44,21 +44,17 @@ case class GranuleListJoin(model: DataType, adapter: Adapter) extends UnaryOpera
         case _ => ??? //TODO: error if type is wrong, position should be valid
       }
     }
-    
-    // Create SampledFunctions for each granule URI 
+
+    // Create SampledFunctions for each granule URI
     // and combine into a CompositeSampledFunction.
     // Note the unsafeForce so we can get the Seq out of IO.
     CompositeSampledFunction(data.unsafeForce.samples.map(f))
   }
-  
-}
 
+}
 
 object GranuleListJoin {
 
   def apply(model: DataType, config: AdapterConfig): GranuleListJoin =
     GranuleListJoin(model, AdapterFactory.makeAdapter(model, config))
 }
-
-
-

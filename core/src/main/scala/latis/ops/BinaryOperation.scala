@@ -7,12 +7,12 @@ import latis.model.DataType
  * Defines an Operation that combines two Datasets into one.
  */
 trait BinaryOperation extends Operation {
-  
+
   /**
    * Combines the models of two Datasets.
    */
   def applyToModel(model1: DataType, model2: DataType): DataType
-  
+
   /**
    * Combines the Data of two Datasets.
    */

@@ -1,7 +1,6 @@
 package latis.ops
 
 import latis.data._
-import latis.metadata._
 import latis.model._
 
 /**
@@ -17,28 +16,27 @@ trait MapOperation extends UnaryOperation with StreamingOperation { self =>
    * into a new Sample.
    */
   def mapFunction(model: DataType): Sample => Sample
-  
+
   /**
    * Compose with a MappingOperation.
    * Note that the MappingOperation will be applied first.
    * This satisfies the StreamingOperation trait.
    */
-  def compose(mappingOp: MapOperation) = new MapOperation {
+  def compose(mappingOp: MapOperation): MapOperation = new MapOperation {
     //TODO: apply to metadata
-    
-    def mapFunction(model: DataType): Sample => Sample = 
-      mappingOp.mapFunction(model) andThen 
-      self.mapFunction(mappingOp.applyToModel(model))
-    
-    override def applyToModel(model: DataType): DataType = 
+
+    def mapFunction(model: DataType): Sample => Sample =
+      mappingOp.mapFunction(model).andThen(self.mapFunction(mappingOp.applyToModel(model)))
+
+    override def applyToModel(model: DataType): DataType =
       self.applyToModel(mappingOp.applyToModel(model))
   }
-  
+
   /**
    * Delegate to the Dataset's SampledFunction to apply the "map" function
    * and generate a new SampledFunction
    */
   override def applyToData(data: SampledFunction, model: DataType): SampledFunction =
     data.map(mapFunction(model))
-  
+
 }

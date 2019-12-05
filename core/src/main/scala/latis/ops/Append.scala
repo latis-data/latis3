@@ -9,16 +9,15 @@ import latis.model.DataType
 case class Append() extends BinaryOperation {
   //TODO: assert that models are the same
   //TODO: consider CompositeSampledFunction
-  
+
   def applyToModel(model1: DataType, model2: DataType): DataType = model1
-  
+
   def applyToData(
     model1: DataType,
     data1: SampledFunction,
     model2: DataType,
     data2: SampledFunction
-  ): SampledFunction = {
+  ): SampledFunction =
     SampledFunction(data1.streamSamples ++ data2.streamSamples)
-  }
 
 }

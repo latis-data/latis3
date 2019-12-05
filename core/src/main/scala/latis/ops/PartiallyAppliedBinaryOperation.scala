@@ -9,18 +9,18 @@ import latis.model.DataType
  * to become a UnaryOperation.
  */
 case class PartiallyAppliedBinaryOperation(
-  binOp: BinaryOperation, 
+  binOp: BinaryOperation,
   dataset: Dataset
 ) extends UnaryOperation {
   //TODO: provide both left and right versions
   //TODO: capture 1st dataset in prov
-  
+
   override def applyToModel(model: DataType): DataType =
     binOp.applyToModel(dataset.model, model)
-    
+
   override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
     val data0 = dataset match {
-      case ad: AdaptedDataset => ad.tap.data
+      case ad: AdaptedDataset => ad.tap().data
       case td: TappedDataset  => td.data
     }
     binOp.applyToData(dataset.model, data0, model, data)
