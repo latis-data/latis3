@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+
 import scala.util._
 
 /**
@@ -69,7 +70,7 @@ object TimeFormat {
   /**
    * Provides a TimeFormat for the default ISO 8601 format.
    */
-  val Iso = TimeFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+  val Iso: TimeFormat = TimeFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
 
   /**
    * Represents the given time in milliseconds as the
@@ -118,14 +119,12 @@ object TimeFormat {
     s.length match {
       case 4 => Right("yyyy")
       case 6 => Right("yyMMdd") //Note, yyyyMM is not ISO compliant
-      case 7 => {
+      case 7 =>
         if (s.contains("-")) Right("yyyy-MM")
         else Right("yyyyDDD")
-      }
-      case 8 => {
+      case 8 =>
         if (s.contains("-")) Right("yyyy-DDD")
         else Right("yyyyMMdd")
-      }
       case 10 => Right("yyyy-MM-dd")
       case _ =>
         val msg = s"Failed to determine a date format for $s"

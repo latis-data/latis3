@@ -6,13 +6,13 @@ package latis.metadata
  * Users of that class can then access metadata values via the "apply" method.
  */
 trait MetadataLike {
-  
+
   /**
    * Abstract method for subtypes to provide metadata.
    * This could also be a val and part of a constructor.
    */
   def metadata: Metadata
-  
+
   /**
    * Provide optional metadata values by name.
    */

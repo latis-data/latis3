@@ -1,13 +1,13 @@
 package latis.dataset
 
+import latis.data.MemoizedFunction
 import latis.metadata.Metadata
 import latis.model.DataType
-import latis.data.MemoizedFunction
 import latis.ops.UnaryOperation
 
 /**
- * Defines a Dataset whose data is not connected 
- * to an external data resource. 
+ * Defines a Dataset whose data is not connected
+ * to an external data resource.
  */
 class MemoizedDataset(
   _metadata: Metadata,

@@ -23,8 +23,7 @@ case class TimeScale(timeUnit: TimeUnit, epoch: String) extends MeasurementScale
   override def baseMultiplier: Double = timeUnit.baseMultiplier
 
   override def zero: Double =
-    -TimeFormat
-      .parseIso(epoch)
+    -TimeFormat.parseIso(epoch)
       .map(_ / 1000 / baseMultiplier)
       .getOrElse { ??? }
 }

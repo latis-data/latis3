@@ -50,7 +50,7 @@ class AdaptedDataset(
     // from the rest. Note that we must preserve the order for safety.
     //TODO: "compile" the Operations to optimize the order of application
     val adapterOps = operations.takeWhile(adapter.canHandleOperation(_))
-    val otherOps = operations.drop(adapterOps.length)
+    val otherOps   = operations.drop(adapterOps.length)
 
     //TODO: add prov for adapter handled ops
 
@@ -69,7 +69,7 @@ class AdaptedDataset(
    * Returns a Stream of Samples from this Dataset.
    */
   def samples: Stream[IO, Sample] = tap().samples
-    
+
   /**
    * Transforms this TappedDataset into a MemoizedDataset.
    * Operations will be applied and the resulting samples

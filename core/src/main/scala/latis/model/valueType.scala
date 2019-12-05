@@ -5,6 +5,7 @@ import scala.util.Try
 import latis.data.Data._
 import latis.data.Datum
 import latis.data.NullData
+import latis.util.LatisException
 
 // Note, the parsing happens on the type side (as opposed to data)
 // so special Scalar types can override.
@@ -18,14 +19,12 @@ sealed trait ValueType {
 }
 
 object BooleanValueType extends ValueType {
-
   def parseValue(value: String): Try[Datum] = Try {
     BooleanValue(value.toBoolean)
   }
 }
 
 object ByteValueType extends ValueType {
-
   def parseValue(value: String): Try[Datum] = Try {
     ByteValue(value.toByte)
   }
@@ -36,14 +35,12 @@ object ByteValueType extends ValueType {
 }
 
 object CharValueType extends ValueType {
-
   def parseValue(value: String): Try[Datum] = Try {
     CharValue(value.head)
   }
 }
 
 object ShortValueType extends ValueType {
-
   def parseValue(value: String): Try[Datum] = Try {
     ShortValue(value.toShort)
   }
@@ -54,7 +51,6 @@ object ShortValueType extends ValueType {
 }
 
 object IntValueType extends ValueType {
-
   def parseValue(value: String): Try[Datum] = Try {
     IntValue(value.toInt)
   }
@@ -66,7 +62,6 @@ object IntValueType extends ValueType {
 }
 
 object LongValueType extends ValueType {
-
   def parseValue(value: String): Try[Datum] = Try {
     LongValue(value.toLong)
   }
@@ -78,7 +73,6 @@ object LongValueType extends ValueType {
 }
 
 object FloatValueType extends ValueType {
-
   def parseValue(value: String): Try[Datum] = Try {
     FloatValue(value.toFloat)
   }
@@ -90,7 +84,6 @@ object FloatValueType extends ValueType {
 }
 
 object DoubleValueType extends ValueType {
-
   def parseValue(value: String): Try[Datum] = Try {
     DoubleValue(value.toDouble)
   }
@@ -101,14 +94,12 @@ object DoubleValueType extends ValueType {
 }
 
 object BinaryValueType extends ValueType {
-
   def parseValue(value: String): Try[Datum] = Try {
     ??? //TODO: uudecode?
   }
 }
 
 object StringValueType extends ValueType {
-
   def parseValue(value: String): Try[Datum] = Try {
     StringValue(value)
   }
@@ -116,7 +107,6 @@ object StringValueType extends ValueType {
 }
 
 object BigIntValueType extends ValueType {
-
   def parseValue(value: String): Try[Datum] = Try {
     BigIntValue(BigInt(value))
   }
@@ -127,7 +117,6 @@ object BigIntValueType extends ValueType {
 }
 
 object BigDecimalValueType extends ValueType {
-
   def parseValue(value: String): Try[Datum] = Try {
     BigDecimalValue(BigDecimal(value))
   }
@@ -142,7 +131,7 @@ object BigDecimalValueType extends ValueType {
 
 object ValueType {
 
-  def fromName(name: String): Either[Exception, ValueType] = name.toLowerCase match {
+  def fromName(name: String): Either[LatisException, ValueType] = name.toLowerCase match {
     case "boolean"    => Right(BooleanValueType)
     case "byte"       => Right(ByteValueType)
     case "char"       => Right(CharValueType)
@@ -157,7 +146,7 @@ object ValueType {
     case "bigdecimal" => Right(BigDecimalValueType)
     case s =>
       val msg = s"Invalid Scalar value type: $s"
-      Left(new RuntimeException(msg))
+      Left(LatisException(msg))
   }
 
 }
