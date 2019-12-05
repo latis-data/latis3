@@ -1,14 +1,14 @@
 package latis.output
 
-import io.circe.Json
-import io.circe.{Encoder => CEncoder}
-import io.circe.syntax._
 import cats.effect.IO
 import fs2.Stream
+import io.circe.{Encoder => CEncoder}
+import io.circe.Json
+import io.circe.syntax._
+
 import latis.data._
 import latis.data.Data._
 import latis.dataset._
-import latis.model._
 import latis.ops.Uncurry
 
 class JsonEncoder extends Encoder[IO, Json] {

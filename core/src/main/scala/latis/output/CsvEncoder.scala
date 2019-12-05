@@ -1,7 +1,10 @@
 package latis.output
 
+import scala.util.Properties.lineSeparator
+
 import cats.effect.IO
 import fs2.Stream
+
 import latis.data.Datum
 import latis.data.Sample
 import latis.dataset.Dataset
@@ -9,8 +12,6 @@ import latis.model.DataType
 import latis.model.Function
 import latis.model.Scalar
 import latis.ops.Uncurry
-
-import scala.util.Properties.lineSeparator
 
 class CsvEncoder extends Encoder[IO, String] {
 
@@ -29,16 +30,15 @@ class CsvEncoder extends Encoder[IO, String] {
   /**
    * Encodes a single Sample to a String of comma separated values.
    */
-  def encodeSample(model: DataType, sample: Sample): String = {
+  def encodeSample(model: DataType, sample: Sample): String =
     (model, sample) match {
       case (Function(domain, range), Sample(ds, rs)) =>
         val scalars = domain.getScalars ++ range.getScalars
         val datas = ds ++ rs
-        (scalars zip datas).map {
+        scalars.zip(datas).map {
           case (s: Scalar, d: Datum) =>
             s.formatValue(d)
           //TODO: case _ => bug
         }.mkString(",")
     }
-  }
 }

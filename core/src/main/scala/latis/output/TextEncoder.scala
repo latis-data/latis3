@@ -37,33 +37,33 @@ class TextEncoder extends Encoder[IO, String] {
   /**
    * Given a Sample and its data model, creates a Stream of Strings.
    */
-  def encodeSample(model: DataType, sample: Sample): String = {
+  def encodeSample(model: DataType, sample: Sample): String =
     (model, sample) match {
       case (Function(domain, range), Sample(ds, rs)) =>
         " " * functionIndent +
           s"${encodeData(domain, ds)} -> ${encodeData(range, rs)}"
     }
-  }
 
   def encodeData(model: DataType, data: Seq[Data]): String = {
     val ds = scala.collection.mutable.Stack(data: _*)
 
     def go(dt: DataType): String = dt match {
       //TODO: error if ds is empty
-      case s: Scalar => ds.pop match {
-        case d: Datum => s.formatValue(d)
-        case _ => ??? //bug, inconsistent data
-      }
+      case s: Scalar =>
+        ds.pop match {
+          case d: Datum => s.formatValue(d)
+          case _ => ??? //bug, inconsistent data
+        }
 
       case Tuple(es @ _*) =>
-        es.map(go(_))
-          .mkString("(", ", ", ")")
+        es.map(go).mkString("(", ", ", ")")
 
       // Nested Function
-      case f: Function => ds.pop match {
-        case sf: MemoizedFunction => encodeFunction(f, sf)
-        case _ => ??? //Oops, model and data not consistent
-      }
+      case f: Function =>
+        ds.pop match {
+          case sf: MemoizedFunction => encodeFunction(f, sf)
+          case _ => ??? //Oops, model and data not consistent
+        }
     }
 
     go(model)
