@@ -4,6 +4,7 @@ import java.net.URI
 import java.nio.file.Paths
 
 import cats.implicits._
+
 import latis.dataset.Dataset
 import latis.util._
 
@@ -22,8 +23,8 @@ class FdmlDatasetResolver extends DatasetResolver {
   def getDataset(id: String): Option[Dataset] = {
     val validate: Boolean = LatisConfig.getOrElse("latis.fdml.validate", false)
     val ds = for {
-      uri <- NetUtils.parseUri(id + ".fdml")
-      fdml <- resolveFdml(uri)
+      uri     <- NetUtils.parseUri(id + ".fdml")
+      fdml    <- resolveFdml(uri)
       dataset <- Either.catchNonFatal {
         FdmlReader(fdml, validate).getDataset
       }
@@ -40,7 +41,7 @@ class FdmlDatasetResolver extends DatasetResolver {
    * that may be relative to the directory specified by the
    * latis.fdml.dir configuration option.
    */
-  def resolveFdml(uri: URI): Either[LatisException, URI] = {
+  def resolveFdml(uri: URI): Either[LatisException, URI] =
     if (uri.isAbsolute) Either.right(uri)
     else {
       val dir = LatisConfig.getOrElse("latis.fdml.dir", "datasets")
@@ -49,6 +50,5 @@ class FdmlDatasetResolver extends DatasetResolver {
       // Note on use of toString:
       // Path.toUri prepends the home directory as the base URI
     }
-  }
 
 }

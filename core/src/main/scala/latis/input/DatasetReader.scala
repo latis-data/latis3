@@ -1,9 +1,11 @@
 package latis.input
 
-import latis.dataset.Dataset
 import java.net.URI
 import java.util.ServiceLoader
+
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
+
+import latis.dataset.Dataset
 
 /**
  * DatasetReader is a trait to be extended by a class that can take a URI
@@ -18,13 +20,17 @@ trait DatasetReader {
 }
 
 object DatasetReader {
-  
+
   def read(uri: URI): Dataset =
-    ServiceLoader.load(classOf[DatasetReader]).asScala
-      .flatMap(_.read(uri)).headOption.getOrElse {
+    ServiceLoader
+      .load(classOf[DatasetReader])
+      .asScala
+      .flatMap(_.read(uri))
+      .headOption
+      .getOrElse {
         val msg = s"Failed to find a DatasetReader for URI: uri"
         throw new RuntimeException(msg)
         //TODO: return empty Dataset?  Dataset[IO]?
       }
-  
+
 }

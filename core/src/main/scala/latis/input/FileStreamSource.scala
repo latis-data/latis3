@@ -1,10 +1,11 @@
 package latis.input
 
+import java.io.InputStream
+import java.net.URI
+
 import cats.effect.IO
 import fs2.io.readInputStream
 import fs2.Stream
-import java.io.InputStream
-import java.net.URI
 
 import latis.util.LatisException
 import latis.util.NetUtils
@@ -27,7 +28,7 @@ class FileStreamSource extends StreamSource {
     if (uri.isAbsolute && uri.getScheme != "file") None //we don't handle it
     else
       NetUtils.resolveUri(uri) match {
-        case Left(e) =>
+        case Left(_) =>
           val msg = s"Failed to resolve file URI: $uri"
           Option(Stream.raiseError[IO](LatisException(msg)))
         case Right(u) =>
