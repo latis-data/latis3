@@ -26,7 +26,7 @@ package object data {
    * Each element in the path implies a nested Function.
    * An empty SamplePath indicates the outer Function itself.
    */
-  type SamplePath = Seq[SamplePosition]
+  type SamplePath = List[SamplePosition]
 
   /**
    * Define implicit class to provide operations on Sample objects.

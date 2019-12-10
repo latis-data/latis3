@@ -137,7 +137,7 @@ sealed trait DataType
             (d ++ r).collectFirst { case Some(p) => p } //short-circuit here, take first Some
         }
 
-    go(this.flatten(), id, Seq.empty)
+    go(this.flatten(), id, List.empty)
   }
 
   //TODO: beef up
