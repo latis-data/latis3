@@ -7,6 +7,7 @@ import scala.xml._
 
 import cats.implicits._
 
+import latis.dataset.AdaptedDataset
 import latis.dataset.Dataset
 import latis.metadata.Metadata
 import latis.model._
@@ -14,47 +15,32 @@ import latis.util.FdmlUtils
 import latis.util.NetUtils
 import latis.util.ReflectionUtils
 
+
 /**
  * From an FDML file an FdmlReader reader creates a dataset, configures its adapter, and builds the dataset's model.
  */
-class FdmlReader(xml: Elem) extends AdaptedDatasetReader {
+class Fdml(xml: Elem) {
 
   // Defines global metadata
-  val datasetName: String = (xml \ "@id").text
-  override def metadata: Metadata =
-    Metadata("id" -> datasetName)
+  def metadata: Metadata = Metadata(getAttributes(xml))
+  //TODO: require id?
 
-  // Defines the location of the dataset as a URI
-  val locationNode: NodeSeq = xml \ "source"
-  val locationUri: String = (locationNode \ "@uri").text
+  // Defines the source of the dataset as a URI
+  val locationUri: String = (xml \ "source" \ "@uri").text
   def uri: URI = new URI(locationUri)
 
   // Defines the Adapter for reading the data
-  val adapterNode: NodeSeq = xml \ "adapter"
-  def adapter: Adapter = createAdapter(adapterNode, model)
+  def adapter: Adapter = createAdapter(xml \ "adapter", model)
 
   // Defines the model of the dataset
-  val functionNode: NodeSeq = xml \ "function"
-  def model: DataType = createModel(functionNode).get
-
-  /**
-   * This method is used by the DatasetReader ServiceLoader to determine
-   * if this can read a dataset with the given URI. This is based on the
-   * dataset type, not IO errors.
-   */
-  override def read(uri: URI): Option[Dataset] =
-    // If the extension is "fdml" then try to load it
-    if (uri.getPath.endsWith(".fdml")) Some(FdmlReader.read(uri))
-    else None
+  def model: DataType = createModel(xml \ "function").get
 
   /**
    * Recursively parse the function XML element into a domain and range.
    * The createDataType function introduces recursion because it calls
    * functions that can also call createDataType.
    */
-  def createModel(
-    functionNode: NodeSeq
-  ): Option[DataType] =
+  def createModel(functionNode: NodeSeq): Option[DataType] =
     if (functionNode.length > 0) {
       createFunctionDataType(functionNode)
     } else {
@@ -93,36 +79,6 @@ class FdmlReader(xml: Elem) extends AdaptedDatasetReader {
       )
       .asInstanceOf[Adapter]
   }
-
-  ///**
-  // * Create a sequence of operations from XML that are to be applied to the dataset.
-  // */
-  //def createOperations(operationNodes: NodeSeq): Seq[UnaryOperation] = {
-  //  val operations: Seq[UnaryOperation] = for {
-  //    node <- operationNodes \ "_" // wildcard, get all top nodes
-  //    operation <- createOperation(node)
-  //  } yield operation
-  //  operations
-  //}
-
-  ///**
-  // * For a specified XML operation node, return a unary operation.
-  // * ToDo: reflection might be more elegant, but for now pattern matching will suffice
-  // */
-  //def createOperation(node: Node): Option[UnaryOperation] = {
-  //  node.label match {
-  //    case "contains" => contains(node)
-  //    case "groupby"  => groupBy(node)
-  //    case "head"     => head(node)
-  //    //case "pivot"     => pivot(node)
-  //    case "project" => project(node)
-  //    case "rename"  => rename(node)
-  //    case "select"  => select(node)
-  //    case "take"    => take(node)
-  //    case "uncurry" => uncurry(node)
-  //    case _         => None
-  //  }
-  //}
 
   /**
    * Function datatypes must contain a domain and a range.
@@ -206,91 +162,22 @@ class FdmlReader(xml: Elem) extends AdaptedDatasetReader {
     seq.toMap
   }
 
-//  /*
-//   * BEGIN parsing of specific operations
-//   */
-//
-//  def contains(node: Node): Option[UnaryOperation] = {
-//    for {
-//      vname <- Option(node \ "vname").filter(_.nonEmpty)
-//      values <- Option(node \ "value").filter(_.nonEmpty)
-//    } yield Contains(vname.text, values.map(_.text))
-//  }
-//
-//  def groupBy(node: Node): Option[UnaryOperation] = {
-//    for {
-//      vnames <- Option(node \ "vname").filter(_.nonEmpty)
-//    } yield GroupBy(vnames.map(_.text): _*)
-//  }
-//
-//  /**
-//   * Head operation not yet implemented.
-//   */
-//  def head(node: Node): Option[UnaryOperation] = {
-//    None
-//  }
-//
-////  def pivot(node: Node): Option[UnaryOperation] = {
-////    for {
-////      values  <- Option(node \ "value").filter(_.nonEmpty)
-////      vids <- Option(node \ "vid").filter(_.nonEmpty)
-////    } yield Pivot(values.map(_.text), vids.map(_.text))
-////  }
-//
-//  def project(node: Node): Option[UnaryOperation] = {
-//    for {
-//      vids <- Option(node \ "vid").filter(_.nonEmpty)
-//    } yield Projection(vids.map(_.text): _*)
-//  }
-//
-//  /**
-//   * Rename operation not yet implemented.
-//   */
-//  def rename(node: Node): Option[UnaryOperation] = {
-//    val vName: String = (node \ "vname").text
-//    val newName = (node \ "newName").text
-//    //todo: implement Rename operation
-//    //Some(Rename(vName, newName))
-//    None
-//  }
-//
-//  def select(node: Node): Option[UnaryOperation] = {
-//    for {
-//      vname <- Option(node \ "vname").filter(_.nonEmpty)
-//      operator <- Option(node \ "operator").filter(_.nonEmpty)
-//      value <- Option(node \ "value").filter(_.nonEmpty)
-//    } yield Selection(vname.text, operator.text, value.text)
-//  }
-//
-//  /**
-//   * Take operation not yet implemented.
-//   */
-//  def take(node: Node): Option[UnaryOperation] = {
-//    None
-//  }
-//
-//  def uncurry(node: Node): Option[UnaryOperation] = {
-//    Some(Uncurry())
-//  }
-
 }
 
 object FdmlReader {
 
-  def apply(xmlText: String): FdmlReader =
-    new FdmlReader(XML.loadString(xmlText))
-
-  def apply(uri: URI, validate: Boolean = false): FdmlReader = {
+  def read(uri: URI, validate: Boolean = false): Dataset = {
     if (validate) FdmlUtils.validateFdml(uri).leftMap(throw _)
-    val xml: String = NetUtils.readUriIntoString(uri) match {
-      case Right(x) => x
+    val fdml: Fdml = NetUtils.readUriIntoString(uri) match {
+      case Right(x) => new Fdml(XML.loadString(x))
       case Left(e)  => throw e
     }
-    FdmlReader(xml)
-  }
-
-  def read(uri: URI, validate: Boolean = false): Dataset = {
-    //TODO: change to read(uri)
-    ???
+    new AdaptedDataset(
+      fdml.metadata,
+      fdml.model,
+      fdml.adapter,
+      fdml.uri
+      //TODO: operations
+    )
   }
 }

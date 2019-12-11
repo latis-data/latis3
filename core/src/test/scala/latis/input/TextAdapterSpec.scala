@@ -6,15 +6,17 @@ import latis.model._
 import java.net.URI
 
 import latis.data.{DomainData, RangeData, Sample}
+import latis.dataset.AdaptedDataset
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
 class TextAdapterSpec extends FlatSpec {
 
   "A TextAdapter" should "read text data" in {
-    val reader = new AdaptedDatasetReader {
+    val ds = {
       def uri: URI = resolveUri("data/data.txt").right.get
-      def model: DataType = Function(
+      val metadata = Metadata("data")
+      val model: DataType = Function(
         Scalar(Metadata("id" -> "a", "type" -> "int")),
         Tuple(
           Scalar(Metadata("id" -> "b", "type" -> "int")),
@@ -23,10 +25,10 @@ class TextAdapterSpec extends FlatSpec {
         )
       )
       val config = new TextAdapter.Config()
-      def adapter = new TextAdapter(model, config)
+      val adapter = new TextAdapter(model, config)
+      new AdaptedDataset(metadata, model, adapter, uri)
     }
 
-    val ds = reader.getDataset
     val result = ds.samples.compile.toList.unsafeRunSync()
     val expected = List(
       Sample(DomainData(0), RangeData(1, 1.1, "a")),

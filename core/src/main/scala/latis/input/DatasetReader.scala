@@ -3,20 +3,22 @@ package latis.input
 import java.net.URI
 import java.util.ServiceLoader
 
+import latis.dataset.Dataset
+import latis.util.LatisException
+
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 
-import latis.dataset.Dataset
-
 /**
- * DatasetReader is a trait to be extended by a class that can take a URI
+ * Defines a trait to be extended by a class that can take a URI
  * and attempt to construct a Dataset from it. If a DatasetReader subclass
  * can't read that URL (based on the type of the data source, not due to an
- * IO error), then it should return None.
- * Provide a default read that returns None so subclasses can chose whether
- * to override it (along with an entry in META-INF/services).
+ * IO error), then canRead should return false. This is the default response
+ * so it only needs to be overridden by readers that are registered to use
+ * the ServiceProvider mechanism (with an entry in META-INF/services).
  */
 trait DatasetReader {
-  def read(uri: URI): Option[Dataset] = None
+  def canRead(uri: URI): Boolean = false
+  def read(uri: URI): Dataset
 }
 
 object DatasetReader {
@@ -25,12 +27,11 @@ object DatasetReader {
     ServiceLoader
       .load(classOf[DatasetReader])
       .asScala
-      .flatMap(_.read(uri))
-      .headOption
+      .find(_.canRead(uri))
+      .map(_.read(uri))
       .getOrElse {
         val msg = s"Failed to find a DatasetReader for: uri"
-        throw new RuntimeException(msg)
-        //TODO: return empty Dataset?  Dataset[IO]?
+        throw LatisException(msg)
       }
 
 }

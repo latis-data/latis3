@@ -8,26 +8,28 @@ import latis.model.Function
 import latis.model.Scalar
 import latis.model.Tuple
 import latis.data.{DomainData, RangeData, Sample}
+import latis.dataset.AdaptedDataset
+import latis.input
 import latis.util.NetUtils.resolveUri
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
 class MatrixTextAdapterSpec extends FlatSpec {
 
-  val reader = new AdaptedDatasetReader {
-    def uri: URI = resolveUri("data/matrixData.txt").right.get
-    def model: DataType = Function(
+  val ds = {
+    val metadata = Metadata("matrixData")
+    val model: DataType = Function(
       Tuple(
         Scalar(Metadata("id" -> "row", "type" -> "int")),
         Scalar(Metadata("id" -> "column", "type" -> "int"))
       ),
       Scalar(Metadata("id" -> "v", "type" -> "double"))
     )
-    val config = new TextAdapter.Config(("delimiter", ","))
-
-    def adapter = new MatrixTextAdapter(model, config)
+    val config = new input.TextAdapter.Config(("delimiter", ","))
+    val adapter = new MatrixTextAdapter(model, config)
+    val uri: URI = resolveUri("data/matrixData.txt").right.get
+    new AdaptedDataset(metadata, model, adapter, uri)
   }
-  val ds = reader.getDataset
 
   "A MatrixTextAdapter" should "read matix data" in {
     val result = ds.samples.compile.toList.unsafeRunSync()
@@ -38,5 +40,9 @@ class MatrixTextAdapterSpec extends FlatSpec {
       Sample(DomainData(1, 1), RangeData(-5.4))
     )
     result should be (expected)
+  }
+
+  it should "throw an exception for a bad URI" in {
+
   }
 }
