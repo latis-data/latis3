@@ -26,6 +26,7 @@ trait DatasetResolver {
    * as opposed to None.
    */
   def getDataset(id: String): Option[Dataset]
+  //TODO: "resolve"?
 
 }
 

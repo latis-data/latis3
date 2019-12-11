@@ -44,7 +44,7 @@ class FdmlReader(xml: Elem) extends AdaptedDatasetReader {
    */
   override def read(uri: URI): Option[Dataset] =
     // If the extension is "fdml" then try to load it
-    if (uri.getPath.endsWith(".fdml")) Some(FdmlReader(uri).getDataset)
+    if (uri.getPath.endsWith(".fdml")) Some(FdmlReader.read(uri))
     else None
 
   /**
@@ -289,4 +289,8 @@ object FdmlReader {
     FdmlReader(xml)
   }
 
+  def read(uri: URI, validate: Boolean = false): Dataset = {
+    //TODO: change to read(uri)
+    ???
+  }
 }

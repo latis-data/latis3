@@ -4,8 +4,7 @@ import java.net.URI
 
 import cats.effect.IO
 import fs2.Stream
-
-import latis.data.Sample
+import latis.data.{FunctionFactory, Sample}
 import latis.input.DatasetReader
 import latis.input.DatasetResolver
 import latis.metadata.Metadata
@@ -40,7 +39,13 @@ trait Dataset extends MetadataLike {
    * applied to this one.
    */
   def withOperation(op: UnaryOperation): Dataset
-  //TODO: withOperations(operations: Seq[UnaryOperation]): Dataset?
+
+  /**
+   * Returns a new Dataset with the given Operations *logically*
+   * applied to this one.
+   */
+  def withOperations(ops: Seq[UnaryOperation]): Dataset =
+    ops.foldLeft(this)((ds, op) => ds.withOperation(op))
 
   /**
    * Causes the data source to be read and released
@@ -53,8 +58,17 @@ trait Dataset extends MetadataLike {
    * Note that the data will be memoized, triggering
    * data reading and operation application.
    */
-  def cache(): Unit = CacheManager.cacheDataset(this)
-  //TODO: use FunctionFactory arg to restructure SF to something optimal
+  def cache(): Unit = CacheManager.cacheDataset(unsafeForce())
+
+  //use FunctionFactory arg to restructure SF to something optimal
+  def restructureWith(ff: FunctionFactory): MemoizedDataset = {
+    val ds = this.unsafeForce()
+    new MemoizedDataset(
+      ds.metadata,
+      ds.model,
+      ff.restructure(ds.data)
+    )
+  }
 
   /**
    * Returns a String representation of this Dataset.

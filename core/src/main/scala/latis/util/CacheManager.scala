@@ -1,8 +1,7 @@
 package latis.util
 
 import scala.collection._
-
-import latis.dataset.Dataset
+import latis.dataset.{Dataset, MemoizedDataset}
 
 /**
  * Companion object where we encapsulate the single instance and
@@ -22,8 +21,8 @@ object CacheManager {
    * This will also ensure that the Dataset is memoized
    * via a potentially unsafe read.
    */
-  def cacheDataset(dataset: Dataset): Unit =
-    cache += dataset.id -> dataset.unsafeForce
+  def cacheDataset(dataset: MemoizedDataset): Unit =
+    cache += dataset.id -> dataset
 
   /**
    * Optionally get the Dataset with the given id.
