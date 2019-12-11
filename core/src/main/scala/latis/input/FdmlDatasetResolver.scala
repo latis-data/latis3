@@ -26,7 +26,7 @@ class FdmlDatasetResolver extends DatasetResolver {
       uri     <- NetUtils.parseUri(id + ".fdml")
       fdml    <- resolveFdml(uri)
       dataset <- Either.catchNonFatal {
-        FdmlReader(fdml, validate).getDataset
+        FdmlReader.read(fdml, validate)
       }
     } yield dataset
     //TODO: need a way to capture Dataset construction failure
