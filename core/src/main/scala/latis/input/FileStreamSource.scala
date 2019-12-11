@@ -28,12 +28,12 @@ class FileStreamSource extends StreamSource {
     if (uri.isAbsolute && uri.getScheme != "file") None //we don't handle it
     else
       NetUtils.resolveUri(uri) match {
-        case Left(_) =>
+        case Left(le) =>
           val msg = s"Failed to resolve file URI: $uri"
-          Option(Stream.raiseError[IO](LatisException(msg)))
+          Option(Stream.raiseError[IO](LatisException(msg, le)))
         case Right(u) =>
-          val fis: IO[InputStream] = IO(u.toURL.openStream)
-          val chunkSize: Int       = 4096 //TODO: tune? config option?
+          val fis: IO[InputStream] = IO(u.toURL.openStream) //TODO: handle exception, wrap as LatisException
+          val chunkSize: Int = 4096 //TODO: tune? config option?
           Option(readInputStream[IO](fis, chunkSize, blockingExecutionContext))
       }
 
