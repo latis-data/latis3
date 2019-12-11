@@ -61,15 +61,15 @@ case class Uncurry() extends UnaryOperation {
    * Note that this promises a MemoizedFunction since we already know that the
    * entire Sample, including nested Function, is in memory.
    *
-   * This currently assumes no more than one layer of nested and that nested
+   * This currently assumes no more than one layer of nesting and that nested
    * Functions are not within a Tuple.
    */
   def makeFlatMapFunction(): Sample => MemoizedFunction = {
     case s @ Sample(ds, rs) =>
       //TODO: recurse for deeper nested functions
       //TODO: allow function in tuple
-      rs.head match { //assumes only one type in range
-        case sf: MemoizedFunction =>
+      rs match {
+        case ((sf: MemoizedFunction) :: Nil) => //one function in range
           sf.map {
             case Sample(ds2, rs2) => Sample(ds ++ ds2, rs2)
           }

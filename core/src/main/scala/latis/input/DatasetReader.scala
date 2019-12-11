@@ -28,7 +28,7 @@ object DatasetReader {
       .flatMap(_.read(uri))
       .headOption
       .getOrElse {
-        val msg = s"Failed to find a DatasetReader for URI: uri"
+        val msg = s"Failed to find a DatasetReader for: uri"
         throw new RuntimeException(msg)
         //TODO: return empty Dataset?  Dataset[IO]?
       }
