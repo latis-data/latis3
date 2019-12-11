@@ -1,10 +1,5 @@
 package latis.model
 
-import scala.collection.TraversableLike
-import scala.collection.generic.CanBuildFrom
-import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
-import scala.collection.mutable.Stack
 import scala.util.Failure
 import scala.util.Success
 
@@ -15,48 +10,41 @@ import latis.metadata._
  * Define the algebraic data type for the LaTiS implementation of the
  * Functional Data Model.
  */
-sealed trait DataType
-    extends Traversable[DataType]
-    with TraversableLike[DataType, DataType]
-    with MetadataLike {
+sealed trait DataType extends MetadataLike {
 
-  override protected[this] def newBuilder: mutable.Builder[DataType, DataType] = DataType.newBuilder
-
-  /**
-   * Experimental implementation of Traversable
-   * to support various model operations.
-   */
-  def foreach[U](f: DataType => U): Unit = {
-    // Recursive helper function, depth first
-    // Only safe for operating on Scalars?
-    def go(v: DataType): Unit = {
-      v match {
-        case _: Scalar      =>                //end of this branch
-        case Tuple(vs @ _*) => vs.foreach(go) //recurse
-        case Function(d, r) => go(d); go(r)   //recurse
-      }
-      //apply function after taking care of kids = depth first
-      f(v)
-    }
-    go(this)
+  // Apply f to Scalars only, for now
+  def map(f: DataType => DataType): DataType = this match {
+    case s: Scalar => f(s)
+    case Tuple(es @ _*) => Tuple(es.map(f): _*)
+    case Function(d, r) => Function(d.map(f), r.map(f))
   }
 
   /**
    * Return a List of Scalars in the (depth-first) order
    * that they appear in the model.
    */
-  def getScalars: List[Scalar] = toList.collect { case s: Scalar => s }
+  def getScalars: List[Scalar] = {
+    def go(dt: DataType): List[Scalar] = dt match {
+      case s: Scalar => List(s)
+      case Tuple(es @ _*) => es.flatMap(go).toList
+      case Function(d, r) => go(d) ++ go(r)
+    }
+    go(this)
+  }
 
   /**
    * Get the DataType of a variable by its identifier.
    */
-  def getVariable(id: String): Option[DataType] = find(_.id == id)
+  def getVariable(id: String): Option[DataType] =
+    getScalars.find(_.id == id)
+    //TODO: support finding any variable type
 
   /**
    * Find the DataType of a variable by its identifier or aliases.
    */
-  def findVariable(variableName: String): Option[DataType] = find(_.id == variableName)
-  //TODO: support aliases
+  def findVariable(variableName: String): Option[DataType] =
+    getVariable(variableName)
+    //TODO: support aliases
 
   /**
    * Return the function arity of this DataType.
@@ -87,14 +75,14 @@ sealed trait DataType
    * A Scalar will remain a Scalar.
    * This form is consistent with Samples which don't preserve nested Functions.
    */
-  def flatten(): DataType = {
+  def flatten: DataType = {
     // Recursive helper function that uses an accumulator (acc)
     // to accumulate types while in the context of a Tuple
     // while the recursion results build up the final type.
     def go(dt: DataType, acc: Seq[DataType]): Seq[DataType] = dt match {
       case s: Scalar      => acc :+ s
       case Tuple(es @ _*) => es.flatMap(e => acc ++ go(e, Seq()))
-      case Function(d, r) => acc :+ Function(d.flatten(), r.flatten())
+      case Function(d, r) => acc :+ Function(d.flatten, r.flatten)
     }
 
     val types = go(this, Seq())
@@ -137,7 +125,7 @@ sealed trait DataType
             (d ++ r).collectFirst { case Some(p) => p } //short-circuit here, take first Some
         }
 
-    go(this.flatten(), id, List.empty)
+    go(this.flatten, id, List.empty)
   }
 
   //TODO: beef up
@@ -151,40 +139,6 @@ sealed trait DataType
       val msg = "Can't make fill values for Function, yet."
       throw new RuntimeException(msg)
   }
-}
-
-//---------------------------------------------------------------------------//
-
-object DataType {
-
-  //Note, this will only work for a Seq with traversal defined by foreach
-  def fromSeq(vars: Seq[DataType]): DataType = {
-    @scala.annotation.tailrec
-    def go(vs: Seq[DataType], hold: Stack[DataType]): DataType =
-      vs.headOption match {
-        case Some(s: Scalar) =>
-          go(vs.tail, hold.push(s)) //put on the stack then do the rest
-        case Some(t: Tuple) =>
-          val n  = t.elements.length
-          val t2 = Tuple(t.metadata, (0 until n).map(_ => hold.pop).reverse: _*)
-          go(vs.tail, hold.push(t2))
-        case Some(f: Function) =>
-          val c  = hold.pop
-          val d  = hold.pop
-          val f2 = Function(f.metadata, d, c)
-          go(vs.tail, hold.push(f2))
-        case None => hold.pop //TODO: test that the stack is empty now
-      }
-    go(vars, mutable.Stack())
-  }
-
-  def newBuilder: mutable.Builder[DataType, DataType] = (new ArrayBuffer).mapResult(fromSeq)
-
-  implicit def canBuildFrom: CanBuildFrom[DataType, DataType, DataType] =
-    new CanBuildFrom[DataType, DataType, DataType] {
-      def apply(): mutable.Builder[DataType, DataType]               = newBuilder
-      def apply(from: DataType): mutable.Builder[DataType, DataType] = newBuilder
-    }
 }
 
 //-- Scalar -----------------------------------------------------------------//
