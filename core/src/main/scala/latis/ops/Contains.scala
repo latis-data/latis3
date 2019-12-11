@@ -18,7 +18,7 @@ case class Contains(vname: String, values: Any*) extends Filter {
     }
 
     // Convert values to appropriate type for comparison
-    val cvals = model.find(_.id == vname) match {
+    val cvals = model.findVariable(vname) match {
       //TODO: convert based on type
       //case Some(s: Scalar) => values.map(v => s.parseValue(v.toString))
       case Some(_: Scalar) => values.map(v => v.toString.toDouble)

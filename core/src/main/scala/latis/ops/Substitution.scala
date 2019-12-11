@@ -161,7 +161,7 @@ case class Substitution() extends BinaryOperation {
     // and not just the scalars. Finding the vids consecutively
     // ensures that we are not crossing Tuple boundaries.
     //TODO: does protect against domain/range crossing if domain is scalar
-    if (dt1.toSeq.map(_.id).indexOfSlice(vids) == -1) ??? //TODO: not found
+//    if (dt1.toSeq.map(_.id).indexOfSlice(vids) == -1) ??? //TODO: not found
 
     // Traverse the original model and replace the types matching the
     // substitution Dataset's domain with the types from its range.
@@ -177,7 +177,7 @@ case class Substitution() extends BinaryOperation {
             es.splitAt(index) match {
               // Splice in the new variable types
               case (p1, p3) =>
-                val dts = (p1 :+ range ++ p3.drop(vids.length))
+                val dts = (p1 :+ range) ++ p3.drop(vids.length)
                 if (dts.length == 1)
                   dts.head //Reduce 1-Tuple //TODO: Tuple constructor option? Tuple.reduced()? vs flattened
                 else Tuple(dts: _*)

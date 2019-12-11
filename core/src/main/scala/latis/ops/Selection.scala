@@ -15,7 +15,7 @@ case class Selection(vname: String, operator: String, value: String) extends Fil
   def makePredicate(model: DataType): Sample => Boolean = {
     // Get the desired Scalar from the model
     //TODO: support aliases
-    val scalar: Scalar = model.find(_.id == vname) match {
+    val scalar: Scalar = model.findVariable(vname) match {
       case Some(s: Scalar) => s
       case _ =>
         val msg = s"Selection variable not found: $vname"
