@@ -59,7 +59,7 @@ class DatasetSpec extends FlatSpec {
   }
 
   it should "read matrix data given an fdml" in {
-    val matrixDs: Dataset = Dataset.fromName("Matrixdata")
+    val matrixDs: Dataset = Dataset.fromName("matrixData")
     matrixDs shouldBe a [Dataset]
   }
   
