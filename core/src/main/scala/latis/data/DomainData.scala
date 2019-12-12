@@ -29,15 +29,15 @@ object DomainData {
   /**
    * Construct DomainData from a comma separated list of values.
    */
-  def apply(d: Data, ds: Data*): DomainData = d +: ds.toList
+  def apply(d: Datum, ds: Datum*): DomainData = d +: ds.toList
 
   /**
    * Construct DomainData from a Seq of values.
    */
-  def apply(data: Seq[Data]): DomainData = data.toList
+  def apply(data: Seq[Datum]): DomainData = data.toList
 
   /**
    * Extract a comma separated list of values from DomainData.
    */
-  def unapplySeq(d: DomainData): Option[Seq[Data]] = Option(d)
+  def unapplySeq(d: DomainData): Option[Seq[Datum]] = Option(d)
 }

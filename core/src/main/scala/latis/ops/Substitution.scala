@@ -2,6 +2,7 @@ package latis.ops
 
 import latis.data._
 import latis.model._
+import latis.util.LatisException
 
 /**
  * Replaces a variable in a Dataset by using it to evaluate another Dataset.
@@ -102,25 +103,26 @@ case class Substitution() extends BinaryOperation {
       case (head :: tail) if (tail.isEmpty) =>
         head match {
           case DomainPosition(i) =>
-            val vals  = sample.domain
+            val vals: DomainData = sample.domain
             val slice = vals.slice(i, i + vids.length) //get values to be replaced
-            val sub   = sf(DomainData(slice)).get //TODO: handle bad eval
-            /*
-             * TODO: the range data will be sub'd into the domain so it must be Ordered Data
-             */
-            val vals2 = vals.splitAt(i) match {
+            val sub: DomainData = sf(DomainData(slice)) match {
+              case Some(rd: RangeData) =>
+                // Make sure these range data can be used for a domain, i.e. all Datum, no SF
+                val dd = rd.collect { case d: Datum => d }
+                if (dd.length == rd.length) dd
+                else throw LatisException("Substitution includes Function")
+              case None => throw LatisException("Substitution evaluation failed")
+            }
+            val domain: DomainData = vals.splitAt(i) match {
               case (p1, p2) => p1 ++ sub ++ p2.drop(slice.length) //splice in new data
             }
-            val domain = DomainData(vals2)
+            //val domain = DomainData(vals2)
             Sample(domain, sample.range)
           case RangePosition(i) =>
             val vals = sample.range
             //get values to be replaced
             val slice = vals.slice(i, i + vids.length)
-            /*
-             * TODO: to use the range values to eval the sub ds, they must be Ordered Data
-             */
-            val sub = sf(DomainData(slice)).get //TODO: handle bad eval
+            val sub: DomainData = ??? //sf(DomainData(slice)).get //TODO: handle bad eval, see above
             val vals2 = vals.splitAt(i) match {
               case (p1, p2) => p1 ++ sub ++ p2.drop(slice.length) //splice in new data
             }

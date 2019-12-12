@@ -17,7 +17,7 @@ import latis.model._
  * a single Tuple, but no reason to exclude it.
  *   a -> b -> c  =>  b -> (c_a0, c_a1, ...)
  */
-case class Pivot(values: Seq[Data], vids: Seq[String]) extends MapOperation {
+case class Pivot(values: Seq[Datum], vids: Seq[String]) extends MapOperation {
   /*
    * TODO: pivot on given variable
    * consider transpose
