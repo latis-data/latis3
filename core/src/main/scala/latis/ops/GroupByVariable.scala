@@ -86,12 +86,12 @@ case class GroupByVariable(variableNames: String*)(val aggregation: Aggregation 
       val innerDomain = inner.length match {
         case 0 => ??? //TODO: all domain vars regrouped, implies reordering with no new Function
         case 1 => inner.head
-        case _ => Tuple(inner: _*)
+        case _ => Tuple(inner)
       }
       val outerDomain = outer.length match {
         case 0 => ??? //TODO: error, no gb vars found
         case 1 => outer.head
-        case _ => Tuple(outer: _*)
+        case _ => Tuple(outer)
       }
       Function(outerDomain, Function(innerDomain, range))
     case _ => ??? //TODO: error, model must be a Function

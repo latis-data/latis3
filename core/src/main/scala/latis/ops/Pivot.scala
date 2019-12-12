@@ -55,7 +55,7 @@ case class Pivot(values: Seq[Datum], vids: Seq[String]) extends MapOperation {
   override def applyToModel(model: DataType): DataType =
     model match {
       case Function(domain, Function(_, r)) =>
-        val range = Tuple(vids.map(id => r.rename(id)): _*) //preserve existing metadata, e.g. units
+        val range = Tuple(vids.map(id => r.rename(id))) //preserve existing metadata, e.g. units
         Function(domain, range)
       case _ => ??? //invalid data type
     }
