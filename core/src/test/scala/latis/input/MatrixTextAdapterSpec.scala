@@ -42,7 +42,4 @@ class MatrixTextAdapterSpec extends FlatSpec {
     result should be (expected)
   }
 
-  it should "throw an exception for a bad URI" in {
-
-  }
 }
