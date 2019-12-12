@@ -6,7 +6,7 @@ package object data {
   /**
    * Define a type alias for DomainData as a List of values of a Data type.
    */
-  type DomainData = List[Data]
+  type DomainData = List[Datum]
   //TODO: require Data with an Eq instance
 
   /**
@@ -49,7 +49,7 @@ package object data {
     /**
      * Return a new Sample with the given data value in the given position.
      */
-    def updatedValue(samplePosition: SamplePosition, data: Data): Sample = samplePosition match {
+    def updatedValue(samplePosition: SamplePosition, data: Datum): Sample = samplePosition match {
       //TODO: "update" vs (scala's) "updated"
       case DomainPosition(n) =>
         if (n < domain.length) Sample(domain.updated(n, data), range)
@@ -68,23 +68,25 @@ package object data {
 
   /**
    * Placeholder until we get ordering properly enabled.
+   * TODO: need to get from model
+   *   provides PartialOrdering for Scalar Datum
    */
-  implicit object DomainOrdering extends Ordering[DomainData] {
-    def compare(d1: DomainData, d2: DomainData): Int = ???
-  }
-
-  implicit object SampleOrdering extends Ordering[Sample] {
-    def compare(s1: Sample, s2: Sample): Int =
-      DomainOrdering.compare(s1.domain, s2.domain)
-  }
-
-  implicit object NumberOrdering extends Ordering[Number] {
-    def compare(n1: Number, n2: Number): Int =
-      n1.asDouble.compare(n2.asDouble)
-  }
-
-  implicit object TextOrdering extends Ordering[Text] {
-    def compare(t1: Text, t2: Text): Int =
-      t1.asString.compare(t2.asString)
-  }
+  //implicit object DomainOrdering extends Ordering[DomainData] {
+  //  def compare(d1: DomainData, d2: DomainData): Int = ???
+  //}
+  //
+  //implicit object SampleOrdering extends Ordering[Sample] {
+  //  def compare(s1: Sample, s2: Sample): Int =
+  //    DomainOrdering.compare(s1.domain, s2.domain)
+  //}
+  //
+  //implicit object NumberOrdering extends Ordering[Number] {
+  //  def compare(n1: Number, n2: Number): Int =
+  //    n1.asDouble.compare(n2.asDouble)
+  //}
+  //
+  //implicit object TextOrdering extends Ordering[Text] {
+  //  def compare(t1: Text, t2: Text): Int =
+  //    t1.asString.compare(t2.asString)
+  //}
 }

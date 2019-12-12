@@ -5,6 +5,7 @@ import scala.util.Success
 
 import latis.data._
 import latis.metadata._
+import latis.util.LatisOrdering
 
 /**
  * Define the algebraic data type for the LaTiS implementation of the
@@ -202,28 +203,30 @@ class Scalar(val metadata: Metadata) extends DataType {
    * This can be overridden by Scalar subtypes that need to define a
    * different ordering.
    */
-  def ordering: PartialOrdering[Datum] = new PartialOrdering[Datum] {
-    //TODO: should we match specific value types?
-    //  avoid conversion to doubles
-    import scala.math.Ordering._
+  def ordering: PartialOrdering[Datum] = LatisOrdering.dataOrdering
+  //  new PartialOrdering[Datum] {
+  //  //TODO: should we match specific value types?
+  //  //  avoid conversion to doubles
+  //  import scala.math.Ordering._
+  //
+  //  def tryCompare(x: Datum, y: Datum): Option[Int] = (x, y) match {
+  //    case (Number(d1), Number(d2)) =>
+  //      if (d1.isNaN || d2.isNaN) None
+  //      else Some(Double.compare(d1, d2))
+  //    case (Text(s1), Text(s2)) =>
+  //      Some(String.compare(s1, s2))
+  //    case _ => None
+  //  }
+  //
+  //  def lteq(x: Datum, y: Datum): Boolean = (x, y) match {
+  //    case (Number(d1), Number(d2)) =>
+  //      d1 <= d2 //Note, always false for NaNs
+  //    case (Text(s1), Text(s2)) =>
+  //      String.compare(s1, s2) <= 0
+  //    case _ => false
+  //  }
+  //}
 
-    def tryCompare(x: Datum, y: Datum): Option[Int] = (x, y) match {
-      case (Number(d1), Number(d2)) =>
-        if (d1.isNaN || d2.isNaN) None
-        else Some(Double.compare(d1, d2))
-      case (Text(s1), Text(s2)) =>
-        Some(String.compare(s1, s2))
-      case _ => None
-    }
-
-    def lteq(x: Datum, y: Datum): Boolean = (x, y) match {
-      case (Number(d1), Number(d2)) =>
-        d1 <= d2 //Note, always false for NaNs
-      case (Text(s1), Text(s2)) =>
-        String.compare(s1, s2) <= 0
-      case _ => false
-    }
-  }
 //  def ordering: Option[PartialOrdering[Data]] = valueType match {
 //    case BooleanValueType =>
 //    case ByteValueType =>

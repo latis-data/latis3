@@ -115,7 +115,7 @@ trait SampledFunction extends Data {
     // Make mutable SortedMap to accumulate the Samples for each DomainData.
     // Note that we can't use a Builder since we need to access existing
     //   buffers to append to.
-    val sortedMap: mSortedMap[DomainData, ListBuffer[Sample]] = mSortedMap()
+    val sortedMap: mSortedMap[DomainData, ListBuffer[Sample]] = ??? //mSortedMap()
 
     // Collect Samples into buffers by DomainData value
     val stream = streamSamples.map { sample =>
@@ -136,7 +136,7 @@ trait SampledFunction extends Data {
       case (dd, ss) => aggregation.aggregationFunction(dd, ss)
     }
 
-    SortedMapFunction(iSortedMap(samples: _*))
+    ??? //SortedMapFunction(iSortedMap(samples: _*))
   }
 
   /**

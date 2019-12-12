@@ -5,7 +5,7 @@ object Sample {
   /**
    * Construct a Sample from a Seq of domain values and a Seq of range values.
    */
-  def apply(domainValues: Seq[Data], rangeValues: Seq[Data]): Sample =
+  def apply(domainValues: Seq[Datum], rangeValues: Seq[Data]): Sample =
     (DomainData(domainValues), RangeData(rangeValues))
 
   /**

@@ -101,15 +101,15 @@ trait MemoizedFunction extends SampledFunction {
   }
 
   // Use a SortedMapFunction
-  override def union(that: SampledFunction): SampledFunction = that match {
-    case mf: MemoizedFunction =>
-      val builder: mutable.Builder[(DomainData, RangeData), SortedMap[DomainData, RangeData]] =
-        SortedMap.newBuilder
-      this.samples.foreach(s => builder += s)
-      mf.samples.foreach(s   => builder += s) //TODO: test keep the original if duplicates
-      SortedMapFunction(builder.result())
-    case _ => ??? //TODO: union as Streams
-  }
+  //override def union(that: SampledFunction): SampledFunction = that match {
+  //  case mf: MemoizedFunction =>
+  //    val builder: mutable.Builder[(DomainData, RangeData), SortedMap[DomainData, RangeData]] =
+  //      SortedMap.newBuilder
+  //    this.samples.foreach(s => builder += s)
+  //    mf.samples.foreach(s   => builder += s) //TODO: test keep the original if duplicates
+  //    SortedMapFunction(builder.result())
+  //  case _ => ??? //TODO: union as Streams
+  //}
 }
 
 object MemoizedFunction {
