@@ -16,7 +16,7 @@ sealed trait DataType extends MetadataLike {
   // Apply f to Scalars only, for now
   def map(f: DataType => DataType): DataType = this match {
     case s: Scalar => f(s)
-    case Tuple(es @ _*) => Tuple(es.map(f): _*)
+    case Tuple(es @ _*) => Tuple(es.map(f))
     case Function(d, r) => Function(d.map(f), r.map(f))
   }
 
@@ -67,7 +67,7 @@ sealed trait DataType extends MetadataLike {
   def rename(name: String): DataType = this match {
     //TODO: add old name to alias?
     case _: Scalar      => Scalar(metadata + ("id"   -> name))
-    case Tuple(es @ _*) => Tuple(metadata + ("id"    -> name), es: _*)
+    case Tuple(es @ _*) => Tuple(metadata + ("id"    -> name), es)
     case Function(d, r) => Function(metadata + ("id" -> name), d, r)
   }
 
@@ -89,7 +89,7 @@ sealed trait DataType extends MetadataLike {
     val types = go(this, Seq())
     types.length match {
       case 1 => types.head
-      case _ => Tuple(types: _*)
+      case _ => Tuple(types)
     }
   }
 
@@ -318,7 +318,7 @@ object Scalar {
 /**
  * A Tuple type represents a group of variables of other DataTypes.
  */
-class Tuple(val metadata: Metadata, val elements: DataType*) extends DataType {
+class Tuple(val metadata: Metadata, val elements: List[DataType]) extends DataType {
 
   override def toString: String = elements.mkString("(", ", ", ")")
 
@@ -327,18 +327,24 @@ class Tuple(val metadata: Metadata, val elements: DataType*) extends DataType {
 object Tuple {
   //TODO enforce id or make uid
 
+  def apply(metadata: Metadata, es: Seq[DataType]): Tuple =
+    new Tuple(metadata, es.toList)
+
   /**
    * Construct a Tuple from Metadata and a comma separated list
    * of data types.
    */
-  def apply(metadata: Metadata, elements: DataType*): Tuple =
-    new Tuple(metadata, elements: _*)
+  def apply(metadata: Metadata, e0: DataType, es: DataType*): Tuple =
+    Tuple(metadata, e0 +: es)
 
   /**
    * Construct a Tuple with default Metadata.
    */
-  def apply(elements: DataType*): Tuple =
-    Tuple(Metadata(), elements: _*)
+  def apply(e0: DataType, es: DataType*): Tuple =
+    Tuple(Metadata(), e0 +: es)
+
+  def apply(es: Seq[DataType]): Tuple =
+    Tuple(Metadata(), es)
 
   /**
    * Extract elements of a Tuple with a comma separated list
@@ -346,6 +352,7 @@ object Tuple {
    */
   def unapplySeq(tuple: Tuple): Option[Seq[DataType]] =
     Option(tuple.elements)
+  //TODO: better to return List via unapply?
 }
 
 //-- Function ---------------------------------------------------------------//
@@ -384,12 +391,12 @@ object Function {
     val domain = ds.length match {
       case 0 => ??? //TODO: Index
       case 1 => ds.head
-      case _ => Tuple(ds: _*)
+      case _ => Tuple(ds)
     }
     val range = rs.length match {
       case 0 => ??? //TODO: no range, make domain a function of Index
       case 1 => rs.head
-      case _ => Tuple(rs: _*)
+      case _ => Tuple(rs)
     }
 
     Function(domain, range)

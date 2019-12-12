@@ -133,9 +133,9 @@ class Fdml(xml: Elem) {
     val tuple: List[DataType] = tupleElements.map(createDataType).toList
     if (tuple.nonEmpty) {
       if (attributes.isEmpty) {
-        Some(Tuple(tuple: _*))
+        Some(Tuple(tuple))
       } else {
-        Some(Tuple(Metadata(attributes), tuple: _*))
+        Some(Tuple(Metadata(attributes), tuple))
       }
     } else {
       None

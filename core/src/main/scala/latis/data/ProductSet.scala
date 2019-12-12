@@ -9,7 +9,7 @@ case class ProductSet(sets: DomainSet*) extends DomainSet {
   //TODO: deal with count < 2
   //TODO: optimize getElement,...
 
-  override def model: DataType = Tuple(sets.map(_.model): _*)
+  override def model: DataType = Tuple(sets.map(_.model))
 
   override def length: Int = sets.map(_.length).product
 

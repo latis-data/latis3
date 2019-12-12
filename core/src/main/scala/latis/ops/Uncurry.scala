@@ -41,12 +41,12 @@ case class Uncurry() extends UnaryOperation {
     // Reconstruct the model from the new domain and range types
     val rtype = rs.length match {
       case 1 => rs.head
-      case _ => Tuple(rs: _*)
+      case _ => Tuple(rs)
     }
     ds.length match {
       case 0 => rtype
       case 1 => Function(ds.head, rtype)
-      case _ => Function(Tuple(ds: _*), rtype)
+      case _ => Function(Tuple(ds), rtype)
       //TODO: flatten domain, Traversable builder not working
     }
   }

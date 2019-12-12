@@ -28,7 +28,7 @@ case class Projection(vids: String*) extends MapOperation {
       vs.length match {
         case 0 => None // drop empty Tuple
         case 1 => Some(vs.head) // reduce Tuple of one
-        case _ => Some(Tuple(vs: _*))
+        case _ => Some(Tuple(vs))
       }
     case Function(d, r) =>
       (applyToVariable(d), applyToVariable(r)) match {

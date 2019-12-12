@@ -174,7 +174,7 @@ case class Substitution() extends BinaryOperation {
         else s
       case Tuple(es @ _*) =>
         es.map(_.id).indexOfSlice(vids) match {
-          case -1 => Tuple(es.map(go): _*) //no match, keep recursing
+          case -1 => Tuple(es.map(go)) //no match, keep recursing
           case index =>
             es.splitAt(index) match {
               // Splice in the new variable types
@@ -182,7 +182,7 @@ case class Substitution() extends BinaryOperation {
                 val dts = (p1 :+ range) ++ p3.drop(vids.length)
                 if (dts.length == 1)
                   dts.head //Reduce 1-Tuple //TODO: Tuple constructor option? Tuple.reduced()? vs flattened
-                else Tuple(dts: _*)
+                else Tuple(dts)
             }
         }
       case Function(d, r) => Function(go(d), go(r))

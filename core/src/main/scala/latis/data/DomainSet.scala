@@ -114,7 +114,7 @@ object DomainSet {
         i  <- (0 until rank)
         md = Metadata(s"_$i") + ("type" -> "double")
       } yield Scalar(md)
-      Tuple(scalars: _*)
+      Tuple(scalars)
     }
   }
 }
