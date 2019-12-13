@@ -3,8 +3,13 @@ package latis.data
 /**
  * The Data trait is the root of all data values that go into a Sample.
  */
-trait Data extends Any
-//TODO: seal? don't forget SampledFunction
+trait Data extends Any {
+  //TODO: seal? don't forget SampledFunction
+  def asFunction: SampledFunction = this match {
+    case sf: SampledFunction => sf
+    case d => ConstantFunction(d)
+  }
+}
 
 /*
  * Note: traits used for two purposes:

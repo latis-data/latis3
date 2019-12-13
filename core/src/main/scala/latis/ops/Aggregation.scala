@@ -28,11 +28,11 @@ trait Aggregation extends UnaryOperation {
    * TODO: depends on level of nesting, SamplePath
    * assume outer Function, for now
    */
-  override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
+  override def applyToData(data: Data, model: DataType): Data = {
     val dd      = DomainData()
-    val samples = data.unsafeForce.samples
+    val samples = data.asFunction.unsafeForce.samples
     val range   = aggregationFunction(dd, samples).range
-    //TODO: just make a SF with the 0-arity DomainData?
+    //TODO: should we have TupleData?
     ConstantFunction(range)
   }
 }
@@ -53,7 +53,7 @@ case class NoAggregation() extends Aggregation {
    */
   def makeAggregator(domain: DomainData = DomainData()): Aggregator = new Aggregator {
     private val buffer: ListBuffer[Sample] = ListBuffer()
-    def +=(sample: Sample)                 = { buffer += sample; this }
+    def +=(sample: Sample) = { buffer += sample; this }
     def result(): List[Data] =
       if (buffer.nonEmpty) List(SampledFunction(buffer))
       else List.empty

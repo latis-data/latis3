@@ -26,7 +26,7 @@ case class GranuleListJoin(model: DataType, adapter: Adapter) extends UnaryOpera
    * to generate a SampledFunction for each and wrap them all
    * in a CompositeSampledFunction.
    */
-  override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
+  override def applyToData(data: Data, model: DataType): Data = {
 
     // Get the position of the "uri" value within a Sample
     val pos: SamplePosition = model.getPath("uri") match {
@@ -48,7 +48,7 @@ case class GranuleListJoin(model: DataType, adapter: Adapter) extends UnaryOpera
     // Create SampledFunctions for each granule URI
     // and combine into a CompositeSampledFunction.
     // Note the unsafeForce so we can get the Seq out of IO.
-    CompositeSampledFunction(data.unsafeForce.samples.map(f))
+    CompositeSampledFunction(data.asFunction.unsafeForce.samples.map(f))
   }
 
 }

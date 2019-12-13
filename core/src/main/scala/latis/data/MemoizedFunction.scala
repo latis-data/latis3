@@ -61,7 +61,7 @@ trait MemoizedFunction extends SampledFunction {
    * Assume there are no nested Functions (uncurried) and that the new domain
    * is a subset of the original domain.
    */
-  override def groupBy(paths: SamplePath*): MemoizedFunction = {
+  override def groupBy(paths: SamplePath*)(implicit ordering: Ordering[DomainData]): MemoizedFunction = {
     //TODO: deal with invalid positions
 
     val sampleMap = mutable.LinkedHashMap[DomainData, Seq[Sample]]()

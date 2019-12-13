@@ -70,10 +70,10 @@ case class Substitution() extends BinaryOperation {
 
   def applyToData(
     model1: DataType,
-    data1: SampledFunction,
+    data1: Data,
     model2: DataType,
-    data2: SampledFunction
-  ): SampledFunction = {
+    data2: Data
+  ): Data = {
     // Previous processing should have ensured that the model is as expected
     // e.g. the expected values exist sequentially so we can use the index of the first.
 
@@ -88,7 +88,7 @@ case class Substitution() extends BinaryOperation {
     }
 
     // Get the SampledFunction of ds2 to be used for evaluation
-    val sf = data2
+    val sf = data2.asFunction
 
     // Make a function to modify a ds1 Sample by replacing the value
     // from evaluating ds2 with the value of the matching variable in ds1
@@ -146,7 +146,7 @@ case class Substitution() extends BinaryOperation {
     }
 
     // Apply the substitution function to original data
-    data1.map(f(_, path))
+    data1.asFunction.map(f(_, path))
   }
 
   def applyToModel(dt1: DataType, dt2: DataType): DataType = {

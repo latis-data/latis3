@@ -41,7 +41,7 @@ trait Filter extends UnaryOperation with StreamingOperation { self =>
    * Delegate to the Dataset's SampledFunction to apply the predicate
    * and generate a new SampledFunction
    */
-  override def applyToData(data: SampledFunction, model: DataType): SampledFunction =
-    data.filter(makePredicate(model))
+  override def applyToData(data: Data, model: DataType): Data =
+    data.asFunction.filter(makePredicate(model))
 
 }

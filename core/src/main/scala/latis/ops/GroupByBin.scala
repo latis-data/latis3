@@ -20,9 +20,9 @@ case class GroupByBin(
    * Add fill data to empty domainSet bins
    * after applying the grouping and aggregation.
    */
-  override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
+  override def applyToData(data: Data, model: DataType): Data = {
 
-    val groupedData = super.applyToData(data, model)
+    val groupedData: SampledFunction = super.applyToData(data, model).asFunction
 
     val fillData: RangeData = applyToModel(model) match {
       case Function(_, range) => range.makeFillValues

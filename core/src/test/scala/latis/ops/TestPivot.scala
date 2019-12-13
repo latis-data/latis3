@@ -19,7 +19,7 @@ class TestPivot extends JUnitSuite {
     ))
     
     val pivot = Pivot(Seq(1,2,3), null)
-    val f2 = pivot.applyToData(f, null)
+    val f2 = pivot.applyToData(f, null).asFunction
     f2.unsafeForce.samples.head match {
       case Sample(DomainData(Number(d)), RangeData(Number(r), Number(g), Number(b))) =>
         assertEquals(11, r, 0)

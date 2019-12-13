@@ -1,6 +1,6 @@
 package latis.ops
 
-import latis.data.SampledFunction
+import latis.data.Data
 import latis.model.DataType
 
 /**
@@ -20,6 +20,6 @@ trait UnaryOperation extends Operation {
    * since data operations often need the metadata/model.
    * Default to no-op.
    */
-  def applyToData(data: SampledFunction, model: DataType): SampledFunction = data
+  def applyToData(data: Data, model: DataType): Data = data
 
 }

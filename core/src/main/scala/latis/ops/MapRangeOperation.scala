@@ -20,7 +20,7 @@ trait MapRangeOperation extends UnaryOperation {
    * Delegate to the Dataset's SampledFunction to apply the "map" function
    * and generate a new SampledFunction
    */
-  override def applyToData(data: SampledFunction, model: DataType): SampledFunction =
-    data.mapRange(mapFunction(model))
+  override def applyToData(data: Data, model: DataType): Data =
+    data.asFunction.mapRange(mapFunction(model))
 
 }

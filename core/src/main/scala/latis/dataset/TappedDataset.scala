@@ -3,7 +3,7 @@ package latis.dataset
 import cats.effect.IO
 import fs2.Stream
 
-import latis.data.Sample
+import latis.data._
 import latis.data.SampledFunction
 import latis.metadata.Metadata
 import latis.model.DataType
@@ -21,14 +21,19 @@ import latis.ops.UnaryOperation
 class TappedDataset(
   _metadata: Metadata,
   _model: DataType,
-  _data: SampledFunction,
+  _data: Data,
   operations: Seq[UnaryOperation] = Seq.empty
 ) extends AbstractDataset(_metadata, _model, operations) {
 
   /**
-   * Returns the data as a SampledFunction.
+   * Returns this Dataset's Data.
    */
-  def data: SampledFunction = _data
+  def data: Data = _data
+
+  /**
+   * Returns this Dataset's data as a SampledFunction.
+   */
+  def function: SampledFunction = _data.asFunction
 
   /**
    * Returns a copy of this Dataset with the given Operation
@@ -45,20 +50,20 @@ class TappedDataset(
   /**
    * Applies the operations and returns a Stream of Samples.
    */
-  def samples: Stream[IO, Sample] = applyOperations().streamSamples
+  def samples: Stream[IO, Sample] = applyOperations().asFunction.streamSamples
 
   /**
    * Applies the Operations and returns a SampledFunction.
    */
-  private def applyOperations(): SampledFunction = {
+  private def applyOperations(): Data = {
     //TODO: compile/optimize the operations
 
     // Defines a function to apply an Operation to a SampledFunction.
     // The model (DataType) need to ride along to provide context.
-    val f: ((DataType, SampledFunction), UnaryOperation) => (DataType, SampledFunction) =
-      (modat: (DataType, SampledFunction), op: UnaryOperation) =>
+    val f: ((DataType, Data), UnaryOperation) => (DataType, Data) =
+      (modat: (DataType, Data), op: UnaryOperation) =>
         modat match {
-          case (model: DataType, data: SampledFunction) =>
+          case (model: DataType, data: Data) =>
             val mod2 = op.applyToModel(model)
             val dat2 = op.applyToData(data, model)
             (mod2, dat2)
@@ -76,7 +81,7 @@ class TappedDataset(
   def unsafeForce(): MemoizedDataset = new MemoizedDataset(
     metadata,  //from super with ops applied
     model,     //from super with ops applied
-    applyOperations().unsafeForce
+    applyOperations().asFunction.unsafeForce
   )
 
 }
