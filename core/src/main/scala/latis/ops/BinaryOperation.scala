@@ -1,6 +1,6 @@
 package latis.ops
 
-import latis.data.SampledFunction
+import latis.data.Data
 import latis.model.DataType
 
 /**
@@ -18,9 +18,9 @@ trait BinaryOperation extends Operation {
    */
   def applyToData(
     model1: DataType,
-    data1: SampledFunction,
+    data1: Data,
     model2: DataType,
-    data2: SampledFunction
-  ): SampledFunction
+    data2: Data
+  ): Data
 
 }

@@ -8,3 +8,9 @@ case class ConstantFunction(data: RangeData) extends MemoizedFunction {
   def samples: Seq[Sample] = List(Sample(DomainData(), data))
 
 }
+
+object ConstantFunction {
+
+  def apply(data: Data): ConstantFunction =
+    ConstantFunction(List(data))
+}

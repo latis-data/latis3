@@ -2,6 +2,8 @@ package latis.ops
 
 import latis.data._
 import latis.model._
+import latis.util.LatisException
+import latis.util.LatisOrdering
 
 trait GroupingOperation extends UnaryOperation with StreamingOperation { self =>
 
@@ -41,7 +43,14 @@ trait GroupingOperation extends UnaryOperation with StreamingOperation { self =>
    * delegating to the original SampledFunction's
    * groupBy method.
    */
-  override def applyToData(data: SampledFunction, model: DataType): SampledFunction =
-    data.groupBy(groupByFunction(model), aggregation)
+  override def applyToData(data: Data, model: DataType): Data = {
+    val scalars = applyToModel(model) match {
+      case Function(d, _) => d.getScalars
+      case _ => throw LatisException(s"Invalid Dataset for grouping: $model")
+    }
+    val ord = LatisOrdering.partialToTotal(LatisOrdering.domainOrdering(scalars))
+    data.asFunction.groupBy(groupByFunction(model), aggregation)(ord)
+    //TODO: try groupBy with PartialOrdering, separate bin for the unorderable (e.g. NaN), then drop?
+  }
 
 }

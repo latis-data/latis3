@@ -36,9 +36,10 @@ case class GroupBy(vnames: String*) extends UnaryOperation {
    * Convert the variable information from the model into SamplePaths
    * that can be applied to the model-agnostic SampledFunction.
    */
-  override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
+  override def applyToData(data: Data, model: DataType): Data = {
     val paths = vnames.flatMap(model.getPath) //TODO: deal with invalid vname
-    data.groupBy(paths: _*)
+    val ord: Ordering[DomainData] = ???
+    data.asFunction.groupBy(paths: _*)(ord)
   }
 
 }

@@ -5,7 +5,9 @@ import scala.collection.immutable.SortedMap
 import latis.model.Scalar
 import latis.util.LatisOrdering
 
-case class SortedMapFunction(sortedMap: SortedMap[DomainData, RangeData]) extends MemoizedFunction {
+case class SortedMapFunction(sortedMap: SortedMap[DomainData, RangeData])(
+  implicit ordering: Ordering[DomainData]
+) extends MemoizedFunction {
 
   def samples: Seq[Sample] = sortedMap.toSeq
 
@@ -16,10 +18,9 @@ case class SortedMapFunction(sortedMap: SortedMap[DomainData, RangeData]) extend
   //TODO: optimize other methods
 }
 
-//object SortedMapFunction extends FunctionFactory {
-//
-//  def fromSamples(samples: Seq[Sample], ss: List[Scalar]): MemoizedFunction = {
-//    val ordering: Ordering[DomainData] = LatisOrdering.partialToTotal(LatisOrdering.domainOrdering(ss))
-//    SortedMapFunction(SortedMap(samples: _*)(ordering))
-//  }
-//}
+object SortedMapFunction { //extends FunctionFactory {
+
+  def fromSamples(samples: Seq[Sample])(implicit ordering: Ordering[DomainData]): MemoizedFunction =
+    SortedMapFunction(SortedMap(samples: _*)(ordering))
+
+}

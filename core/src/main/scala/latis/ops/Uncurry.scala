@@ -80,8 +80,8 @@ case class Uncurry() extends UnaryOperation {
   /**
    * Delegate to the SampledFunction implementation to apply the function.
    */
-  override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
+  override def applyToData(data: Data, model: DataType): Data = {
     val f = makeFlatMapFunction()
-    data.flatMap(f)
+    data.asFunction.flatMap(f)
   }
 }

@@ -97,7 +97,7 @@ trait SampledFunction extends Data {
    * must be memoized.
    * This operation is unsafe for StreamFunctions.
    */
-  def groupBy(paths: SamplePath*): MemoizedFunction =
+  def groupBy(paths: SamplePath*)(implicit ordering: Ordering[DomainData]): MemoizedFunction =
     unsafeForce.groupBy(paths: _*)
   //TODO: GroupByVars extends GroupingOperation
 
@@ -108,14 +108,14 @@ trait SampledFunction extends Data {
   def groupBy(
     groupByFunction: Sample => Option[DomainData],
     aggregation: Aggregation = NoAggregation()
-  ): MemoizedFunction = {
+  )(implicit ordering: Ordering[DomainData]): MemoizedFunction = {
     import scala.collection.immutable.{SortedMap => iSortedMap}
     import scala.collection.mutable.{SortedMap => mSortedMap}
 
     // Make mutable SortedMap to accumulate the Samples for each DomainData.
     // Note that we can't use a Builder since we need to access existing
     //   buffers to append to.
-    val sortedMap: mSortedMap[DomainData, ListBuffer[Sample]] = ??? //mSortedMap()
+    val sortedMap: mSortedMap[DomainData, ListBuffer[Sample]] = mSortedMap()
 
     // Collect Samples into buffers by DomainData value
     val stream = streamSamples.map { sample =>
@@ -136,7 +136,7 @@ trait SampledFunction extends Data {
       case (dd, ss) => aggregation.aggregationFunction(dd, ss)
     }
 
-    ??? //SortedMapFunction(iSortedMap(samples: _*))
+    SortedMapFunction(iSortedMap(samples: _*)(ordering))
   }
 
   /**
