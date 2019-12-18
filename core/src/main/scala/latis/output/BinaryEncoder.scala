@@ -6,11 +6,12 @@ import scodec._
 import scodec.Codec
 import scodec.bits._
 import scodec.codecs.implicits._
-import scodec.stream.{encode => sEncode,StreamEncoder}
+import scodec.stream.{StreamEncoder, encode => sEncode}
 import scodec.{Encoder => SEncoder}
 import latis.data.Data._
 import latis.data._
 import latis.dataset._
+import latis.model._
 import latis.ops.Uncurry
 
 class BinaryEncoder extends Encoder[IO, BitVector] {
@@ -22,44 +23,44 @@ class BinaryEncoder extends Encoder[IO, BitVector] {
   override def encode(dataset: Dataset): Stream[IO, BitVector] = {
     val uncurriedDataset = dataset.withOperation(Uncurry())
     // Encode each Sample as a BitVector in the Stream
-    sampleStreamEncoder.encode(uncurriedDataset.samples)
+    sampleStreamEncoder(uncurriedDataset.model).encode(uncurriedDataset.samples)
   }
 
   /** Instance of scodec.stream.StreamEncoder for Sample. */
-  implicit val sampleStreamEncoder: StreamEncoder[Sample] =
-    sEncode.many(sampleEncoder)
+  def sampleStreamEncoder(model: DataType): StreamEncoder[Sample] =
+    sEncode.many(sampleEncoder(model))
 
-  /** Instance of scodec.Encoder for Sample. */
-  implicit val sampleEncoder: SEncoder[Sample] = new SEncoder[(DomainData, RangeData)] {
-    override def encode(value: (DomainData, RangeData)): Attempt[BitVector] = value match {
-      case Sample(ds, rs) =>
-        (ds ++ rs).foldLeft(Attempt.successful(BitVector(hex""))) {
-          case (ab: Attempt[BitVector], d: Data) =>
+  def sampleEncoder(model: DataType): SEncoder[Sample] = new SEncoder[(DomainData, RangeData)] {
+    def encode(sample: (DomainData, RangeData)): Attempt[BitVector] =
+    (model, sample) match {
+      case (Function(domain, range), Sample(ds, rs)) =>
+        val scalars = domain.getScalars ++ range.getScalars
+        val datas   = ds ++ rs
+        (scalars zip datas).foldLeft(Attempt.successful(BitVector(hex""))) {
+          case (ab: Attempt[BitVector], (s: Scalar, d: Data)) =>
             ab.flatMap {
-              case b: BitVector => SEncoder.encode(d).map(b ++ _)
+              case b: BitVector => dataCodec(s).encode(d).map(b ++ _)
             }
         }
     }
-    override def sizeBound: SizeBound = new SizeBound(0, None)
+    def sizeBound: SizeBound = ???
   }
 
-  /** Instance of scodec.Encoder for Data. */
-  implicit val encodeData: SEncoder[Data] = new SEncoder[Data] {
-    override def encode(value: Data): Attempt[BitVector] = value match {
-      case x: BooleanValue    => Codec.encode(x.value)
-      case x: ByteValue       => Codec.encode(x.value)
-//      case x: CharValue       => Codec.encode(x.value)
-      case x: ShortValue      => Codec.encode(x.value)
-      case x: IntValue        => Codec.encode(x.value)
-      case x: LongValue       => Codec.encode(x.value)
-      case x: FloatValue      => Codec.encode(x.value)
-      case x: DoubleValue     => Codec.encode(x.value)
-//      case x: BinaryValue     => Codec.encode(x.value)
-      case x: StringValue     => Codec.encode(x.value)
-//      case x: BigIntValue     => Codec.encode(x.value)
-//      case x: BigDecimalValue => Codec.encode(x.value)
-      case _                  => Attempt.failure(Err("No encoder for given datatype."))
-    }
-    override def sizeBound: SizeBound = new SizeBound(0, None)
+  /** Instance of scodec.Codec for Data. */
+  def dataCodec(s: Scalar): Codec[Data] = s.valueType match {
+    case BooleanValueType => codecs.bool(8).xmap[BooleanValue](BooleanValue(_), _.value).upcast[Data]
+    case ByteValueType    => codecs.byte.xmap[ByteValue](ByteValue(_), _.value).upcast[Data]
+    case ShortValueType   => codecs.short16.xmap[ShortValue](ShortValue(_), _.value).upcast[Data]
+    case IntValueType     => codecs.int32.xmap[IntValue](IntValue(_), _.value).upcast[Data]
+    case LongValueType    => codecs.int64.xmap[LongValue](LongValue(_), _.value).upcast[Data]
+    case FloatValueType   => codecs.float.xmap[FloatValue](FloatValue(_), _.value).upcast[Data]
+    case DoubleValueType  => codecs.double.xmap[DoubleValue](DoubleValue(_), _.value).upcast[Data]
+    case StringValueType =>
+      val size = s.metadata.getProperty("size").get.toLong * 8
+      scodec.codecs.paddedFixedSizeBits(size,
+                                        codecs.utf8,
+                                        codecs.literals.constantBitVectorCodec(BitVector(hex"00")))
+        .xmap[StringValue](StringValue(_), _.value).upcast[Data]
+    case _ => ???
   }
 }
