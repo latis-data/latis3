@@ -43,7 +43,7 @@ class BinaryEncoder extends Encoder[IO, BitVector] {
             }
         }
     }
-    def sizeBound: SizeBound = ???
+    def sizeBound: SizeBound = SizeBound.unknown
   }
 
   /** Instance of scodec.Codec for Data. */
@@ -61,6 +61,6 @@ class BinaryEncoder extends Encoder[IO, BitVector] {
                                         codecs.utf8,
                                         codecs.literals.constantBitVectorCodec(BitVector(hex"00")))
         .xmap[StringValue](StringValue(_), _.value).upcast[Data]
-    case _ => ???
+    case _ => codecs.fail(Err("No encoder found for given datatype."))
   }
 }

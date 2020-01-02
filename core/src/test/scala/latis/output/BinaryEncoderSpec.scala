@@ -8,7 +8,7 @@ import scodec.{Encoder => SEncoder}
 import latis.data.{DomainData, RangeData, Sample}
 import latis.dataset.Dataset
 import latis.metadata.Metadata
-import latis.model.Scalar
+import latis.model.{Scalar, Tuple, Function}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import scodec.bits.BitVector
@@ -19,40 +19,46 @@ class BinaryEncoderSpec extends FlatSpec {
    * Instance of BinaryEncoder for testing.
    */
   val enc = new BinaryEncoder
-  val ds: Dataset = Dataset.fromName("data")
+  val ds: Dataset = Dataset.fromName("data2")
 
   "A Binary encoder" should "encode a dataset to binary" in {
     val encodedList = enc.encode(ds).compile.toList.unsafeRunSync()
 
     val expected = List(
-      SEncoder.encode(0).require ++
-        SEncoder.encode(1).require ++
-        SEncoder.encode(1.1).require ++
-        BitVector(hex"61"),
-      SEncoder.encode(1).require ++
-        SEncoder.encode(2).require ++
-        SEncoder.encode(2.2).require ++
-        BitVector(hex"62"),
-      SEncoder.encode(2).require ++
-        SEncoder.encode(4).require ++
-        SEncoder.encode(3.3).require ++
-        BitVector(hex"63")
+      SEncoder.encode(3).require ++
+        SEncoder.encode(6).require ++
+        SEncoder.encode(4.4).require ++
+        BitVector(hex"64"),
+      SEncoder.encode(4).require ++
+        SEncoder.encode(8).require ++
+        SEncoder.encode(5.5).require ++
+        BitVector(hex"65"),
+      SEncoder.encode(5).require ++
+        SEncoder.encode(10).require ++
+        SEncoder.encode(6.6).require ++
+        BitVector(hex"66")
     )
 
     encodedList should be(expected)
   }
 
-//  it should "encode a Sample to binary" in {
-//    val sample = Sample(DomainData(0), RangeData(1, 1.1, "a"))
-//    model = ???
-//    val expected = Attempt.successful(
-//      SEncoder.encode(0).require ++
-//        SEncoder.encode(1).require ++
-//        SEncoder.encode(1.1).require ++
-//        BitVector(hex"61"))
-//
-//    enc.sampleEncoder(model).encode(sample) should be(expected)
-//  }
+  it should "encode a Sample to binary" in {
+    val sample = Sample(DomainData(0), RangeData(1, 1.1, "a"))
+    val model = Function(
+        Scalar(Metadata("id" -> "d", "type" -> "int")),
+      Tuple(Scalar(Metadata("id" -> "r0", "type" -> "int")),
+        Scalar(Metadata("id" -> "r1", "type" -> "double")),
+        Scalar(Metadata("id" -> "r2", "type" -> "string", "size" -> "2")))
+      )
+
+    val expected = Attempt.successful(
+      SEncoder.encode(0).require ++
+        SEncoder.encode(1).require ++
+        SEncoder.encode(1.1).require ++
+        BitVector(hex"6100"))
+
+    enc.sampleEncoder(model).encode(sample) should be(expected)
+  }
 
   it should "encode Data to binary" in {
     val dataToEncode = List(
