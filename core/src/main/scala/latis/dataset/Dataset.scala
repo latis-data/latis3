@@ -4,7 +4,8 @@ import java.net.URI
 
 import cats.effect.IO
 import fs2.Stream
-import latis.data.{FunctionFactory, Sample}
+
+import latis.data._
 import latis.input.DatasetReader
 import latis.input.DatasetResolver
 import latis.metadata.Metadata
@@ -12,6 +13,7 @@ import latis.metadata.MetadataLike
 import latis.model.DataType
 import latis.ops.UnaryOperation
 import latis.util.CacheManager
+import latis.util.LatisException
 
 /**
  * Defines the interface for a LaTiS Dataset.
@@ -46,6 +48,12 @@ trait Dataset extends MetadataLike {
    */
   def withOperations(ops: Seq[UnaryOperation]): Dataset =
     ops.foldLeft(this)((ds, op) => ds.withOperation(op))
+
+  def asFunction(): DatasetFunction = {
+    val ds = unsafeForce()
+    val f: DomainData => Either[LatisException, RangeData] = ds.data.apply
+    DatasetFunction(ds.metadata, ds.model, f)
+  }
 
   /**
    * Causes the data source to be read and released

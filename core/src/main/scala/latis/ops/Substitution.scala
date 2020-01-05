@@ -1,206 +1,135 @@
 package latis.ops
 
+import cats.implicits._
+
 import latis.data._
+import latis.dataset.DatasetFunction
 import latis.model._
 import latis.util.LatisException
 
 /**
  * Replaces a variable in a Dataset by using it to evaluate another Dataset.
  */
-case class Substitution() extends BinaryOperation {
-  //TODO: explore consequences of complex types
-  //  this generally assumes ds2 is scalars a -> b but could be any type
-  //TODO: require that ds2 range is ordered (monotonic) if replacing a domain value
-  //TODO: if ds1 is memoized, evaluate with the entire domain set?
-  //TODO: support aliases? or construct with id to replace?
+case class Substitution(subFunction: DatasetFunction) extends MapOperation {
+  //TODO: preserve nested tuples?
 
-  /*
-   * TODO: name the target variable instead of matching names
-   * or do in terms of sample path?
-   * require rename
-   * provide in smart constructor
-   */
-
-  /*
-   * eval could be expensive
-   * we know that both share the same ordering and have the same domain set, thus substitution and not resampling
-   * can Substitution simply replace without eval?
-   *
-   * eval can be cheap if we use an Array SF
-   *   should this automatically do the restructuring or leave it to the user?
-   * handy if we do stride on data, can still eval full geoloc dataset
-   *
-   * 2D: sample does not preserve tuples so we can't get a SamplePosition for the Tuple
-   * the 2 vars must be together
-   *   e.g. sub (ix, iy) -> (lon, lat)
-   *   (w, ix, iy, z) -> f   is ok
-   * can the order be reversed? probably
-   * note that substitution in the domain might not have expected ordering
-   * would we be better off requiring currying such that we have a dedicated 2D domain
-   *   for a Function with a special topology?
-   */
-
-//  /**
-//   * Apply second Dataset to the first replacing the variable matching the domain
-//   * variable of the second with its range variable.
-//   */
-//  def apply(ds1: Dataset, ds2: Dataset): Dataset = {
-//    val model = applyToModel(ds1.model, ds2.model)
-//
-//    val data = applyToData(ds1, ds2)
-//
-//    //TODO: update Metadata
-//    Dataset(ds1.metadata, model, data)
-//  }
-
-//  /*
-//   * Splice a Seq[A]:
-//   * slice: Seq[A]
-//   * f: Seq[A] => Seq[A]
-//   * splice(slice: Seq[A])(f: Seq[A] => Seq[A])
-//   */
-//  def splice(seq:Seq[_], slice: Seq[_], sub: Seq[_]): Seq[_] = {
-//    seq.indexOfSlice(slice) match {
-//      case -1 => ??? //slice not found, error or return orig?
-//      case index => seq.splitAt(index) match {
-//        case (p1, p2) => p1 ++ sub ++ p2.drop(slice.length)
-//      }
-//    }
-//  }
-
-  def applyToData(
-    model1: DataType,
-    data1: Data,
-    model2: DataType,
-    data2: Data
-  ): Data = {
-    // Previous processing should have ensured that the model is as expected
-    // e.g. the expected values exist sequentially so we can use the index of the first.
-
-    val vids = getDomainVariableIDs(model2)
-
-    // Get the sample position of the first ds2 domain variable in ds1.
-    //val pos: SamplePosition = ds1.model.getPath(vids.head) match {
-    val path: SamplePath = model1.getPath(vids.head) match {
-      //TODO: findPath? Option vs empty path
-      case Some(p) => p
-      case None    => ??? //error, variable not found in ds1
+  def mapFunction(model: DataType): Sample => Sample = {
+    // Get the subDataset domain and range types
+    val (subDomain, subRange) = subFunction.model match {
+      case Function(d, r) => (d, r)
+      case _ => throw LatisException("A substitution Dataset must not be a ConstantFunction.")
     }
 
-    // Get the SampledFunction of ds2 to be used for evaluation
-    val sf = data2.asFunction
+    // Get the paths to the substitution variables in the target Dataset
+    //TODO: error if not consecutive
+    val paths = subDomain.getScalars.traverse { s =>
+      model.getPath(s.id)
+    }.getOrElse {
+      val msg = s"Failed to find substitution domain in target Dataset"
+      throw LatisException(msg)
+    }
 
-    // Make a function to modify a ds1 Sample by replacing the value
-    // from evaluating ds2 with the value of the matching variable in ds1
-    //val f: Sample => Sample = (sample: Sample) => path match {
-    def f(sample: Sample, path: SamplePath): Sample = path match {
-      /*
-       * TODO: support nested Functions.
-       * use full path, length indicates how deep
-       * recurse down path
-       * rebuild on the way out
-       */
-      case (head :: tail) if (tail.isEmpty) =>
-        head match {
+    // Defines a function to modify a Sample by replacing the values
+    // starting at the given path with the results of using them to
+    // evaluate the substitution Dataset.
+    def substitute(sample: Sample, path: SamplePath): Sample = path match {
+      case (pos :: Nil) =>
+        pos match {
           case DomainPosition(i) =>
-            val vals: DomainData = sample.domain
-            val slice = vals.slice(i, i + vids.length) //get values to be replaced
-            val sub: DomainData = sf(DomainData(slice)) match {
-              case Some(rd: RangeData) =>
+            // Get the domain values
+            val vals: List[Datum] = sample.domain
+            // Extract the values to be replaced
+            val slice: DomainData = vals.slice(i, i + domainVariableIDs.length)
+            // Evaluate the substitution Dataset with the values to be replaced.
+            val sub: List[Datum] = subFunction(slice) match {
+              case Right(rd: RangeData) =>
                 // Make sure these range data can be used for a domain, i.e. all Datum, no SF
-                val dd = rd.collect { case d: Datum => d }
-                if (dd.length == rd.length) dd
-                else throw LatisException("Substitution includes Function")
-              case None => throw LatisException("Substitution evaluation failed")
+                rd.map {
+                  case d: Datum => d
+                  case sf: SampledFunction =>
+                    throw LatisException("Domain substitution includes Function")
+                }
+              case Left(le) => throw le
             }
+            // Substitute the new values into the domain
             val domain: DomainData = vals.splitAt(i) match {
-              case (p1, p2) => p1 ++ sub ++ p2.drop(slice.length) //splice in new data
+              case (p1, p2) => p1 ++ sub ++ p2.drop(slice.length)
             }
-            //val domain = DomainData(vals2)
             Sample(domain, sample.range)
           case RangePosition(i) =>
-            val vals = sample.range
-            //get values to be replaced
-            val slice = vals.slice(i, i + vids.length)
-            val sub: DomainData = ??? //sf(DomainData(slice)).get //TODO: handle bad eval, see above
-            val vals2 = vals.splitAt(i) match {
-              case (p1, p2) => p1 ++ sub ++ p2.drop(slice.length) //splice in new data
+            // Get the range values
+            val vals: List[Data] = sample.range
+            // Extract the values to be replaced; can't include Function
+            val slice: DomainData = vals.slice(i, i + domainVariableIDs.length).map {
+              case d: Datum => d
+              case sf: SampledFunction =>
+                throw LatisException("Substitution includes Function")
             }
-            val range = RangeData(vals2)
+            // Evaluate the substitution Dataset with the values to be replaced
+            val sub: List[Data] = subFunction(slice) match {
+              case Right(v) => v
+              case Left(le) => throw le
+            }
+            // Substitute the new values into the range
+            val range: RangeData = vals.splitAt(i) match {
+              case (p1, p2) => p1 ++ sub ++ p2.drop(slice.length)
+            }
             Sample(sample.domain, range)
         }
       // Tail not empty, recurse
-      case (head :: tail) =>
-        /*
-         * head tells us whether to keep the domain or range and rebuild the other
-         * Note, domain can't have nested functions so head must be a RangePosition.
-         * we don't yet have nested function in a tuple, but we might?
-         */
-        sample.getValue(head) match {
-          case Some(innerSF: SampledFunction) =>
-            //assume no nested function in tuple
-            val sf2 = innerSF.map(f(_, tail)) //recurse
-            Sample(sample.domain, RangeData(sf2)) //assuming the nested function is not part of a tuple
-          case _ => ??? //shouldn't get here unless path is invalid
+      case (pos :: tail) =>
+        // Get the nested function from the first part of the path and recurse
+        sample.getValue(pos) match {
+          case Some(innerSF: MemoizedFunction) =>
+            val sf = SampledFunction(innerSF.sampleSeq.map(substitute(_, tail))) //recurse
+            Sample(sample.domain, RangeData(sf))
+          //TODO: support nested function in tuple
+          case _ => ???
         }
     }
 
-    // Apply the substitution function to original data
-    data1.asFunction.map(f(_, path))
+    (sample: Sample) => substitute(sample, paths.head)
   }
 
-  def applyToModel(dt1: DataType, dt2: DataType): DataType = {
-    //TODO: prevent substituting a Function into the domain
-    //  i.e. ds2 is not nested; OK in range
-
-    // Get the substitution Dataset's scalar domain variable ids
-    // and range variable.
-    val vids  = getDomainVariableIDs(dt2)
-    val range = dt2 match { case Function(_, r) => r }
-
-    // Confirm that the target Dataset has the domain variables in sequence.
-    // Note that the toSeq preserves all the nested data structures
-    // and not just the scalars. Finding the vids consecutively
-    // ensures that we are not crossing Tuple boundaries.
-    //TODO: does protect against domain/range crossing if domain is scalar
-//    if (dt1.toSeq.map(_.id).indexOfSlice(vids) == -1) ??? //TODO: not found
+  def applyToModel(model: DataType): DataType = {
+    // Get the subDataset range Scalars.
+    // Note, avoids nested tuples
+    val subScalars = subFunction.model match {
+      case Function(_, r) => r.getScalars
+      case _ => throw LatisException("A substitution Dataset must not be a ConstantFunction.")
+    }
 
     // Traverse the original model and replace the types matching the
     // substitution Dataset's domain with the types from its range.
     // Recursive helper function
     def go(dt: DataType): DataType = dt match {
       case s: Scalar =>
-        if ((vids.length == 1) && (s.id == vids.head)) range
+        if ((domainVariableIDs.length == 1) && (s.id == domainVariableIDs.head)) subScalars.head
         else s
       case Tuple(es @ _*) =>
-        es.map(_.id).indexOfSlice(vids) match {
+        //TODO: support aliases
+        es.map(_.id).indexOfSlice(domainVariableIDs) match {
           case -1 => Tuple(es.map(go)) //no match, keep recursing
           case index =>
             es.splitAt(index) match {
               // Splice in the new variable types
               case (p1, p3) =>
-                val dts = (p1 :+ range) ++ p3.drop(vids.length)
-                if (dts.length == 1)
-                  dts.head //Reduce 1-Tuple //TODO: Tuple constructor option? Tuple.reduced()? vs flattened
+                val dts = p1 ++ subScalars ++ p3.drop(domainVariableIDs.length)
+                if (dts.length == 1) dts.head //Reduce 1-Tuple
                 else Tuple(dts)
             }
         }
       case Function(d, r) => Function(go(d), go(r))
     }
-    go(dt1)
+
+    go(model)
   }
 
   /**
-   * Convenience method to extract the variable IDs from the domain
-   * of the Substitution Dataset.
+   * Extracts the variable IDs from the domain of the Substitution Dataset.
    */
-  private def getDomainVariableIDs(model: DataType): Seq[String] = model match {
-    case Function(d, _) =>
-      d match {
-        case s: Scalar => Seq(s.id)
-        case t: Tuple  => t.getScalars.map(_.id) //flattens nested Tuples
-        case _ => ??? //TODO: can't have Function in domain
-      }
-    case _ => ??? //TODO invalid dataset type for ds2, must be Function
+  private val domainVariableIDs: Seq[String] = subFunction.model match {
+    case Function(d, _) => d.getScalars.map(_.id)
+    case _ => throw LatisException("A substitution Dataset must not be a ConstantFunction.")
   }
 }
