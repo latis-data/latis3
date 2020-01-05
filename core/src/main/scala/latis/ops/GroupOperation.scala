@@ -29,7 +29,7 @@ trait GroupOperation extends StreamOperation { self =>
    * Defines the ordering of the new domain data.
    */
   def ordering(model: DataType): Ordering[DomainData] =
-    LatisOrdering.partialToTotal(LatisOrdering.domainOrdering(domainType(model).getScalars))
+    LatisOrdering.domainOrdering(domainType(model).getScalars)
 
   /**
    * Defines an Aggregation Operation to use to reduce

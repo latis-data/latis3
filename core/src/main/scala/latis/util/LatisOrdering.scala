@@ -9,11 +9,35 @@ import latis.model._
 object LatisOrdering {
 
   /**
+   * Defines a total Ordering for Datum.
+   * This throws an exception if the underlying
+   * PartialOrdering fails.
+   */
+  def dataOrdering: Ordering[Datum] =
+    partialToTotal(partialDataOrdering)
+
+  /**
+   * Defines a total Ordering for DomainData.
+   * This throws an exception if the underlying
+   * PartialOrdering fails.
+   */
+  def domainOrdering(scalars: List[Scalar]): Ordering[DomainData] =
+    partialToTotal(partialDomainOrdering(scalars))
+
+  /**
+   * Defines a total Ordering for Sample.
+   * This throws an exception if the underlying
+   * PartialOrdering fails.
+   */
+  def sampleOrdering(function: Function): Ordering[Sample] =
+    partialToTotal(partialSampleOrdering(function))
+
+  /**
    * Returns the default PartialOrdering for Datum.
    * This is also provided via Scalar.ordering for basic Scalars
    * such that special Scalars can provide a different ordering.
    */
-  def dataOrdering: PartialOrdering[Datum] = new PartialOrdering[Datum] {
+  def partialDataOrdering: PartialOrdering[Datum] = new PartialOrdering[Datum] {
     //TODO: should we match specific value types?
     //  avoid conversion to doubles
     import scala.math.Ordering._
@@ -41,7 +65,7 @@ object LatisOrdering {
    * of Scalars. This is intended to be used to provide an ordering for
    * DomainData.
    */
-  def domainOrdering(scalars: List[Scalar]): PartialOrdering[DomainData] =
+  def partialDomainOrdering(scalars: List[Scalar]): PartialOrdering[DomainData] =
     new PartialOrdering[DomainData] {
 
       def tryCompare(dd1: DomainData, dd2: DomainData): Option[Int] = {
@@ -74,9 +98,9 @@ object LatisOrdering {
   /**
    * Provides a PartialOrdering for Samples.
    */
-  def sampleOrdering(function: Function): PartialOrdering[Sample] = {
+  def partialSampleOrdering(function: Function): PartialOrdering[Sample] = {
     val dord = function match {
-      case Function(d, _) => domainOrdering(d.getScalars)
+      case Function(d, _) => partialDomainOrdering(d.getScalars)
     }
     new PartialOrdering[Sample] {
       def tryCompare(s1: Sample, s2: Sample): Option[Int] =
@@ -92,7 +116,7 @@ object LatisOrdering {
    */
   def partialToTotal[A](po: PartialOrdering[A]): Ordering[A] =
     (a1: A, a2: A) => po.tryCompare(a1, a2).getOrElse {
-      throw LatisException("Ordering failed")
+      throw LatisException(s"Ordering failed for $a1, $a2")
     }
 
 }
