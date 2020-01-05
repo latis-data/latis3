@@ -1,13 +1,8 @@
 package latis.data
 
-import scala.collection.immutable.SortedMap
-import scala.collection.mutable
-import scala.language.postfixOps
-
 import cats.effect.IO
 import fs2.Stream
 
-import latis.ops.UnaryOperation
 import latis.util.LatisException
 import latis.util.StreamUtils._
 

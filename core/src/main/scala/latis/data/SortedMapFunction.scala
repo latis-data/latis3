@@ -2,9 +2,7 @@ package latis.data
 
 import scala.collection.immutable.SortedMap
 
-import latis.model.Scalar
 import latis.util.LatisException
-import latis.util.LatisOrdering
 
 case class SortedMapFunction(sortedMap: SortedMap[DomainData, RangeData]) extends MemoizedFunction {
 
