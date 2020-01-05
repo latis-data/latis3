@@ -13,20 +13,24 @@ import latis.model.DataType
  * This assumes that each granule has the same model and can be appended
  * to the previous granule.
  */
-case class GranuleListJoin(model: DataType, adapter: Adapter) extends UnaryOperation {
+case class GranuleListJoin(
+  granuleModel: DataType,
+  granuleAdapter: Adapter
+) extends UnaryOperation {
+  //Note, we could stream but we want to be able to delegate to individual smart granules
 
   /**
-   * Replace the original model (of the granule list dataset)
+   * Replaces the original model (of the granule list dataset)
    * with the model of the granules.
    */
-  override def applyToModel(_model: DataType): DataType = model
+  override def applyToModel(model: DataType): DataType = granuleModel
 
   /**
-   * Apply the Adapter to each URI in the granule list dataset
+   * Applies the Adapter to each URI in the granule list dataset
    * to generate a SampledFunction for each and wrap them all
    * in a CompositeSampledFunction.
    */
-  override def applyToData(data: Data, model: DataType): Data = {
+  override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
 
     // Get the position of the "uri" value within a Sample
     val pos: SamplePosition = model.getPath("uri") match {
@@ -40,7 +44,7 @@ case class GranuleListJoin(model: DataType, adapter: Adapter) extends UnaryOpera
       sample.getValue(pos) match {
         case Some(Text(s)) =>
           val uri = new URI(s) //TODO: error
-          adapter.getData(uri) //TODO: delegate ops?
+          granuleAdapter.getData(uri) //TODO: delegate ops?
         case _ => ??? //TODO: error if type is wrong, position should be valid
       }
     }
@@ -56,6 +60,6 @@ case class GranuleListJoin(model: DataType, adapter: Adapter) extends UnaryOpera
 
 object GranuleListJoin {
 
-  def apply(model: DataType, config: AdapterConfig): GranuleListJoin =
-    GranuleListJoin(model, AdapterFactory.makeAdapter(model, config))
+  def apply(granuleModel: DataType, config: AdapterConfig): GranuleListJoin =
+    GranuleListJoin(granuleModel, AdapterFactory.makeAdapter(granuleModel, config))
 }

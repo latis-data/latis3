@@ -12,7 +12,7 @@ import latis.model._
  *
  * Assumes Cartesian Product domain set (e.g. same set of bs for each a).
  */
-case class Uncurry() extends UnaryOperation {
+case class Uncurry() extends FlatMapOperation {
   //TODO: assume no Functions in Tuples, for now
   //TODO: neglect function and tuple IDs, for now
 
@@ -64,24 +64,18 @@ case class Uncurry() extends UnaryOperation {
    * This currently assumes no more than one layer of nesting and that nested
    * Functions are not within a Tuple.
    */
-  def makeFlatMapFunction(): Sample => MemoizedFunction = {
+  def flatMapFunction(model: DataType): Sample => MemoizedFunction = {
     case s @ Sample(ds, rs) =>
       //TODO: recurse for deeper nested functions
       //TODO: allow function in tuple
       rs match {
         case ((sf: MemoizedFunction) :: Nil) => //one function in range
-          sf.map {
+          val samples = sf.sampleSeq.map {
             case Sample(ds2, rs2) => Sample(ds ++ ds2, rs2)
           }
-        case _ => SampledFunction(s) //no-op if range is not a Function
+          SampledFunction(samples)
+        case _ => SampledFunction(Seq(s)) //no-op if range is not a Function
       }
   }
 
-  /**
-   * Delegate to the SampledFunction implementation to apply the function.
-   */
-  override def applyToData(data: Data, model: DataType): Data = {
-    val f = makeFlatMapFunction()
-    data.asFunction.flatMap(f)
-  }
 }

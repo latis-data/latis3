@@ -45,7 +45,7 @@ case class MatrixTextAdapter(
             .map { v =>
               scalar.parseValue(v) match {
                 case Right(d) => RangeData(d)
-                case Left(_) => scalar.makeFillValues //TODO: improve API
+                case Left(_) => scalar.fillValue //TODO: improve API
               }
             } //parsed row: List[Array[RangeData]]
         }

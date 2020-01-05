@@ -1,31 +1,26 @@
 package latis.ops
 
 import latis.data._
+import latis.model._
 
 /**
- * Reduce the samples of a SampledFunction to the one closest
- * to the domain value given to the aggregator.
+ * Defines an Aggregation that reduces the Samples of a Dataset to a ConstantFunction
+ * with the range of the single Sample whose domain is closest to the given domain.
  */
-case class NearestNeighborAggregation() extends Aggregation {
-  //Note, model shouldn't change
+case class NearestNeighborAggregation(domain: DomainData) extends Aggregation {
 
-  def makeAggregator(domain: DomainData): Aggregator = new Aggregator {
+  def aggregateFunction(model: DataType): Iterable[Sample] => RangeData = {
+    (samples: Iterable[Sample]) =>
+      if (samples.isEmpty) model match {
+        case Function(_, r) => r.fillValue
+        case _ => ??? //TODO: error, model must be a Function
+      } else samples.minBy {
+        case Sample(dd, _) => DomainData.distance(domain, dd)
+      }.range
+  }
 
-    private var currentSample: Option[Sample] = None
-
-    //TODO: test if we keep first nearest
-    def +=(sample: Sample): this.type = {
-      // Keep the sample that is closer to our domain value
-      currentSample = currentSample.map { s =>
-        Seq(s, sample).minBy {
-          case Sample(dd, _) => DomainData.distance(domain, dd)
-        }
-      }.orElse {
-        Some(sample) //currentSample was empty so keep this one
-      }
-      this
-    }
-
-    def result(): List[Data] = currentSample.map(_.range).getOrElse(List.empty)
+  def applyToModel(model:DataType): DataType = model match {
+    case Function(_, r)=> r
+    case _ => ??? //TODO: error, model must be a Function
   }
 }

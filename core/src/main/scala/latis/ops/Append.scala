@@ -14,11 +14,9 @@ case class Append() extends BinaryOperation {
   def applyToModel(model1: DataType, model2: DataType): DataType = model1
 
   def applyToData(
-    model1: DataType,
-    data1: Data,
-    model2: DataType,
-    data2: Data
-  ): Data =
-    SampledFunction(data1.asFunction.streamSamples ++ data2.asFunction.streamSamples)
+    data1: SampledFunction,
+    data2: SampledFunction
+  ): SampledFunction =
+    SampledFunction(data1.samples ++ data2.samples)
 
 }

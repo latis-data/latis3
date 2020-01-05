@@ -131,7 +131,7 @@ sealed trait DataType extends MetadataLike {
 
   //TODO: beef up
   //TODO: use missingValue in metadata, scalar.parseValue(s)
-  def makeFillValues: RangeData = RangeData(getFillValue(this, Seq.empty))
+  def fillValue: RangeData = RangeData(getFillValue(this, Seq.empty))
 
   private def getFillValue(dt: DataType, acc: Seq[Data]): Seq[Data] = dt match {
     case s: Scalar      => acc :+ s.valueType.fillValue

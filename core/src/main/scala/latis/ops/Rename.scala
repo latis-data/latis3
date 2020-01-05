@@ -1,5 +1,6 @@
 package latis.ops
 
+import latis.data.SampledFunction
 import latis.model._
 
 /**
@@ -8,10 +9,15 @@ import latis.model._
  */
 case class Rename(origName: String, newName: String) extends UnaryOperation {
 
-  override def applyToModel(model: DataType): DataType =
+  def applyToModel(model: DataType): DataType =
     model.map {
       case v if (v.id == origName) => v.rename(newName)
       //TODO: support aliases with hasName
       case v => v
     }
+
+  /**
+   * Provides a no-op implementation for Rename.
+   */
+  def applyToData(data: SampledFunction, model: DataType): SampledFunction = data
 }

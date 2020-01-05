@@ -1,42 +1,50 @@
 package latis.ops
 
+import cats.effect.IO
+import fs2.Pipe
+import fs2.Stream
+
 import latis.data._
 import latis.model._
 
 /**
- * An Operation that maps a function of Sample => Sample
+ * Defines an Operation that maps a function of Sample => Sample
  * over the data of a Dataset to generate a new Dataset
  * with each Sample modified. The resulting Dataset should
  * have the same number of Samples.
  */
-trait MapOperation extends UnaryOperation with StreamingOperation { self =>
+trait MapOperation extends StreamOperation { self =>
   
   /**
-   * Define a function that modifies a given Sample
+   * Defines a function that modifies a given Sample
    * into a new Sample.
    */
   def mapFunction(model: DataType): Sample => Sample
 
   /**
-   * Compose with a MappingOperation.
-   * Note that the MappingOperation will be applied first.
-   * This satisfies the StreamingOperation trait.
+   * Implements a Pipe in terms of the mapFunction.
    */
-  def compose(mappingOp: MapOperation): MapOperation = new MapOperation {
-    //TODO: apply to metadata
-
-    def mapFunction(model: DataType): Sample => Sample =
-      mappingOp.mapFunction(model).andThen(self.mapFunction(mappingOp.applyToModel(model)))
-
-    override def applyToModel(model: DataType): DataType =
-      self.applyToModel(mappingOp.applyToModel(model))
-  }
+  def pipe(model: DataType): Pipe[IO, Sample, Sample] =
+    (stream: Stream[IO, Sample]) => stream.map(mapFunction(model))
 
   /**
-   * Delegate to the Dataset's SampledFunction to apply the "map" function
-   * and generate a new SampledFunction
+   * Composes this operation with the given MapOperation.
+   * Note that the given Operation will be applied first.
    */
-  override def applyToData(data: Data, model: DataType): Data =
-    data.asFunction.map(mapFunction(model))
+  def compose(mapOp: MapOperation): MapOperation = new MapOperation {
+    def applyToModel(model: DataType): DataType =
+      self.applyToModel(mapOp.applyToModel(model))
 
+    def mapFunction(model: DataType): Sample => Sample = {
+      val tmpModel = mapOp.applyToModel(model)
+      mapOp.mapFunction(model).andThen(self.mapFunction(tmpModel))
+    }
+  }
+
+}
+
+object MapOperation {
+
+  def unapply(mapOp: MapOperation): Option[DataType => Sample => Sample] =
+    Some(mapOp.mapFunction)
 }
