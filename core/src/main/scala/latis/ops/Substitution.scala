@@ -33,6 +33,7 @@ case class Substitution(subFunction: DatasetFunction) extends MapOperation {
     // starting at the given path with the results of using them to
     // evaluate the substitution Dataset.
     def substitute(sample: Sample, path: SamplePath): Sample = path match {
+      case Nil => ??? //empty path is not valid
       case (pos :: Nil) =>
         pos match {
           case DomainPosition(i) =>
