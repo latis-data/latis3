@@ -1,5 +1,9 @@
 package latis.ops
 
+import cats.effect.IO
+import fs2.Pipe
+import fs2.Stream
+
 import latis.data._
 import latis.model._
 
@@ -10,38 +14,36 @@ import latis.model._
  * This only impacts the number of Samples in the Dataset.
  * It does not affect the model.
  */
-trait Filter extends UnaryOperation with StreamingOperation { self =>
+trait Filter extends UnaryOperation with StreamOperation { self =>
   //TODO: update "length" metadata?
   //TODO: clarify behavior of nested Functions: all or none
 
   /**
-   * Create a function that specifies whether a Sample
+   * Provides a no-op implementation for Filters.
+   */
+  def applyToModel(model: DataType): DataType = model
+
+  /**
+   * Defines a function that specifies whether a Sample
    * should be kept.
    */
-  def makePredicate(model: DataType): Sample => Boolean
-  //TODO: just "predicate"?
+  def predicate(model: DataType): Sample => Boolean
 
   /**
-   * Compose with a MappingOperation.
-   * Note that the MappingOperation will be applied first.
-   * This satisfies the StreamingOperation trait.
+   * Implements a Pipe in terms of the predicate.
    */
-  def compose(mappingOp: MapOperation): Filter = new Filter {
-    //TODO: apply to metadata
+  def pipe(model: DataType): Pipe[IO, Sample, Sample] =
+    (stream: Stream[IO, Sample]) => stream.filter(predicate(model))
 
-    def makePredicate(model: DataType): Sample => Boolean =
-      mappingOp.mapFunction(model).andThen(self.makePredicate(mappingOp.applyToModel(model)))
-
-    // Note, the Filter Operation does not affect the model.
-    override def applyToModel(model: DataType): DataType =
-      mappingOp.applyToModel(model)
+  /**
+   * Composes this operation with the given MappingOperation.
+   * Note that the given operation will be applied first.
+   */
+  def compose(mapOp: MapOperation): Filter = new Filter {
+    def predicate(model: DataType): Sample => Boolean =
+      mapOp.mapFunction(model).andThen {
+        self.predicate(mapOp.applyToModel(model))
+      }
   }
-
-  /**
-   * Delegate to the Dataset's SampledFunction to apply the predicate
-   * and generate a new SampledFunction
-   */
-  override def applyToData(data: Data, model: DataType): Data =
-    data.asFunction.filter(makePredicate(model))
 
 }

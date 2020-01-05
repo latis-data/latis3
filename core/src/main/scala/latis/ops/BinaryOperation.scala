@@ -1,12 +1,18 @@
 package latis.ops
 
-import latis.data.Data
+import latis.data.SampledFunction
 import latis.model.DataType
 
 /**
  * Defines an Operation that combines two Datasets into one.
  */
 trait BinaryOperation extends Operation {
+  /*
+  TODO: consider dropping BinaryOperations for UnaryOperations
+   that take the initial dataset as an argument.
+   Then we could drop "Unary"
+   Would this give up opportunities to fold a collection of datasets?
+   */
 
   /**
    * Combines the models of two Datasets.
@@ -17,10 +23,8 @@ trait BinaryOperation extends Operation {
    * Combines the Data of two Datasets.
    */
   def applyToData(
-    model1: DataType,
-    data1: Data,
-    model2: DataType,
-    data2: Data
-  ): Data
+    data1: SampledFunction,
+    data2: SampledFunction
+  ): SampledFunction
 
 }

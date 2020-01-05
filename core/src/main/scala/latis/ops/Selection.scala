@@ -12,7 +12,7 @@ case class Selection(vname: String, operator: String, value: String) extends Fil
   //TODO: support nested functions, all or none?
   //TODO: allow value to have units
 
-  def makePredicate(model: DataType): Sample => Boolean = {
+  def predicate(model: DataType): Sample => Boolean = {
     // Get the desired Scalar from the model
     //TODO: support aliases
     val scalar: Scalar = model.findVariable(vname) match {

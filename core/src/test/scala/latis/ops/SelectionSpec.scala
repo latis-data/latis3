@@ -22,7 +22,7 @@ class SelectionSpec extends FlatSpec {
       RangeData(1)
     )
 
-    Selection("time > 1999").makePredicate(model)(sample) should be (true)
-    Selection("time > 2001").makePredicate(model)(sample) should be (false)
+    Selection("time > 1999").predicate(model)(sample) should be (true)
+    Selection("time > 2001").predicate(model)(sample) should be (false)
   }
 }
