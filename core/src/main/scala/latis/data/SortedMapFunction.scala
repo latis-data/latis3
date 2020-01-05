@@ -3,16 +3,20 @@ package latis.data
 import scala.collection.immutable.SortedMap
 
 import latis.model.Scalar
+import latis.util.LatisException
 import latis.util.LatisOrdering
 
-case class SortedMapFunction(sortedMap: SortedMap[DomainData, RangeData])(
-  implicit ordering: Ordering[DomainData]
-) extends MemoizedFunction {
+case class SortedMapFunction(sortedMap: SortedMap[DomainData, RangeData]) extends MemoizedFunction {
 
-  def samples: Seq[Sample] = sortedMap.toSeq
+  def sampleSeq: Seq[Sample] = sortedMap.toSeq
 
-  override def apply(value: DomainData): Option[RangeData] =
-    sortedMap.get(value)
+  override def apply(value: DomainData): Either[LatisException, RangeData] =
+    sortedMap.get(value) match {
+      case Some(r) => Right(r)
+      case None =>
+        val msg = s"No sample found matching $value"
+        Left(LatisException(msg))
+    }
   //TODO: support interpolation
 
   //TODO: optimize other methods

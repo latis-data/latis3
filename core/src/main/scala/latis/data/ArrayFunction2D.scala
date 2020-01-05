@@ -1,17 +1,24 @@
 package latis.data
 
+import latis.util.LatisException
+
 /**
  * A SampledFunction implemented with a 2D array.
  * The domain values are 0-based indices as Ints.
  */
 case class ArrayFunction2D(array: Array[Array[RangeData]]) extends MemoizedFunction {
 
-  override def apply(dd: DomainData): Option[RangeData] = dd match {
-    case DomainData(Index(i), Index(j)) => array.lift(i).flatMap(_.lift(j))
-    case _                              => ??? //new RuntimeException("Failed to evaluate ArrayFunction2D")
+  override def apply(value: DomainData): Either[LatisException, RangeData] = value match {
+    case DomainData(Index(i), Index(j)) => array.lift(i).flatMap(_.lift(j)) match {
+      case Some(r) => Right(r)
+      case None =>
+        val msg = s"No sample found matching $value"
+        Left(LatisException(msg))
+    }
+    case _ => Left(LatisException(s"Invalid evaluation value for ArrayFunction1D: $value"))
   }
 
-  def samples: Seq[Sample] =
+  def sampleSeq: Seq[Sample] =
     Seq.tabulate(array.length, array(0).length) { (i, j) =>
       Sample(DomainData(i, j), array(i)(j))
     }.flatten

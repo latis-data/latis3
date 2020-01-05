@@ -3,6 +3,9 @@ package latis.data
 import cats.effect.IO
 import fs2.Stream
 
+import latis.model.DataType
+import latis.ops.UnaryOperation
+
 /**
  * Define a SampledFunction that consists of a sequence of SampledFunctions.
  * This is useful when appending data granules.
@@ -18,14 +21,14 @@ case class CompositeSampledFunction(sampledFunctions: Seq[SampledFunction])
    * Stream Samples by simply concatenating Samples from the component
    * SampledFunctions.
    */
-  def streamSamples: Stream[IO, Sample] =
-    sampledFunctions.map(_.streamSamples).fold(Stream.empty)(_ ++ _)
+  def samples: Stream[IO, Sample] =
+    sampledFunctions.map(_.samples).fold(Stream.empty)(_ ++ _)
 
   /**
    * A CompositeSampledFunction is empty if it has no component
    * SampledFunctions or each component SampledFunction is empty.
    */
-  def isEmpty: Boolean = sampledFunctions.forall(_.isEmpty)
+//  def isEmpty: Boolean = sampledFunctions.forall(_.isEmpty)
   //Note: forall does return true if the Seq is empty.
 
   /*
@@ -37,27 +40,30 @@ case class CompositeSampledFunction(sampledFunctions: Seq[SampledFunction])
    * but unary is just partially applied binary
    */
 
-  /**
-   * Override filter by delegating the predicate application
-   * to each component SampledFunction.
-   */
-  override def filter(p: Sample => Boolean): SampledFunction =
-    CompositeSampledFunction(sampledFunctions.map(_.filter(p)))
+  override def applyOperation(op: UnaryOperation, model: DataType): SampledFunction =
+    CompositeSampledFunction(sampledFunctions.map(_.applyOperation(op, model)))
 
-  /**
-   * Override map by delegating the function application
-   * to each component SampledFunction.
-   */
-  override def map(f: Sample => Sample): SampledFunction =
-    CompositeSampledFunction(sampledFunctions.map(_.map(f)))
-
-  /**
-   * Override flatMap by delegating the function application
-   * to each component SampledFunction.
-   */
-  override def flatMap(f: Sample => MemoizedFunction): SampledFunction =
-    CompositeSampledFunction(sampledFunctions.map(_.flatMap(f)))
-  //TODO: optimize other operations by delegating to granules; e.g. select, project
+  ///**
+  // * Override filter by delegating the predicate application
+  // * to each component SampledFunction.
+  // */
+  //override def filter(p: Sample => Boolean): SampledFunction =
+  //  CompositeSampledFunction(sampledFunctions.map(_.filter(p)))
+  //
+  ///**
+  // * Override map by delegating the function application
+  // * to each component SampledFunction.
+  // */
+  //override def map(f: Sample => Sample): SampledFunction =
+  //  CompositeSampledFunction(sampledFunctions.map(_.map(f)))
+  //
+  ///**
+  // * Override flatMap by delegating the function application
+  // * to each component SampledFunction.
+  // */
+  //override def flatMap(f: Sample => MemoizedFunction): SampledFunction =
+  //  CompositeSampledFunction(sampledFunctions.map(_.flatMap(f)))
+  ////TODO: optimize other operations by delegating to granules; e.g. select, project
 }
 
 object CompositeSampledFunction {

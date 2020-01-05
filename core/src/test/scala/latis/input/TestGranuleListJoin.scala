@@ -23,11 +23,11 @@ class TestGranuleListJoin {
         Scalar(Metadata("id" -> "i", "type" -> "int")),
         Scalar(Metadata("id" -> "uri", "type" -> "string"))
       )
-      val data = SampledFunction(
+      val data = SampledFunction(Seq(
         //TODO: generate test data files
         Sample(DomainData(0), RangeData(s"file://${System.getProperty("user.home")}/git/latis3/core/src/test/resources/data/data.txt")),
         Sample(DomainData(1), RangeData(s"file://${System.getProperty("user.home")}/git/latis3/core/src/test/resources/data/data2.txt"))
-      )
+      ))
       new TappedDataset(md, model, data)
     }
     

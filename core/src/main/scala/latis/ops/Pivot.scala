@@ -41,7 +41,12 @@ case class Pivot(values: Seq[Datum], vids: Seq[String]) extends MapOperation {
       case Sample(domain, RangeData(mf: MemoizedFunction)) =>
         // Eval nested Function at each requested value.
         // Use flatMap because each evaluation results in a RangeData.
-        val range = values.flatMap(v => mf(DomainData(v)).get)
+        val range = values.flatMap {
+          v => mf(DomainData(v)) match {
+            case Right(r) => r
+            case Left(le) => throw le
+          }
+        }
         Sample(domain, range)
         //TODO: deal with errors?
         //TODO: use Fill interpolation? or nearest-neighbor so users don't need to know exact values

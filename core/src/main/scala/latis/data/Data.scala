@@ -1,14 +1,56 @@
 package latis.data
 
+import cats.effect.IO
+import cats.kernel.Monoid
+import fs2.Stream
+
+import latis.model.DataType
+import latis.ops.UnaryOperation
+import latis.util.LatisException
+import latis.util.StreamUtils
+
 /**
  * The Data trait is the root of all data values that go into a Sample.
  */
-trait Data extends Any {
-  //TODO: seal? don't forget SampledFunction
+sealed trait Data extends Any {
   def asFunction: SampledFunction = this match {
     case sf: SampledFunction => sf
     case d => ConstantFunction(d)
   }
+}
+
+/*
+TODO: TupleData
+  Op.applyToData: Data => Data instead of SF
+ */
+
+trait SampledFunction extends Data {
+  def samples: Stream[IO, Sample]
+  def apply(data: DomainData): Either[LatisException, RangeData] = ???
+  //def canHandleOperation(op: UnaryOperation): Boolean
+  def applyOperation(op: UnaryOperation, model: DataType): SampledFunction = //TODO: Either
+    op.applyToData(this, model) //default when special SF can't apply op
+  def unsafeForce: MemoizedFunction = this match { //TODO: Either
+    case mf: MemoizedFunction => mf
+    case _ => SampledFunction(StreamUtils.unsafeStreamToSeq(samples))
+  }
+}
+
+object SampledFunction {
+  def apply(stream: Stream[IO, Sample]): StreamFunction =
+    new StreamFunction(stream)
+  def apply(samples: Seq[Sample]): MemoizedFunction =
+    new SeqFunction(samples)
+  def unapply(sf: SampledFunction): Option[Stream[IO, Sample]] =
+    Option(sf.samples)
+
+  /** Defines a Monoid instance for SampledFunction */
+  implicit val sampledFunctionMonoid: Monoid[SampledFunction] =
+    new Monoid[SampledFunction] {
+      def empty: SampledFunction = SeqFunction(Seq.empty)
+      def combine(sf1: SampledFunction, sf2: SampledFunction): SampledFunction =
+        SampledFunction(sf1.samples ++ sf2.samples)
+    }
 }
 
 /*
