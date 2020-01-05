@@ -72,7 +72,7 @@ class TappedDataset(
         }
 
     // Apply the operations to the data
-    operations.foldLeft(_model, data.asFunction)(f)._2
+    operations.foldLeft((_model, data.asFunction))(f)._2
   }
 
   /**
