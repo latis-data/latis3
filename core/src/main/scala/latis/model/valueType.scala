@@ -12,7 +12,7 @@ import latis.util.LatisException
 
 //TODO: NumericType...?
 
-sealed trait ValueType {
+sealed trait ValueType extends Serializable {
   def parseValue(value: String): Try[Datum]
   def convertDouble(value: Double): Option[Datum] = None
   def fillValue: Datum                            = NullData

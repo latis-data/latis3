@@ -11,7 +11,7 @@ import latis.util.LatisOrdering
  * Define the algebraic data type for the LaTiS implementation of the
  * Functional Data Model.
  */
-sealed trait DataType extends MetadataLike {
+sealed trait DataType extends MetadataLike with Serializable {
 
   // Apply f to Scalars only, for now
   def map(f: DataType => DataType): DataType = this match {
@@ -203,7 +203,7 @@ class Scalar(val metadata: Metadata) extends DataType {
    * This can be overridden by Scalar subtypes that need to define a
    * different ordering.
    */
-  def ordering: PartialOrdering[Datum] = LatisOrdering.dataOrdering
+  def ordering: PartialOrdering[Datum] = LatisOrdering.partialDataOrdering
   //  new PartialOrdering[Datum] {
   //  //TODO: should we match specific value types?
   //  //  avoid conversion to doubles
