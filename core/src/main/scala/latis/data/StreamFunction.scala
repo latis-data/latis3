@@ -10,7 +10,9 @@ import fs2.Stream
  * A Dataset can be memoized with "force" to ensure that it has a
  * MemoizedFunction that can be more generally evaluated.
  */
-case class StreamFunction(streamSamples: Stream[IO, Sample]) extends SampledFunction {
+case class StreamFunction(samples: Stream[IO, Sample]) extends SampledFunction {
+
+  //def apply(data: DomainData): Option[RangeData]
 
   /*
    * TODO: can/should we support an empty Stream?
@@ -22,5 +24,5 @@ case class StreamFunction(streamSamples: Stream[IO, Sample]) extends SampledFunc
    * We can't safely determine if a Stream is empty
    * so we must assume that it is not.
    */
-  def isEmpty = false
+  //def isEmpty = false
 }

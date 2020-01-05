@@ -5,7 +5,14 @@ package latis.data
  */
 case class ConstantFunction(data: RangeData) extends MemoizedFunction {
 
-  def samples: Seq[Sample] = List(Sample(DomainData(), data))
+  /*
+  TODO: eval a CF
+    returns the nested MF as RangeData
+    could then get our hands on the MF
+    does eval in general requre unsafe run?
+   */
+
+  def sampleSeq: Seq[Sample] = List(Sample(DomainData(), data))
 
 }
 

@@ -74,7 +74,7 @@ class TextEncoder extends Encoder[IO, String] {
     val head: String = "{" + lineSeparator
     functionIndent += 2
 
-    val samples: Seq[String] = function.samples.map(encodeSample(ftype, _))
+    val samples: Seq[String] = function.sampleSeq.map(encodeSample(ftype, _))
 
     functionIndent -= 2
     val foot: String = "}"

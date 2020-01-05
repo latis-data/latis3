@@ -48,7 +48,8 @@ case class GranuleListJoin(model: DataType, adapter: Adapter) extends UnaryOpera
     // Create SampledFunctions for each granule URI
     // and combine into a CompositeSampledFunction.
     // Note the unsafeForce so we can get the Seq out of IO.
-    CompositeSampledFunction(data.asFunction.unsafeForce.samples.map(f))
+    //TODO: do we need a CompositeDataset?
+    CompositeSampledFunction(data.unsafeForce.sampleSeq.map(f))
   }
 
 }
