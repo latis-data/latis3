@@ -6,12 +6,13 @@ import latis.util.LatisException
 
 /**
  * Operation to project only a given set of variables in a Dataset.
+ * Domain variables will be included, for now.
  */
 case class Projection(vnames: String*) extends MapOperation {
   //TODO: support nested Functions
   //TODO: support aliases, hasName
   //TODO: support dot notation for nested tuples
-  //TODO: Index place holders
+  //TODO: Index place holders for non-projected domain variables
 
   override def applyToModel(model: DataType): DataType =
     applyToVariable(model).getOrElse {
@@ -30,30 +31,24 @@ case class Projection(vnames: String*) extends MapOperation {
         case _ => Some(Tuple(vs))
       }
     case Function(d, r) =>
-      (applyToVariable(d), applyToVariable(r)) match {
-        case (Some(d), Some(r)) => Some(Function(d, r))
-        case _ =>
-          throw new UnsupportedOperationException(
-            "Both domain and range portions must be projected."
-          )
+      (d, applyToVariable(r)) match {
+        case (d, Some(r)) => Some(Function(d, r))
+        case _ => None
       }
   }
 
   override def mapFunction(model: DataType): Sample => Sample = {
-    // Compute sample positions once to minimize Sample processing
-    //TODO: error if vid not found, we just drop them here
-    val samplePositions = vnames.flatMap(model.getPath).map(_.head)
-
     // Get the indices of the projected variables in the Sample.
     // Sort since the FDM requires original order of variables.
-    // TODO: could we allow range to be reordered?
-    import scala.language.postfixOps
-    //val domainIndices: Seq[Int] = samplePositions.collect { case DomainPosition(i) => i } sorted
-    val rangeIndices: Seq[Int]  = samplePositions.collect { case RangePosition(i)  => i } sorted
+    // TODO: should we allow range to be reordered?
+    val rangeIndices: Seq[Int]  = vnames.map(model.getPath).flatMap {
+      case Some(RangePosition(i) :: Nil) => Some(i)
+      case Some(_) => None
+      case None => ??? //error, invalid vname, catch earlier
+    }.sorted
 
     (sample: Sample) => sample match {
       case Sample(ds, rs) =>
-        //val domain = domainIndices.map(ds(_)) //TODO: fill non-projected domain with Index
         val range = rangeIndices.map(rs(_))
         Sample(ds, range)
     }
