@@ -5,22 +5,24 @@ import latis.model._
 import latis.util.LatisException
 
 /**
- * Operation to restructure a Dataset by defining a new domain
- * made up of the given variables.
- * Assume that there are no nested Tuples, for now.
- * Assume that we are grouping by domain variables only, for now,
- *   so we can easily preserve complex ranges (e.g. nested functions).
+ * Defines an Operation to restructure a Dataset by defining a new domain
+ * made up of the given variables. The samples in each group will have
+ * the grouping variables dropped then wrapped as a nested MemoizedFunction.
+ * Assumes there are no nested function, for now.
+ * Does not preserve nested Tuples, for now.
  */
 case class GroupByVariable(variableNames: String*) extends GroupOperation {
-  //TODO: unproject grouped variables from new range
-
-  def aggregation: Aggregation = {
-    val mapOp: MapOperation = ??? //TODO: unproject
-    DefaultAggregation().compose(mapOp)
-  }
 
   /**
-   * Gets the SamplePath for each group-by variable.
+   * Defines a DefaultAggregation composed with a MapOperation that un-projects
+   * the group-by variables. The Samples in each group will have the group-by
+   * variables removed then wrapped as a SampledFunction.
+   */
+  def aggregation: Aggregation =
+    DefaultAggregation().compose(RemoveGroupedVariables(variableNames))
+
+  /**
+   * Gets the SamplePosition for each group-by variable.
    */
   def samplePositions(model: DataType): List[SamplePosition] = variableNames.toList.map { vname =>
     model.getPath(vname) match {
@@ -39,7 +41,11 @@ case class GroupByVariable(variableNames: String*) extends GroupOperation {
         case Some(scalar: Scalar) => scalar
         case Some(_) => throw LatisException(s"Group-by variable must be a Scalar: $vname")
         //TODO: support grouping by a tuple, e.g. location?
-        case None => ??? //bug since we checked above
+        case None => {
+          //TODO: validate variables eagerly
+          val msg = s"Invalid variable name: $vname"
+          throw LatisException(msg)
+        }
       }
     }
     Tuple(scalars).flatten
@@ -49,9 +55,61 @@ case class GroupByVariable(variableNames: String*) extends GroupOperation {
     (sample: Sample) => {
       val data: List[Datum] = samplePositions(model).map(sample.getValue).map {
         case Some(d: Datum) => d
-        case _ => ??? //invalid sample
+        case _ => throw LatisException("Invalid Sample")
       }
       Option(DomainData(data))
     }
 
+}
+
+/**
+ * Defines an operation akin to un-projection which can safely drop the
+ * grouped variables from domains since all values for that dimension
+ * should be the same in each group.
+ */
+case class RemoveGroupedVariables(variableNames: Seq[String]) extends MapOperation {
+
+  override def applyToModel(model: DataType): DataType =
+    applyToVariable(model).get
+
+  /** Recursive method to build new model buy dropping variableNames. */
+  private def applyToVariable(v: DataType): Option[DataType] = v match {
+    case s: Scalar =>
+      if (variableNames.contains(s.id)) None else Some(s)
+    case Tuple(vars @ _*) =>
+      val vs = vars.flatMap(applyToVariable)
+      vs.length match {
+        case 0 => None // drop empty Tuple
+        case 1 => Some(vs.head) // reduce Tuple of one
+        case _ => Some(Tuple(vs))
+      }
+    case Function(d, r) =>
+      (applyToVariable(d), applyToVariable(r)) match {
+        case (Some(d), Some(r)) => Some(Function(d, r))
+        //TODO: deal with empty domain or range
+        case _ => None
+      }
+  }
+
+  override def mapFunction(model: DataType): Sample => Sample = {
+    // Determine the list of variables to keep
+    val vnames = model.getScalars.map(_.id).filterNot(variableNames.contains)
+
+    // Get the paths of the variables to be removed from each Sample.
+    // Sort to maintain the original order of variables.
+    val samplePositions = vnames.flatMap(model.getPath).map(_.head)
+    val domainIndices: Seq[Int] = samplePositions.collect {
+      case DomainPosition(i) => i
+    }.sorted
+    val rangeIndices: Seq[Int] = samplePositions.collect {
+      case RangePosition(i)  => i
+    }.sorted
+
+    (sample: Sample) => sample match {
+      case Sample(ds, rs) =>
+        val domain = domainIndices.map(ds(_))
+        val range = rangeIndices.map(rs(_))
+        Sample(domain, range)
+    }
+  }
 }
