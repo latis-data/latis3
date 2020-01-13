@@ -21,14 +21,19 @@ class GroupByVariableSpec extends FlatSpec {
   )
 
   val data = SeqFunction(Seq(
-    Sample(DomainData(0, 0), RangeData(1)),
-    Sample(DomainData(0, 1), RangeData(2)),
-    Sample(DomainData(1, 0), RangeData(3)),
-    Sample(DomainData(1, 1), RangeData(4)),
+    Sample(DomainData(0, 10), RangeData(1)),
+    Sample(DomainData(0, 11), RangeData(2)),
+    Sample(DomainData(1, 10), RangeData(3)),
+    Sample(DomainData(1, 11), RangeData(4)),
   ))
 
   val ds = new MemoizedDataset(Metadata("test"), model, data)
       .withOperation(GroupByVariable("y"))
+      .unsafeForce()
 
-  TextWriter().write(ds)
+  //TextWriter().write(ds)
+
+  "GroupByVariable" should "unProject the grouped variables" in {
+    ds.model.toString should be ("y -> x -> a")
+  }
 }
