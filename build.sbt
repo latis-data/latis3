@@ -88,6 +88,8 @@ lazy val core = project
     libraryDependencies ++= Seq(
       "org.scala-lang.modules" %% "scala-xml"           % "1.0.6",
       "io.circe"               %% "circe-core"          % "0.12.3",
+      "org.scodec"             %% "scodec-core"         % "1.10.3",
+      "org.scodec"             %% "scodec-stream"       % "1.2.0",
       "org.http4s"             %% "http4s-blaze-client" % http4sVersion,
       "junit"                   % "junit"               % "4.12"  % Test,
       "org.scalatest"          %% "scalatest"           % "3.0.5" % Test
