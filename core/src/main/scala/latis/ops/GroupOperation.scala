@@ -61,13 +61,19 @@ trait GroupOperation extends StreamOperation { self =>
   //    mapOp.mapFunction.andThen(self.groupByFunction)
   //}
 
+  /**
+   * Constructs a SortedMap to use as a temporary data structure
+   * to accumulate samples into groups.
+   */
+  def makeSortedMap(model: DataType): mutable.SortedMap[DomainData, ListBuffer[Sample]] =
+    mutable.SortedMap[DomainData, ListBuffer[Sample]]()(ordering(model))
+
   def pipe(model: DataType): Pipe[IO, Sample, Sample] = {
-    // Make mutable SortedMap to accumulate the Samples for each DomainData.
-    val sortedMap: mutable.SortedMap[DomainData, ListBuffer[Sample]] =
-      mutable.SortedMap[DomainData, ListBuffer[Sample]]()(ordering(model))
+    val sortedMap = makeSortedMap(model)
 
     (stream: Stream[IO, Sample]) => {
       stream.map { sample =>
+        // Group the Samples into the sortedMap
         groupByFunction(model)(sample) match {  //Option[DomainData]
           case Some(dd) => sortedMap.get(dd) match { //Option[ListBuffer]
             case Some(buffer) => buffer += sample; ()
@@ -89,6 +95,10 @@ trait GroupOperation extends StreamOperation { self =>
       StreamUtils.seqToIOStream(sortedMap.toSeq) map {
         case (dd, ss) =>
           Sample(dd, aggF(ss))
+        /*
+        TODO: NNAgg also needs dd
+          optional arg to aggregation.aggregateFunction?
+         */
       }
     }
   }
