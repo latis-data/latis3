@@ -35,7 +35,7 @@ case class MatrixTextAdapter(
     }
 
     // Row-major 2D array of parsed data values
-    val values: Array[Array[RangeData]] =
+    val values: Array[Array[TupleData]] =
       recordStream(uri) //stream of rows
         .compile
         .toList
@@ -44,10 +44,10 @@ case class MatrixTextAdapter(
           _.split(config.delimiter) //delimited values unparsed: List[Array[String]]
             .map { v =>
               scalar.parseValue(v) match {
-                case Right(d) => RangeData(d)
-                case Left(_) => scalar.fillValue //TODO: improve API
+                case Right(d) => TupleData(List(d))
+                case Left(_) => TupleData(scalar.fillValue) //TODO: improve API
               }
-            } //parsed row: List[Array[RangeData]]
+            } //parsed row: List[Array[TupleData]]
         }
         .toArray //convert List of rows to Array of rows
 

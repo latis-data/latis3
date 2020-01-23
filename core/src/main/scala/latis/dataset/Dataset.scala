@@ -51,17 +51,23 @@ trait Dataset extends MetadataLike {
 
   def asFunction(): DatasetFunction = {
     val ds = unsafeForce()
-    val f: TupleData => Either[LatisException, TupleData] = {
-      (td: TupleData) =>
-      //TODO: do we still want SF.apply?
-      //  as opposed to handling the Evaluation Op
-      //  or is it akin to map, filter...
-        val datums = td.elements.collect {
-          case d: Datum => d
-          case _ => ??? //TODO: error, can only eval with Datums
-        }
-        ds.data.apply(DomainData(datums)).map(TupleData(_))
-    }
+    val f: TupleData => Either[LatisException, TupleData] = ds.data.apply
+    //{
+    //  (td: TupleData) =>
+    //  /*
+    //  TODO: do we still want SF.apply?
+    //    as opposed to handling the Evaluation Op
+    //      but we need to use it internally, not as a DS Op
+    //    or is it akin to map, filter...
+    //    most Ops work on stream, don't invoke SF.map...
+    //
+    //   */
+    //    val datums = td.elements.collect {
+    //      case d: Datum => d
+    //      case _ => ??? //TODO: error, can only eval with Datums
+    //    }
+    //    ds.data.apply(DomainData(datums)).map(TupleData(_))
+    //}
     DatasetFunction(ds.metadata, ds.model, f)
   }
 

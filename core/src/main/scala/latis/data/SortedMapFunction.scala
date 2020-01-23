@@ -8,13 +8,13 @@ case class SortedMapFunction(sortedMap: SortedMap[DomainData, RangeData]) extend
 
   def sampleSeq: Seq[Sample] = sortedMap.toSeq
 
-  override def apply(value: DomainData): Either[LatisException, RangeData] =
-    sortedMap.get(value) match {
-      case Some(r) => Right(r)
-      case None =>
-        val msg = s"No sample found matching $value"
-        Left(LatisException(msg))
-    }
+  //override def apply(value: DomainData): Either[LatisException, RangeData] =
+  //  sortedMap.get(value) match {
+  //    case Some(r) => Right(r)
+  //    case None =>
+  //      val msg = s"No sample found matching $value"
+  //      Left(LatisException(msg))
+  //  }
   //TODO: support interpolation
 
   //TODO: optimize other methods

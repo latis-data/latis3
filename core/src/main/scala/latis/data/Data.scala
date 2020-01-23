@@ -29,11 +29,13 @@ case class TupleData(elements: List[Data]) extends Data {
 
 trait SampledFunction extends Data {
   def samples: Stream[IO, Sample]
-  def apply(data: DomainData): Either[LatisException, RangeData] = ???
+  //def apply(data: DomainData): Either[LatisException, RangeData] = ???
+  def apply(data: TupleData): Either[LatisException, TupleData] = ???
   //def canHandleOperation(op: UnaryOperation): Boolean
   def applyOperation(op: UnaryOperation, model: DataType): SampledFunction = //TODO: Either
     op.applyToData(this, model) //default when special SF can't apply op
   def unsafeForce: MemoizedFunction = this match { //TODO: Either
+      //TODO: optional to: FunctionFactory arg?
     case mf: MemoizedFunction => mf
     case _ => SampledFunction(StreamUtils.unsafeStreamToSeq(samples))
   }

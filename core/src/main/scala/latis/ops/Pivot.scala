@@ -42,8 +42,8 @@ case class Pivot(values: Seq[Datum], vids: Seq[String]) extends MapOperation {
         // Eval nested Function at each requested value.
         // Use flatMap because each evaluation results in a RangeData.
         val range = values.flatMap {
-          v => mf(DomainData(v)) match {
-            case Right(r) => r
+          v => mf(TupleData(List(v))) match {
+            case Right(r) => r.elements
             case Left(le) => throw le
           }
         }
