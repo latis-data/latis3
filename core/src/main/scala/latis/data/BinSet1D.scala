@@ -44,6 +44,7 @@ object BinSet1D {
 
   def fromExtents(min: Double, max: Double, count: Int): BinSet1D = {
     //TODO: ensure max > min
+    //TODO: should extents be total coverage or midpoints? latter?
     val start     = min
     val increment = ((max - min) / count) //bin semantics
     new BinSet1D(start, increment, count)
@@ -51,7 +52,7 @@ object BinSet1D {
 
   def fromExtents(min: Double, max: Double, increment: Double): BinSet1D = {
     //TODO: ensure max > min
-    val count = ((max - min) / increment).toInt //will round down
+    val count = ((max - min) / increment).toFloat.toInt //will round down, toFloat cleans up precision
     new BinSet1D(min, increment, count)
   }
 

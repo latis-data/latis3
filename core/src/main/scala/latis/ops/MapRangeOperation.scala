@@ -19,14 +19,19 @@ trait MapRangeOperation extends StreamOperation {
   /**
    * Defines a function that modifies only RangeData.
    */
-  def mapFunction(model: DataType): RangeData => RangeData
+  def mapFunction(model: DataType): TupleData => TupleData
 
   /**
    * Implements a Pipe in terms of the mapFunction.
    */
   def pipe(model: DataType): Pipe[IO, Sample, Sample] =
     (stream: Stream[IO, Sample]) => stream.map {
-      case Sample(d, r) => Sample(d, mapFunction(model)(r))
+      case Sample(d, r) =>
+        //TODO: clean up transition to/from TupleData
+        val range = {
+          RangeData(mapFunction(model)(TupleData(r)).elements)
+        }
+        Sample(d, range)
     }
 
 }

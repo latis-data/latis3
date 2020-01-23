@@ -23,6 +23,9 @@ sealed trait Data extends Any {
 TODO: TupleData
   Op.applyToData: Data => Data instead of SF
  */
+case class TupleData(elements: List[Data]) extends Data {
+  def length: Int = elements.length
+}
 
 trait SampledFunction extends Data {
   def samples: Stream[IO, Sample]
