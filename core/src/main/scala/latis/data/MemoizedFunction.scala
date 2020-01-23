@@ -39,13 +39,13 @@ trait MemoizedFunction extends SampledFunction {
    * Evaluate this SampledFunction at the given domain value.
    * Return the result as an Option of RangeData.
    */
-  override def apply(value: DomainData): Either[LatisException, RangeData] = {
+  override def apply(value: TupleData): Either[LatisException, TupleData] = {
     val osample: Option[Sample] = sampleSeq.find {
-      case Sample(d, _) => d.equals(value)
+      case Sample(d, _) => d.equals(value.elements)
       case _ => false
     }
     osample match {
-      case Some(s) => Right(s.range)
+      case Some(s) => Right(TupleData(s.range))
       case None =>
         val msg = s"No sample found matching $value"
         Left(LatisException(msg))
