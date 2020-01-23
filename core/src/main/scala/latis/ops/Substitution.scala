@@ -40,10 +40,10 @@ case class Substitution(subFunction: DatasetFunction) extends MapOperation {
             // Get the domain values
             val vals: List[Datum] = sample.domain
             // Extract the values to be replaced
-            val slice: DomainData = vals.slice(i, i + domainVariableIDs.length)
+            val slice: TupleData = TupleData(vals.slice(i, i + domainVariableIDs.length))
             // Evaluate the substitution Dataset with the values to be replaced.
             val sub: List[Datum] = subFunction(slice) match {
-              case Right(rd: RangeData) =>
+              case Right(TupleData(rd)) =>
                 // Make sure these range data can be used for a domain, i.e. all Datum, no SF
                 rd.map {
                   case d: Datum => d
@@ -67,13 +67,13 @@ case class Substitution(subFunction: DatasetFunction) extends MapOperation {
                 throw LatisException("Substitution includes Function")
             }
             // Evaluate the substitution Dataset with the values to be replaced
-            val sub: List[Data] = subFunction(slice) match {
+            val sub: TupleData = subFunction(TupleData(slice)) match {
               case Right(v) => v
               case Left(le) => throw le
             }
             // Substitute the new values into the range
             val range: RangeData = vals.splitAt(i) match {
-              case (p1, p2) => p1 ++ sub ++ p2.drop(slice.length)
+              case (p1, p2) => p1 ++ sub.elements ++ p2.drop(slice.length)
             }
             Sample(sample.domain, range)
         }
