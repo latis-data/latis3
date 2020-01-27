@@ -31,7 +31,7 @@ class JsonEncoderSpec extends FlatSpec {
 
   "A JSON encoder" should "encode a Sample to JSON" in {
     val sample = Sample(DomainData(0), RangeData(1, 1.1, "a"))
-      .asJson(enc.encodeSample)
+      .asJson
     val expected = Json.arr(0.asJson, 1.asJson, 1.1.asJson, "a".asJson)
 
     sample should be(expected)
