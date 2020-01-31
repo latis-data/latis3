@@ -50,21 +50,15 @@ trait Dataset extends MetadataLike {
     ops.foldLeft(this)((ds, op) => ds.withOperation(op))
 
   def asFunction(): DatasetFunction = {
+    //TODO: take interp/extrap args, turn SF into new executable F type
     val ds = unsafeForce()
     val f: TupleData => Either[LatisException, TupleData] = ds.data.apply
+    //Note, the following requires MemoizedDataset to be serializable for spark
     //{
     //  (td: TupleData) =>
-    //  /*
-    //  TODO: do we still want SF.apply?
-    //    as opposed to handling the Evaluation Op
-    //      but we need to use it internally, not as a DS Op
-    //    or is it akin to map, filter...
-    //    most Ops work on stream, don't invoke SF.map...
-    //
-    //   */
     //    val datums = td.elements.collect {
     //      case d: Datum => d
-    //      case _ => ??? //TODO: error, can only eval with Datums
+    //      case _ => ??? //TODO: error, can only eval with Datumscompile
     //    }
     //    ds.data.apply(DomainData(datums)).map(TupleData(_))
     //}

@@ -7,6 +7,7 @@ import latis.metadata.Metadata
 import latis.model.DataType
 import latis.util.LatisException
 
+//TODO: ContinuousDataset?
 case class DatasetFunction(
   metadata: Metadata,
   model: DataType,
