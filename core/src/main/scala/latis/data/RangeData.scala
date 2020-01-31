@@ -10,7 +10,7 @@ object RangeData {
    * Construct RangeData from a comma separated list of values.
    */
   def apply(d: Data, ds: Data*): RangeData = d +: ds.toList
-
+//TODO: prevent TupleData
   /**
    * Construct RangeData from a Seq of values.
    */
