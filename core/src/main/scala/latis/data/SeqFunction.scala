@@ -11,7 +11,9 @@ case class SeqFunction(sampleSeq: Seq[Sample]) extends MemoizedFunction
  * probably want to limit it to IndexedSeq
  */
 
-object SeqFunction {
+object SeqFunction extends FunctionFactory {
 
   def apply(sample: Sample): SeqFunction = SeqFunction(Seq(sample))
+
+  def fromSamples(samples: Seq[Sample]) = SeqFunction(samples)
 }
