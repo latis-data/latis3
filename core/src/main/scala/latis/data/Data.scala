@@ -193,18 +193,21 @@ object Data {
    * Construct Data from anything.
    */
   //TODO: don't need with implicit construtors?
-//  def apply(thing: Any): Data = thing match {
-//    case x: Short       => ShortValue(x)
-//    case x: Int         => IntValue(x)
-//    case x: Long        => LongValue(x)
-//    case x: Float       => FloatValue(x)
-//    case x: Double      => DoubleValue(x)
-//    case x: String      => StringValue(x)
-//    case x: Array[Byte] => BinaryValue(x)
-//    //TODO: boolean, byte, char
-//    //TODO: BigInt, BigDecimal
-//    //TODO: AnyData? ObjectData? should be Serializable
-//  }
+  //  but convenient for adapters
+  def apply(thing: Any): Datum = thing match {
+    case x: Boolean     => BooleanValue(x)
+    case x: Byte        => ByteValue(x)
+    case x: Char        => CharValue(x)
+    case x: Short       => ShortValue(x)
+    case x: Int         => IntValue(x)
+    case x: Long        => LongValue(x)
+    case x: Float       => FloatValue(x)
+    case x: Double      => DoubleValue(x)
+    case x: String      => StringValue(x)
+    case x: Array[Byte] => BinaryValue(x)
+    //TODO: BigInt, BigDecimal
+    //TODO: AnyData? ObjectData? should be Serializable
+  }
 
   //Note, these are value classes
   //Note, these are implicit so we can construct DomainData from primitive types
