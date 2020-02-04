@@ -34,6 +34,17 @@ case class GroupByBin(
         which must finish before we can agg
    */
 
+  /*
+  TODO: make sure all bins have data or fill
+    currently done by making all empty bin
+    then use Agg to fill empty bins
+    doesn't work for spark
+    can we fill here after the GB?
+    compose?
+    what would it look like in spark
+      join
+   */
+
   /**
    * Override the default making of the temporary SortedMap
    * to start with an entry for each element of the given DomainSet.
