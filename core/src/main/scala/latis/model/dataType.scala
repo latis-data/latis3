@@ -5,6 +5,7 @@ import scala.util.Success
 
 import latis.data._
 import latis.metadata._
+import latis.util.LatisException
 import latis.util.LatisOrdering
 
 /**
@@ -138,7 +139,7 @@ sealed trait DataType extends MetadataLike with Serializable {
     case Tuple(es @ _*) => es.flatMap(getFillValue(_, acc))
     case _: Function =>
       val msg = "Can't make fill values for Function, yet."
-      throw new RuntimeException(msg)
+      throw LatisException(msg)
   }
 }
 
