@@ -5,7 +5,7 @@ import latis.model._
 /**
  * A DomainSet that is a Cartesian product of individual DomainSets.
  */
-case class ProductSet(sets: DomainSet*) extends DomainSet {
+case class ProductSet(sets: Seq[DomainSet]) extends DomainSet {
   //TODO: deal with count < 2
   //TODO: optimize getElement,...
 
@@ -31,4 +31,10 @@ case class ProductSet(sets: DomainSet*) extends DomainSet {
     sets.map(_.elements).reduce(prod).toIndexedSeq
   }
 
+}
+
+object ProductSet {
+
+  def apply(fisrtSet: DomainSet, otherSets: DomainSet*): ProductSet =
+    ProductSet(fisrtSet +: otherSets)
 }
