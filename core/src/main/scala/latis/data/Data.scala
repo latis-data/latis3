@@ -50,6 +50,9 @@ TODO: make TD play nice with DD,RD
 case class TupleData(elements: List[Data]) extends Data {
   def length: Int = elements.length
 }
+object TupleData {
+  def apply(d: Data, ds: Data*): TupleData = TupleData((d +: ds).toList)
+}
 
 trait SampledFunction extends Data {
   def samples: Stream[IO, Sample]
