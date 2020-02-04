@@ -48,6 +48,11 @@ object LatisOrdering {
         else Some(Double.compare(d1, d2))
       case (Text(s1), Text(s2)) =>
         Some(String.compare(s1, s2))
+      // Make NullData larger than any other
+      // Unlike NaN, allow NullData == NullData
+      case (NullData, NullData) => Some(0)
+      case (NullData, _) => Some(1)
+      case (_, NullData) => Some(-1)
       case _ => None
     }
 
@@ -116,7 +121,8 @@ object LatisOrdering {
    */
   def partialToTotal[A](po: PartialOrdering[A]): Ordering[A] =
     (a1: A, a2: A) => po.tryCompare(a1, a2).getOrElse {
-      throw LatisException(s"Ordering failed for $a1, $a2")
+      val msg = s"Ordering failed for $a1, $a2"
+      throw LatisException(msg)
     }
 
 }
