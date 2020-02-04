@@ -114,8 +114,8 @@ trait Datum extends Any with Data {
   def asString: String
 }
 
-// Used for default fillValue
-object NullData extends Datum {
+// Used for default fillValue, bad RDD key
+object NullData extends Datum with Serializable {
   def asString: String = "null"
 }
 
