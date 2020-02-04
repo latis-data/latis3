@@ -86,7 +86,8 @@ case class RemoveGroupedVariables(variableNames: Seq[String]) extends MapOperati
     case Function(d, r) =>
       (applyToVariable(d), applyToVariable(r)) match {
         case (Some(d), Some(r)) => Some(Function(d, r))
-        //TODO: deal with empty domain or range
+        case (None, Some(r)) => Some(r)
+        //TODO: deal with empty range
         case _ => None
       }
   }
