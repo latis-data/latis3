@@ -3,10 +3,11 @@ package latis.input
 import java.net.URI
 import java.util.ServiceLoader
 
-import latis.dataset.Dataset
-import latis.util.LatisException
-
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
+
+import latis.dataset.Dataset
+import latis.model.DataType
+import latis.util.LatisException
 
 /**
  * Defines a trait to be extended by a class that can take a URI
@@ -17,6 +18,7 @@ import scala.collection.JavaConverters.iterableAsScalaIterableConverter
  * the ServiceProvider mechanism (with an entry in META-INF/services).
  */
 trait DatasetReader {
+  def model: DataType
   def canRead(uri: URI): Boolean = false
   def read(uri: URI): Dataset
 }
