@@ -7,19 +7,10 @@ import latis.model._
  * Define a two-dimensional Cartesian DomainSet with regularly spaced elements.
  * This is implemented as a product of two LinearSet1Ds.
  */
-class LinearSet2D(set1: LinearSet1D, set2: LinearSet1D)
+class LinearSet2D(set1: LinearSet1D, set2: LinearSet1D, val model: DataType = LinearSet2D.defaultModel)
   extends DomainSet
   with Serializable {
   //TODO: ProductSet, could be used for any set of 1D sets
-
-  /**
-   * Define the model of this DomainSet assuming double value types
-   * and a 1-based "_#" naming scheme for variable identifiers.
-   */
-  def model: DataType = Tuple(
-    Scalar(Metadata("id" -> "_1", "type" -> "double")),
-    Scalar(Metadata("id" -> "_2", "type" -> "double"))
-  )
 
   override def length: Int = set1.length * set2.length
 
@@ -52,4 +43,16 @@ class LinearSet2D(set1: LinearSet1D, set2: LinearSet1D)
       else -1
     case _ => ??? //TODO: invalid arg, -1?
   }
+}
+
+object LinearSet2D {
+
+  /**
+   * Define the model of this DomainSet assuming double value types
+   * and a 1-based "_#" naming scheme for variable identifiers.
+   */
+  def defaultModel: DataType = Tuple(
+    Scalar(Metadata("id" -> "_1", "type" -> "double")),
+    Scalar(Metadata("id" -> "_2", "type" -> "double"))
+  )
 }
