@@ -85,6 +85,12 @@ trait DomainSet {
   def covers(data: DomainData)(implicit ord: Ordering[DomainData]): Boolean =
     ord.gteq(data, min) && ord.lt(data, max)
   //TODO: min/max may rule out many sets, e.g. polygon
+
+  /**
+   * Defines the string representation of a DomainSet as the
+   * model it represents.
+   */
+  override def toString: String = model.toString
 }
 
 object DomainSet {
