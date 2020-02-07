@@ -47,3 +47,9 @@ trait Filter extends UnaryOperation with StreamOperation { self =>
   }
 
 }
+
+object Filter {
+  def apply(f: Sample => Boolean): Filter = new Filter {
+    def predicate(model: DataType): Sample => Boolean = f
+  }
+}
