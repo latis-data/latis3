@@ -1,0 +1,4 @@
+// package latis
+//
+// object PythonTest {
+// }
