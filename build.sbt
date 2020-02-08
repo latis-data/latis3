@@ -119,7 +119,11 @@ lazy val `python` = project
   .dependsOn(core)
   .settings(commonSettings)
   .settings(
-    name := "python"
+    name := "python",
+    libraryDependencies ++= Seq(
+      // https://mvnrepository.com/artifact/black.ninia/jep
+      "black.ninia" % "jep" % "3.9.0"
+    )
   )
 
 lazy val server = project
