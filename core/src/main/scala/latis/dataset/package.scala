@@ -20,7 +20,7 @@ package object dataset {
     def groupByBin(set: DomainSet, agg: Aggregation = DefaultAggregation()): Dataset = dataset.withOperation(GroupByBin(set, agg))
     def substitute(df: DatasetFunction): Dataset = dataset.withOperation(Substitution(df))
     def compose(df: DatasetFunction): Dataset = dataset.withOperation(Composition(df))
-    def contains(varName: String, values: String*): Dataset = dataset.withOperation(Contains(varName, values))
+    def contains(varName: String, values: String*): Dataset = dataset.withOperation(Contains(varName, values: _*))
     def rename(varName: String, newName: String): Dataset = dataset.withOperation(Rename(varName, newName))
 
     def filter(predicate: Sample => Boolean): Dataset = dataset.withOperation(Filter(predicate))
