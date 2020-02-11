@@ -14,7 +14,7 @@ import org.scalatest.Matchers._
 
 class AnomalyDataSpec extends FlatSpec {
 
-  "The anomalous sine wave dataset" should "be read correctly" in {
+  "The anomalous sine wave dataset" should "have the expected first sample" in {
     val ds = Dataset.fromName("sine_wave_with_anomalies")
       .withOperation(Selection("time", ">=" , "2000-01-01"))
     StreamUtils.unsafeHead(ds.samples) match {
