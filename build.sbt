@@ -8,6 +8,7 @@ val pureconfigVersion = "0.12.1"
 
 lazy val commonSettings = compilerFlags ++ Seq(
   libraryDependencies ++= Seq(
+    "org.scalatest" %% "scalatest"   % "3.0.5" % Test,
     "org.typelevel" %% "cats-core"   % "1.5.0",
     "org.typelevel" %% "cats-effect" % "1.1.0",
     "co.fs2"        %% "fs2-core"    % fs2Version,
@@ -91,8 +92,7 @@ lazy val core = project
       "org.scodec"             %% "scodec-core"         % "1.10.3",
       "org.scodec"             %% "scodec-stream"       % "1.2.0",
       "org.http4s"             %% "http4s-blaze-client" % http4sVersion,
-      "junit"                   % "junit"               % "4.12"  % Test,
-      "org.scalatest"          %% "scalatest"           % "3.0.5" % Test
+      "junit"                   % "junit"               % "4.12"  % Test
     )
   )
 
@@ -115,8 +115,7 @@ lazy val `dap2-service` = project
       "org.tpolecat"   %% "atto-core"   % "0.6.3",
       "org.scalacheck" %% "scalacheck"  % "1.13.5" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.8" % Test,
-      "junit"           % "junit"       % "4.12"  % Test,
-      "org.scalatest"  %% "scalatest"   % "3.0.5" % Test
+      "junit"           % "junit"       % "4.12"  % Test
     )
   )
   
@@ -126,8 +125,7 @@ lazy val `python` = project
   .settings(
     name := "python",
     libraryDependencies ++= Seq(
-      "black.ninia"    % "jep"       % "3.9.0",
-      "org.scalatest" %% "scalatest" % "3.0.5" % Test
+      "black.ninia"    % "jep"       % "3.9.0"
     )
   )
 
