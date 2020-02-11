@@ -114,17 +114,6 @@ lazy val `dap2-service` = project
       "junit"           % "junit"       % "4.12"  % Test
     )
   )
-  
-lazy val `python` = project
-  .dependsOn(core)
-  .settings(commonSettings)
-  .settings(
-    name := "python",
-    libraryDependencies ++= Seq(
-      "black.ninia"    % "jep"       % "3.9.0",
-      "org.scalatest" %% "scalatest" % "3.0.5" % Test
-    )
-  )
 
 lazy val server = project
   .dependsOn(core)
