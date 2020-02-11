@@ -10,7 +10,6 @@ import more_itertools as mit
 from elasticsearch import Elasticsearch
 import time
 import json
-import sys
 import os
 import math
 from scipy.stats import norm
