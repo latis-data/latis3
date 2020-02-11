@@ -114,13 +114,6 @@ lazy val `dap2-service` = project
       "junit"           % "junit"       % "4.12"  % Test
     )
   )
-  
-lazy val `python` = project
-  .dependsOn(core)
-  .settings(commonSettings)
-  .settings(
-    name := "python"
-  )
 
 lazy val server = project
   .dependsOn(core)
