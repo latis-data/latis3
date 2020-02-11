@@ -126,8 +126,8 @@ lazy val `python` = project
   .settings(
     name := "python",
     libraryDependencies ++= Seq(
-      // https://mvnrepository.com/artifact/black.ninia/jep
-      "black.ninia" % "jep" % "3.9.0"
+      "black.ninia"    % "jep"       % "3.9.0",
+      "org.scalatest" %% "scalatest" % "3.0.5" % Test
     )
   )
 
