@@ -178,4 +178,21 @@ object ValueType {
       Left(LatisException(msg))
   }
 
+  def fromValue(value: Any): Either[LatisException, ValueType] = value match {
+    case _: Boolean     => Right(BooleanValueType)
+    case _: Byte        => Right(ByteValueType)
+    case _: Char        => Right(CharValueType)
+    case _: Short       => Right(ShortValueType)
+    case _: Int         => Right(IntValueType)
+    case _: Long        => Right(LongValueType)
+    case _: Float       => Right(FloatValueType)
+    case _: Double      => Right(DoubleValueType)
+    case _: Array[Byte] => Right(BinaryValueType) //will this work with erasure?, ByteBuffer?
+    case _: String      => Right(StringValueType)
+    case _: BigInt      => Right(BigIntValueType)
+    case _: BigDecimal  => Right(BigDecimalValueType)
+    case a =>
+      val msg = s"Unsupported value type: ${a.getClass}}"
+      Left(LatisException(msg))
+  }
 }
