@@ -22,6 +22,8 @@ object BooleanValueType extends ValueType {
   def parseValue(value: String): Try[Datum] = Try {
     BooleanValue(value.toBoolean)
   }
+
+  override def toString: String = "Boolean"
 }
 
 object ByteValueType extends ValueType {
@@ -32,12 +34,16 @@ object ByteValueType extends ValueType {
   //TODO: beware of overflow without error
   override def convertDouble(value: Double): Option[Datum] =
     Some(ByteValue(value.toByte))
+
+  override def toString: String = "Byte"
 }
 
 object CharValueType extends ValueType {
   def parseValue(value: String): Try[Datum] = Try {
     CharValue(value.head)
   }
+
+  override def toString: String = "Char"
 }
 
 object ShortValueType extends ValueType {
@@ -48,6 +54,8 @@ object ShortValueType extends ValueType {
   //TODO: beware of overflow without error
   override def convertDouble(value: Double): Option[Datum] =
     Some(ShortValue(value.toShort))
+
+  override def toString: String = "Short"
 }
 
 object IntValueType extends ValueType {
@@ -58,7 +66,10 @@ object IntValueType extends ValueType {
   //TODO: beware of overflow without error
   override def convertDouble(value: Double): Option[Datum] =
     Some(IntValue(value.toInt))
-  override def fillValue: IntValue = IntValue(Int.MinValue)
+
+  override def fillValue: IntValue = IntValue(Int.MaxValue)
+
+  override def toString: String = "Int"
 }
 
 object LongValueType extends ValueType {
@@ -69,7 +80,10 @@ object LongValueType extends ValueType {
   //TODO: beware of truncation or overflow without error
   override def convertDouble(value: Double): Option[Datum] =
     Some(LongValue(value.toLong))
-  override def fillValue: LongValue = LongValue(Long.MinValue)
+
+  override def fillValue: LongValue = LongValue(Long.MaxValue)
+
+  override def toString: String = "Long"
 }
 
 object FloatValueType extends ValueType {
@@ -80,7 +94,10 @@ object FloatValueType extends ValueType {
   //TODO: beware of overflow to Infinity
   override def convertDouble(value: Double): Option[Datum] =
     Some(FloatValue(value.toFloat))
+
   override def fillValue: FloatValue = FloatValue(Float.NaN)
+
+  override def toString: String = "Float"
 }
 
 object DoubleValueType extends ValueType {
@@ -90,20 +107,28 @@ object DoubleValueType extends ValueType {
 
   override def convertDouble(value: Double): Option[Datum] =
     Some(DoubleValue(value))
+
   override def fillValue: DoubleValue = DoubleValue(Double.NaN)
+
+  override def toString: String = "Double"
 }
 
 object BinaryValueType extends ValueType {
   def parseValue(value: String): Try[Datum] = Try {
     ??? //TODO: uudecode?
   }
+
+  override def toString: String = "Binary"
 }
 
 object StringValueType extends ValueType {
   def parseValue(value: String): Try[Datum] = Try {
     StringValue(value)
   }
+
   override def fillValue: StringValue = StringValue("")
+
+  override def toString: String = "String"
 }
 
 object BigIntValueType extends ValueType {
@@ -114,6 +139,8 @@ object BigIntValueType extends ValueType {
   //TODO: beware of truncation without error
   override def convertDouble(value: Double): Option[Datum] =
     Some(BigIntValue(BigInt(value.toLong)))
+
+  override def toString: String = "BigInt"
 }
 
 object BigDecimalValueType extends ValueType {
@@ -123,6 +150,8 @@ object BigDecimalValueType extends ValueType {
 
   override def convertDouble(value: Double): Option[Datum] =
     Some(BigDecimalValue(BigDecimal(value)))
+
+  override def toString: String = "BigDecimal"
 }
 
 //ComplexValueType? could use Tuple, but arithmetic would fail;
