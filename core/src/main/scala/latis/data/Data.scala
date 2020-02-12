@@ -52,6 +52,8 @@ case class TupleData(elements: List[Data]) extends Data {
 }
 object TupleData {
   def apply(d: Data, ds: Data*): TupleData = TupleData((d +: ds).toList)
+  def unapplySeq(td: TupleData): Option[Seq[Data]] =
+    Option(td.elements)
 }
 
 trait SampledFunction extends Data {
