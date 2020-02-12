@@ -91,6 +91,7 @@ lazy val core = project
       "org.scodec"             %% "scodec-core"         % "1.10.3",
       "org.scodec"             %% "scodec-stream"       % "1.2.0",
       "org.http4s"             %% "http4s-blaze-client" % http4sVersion,
+      "org.tpolecat"           %% "atto-core"           % "0.7.0",
       "junit"                   % "junit"               % "4.12"  % Test,
       "org.scalatest"          %% "scalatest"           % "3.0.5" % Test
     )
@@ -112,7 +113,7 @@ lazy val `dap2-service` = project
     libraryDependencies ++= Seq(
       "org.http4s"     %% "http4s-core" % http4sVersion % Provided,
       "org.http4s"     %% "http4s-dsl"  % http4sVersion % Provided,
-      "org.tpolecat"   %% "atto-core"   % "0.6.3",
+      "org.tpolecat"   %% "atto-core"   % "0.7.0",
       "org.scalacheck" %% "scalacheck"  % "1.13.5" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.8" % Test,
       "junit"           % "junit"       % "4.12"  % Test,
