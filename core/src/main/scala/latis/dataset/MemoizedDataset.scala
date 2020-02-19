@@ -14,7 +14,7 @@ class MemoizedDataset(
   _model: DataType,
   _data: MemoizedFunction,
   operations: Seq[UnaryOperation] = Seq.empty
-) extends TappedDataset(_metadata, _model, _data, operations) {
+) extends TappedDataset(_metadata, _model, _data, operations) with Serializable {
 
   /**
    * Returns the data as a MemoizedFunction.

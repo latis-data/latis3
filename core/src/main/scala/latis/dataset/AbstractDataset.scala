@@ -11,7 +11,7 @@ abstract class AbstractDataset(
   _metadata: Metadata,
   _model: DataType,
   operations: Seq[UnaryOperation]
-) extends Dataset {
+) extends Dataset with Serializable {
 
   /**
    * Adds provenance to the metadata of the resulting Dataset
