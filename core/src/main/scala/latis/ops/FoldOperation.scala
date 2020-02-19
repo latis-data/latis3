@@ -40,7 +40,7 @@ trait FoldOperation extends StreamOperation {
     (samples: Stream[IO, Sample]) =>
       samples.fold(zero)(foldFunction).map {
         // Avoid a nested ConstantFunction //TODO: not allowed?
-        case ConstantFunction(range) => Sample(DomainData(), range)
+        case ConstantFunction(range) => Sample(DomainData(), RangeData(range))
         // Otherwise keep as a nested function
         case mf => Sample(DomainData(), RangeData(mf))
       }

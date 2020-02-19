@@ -21,11 +21,11 @@ case class DefaultAggregation() extends Aggregation {
    * Defines a function that puts the given Samples into
    * a MemoizedFunction.
    */
-  def aggregateFunction(model: DataType): Iterable[Sample] => RangeData = model match {
+  def aggregateFunction(model: DataType): Iterable[Sample] => Data = model match {
     case _: Function =>
-      (samples: Iterable[Sample]) => RangeData(SeqFunction(samples.toIndexedSeq))
+      (samples: Iterable[Sample]) => SeqFunction(samples.toIndexedSeq)
     case _ =>
       // Not a function implies a single range value
-      (samples: Iterable[Sample]) => samples.head.range
+      (samples: Iterable[Sample]) => Data.fromSeq(samples.head.range)
   }
 }

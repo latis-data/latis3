@@ -51,17 +51,15 @@ trait Dataset extends MetadataLike {
 
   def asFunction(): DatasetFunction = {
     //TODO: take interp/extrap args, turn SF into new executable F type
-    val ds = unsafeForce()
-    val f: TupleData => Either[LatisException, TupleData] = ds.data.apply
-    //Note, the following requires MemoizedDataset to be serializable for spark
-    //{
-    //  (td: TupleData) =>
-    //    val datums = td.elements.collect {
-    //      case d: Datum => d
-    //      case _ => ??? //TODO: error, can only eval with Datumscompile
-    //    }
-    //    ds.data.apply(DomainData(datums)).map(TupleData(_))
-    //}
+    val ds: MemoizedDataset = unsafeForce()
+    val f: Data => Either[LatisException, Data] = {
+      (data: Data) => {
+        DomainData.fromData(data).flatMap { dd =>
+          ds.data.apply(dd).map(Data.fromSeq)
+        }
+      }
+    }
+
     DatasetFunction(ds.metadata, ds.model, f)
   }
 

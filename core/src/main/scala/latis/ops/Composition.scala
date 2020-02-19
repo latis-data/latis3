@@ -1,6 +1,6 @@
 package latis.ops
 
-import latis.data.TupleData
+import latis.data.Data
 import latis.dataset.DatasetFunction
 import latis.model.DataType
 import latis.model.Function
@@ -18,9 +18,8 @@ case class Composition(compFunction: DatasetFunction) extends MapRangeOperation 
     Function(domain, range)
   }
 
-  override def mapFunction(model: DataType): TupleData => TupleData = {
-    //TODO: use TupleData since we to to feed the function any Data (e.g. spectrum)
-    (input: TupleData) =>
+  override def mapFunction(model: DataType): Data => Data = {
+    (input: Data) =>
       compFunction(input) match {
         case Right(x) => x
         case Left(le) => throw le

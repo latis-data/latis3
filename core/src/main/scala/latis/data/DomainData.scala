@@ -1,5 +1,8 @@
 package latis.data
 
+import cats.implicits._
+import latis.util.LatisException
+
 /**
  * Convenient construction and extraction methods for the
  * DomainData type alias for List[Any].
@@ -27,14 +30,33 @@ object DomainData {
   def apply(): DomainData = List()
 
   /**
+   * Construct DomainData from a Seq of values.
+   */
+  def apply(data: Seq[Datum]): DomainData = data.toList
+
+  /**
    * Construct DomainData from a comma separated list of values.
    */
   def apply(d: Datum, ds: Datum*): DomainData = d +: ds.toList
 
   /**
-   * Construct DomainData from a Seq of values.
+   * Tries to construct a DomainData from a sequence of Data.
+   * This will fail if any of the elements are a SampledFunction.
    */
-  def apply(data: Seq[Datum]): DomainData = data.toList
+  def fromData(data: Seq[Data]): Either[LatisException, DomainData] =
+    Data.flatten(data).traverse {
+      case d: Datum => Right(d)
+      case _ =>
+        val msg = "DomainData cannot include SampledFunctions."
+        Left(LatisException(msg))
+    }
+
+  /**
+   * Tries to construct a DomainData from a varargs of Data.
+   * This will fail if any of the elements are a SampledFunction.
+   */
+  def fromData(data: Data, datas: Data*): Either[LatisException, DomainData] =
+    fromData(data +: datas)
 
   /**
    * Extract a comma separated list of values from DomainData.

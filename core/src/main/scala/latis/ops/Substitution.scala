@@ -40,13 +40,18 @@ case class Substitution(subFunction: DatasetFunction) extends MapOperation {
             // Get the domain values
             val vals: List[Datum] = sample.domain
             // Extract the values to be replaced
-            val slice: TupleData = TupleData(vals.slice(i, i + domainVariableIDs.length))
+            val slice: List[Datum] = vals.slice(i, i + domainVariableIDs.length)
             // Evaluate the substitution Dataset with the values to be replaced.
-            val sub: List[Datum] = subFunction(slice) match {
-              case Right(TupleData(rd)) =>
+            val sub: List[Datum] = subFunction(Data.fromSeq(slice)) match {
+              case Right(rd) =>
                 // Make sure these range data can be used for a domain, i.e. all Datum, no SF
-                rd.map {
-                  case d: Datum => d
+                rd match {
+                  case d: Datum => List(d)
+                  case TupleData(ds @ _*) => ds.toList.map {
+                    case d: Datum => d
+                    case _ =>
+                      throw LatisException("Domain substitution includes Function")
+                  }
                   case sf: SampledFunction =>
                     throw LatisException("Domain substitution includes Function")
                 }
@@ -61,19 +66,21 @@ case class Substitution(subFunction: DatasetFunction) extends MapOperation {
             // Get the range values
             val vals: List[Data] = sample.range
             // Extract the values to be replaced; can't include Function
-            val slice: DomainData = vals.slice(i, i + domainVariableIDs.length).map {
+            val slice: List[Datum] = vals.slice(i, i + domainVariableIDs.length).map {
               case d: Datum => d
+              // Note, there should be no TupleData in a Sample
               case sf: SampledFunction =>
                 throw LatisException("Substitution includes Function")
             }
             // Evaluate the substitution Dataset with the values to be replaced
-            val sub: TupleData = subFunction(TupleData(slice)) match {
-              case Right(v) => v
+            val sub: List[Data] = subFunction(Data.fromSeq(slice)) match {
+              case Right(d: Datum) => List(d)
+              case Right(TupleData(ds @ _*)) => ds.toList
               case Left(le) => throw le
             }
             // Substitute the new values into the range
             val range: RangeData = vals.splitAt(i) match {
-              case (p1, p2) => p1 ++ sub.elements ++ p2.drop(slice.length)
+              case (p1, p2) => p1 ++ sub ++ p2.drop(slice.length)
             }
             Sample(sample.domain, range)
         }

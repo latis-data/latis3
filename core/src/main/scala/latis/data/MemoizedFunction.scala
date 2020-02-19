@@ -36,18 +36,17 @@ trait MemoizedFunction extends SampledFunction {
   def samples: Stream[IO, Sample] = seqToIOStream(sampleSeq)
 
   /**
-   * Evaluate this SampledFunction at the given domain value.
-   * Return the result as an Option of RangeData.
+   * Evaluates this SampledFunction at the given domain value.
    */
-  override def apply(value: TupleData): Either[LatisException, TupleData] = {
+  override def apply(data: DomainData): Either[LatisException, RangeData] = {
     val osample: Option[Sample] = sampleSeq.find {
-      case Sample(d, _) => d.equals(value.elements)
+      case Sample(d, _) => d.equals(data) //TODO: ord.equiv? SF needs ord akin to interp
       case _ => false
     }
     osample match {
-      case Some(s) => Right(TupleData(s.range))
+      case Some(s) => Right(s.range)
       case None =>
-        val msg = s"No sample found matching $value"
+        val msg = s"No sample found matching: $data"
         Left(LatisException(msg))
     }
   }

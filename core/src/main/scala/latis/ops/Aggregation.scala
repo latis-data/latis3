@@ -15,7 +15,7 @@ import latis.model._
  */
 trait Aggregation extends StreamOperation { self =>
 
-  def aggregateFunction(model: DataType): Iterable[Sample] => RangeData
+  def aggregateFunction(model: DataType): Iterable[Sample] => Data
 
   override def pipe(model: DataType): Pipe[IO, Sample, Sample] = {
     val zero: MemoizedFunction = SeqFunction(Seq.empty)
@@ -26,7 +26,7 @@ trait Aggregation extends StreamOperation { self =>
     (samples: Stream[IO, Sample]) =>
       samples.fold(zero)(foldF).map { mf =>
         aggregateFunction(model)(mf.sampleSeq)
-      }.map(rd => Sample(DomainData(), rd))
+      }.map(d => Sample(DomainData(), RangeData(d)))
   }
 
   def compose(mapOp: MapOperation): Aggregation = new Aggregation {
@@ -35,7 +35,7 @@ trait Aggregation extends StreamOperation { self =>
       self.applyToModel(mapOp.applyToModel(model))
     }
 
-    override def aggregateFunction(model: DataType): Iterable[Sample] => RangeData = {
+    override def aggregateFunction(model: DataType): Iterable[Sample] => Data = {
       val tmpModel = mapOp.applyToModel(model)
       (samples: Iterable[Sample]) => {
         val tmpSamples = samples.map(mapOp.mapFunction(model))

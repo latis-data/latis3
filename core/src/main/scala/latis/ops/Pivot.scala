@@ -23,6 +23,8 @@ case class Pivot(values: Seq[Datum], vids: Seq[String]) extends MapOperation {
    * consider transpose
    */
   //TODO: auto name new variables foo._1, foo._2, ...
+  //TODO: allow values to be nD DomainData
+  //TODO: allow mutiple range values in nested function, interleave
 
   /*
    * TODO: Support general pivot with no specified values
@@ -40,14 +42,13 @@ case class Pivot(values: Seq[Datum], vids: Seq[String]) extends MapOperation {
     (sample: Sample) => sample match {
       case Sample(domain, RangeData(mf: MemoizedFunction)) =>
         // Eval nested Function at each requested value.
-        // Use flatMap because each evaluation results in a RangeData.
-        val range = values.flatMap {
-          v => mf(TupleData(List(v))) match {
-            case Right(r) => r.elements
+        val range = values.map { v =>
+          mf(DomainData(v)) match {
+            case Right(r) => r.head //assumes only one variable in the range
             case Left(le) => throw le
           }
         }
-        Sample(domain, range)
+        Sample(domain, RangeData(range))
         //TODO: deal with errors?
         //TODO: use Fill interpolation? or nearest-neighbor so users don't need to know exact values
         //TODO: requires same value type?
