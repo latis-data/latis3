@@ -5,6 +5,7 @@ import fs2.Stream
 
 import latis.model.DataType
 import latis.ops.UnaryOperation
+import latis.util.LatisException
 
 /**
  * Define a SampledFunction that consists of a sequence of SampledFunctions.
@@ -16,6 +17,7 @@ import latis.ops.UnaryOperation
 case class CompositeSampledFunction(sampledFunctions: Seq[SampledFunction])
   extends SampledFunction {
   //TODO: flatten so we don't end up with nested CSFs?
+  //TODO: make sure extrapolation is not enabled on SFs
 
   /**
    * Stream Samples by simply concatenating Samples from the component
@@ -23,6 +25,18 @@ case class CompositeSampledFunction(sampledFunctions: Seq[SampledFunction])
    */
   def samples: Stream[IO, Sample] =
     sampledFunctions.map(_.samples).fold(Stream.empty)(_ ++ _)
+
+  def apply(data: DomainData): Either[LatisException, RangeData] = {
+    // Use result from first SF that provides one
+    sampledFunctions.map { sf =>
+      sf(data)
+    }.collectFirst {
+      case r if r.isRight => r
+    }.getOrElse {
+      val msg = s"No sample found matching $data"
+      Left(LatisException(msg))
+    }
+  }
 
   /**
    * A CompositeSampledFunction is empty if it has no component

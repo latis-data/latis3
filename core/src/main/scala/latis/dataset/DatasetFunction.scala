@@ -15,10 +15,12 @@ import latis.util.LatisException
 case class DatasetFunction(
   metadata: Metadata,
   model: DataType,
-  function: TupleData => Either[LatisException, TupleData]
+  function: Data => Either[LatisException, Data]
 ) extends MetadataLike {
+  //Note, this kind of function, unlike a SF, can be evaluated for any Data type
+  // including a Function (e.g. spectrum).
 
-  def apply(data: TupleData): Either[LatisException, TupleData] =
+  def apply(data: Data): Either[LatisException, Data] =
     function(data)
 
   /**

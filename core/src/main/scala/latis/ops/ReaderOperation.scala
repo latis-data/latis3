@@ -6,8 +6,8 @@ import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 
+import latis.data.Data
 import latis.data.Text
-import latis.data.TupleData
 import latis.dataset.Dataset
 import latis.input.DatasetReader
 import latis.model.DataType
@@ -27,9 +27,9 @@ case class ReaderOperation(reader: DatasetReader, ops: Seq[UnaryOperation] = Seq
   // not enough to avoid reader serialization
   val f: URI => Dataset = reader.read
 
-  def mapFunction(model:  DataType): TupleData => TupleData = {
+  def mapFunction(model:  DataType): Data => Data = {
     //TODO: avoid reader in the closure, needs to be serialized for spark
-    (td: TupleData) => td.elements.head match {
+    (d: Data) => d match {
       case Text(u) =>
         val uri = Try(new URI(u)) match {
           case Success(uri) => uri
@@ -37,8 +37,7 @@ case class ReaderOperation(reader: DatasetReader, ops: Seq[UnaryOperation] = Seq
             val msg = s"Invalid URI: $u"
             throw LatisException(msg, e)
         }
-        //TupleData(reader.read(uri).withOperations(ops).unsafeForce().data)
-        TupleData(f(uri).withOperations(ops).unsafeForce().data)
+        f(uri).withOperations(ops).unsafeForce().data
         //TODO: deal will errors from unsafeForce
       case _ =>
         val msg = "URI variable must be of type text"

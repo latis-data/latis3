@@ -3,6 +3,8 @@ package latis.data
 import cats.effect.IO
 import fs2.Stream
 
+import latis.util.LatisException
+
 /**
  * Implement a SampledFunction with an fs2.Stream of Samples.
  * Note that evaluation of a StreamFunction is limited by
@@ -12,7 +14,9 @@ import fs2.Stream
  */
 case class StreamFunction(samples: Stream[IO, Sample]) extends SampledFunction {
 
-  //def apply(data: DomainData): Option[RangeData]
+  def apply(data: DomainData): Either[LatisException, RangeData] =
+    //TODO: attach apply to a trait that this won't extend
+    Left(LatisException("Can't evaluate a StreamFunction"))
 
   /*
    * TODO: can/should we support an empty Stream?

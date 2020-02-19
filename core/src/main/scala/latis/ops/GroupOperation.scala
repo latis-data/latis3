@@ -88,13 +88,13 @@ trait GroupOperation extends StreamOperation { self =>
         could GroupOp be a FoldOp?
        */
 
-      val aggF: Iterable[Sample] => RangeData =
+      val aggF: Iterable[Sample] => Data =
         aggregation.aggregateFunction(model)
 
       // For each buffer, aggregate the Samples to make a new Sample.
       StreamUtils.seqToIOStream(sortedMap.toSeq) map {
         case (dd, ss) =>
-          Sample(dd, aggF(ss))
+          Sample(dd, RangeData(aggF(ss)))
         /*
         TODO: NNAgg also needs dd
           optional arg to aggregation.aggregateFunction?

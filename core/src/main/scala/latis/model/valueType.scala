@@ -1,10 +1,11 @@
 package latis.model
 
+import cats.implicits._
 import scala.util.Try
 
 import latis.data.Data._
 import latis.data.Datum
-import latis.data.NullData
+import latis.data.NullDatum
 import latis.util.LatisException
 
 // Note, the parsing happens on the type side (as opposed to data)
@@ -13,23 +14,34 @@ import latis.util.LatisException
 //TODO: NumericType...?
 
 sealed trait ValueType extends Serializable {
-  def parseValue(value: String): Try[Datum]
+  def makeDatum(v: Any): Either[LatisException, Datum]
+  def parseValue(value: String): Either[LatisException, Datum]
   def convertDouble(value: Double): Option[Datum] = None
-  def fillValue: Datum                            = NullData
+  def fillValue: Datum = NullDatum
 }
 
 object BooleanValueType extends ValueType {
-  def parseValue(value: String): Try[Datum] = Try {
-    BooleanValue(value.toBoolean)
+  def makeDatum(v: Any): Either[LatisException, Datum] = v match {
+    case b: Boolean => Right(BooleanValue(b))
+    case _ => Left(LatisException(s"Invalid BooleanValue: $v"))
   }
+
+  def parseValue(value: String): Either[LatisException, Datum] = Try {
+    BooleanValue(value.toBoolean)
+  }.toEither.leftMap { t => LatisException(t.getMessage) }
 
   override def toString: String = "Boolean"
 }
 
 object ByteValueType extends ValueType {
-  def parseValue(value: String): Try[Datum] = Try {
-    ByteValue(value.toByte)
+  def makeDatum(v: Any): Either[LatisException, Datum] = v match {
+    case b: Byte => Right(ByteValue(b))
+    case _ => Left(LatisException(s"Invalid ByteValue: $v"))
   }
+
+  def parseValue(value: String): Either[LatisException, Datum] = Try {
+    ByteValue(value.toByte)
+  }.toEither.leftMap { t => LatisException(t.getMessage) }
 
   //TODO: beware of overflow without error
   override def convertDouble(value: Double): Option[Datum] =
@@ -39,17 +51,27 @@ object ByteValueType extends ValueType {
 }
 
 object CharValueType extends ValueType {
-  def parseValue(value: String): Try[Datum] = Try {
-    CharValue(value.head)
+  def makeDatum(v: Any): Either[LatisException, Datum] = v match {
+    case c: Char => Right(CharValue(c))
+    case _ => Left(LatisException(s"Invalid CharValue: $v"))
   }
+
+  def parseValue(value: String): Either[LatisException, Datum] = Try {
+    CharValue(value.head)
+  }.toEither.leftMap { t => LatisException(t.getMessage) }
 
   override def toString: String = "Char"
 }
 
 object ShortValueType extends ValueType {
-  def parseValue(value: String): Try[Datum] = Try {
-    ShortValue(value.toShort)
+  def makeDatum(v: Any): Either[LatisException, Datum] = v match {
+    case s: Short => Right(ShortValue(s))
+    case _ => Left(LatisException(s"Invalid ShortValue: $v"))
   }
+
+  def parseValue(value: String): Either[LatisException, Datum] = Try {
+    ShortValue(value.toShort)
+  }.toEither.leftMap { t => LatisException(t.getMessage) }
 
   //TODO: beware of overflow without error
   override def convertDouble(value: Double): Option[Datum] =
@@ -59,9 +81,14 @@ object ShortValueType extends ValueType {
 }
 
 object IntValueType extends ValueType {
-  def parseValue(value: String): Try[Datum] = Try {
-    IntValue(value.toInt)
+  def makeDatum(v: Any): Either[LatisException, Datum] = v match {
+    case i: Int => Right(IntValue(i))
+    case _ => Left(LatisException(s"Invalid IntValue: $v"))
   }
+
+  def parseValue(value: String): Either[LatisException, Datum] = Try {
+    IntValue(value.toInt)
+  }.toEither.leftMap { t => LatisException(t.getMessage) }
 
   //TODO: beware of overflow without error
   override def convertDouble(value: Double): Option[Datum] =
@@ -73,9 +100,14 @@ object IntValueType extends ValueType {
 }
 
 object LongValueType extends ValueType {
-  def parseValue(value: String): Try[Datum] = Try {
-    LongValue(value.toLong)
+  def makeDatum(v: Any): Either[LatisException, Datum] = v match {
+    case l: Long => Right(LongValue(l))
+    case _ => Left(LatisException(s"Invalid LongValue: $v"))
   }
+
+  def parseValue(value: String): Either[LatisException, Datum] = Try {
+    LongValue(value.toLong)
+  }.toEither.leftMap { t => LatisException(t.getMessage) }
 
   //TODO: beware of truncation or overflow without error
   override def convertDouble(value: Double): Option[Datum] =
@@ -87,9 +119,14 @@ object LongValueType extends ValueType {
 }
 
 object FloatValueType extends ValueType {
-  def parseValue(value: String): Try[Datum] = Try {
-    FloatValue(value.toFloat)
+  def makeDatum(v: Any): Either[LatisException, Datum] = v match {
+    case f: Float => Right(FloatValue(f))
+    case _ => Left(LatisException(s"Invalid FloatValue: $v"))
   }
+
+  def parseValue(value: String): Either[LatisException, Datum] = Try {
+    FloatValue(value.toFloat)
+  }.toEither.leftMap { t => LatisException(t.getMessage) }
 
   //TODO: beware of overflow to Infinity
   override def convertDouble(value: Double): Option[Datum] =
@@ -101,9 +138,15 @@ object FloatValueType extends ValueType {
 }
 
 object DoubleValueType extends ValueType {
-  def parseValue(value: String): Try[Datum] = Try {
-    DoubleValue(value.toDouble)
+  def makeDatum(v: Any): Either[LatisException, Datum] = v match {
+    //TODO: turn any numeric type into a Double?
+    case d: Double => Right(DoubleValue(d))
+    case _ => Left(LatisException(s"Invalid DoubleValue: $v"))
   }
+
+  def parseValue(value: String): Either[LatisException, Datum] = Try {
+    DoubleValue(value.toDouble)
+  }.toEither.leftMap { t => LatisException(t.getMessage) }
 
   override def convertDouble(value: Double): Option[Datum] =
     Some(DoubleValue(value))
@@ -114,17 +157,28 @@ object DoubleValueType extends ValueType {
 }
 
 object BinaryValueType extends ValueType {
-  def parseValue(value: String): Try[Datum] = Try {
-    ??? //TODO: uudecode?
+  def makeDatum(v: Any): Either[LatisException, Datum] = v match {
+    case a: Array[Byte] => Right(BinaryValue(a))
+    case _ => Left(LatisException(s"Invalid BinaryValue: $v"))
   }
+
+  def parseValue(value: String): Either[LatisException, Datum] = Try {
+    ??? //TODO: uudecode?
+  }.toEither.leftMap { t => LatisException(t.getMessage) }
 
   override def toString: String = "Binary"
 }
 
 object StringValueType extends ValueType {
-  def parseValue(value: String): Try[Datum] = Try {
-    StringValue(value)
+  def makeDatum(v: Any): Either[LatisException, Datum] = v match {
+    //TODO: turn any v to a string?
+    case s: String => Right(StringValue(s))
+    case _ => Left(LatisException(s"Invalid StringValue: $v"))
   }
+
+  def parseValue(value: String): Either[LatisException, Datum] = Try {
+    StringValue(value)
+  }.toEither.leftMap { t => LatisException(t.getMessage) }
 
   override def fillValue: StringValue = StringValue("")
 
@@ -132,9 +186,14 @@ object StringValueType extends ValueType {
 }
 
 object BigIntValueType extends ValueType {
-  def parseValue(value: String): Try[Datum] = Try {
-    BigIntValue(BigInt(value))
+  def makeDatum(v: Any): Either[LatisException, Datum] = v match {
+    case bi: BigInt => Right(BigIntValue(bi))
+    case _ => Left(LatisException(s"Invalid BigIntValue: $v"))
   }
+
+  def parseValue(value: String): Either[LatisException, Datum] = Try {
+    BigIntValue(BigInt(value))
+  }.toEither.leftMap { t => LatisException(t.getMessage) }
 
   //TODO: beware of truncation without error
   override def convertDouble(value: Double): Option[Datum] =
@@ -144,9 +203,14 @@ object BigIntValueType extends ValueType {
 }
 
 object BigDecimalValueType extends ValueType {
-  def parseValue(value: String): Try[Datum] = Try {
-    BigDecimalValue(BigDecimal(value))
+  def makeDatum(v: Any): Either[LatisException, Datum] = v match {
+    case bd: BigDecimal => Right(BigDecimalValue(bd))
+    case _ => Left(LatisException(s"Invalid BigDecimalValue: $v"))
   }
+
+  def parseValue(value: String): Either[LatisException, Datum] = Try {
+    BigDecimalValue(BigDecimal(value))
+  }.toEither.leftMap { t => LatisException(t.getMessage) }
 
   override def convertDouble(value: Double): Option[Datum] =
     Some(BigDecimalValue(BigDecimal(value)))

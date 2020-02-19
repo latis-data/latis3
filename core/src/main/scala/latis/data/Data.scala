@@ -1,6 +1,7 @@
 package latis.data
 
 import cats.effect.IO
+import cats.implicits._
 import cats.kernel.Monoid
 import fs2.Stream
 
@@ -47,26 +48,29 @@ TODO: make TD play nice with DD,RD
   prevent TD in DD
 
  */
-case class TupleData(elements: List[Data]) extends Data {
-  def length: Int = elements.length
+class TupleData private (val elements: Seq[Data]) extends Data {
+  //def length: Int = elements.length, arity?
 }
 object TupleData {
-  def apply(d: Data, ds: Data*): TupleData = TupleData((d +: ds).toList)
+  //TODO: prevent tuple of 0 or 1?
+  //Note, flatten prevents nested TupleData
+  def apply(ds: Seq[Data]): TupleData = new TupleData(Data.flatten(ds))
+  def apply(d: Data, ds: Data*): TupleData = TupleData(d +: ds)
   def unapplySeq(td: TupleData): Option[Seq[Data]] =
     Option(td.elements)
 }
 
+//==== SampledFunction =========================================================
+
 trait SampledFunction extends Data {
   def samples: Stream[IO, Sample]
-  //def apply(data: DomainData): Either[LatisException, RangeData] = ???
-  def apply(data: TupleData): Either[LatisException, TupleData] = ???
-  /*
-  TODO: do we still want SF.apply? YES
-   what about apply with interp? NO
-     ds.asFunction(inerp, exterp)
-       will make a little-f TupleData => TupleData
-       better than trying to pass interp/exterp to apply method itself
-   */
+  def apply(data: DomainData): Either[LatisException, RangeData]
+
+  def apply(domainSet: DomainSet): Either[LatisException, SampledFunction] =
+    domainSet.elements.toVector.traverse(apply).map { range =>
+      SetFunction(domainSet, range)
+    }
+
   //def canHandleOperation(op: UnaryOperation): Boolean
   def applyOperation(op: UnaryOperation, model: DataType): SampledFunction = //TODO: Either
     op.applyToData(this, model) //default when special SF can't apply op
@@ -94,6 +98,8 @@ object SampledFunction {
     }
 }
 
+//==============================================================================
+
 /*
  * Note: traits used for two purposes:
  *
@@ -113,12 +119,14 @@ object SampledFunction {
  */
 
 trait Datum extends Any with Data {
-  def asString: String
+  def value: Any
+  def asString: String = value.toString
 }
 
 // Used for default fillValue, bad RDD key
-object NullData extends Datum with Serializable {
-  def asString: String = "null"
+object NullDatum extends Datum with Serializable {
+  def value = null
+  override def asString: String = "null"
 }
 
 /**
@@ -130,7 +138,7 @@ object NullData extends Datum with Serializable {
  */
 trait Number extends Any with Datum {
   def asDouble: Double
-  def asString: String = asDouble.toString
+  override def asString: String = asDouble.toString
 }
 object Number {
   // Extract a Double from a Number
@@ -188,34 +196,68 @@ object Text {
 
 //=============================================================================
 
-// Import latis.data.Data._ to get implicit Data construction from supported types
 object Data {
 
-  /**
-   * Construct Data from anything.
-   */
-  //TODO: don't need with implicit construtors?
-  //  but convenient for adapters
-  def apply(thing: Any): Datum = thing match {
-    case x: Boolean     => BooleanValue(x)
-    case x: Byte        => ByteValue(x)
-    case x: Char        => CharValue(x)
-    case x: Short       => ShortValue(x)
-    case x: Int         => IntValue(x)
-    case x: Long        => LongValue(x)
-    case x: Float       => FloatValue(x)
-    case x: Double      => DoubleValue(x)
-    case x: String      => StringValue(x)
-    case x: Array[Byte] => BinaryValue(x)
-    //TODO: BigInt, BigDecimal
-    //TODO: AnyData? ObjectData? should be Serializable
+  def fromSeq(ds: Seq[Data]): Data = {
+    val flatData = flatten(ds)
+    flatData.length match {
+      case 0 => NullDatum //TODO: ok that this is a Datum?
+      case 1 => ds.head
+      case _ => TupleData(ds)
+    }
   }
+
+  /**
+   * Flattens TupleData within a given List of Data.
+   * This is used to ensure that TupleData, DomainData,
+   * and RangeData contain no TupleData.
+   */
+  def flatten(ds: Seq[Data]): List[Data] = ds.toList match {
+    case d :: Nil => d match {
+      case TupleData(ds @ _*) => ds.toList
+      case d: Data => List(d) //Datum or SF
+    }
+    case d :: ds =>d match {
+      case TupleData(es @ _*) => es.toList ++ flatten(ds)
+      case d: Data => d +: flatten(ds) //Datum or SF
+    }
+  }
+
+  /**
+   * Tries to construct a Datum from any value.
+   */
+  //TODO: consider type class Datum[A] so anyone could make an instance
+  //  Data.fromValue(v: A)(implicit ev: ?)
+  def fromValue(v: Any): Either[LatisException, Datum] = v match {
+    case x: Boolean     => Right(BooleanValue(x))
+    case x: Byte        => Right(ByteValue(x))
+    case x: Char        => Right(CharValue(x))
+    case x: Short       => Right(ShortValue(x))
+    case x: Int         => Right(IntValue(x))
+    case x: Long        => Right(LongValue(x))
+    case x: Float       => Right(FloatValue(x))
+    case x: Double      => Right(DoubleValue(x))
+    case x: String      => Right(StringValue(x))
+    case x: Array[Byte] => Right(BinaryValue(x))
+    case x: BigInt      => Right(BigIntValue(x))
+    case x: BigDecimal  => Right(BigDecimalValue(x))
+    case _ => Left(LatisException(s"Can't make a Datum from the value $v"))
+  }
+
+  /**
+   * Defines a Datum that can hold any object.
+   * This is largely to make the Data constructor total
+   * but it could be handy, for example, when you have a
+   * time series of objects.
+   * Note that this is not implicit like other Datum subclasses.
+   */
+  //case class AnyValue(value: Any) extends Datum
 
   //Note, these are value classes
   //Note, these are implicit so we can construct DomainData from primitive types
+  //  Import latis.data.Data._ to get implicit Data construction from supported types
 
   implicit class BooleanValue(val value: Boolean) extends AnyVal with Datum with Serializable {
-    def asString: String = value.toString
     override def toString = s"BooleanValue($value)"
   }
 
@@ -257,12 +299,11 @@ object Data {
   }
 
   implicit class StringValue(val value: String) extends AnyVal with Text with Serializable {
-    def asString: String = value
     override def toString = s"StringValue($asString)"
   }
 
   implicit class BinaryValue(val value: Array[Byte]) extends AnyVal with Datum with Serializable {
-    def asString: String = "BLOB"
+    override def asString: String = "BLOB"
     override def toString = s"BinaryValue($asString)"
   }
 

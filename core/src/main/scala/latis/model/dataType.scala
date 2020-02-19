@@ -1,8 +1,5 @@
 package latis.model
 
-import scala.util.Failure
-import scala.util.Success
-
 import latis.data._
 import latis.metadata._
 import latis.util.LatisException
@@ -132,7 +129,7 @@ sealed trait DataType extends MetadataLike with Serializable {
 
   //TODO: beef up
   //TODO: use missingValue in metadata, scalar.parseValue(s)
-  def fillValue: RangeData = RangeData(getFillValue(this, Seq.empty))
+  def fillValue: Data = Data.fromSeq(getFillValue(this, Seq.empty))
 
   private def getFillValue(dt: DataType, acc: Seq[Data]): Seq[Data] = dt match {
     case s: Scalar      => acc :+ s.valueType.fillValue
@@ -171,15 +168,8 @@ class Scalar(val metadata: Metadata) extends DataType {
   /**
    * Converts a string value into the appropriate type for this Scalar.
    */
-  def parseValue(value: String): Either[Exception, Datum] =
-    valueType.parseValue(value) match {
-      case Success(data) =>
-        Right(data)
-      case Failure(t) =>
-        //TODO: use our own exception type here
-        val e = new RuntimeException("Parse error", t)
-        Left(e)
-    }
+  def parseValue(value: String): Either[LatisException, Datum] =
+    valueType.parseValue(value)
 
   /**
    * Returns a string representation of the given Datum.

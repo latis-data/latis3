@@ -50,9 +50,9 @@ object LatisOrdering {
         Some(String.compare(s1, s2))
       // Make NullData larger than any other
       // Unlike NaN, allow NullData == NullData
-      case (NullData, NullData) => Some(0)
-      case (NullData, _) => Some(1)
-      case (_, NullData) => Some(-1)
+      case (NullDatum, NullDatum) => Some(0)
+      case (NullDatum, _) => Some(1)
+      case (_, NullDatum) => Some(-1)
       case _ => None
     }
 
