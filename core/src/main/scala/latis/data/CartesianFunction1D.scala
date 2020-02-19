@@ -4,7 +4,7 @@ import scala.collection.Searching.Found
 
 import cats.implicits._
 
-import latis.model.ValueType
+import latis.util.DataUtils._
 import latis.util.LatisException
 
 /**
@@ -72,8 +72,9 @@ object CartesianFunction1D {
    * correspond to a supported ValueType, and that each element in a Seq
    * has the same type.
    */
-  def fromValues(xs: Seq[Any], vs: Seq[Seq[Any]]): Either[LatisException, CartesianFunction1D] = {
+  def fromValues(xs: Seq[Any], vs: Seq[Any]*): Either[LatisException, CartesianFunction1D] = {
     // Ensures that data Seqs are not empty
+    //TODO: allow empty domain?
     if (xs.isEmpty || vs.isEmpty) {
       val msg = "Value sequences must not be empty."
       return Left(LatisException(msg))
@@ -82,7 +83,7 @@ object CartesianFunction1D {
     // Validates length of each range variable Seq
     val nv = vs.head.length
     val ls = vs.map(_.length)
-    if (!ls.forall(_ == nv)) {
+    if (!ls.tail.forall(_ == nv)) {
       val msg = s"All range variable sequences must be the same length: ${ls.mkString(",")}"
       return Left(LatisException(msg))
     }
@@ -94,21 +95,13 @@ object CartesianFunction1D {
       return Left(LatisException(msg))
     }
 
+    //
     for {
       d1s <- anySeqToDatumSeq(xs)
       rss <- vs.toVector.traverse(anySeqToDatumSeq)
-      rs = rss.transpose.map(Data.fromSeq(_))
-    } yield new CartesianFunction1D(d1s, rs.map(RangeData(_)))
+      rs = rss.transpose.map(Data.fromSeq(_)).map(RangeData(_))
+      //rs = rss.transpose.map(RangeData(Data.fromSeq(_)))
+    } yield new CartesianFunction1D(d1s.toIndexedSeq, rs)
   }
 
-
-  //TODO util?
-  def anySeqToDatumSeq(vs: Seq[Any]): Either[LatisException, IndexedSeq[Datum]] = vs.length match {
-    case 0 => Right(IndexedSeq.empty)
-    case _ =>
-      // Makes sure each element has the same type
-      ValueType.fromValue(vs.head).flatMap { vtype =>
-        vs.toVector.traverse(v => vtype.makeDatum(v))
-      }
-  }
 }
