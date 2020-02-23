@@ -1,10 +1,13 @@
 package latis.data
 
 import scala.collection.Searching.Found
+import scala.collection.Searching.InsertionPoint
+import scala.collection.Searching.SearchResult
 
 import cats.implicits._
 
 import latis.util.DataUtils._
+import latis.util.DefaultDomainOrdering
 import latis.util.LatisException
 
 /**
@@ -18,42 +21,53 @@ import latis.util.LatisException
 //TODO: prevent direct construction?
 class CartesianFunction1D(
   val xs: IndexedSeq[Datum],
-  val vs: IndexedSeq[RangeData]
+  val vs: IndexedSeq[RangeData],
+  val ordering: PartialOrdering[DomainData]
+  //val interpolation: Option[Interpolation] = None
 ) extends CartesianFunction {
   //Note, using Seq instead of invariant Array to get variance
-  //TODO: require IndexedSeq? promises fast indexing
-  //TODO: prevent diff types of Datum within a Seq, do we want invarience?
+  // requires IndexedSeq, promises fast indexing
+
+  private def applySearchResults(sr: SearchResult): Either[LatisException, RangeData] =
+    sr match {
+      case Found(i) => Right(vs(i))
+      //TODO: interp
+      //case InsertionPoint(i) =>
+      //if (i >= vs.length) Right(vs(i-1))
+      //else Right(vs(i))
+      case _ =>
+        val msg = "Evaluation failed." //replace with interp error
+        Left(LatisException(msg))
+    }
 
   override def apply(data: DomainData): Either[LatisException, RangeData] = data match {
-    case DomainData(d: Datum) =>
-      searchDomain(xs, d) match {
-        case Found(i) => Right(vs(i))
-        //case InsertionPoint(i) =>
-        //  //TODO: interp
-        //  if (i >= vs.length) Right(vs(i-1))
-        //  else Right(vs(i))
-        case _ =>
-          val msg = s"No sample found matching $data"
-          Left(LatisException(msg))
-      }
-    //TODO: allow TupleData with one element? disallow direct TupleData construction? Use Data.fromSeq
+    case DomainData(x: Datum) =>
+      for {
+        sr    <- searchDomain(0, xs, x)
+        range <- applySearchResults(sr)
+      } yield range
     case _ =>
       val msg = "The Data argument must be a Datum"
       Left(LatisException(msg))
   }
 
   /**
-   * Provide a sequence of samples to fulfill the MemoizedFunction trait.
+   * Provides a sequence of samples to fulfill the MemoizedFunction trait.
    */
   def sampleSeq: Seq[Sample] =
-    (xs zip vs) map { case (x, v) => Sample(DomainData(x), RangeData(v)) }
+    (xs.zip(vs)).map { case (x, v) => Sample(DomainData(x), RangeData(v)) }
 
 }
+
+//==============================================================================
 
 object CartesianFunction1D {
   //TODO: extend FunctionFactory, return Either
 
-  def fromData(xs: IndexedSeq[Datum], vs: IndexedSeq[Data]): Either[LatisException, CartesianFunction1D] = {
+  def fromData(
+    xs: IndexedSeq[Datum],
+    vs: IndexedSeq[Data]
+  ): Either[LatisException, CartesianFunction1D] = {
     // Validates that the domain and range variable Seqs have the same length
     val nx = xs.length
     val nv = vs.length
@@ -61,7 +75,7 @@ object CartesianFunction1D {
       val msg = s"Domain and Range lengths don't match: $nx, $nv"
       Left(LatisException(msg))
     } else {
-      Right(new CartesianFunction1D(xs, vs.map(RangeData(_))))
+      Right(new CartesianFunction1D(xs, vs.map(RangeData(_)), DefaultDomainOrdering))
     }
   }
 
@@ -101,7 +115,7 @@ object CartesianFunction1D {
       rss <- vs.toVector.traverse(anySeqToDatumSeq)
       rs = rss.transpose.map(Data.fromSeq(_)).map(RangeData(_))
       //rs = rss.transpose.map(RangeData(Data.fromSeq(_)))
-    } yield new CartesianFunction1D(d1s.toIndexedSeq, rs)
+    } yield new CartesianFunction1D(d1s.toIndexedSeq, rs, DefaultDomainOrdering)
   }
 
 }
