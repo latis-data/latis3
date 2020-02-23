@@ -2,8 +2,8 @@ package latis.model
 
 import latis.data._
 import latis.metadata._
+import latis.util.DefaultDatumOrdering
 import latis.util.LatisException
-import latis.util.LatisOrdering
 
 /**
  * Define the algebraic data type for the LaTiS implementation of the
@@ -186,106 +186,16 @@ class Scalar(val metadata: Metadata) extends DataType {
 
   /**
    * Defines a PartialOrdering for Datums of the type described by this Scalar.
-   * An IllegalArgumentException will be thrown if the compared Datum types
-   * are not consistent with this Scalar.
-   * This supports comparison between any two Number types or between
-   * any two Text types. Other types or combinations will have no
-   * Ordering by this default definition.
-   * This can be overridden by Scalar subtypes that need to define a
-   * different ordering.
+   * The "order" metadata property can be set to "asc" (default) or "des" for
+   * descending.
    */
-  def ordering: PartialOrdering[Datum] = LatisOrdering.partialDataOrdering
-  //  new PartialOrdering[Datum] {
-  //  //TODO: should we match specific value types?
-  //  //  avoid conversion to doubles
-  //  import scala.math.Ordering._
-  //
-  //  def tryCompare(x: Datum, y: Datum): Option[Int] = (x, y) match {
-  //    case (Number(d1), Number(d2)) =>
-  //      if (d1.isNaN || d2.isNaN) None
-  //      else Some(Double.compare(d1, d2))
-  //    case (Text(s1), Text(s2)) =>
-  //      Some(String.compare(s1, s2))
-  //    case _ => None
-  //  }
-  //
-  //  def lteq(x: Datum, y: Datum): Boolean = (x, y) match {
-  //    case (Number(d1), Number(d2)) =>
-  //      d1 <= d2 //Note, always false for NaNs
-  //    case (Text(s1), Text(s2)) =>
-  //      String.compare(s1, s2) <= 0
-  //    case _ => false
-  //  }
-  //}
-
-//  def ordering: Option[PartialOrdering[Data]] = valueType match {
-//    case BooleanValueType =>
-//    case ByteValueType =>
-//    case CharValueType =>
-//    case ShortValueType =>
-//    case IntValueType => new PartialOrdering[Data] {
-//      override def lteq(d1: Data, d2: Data): Boolean = ???
-//      override def tryCompare(d1: Data, d2: Data): Option[Int] => (d1, d2) match {
-//        case (d1: Data.IntValue, d2: Data.IntValue) =>
-//          Some(scala.math.Ordering.Int.compare(d1.value, d2.value))
-//        case _ => None
-//      }
-//    }
-//
-//    case LongValueType =>
-//    case FloatValueType =>
-//    case DoubleValueType =>
-//    case BinaryValueType =>
-//    case StringValueType =>
-//    case BigIntValueType =>
-//    case BigDecimalValueType =>
-//  }
-//
-//  // Optimization to define Ordering only once
-//  private lazy val _ordering = this("type") match {
-//    case Some("short") => makeOrdering {
-//      case (d1: Data.ShortValue, d2: Data.ShortValue) =>
-//        Short.compare(d1.value, d2.value)
-//    }
-//    case Some("int") => makeOrdering {
-//      case (d1: Data.IntValue, d2: Data.IntValue) =>
-//        Int.compare(d1.value, d2.value)
-//    }
-//    case Some("long") => makeOrdering {
-//      case (d1: Data.LongValue, d2: Data.LongValue) =>
-//        Long.compare(d1.value, d2.value)
-//    }
-//    case Some("float") => makeOrdering {
-//      case (d1: Data.FloatValue, d2: Data.FloatValue) =>
-//        Float.compare(d1.value, d2.value)
-//    }
-//    case Some("double") => makeOrdering {
-//      case (d1: Data.DoubleValue, d2: Data.DoubleValue) =>
-//        Double.compare(d1.value, d2.value)
-//    }
-//    case Some("string") => makeOrdering {
-//      case (d1: Data.StringValue, d2: Data.StringValue) =>
-//        String.compare(d1.value, d2.value)
-//    }
-//    case Some(s) =>
-//      val msg = s"Ordering not supported for data type $s"
-//      throw new NotImplementedError(msg)
-//  }
-//
-//  // Convenience method to avoid boilerplate duplication
-//  private def makeSomePartialOrdering(part: PartialFunction[(Data,Data),Int]) = {
-//    val error: PartialFunction[(Data,Data),Int] = {
-//      case (x: Data, y: Data) =>
-//        val msg = s"Incomparable data values: $x $y"
-//        throw new IllegalArgumentException(msg)
-//    }
-//    val po: PartialOrdering[Data] = //part orElse ???
-//      (d1: Data, d2: Data) =>
-//      part(d1, d2)
-//    new PartialOrdering[Data] {
-//      def tryCompare(x: Data, y: Data): Option[Int] = (part orElse error)(x, y)
-//    }
-//  }
+  def ordering: PartialOrdering[Datum] =
+    //TODO: support enumerated values
+    metadata.getProperty("order", "asc").toLowerCase.take(3) match {
+      case "asc" => DefaultDatumOrdering
+      case "des" => DefaultDatumOrdering.reverse
+      case s => throw LatisException(s"Invalid order: $s") //TODO: validate sooner
+    }
 
   override def toString: String = id
 }

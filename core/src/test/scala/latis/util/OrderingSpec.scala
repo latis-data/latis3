@@ -39,7 +39,7 @@ class OrderingSpec extends FlatSpec {
   }
 
   it should "go into a SortedMap ordered by keys" in {
-    val ordering = LatisOrdering.partialToTotal(LatisOrdering.domainOrdering(model.domain.getScalars))
+    val ordering = LatisOrdering.partialToTotal(CartesianDomainOrdering(model.domain.getScalars.map(_.ordering)))
 
     val smap = mutable.SortedMap[DomainData, RangeData]()(ordering)
     samples.foreach {

@@ -10,6 +10,7 @@ import fs2.Stream
 import latis.data._
 import latis.model.DataType
 import latis.model.Function
+import latis.util.CartesianDomainOrdering
 import latis.util.LatisOrdering
 import latis.util.StreamUtils
 
@@ -29,7 +30,9 @@ trait GroupOperation extends StreamOperation { self =>
    * Defines the ordering of the new domain data.
    */
   def ordering(model: DataType): Ordering[DomainData] =
-    LatisOrdering.domainOrdering(domainType(model).getScalars)
+    LatisOrdering.partialToTotal(
+      CartesianDomainOrdering(domainType(model).getScalars.map(_.ordering))
+    )
 
   /**
    * Defines an Aggregation Operation to use to reduce

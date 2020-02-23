@@ -1,10 +1,12 @@
 package latis.data
 
 import scala.collection.Searching.Found
+import scala.collection.Searching.SearchResult
 
 import cats.implicits._
 
 import latis.util.DataUtils._
+import latis.util.DefaultDomainOrdering
 import latis.util.LatisException
 
 /**
@@ -18,26 +20,37 @@ import latis.util.LatisException
 class CartesianFunction2D(
   val xs: IndexedSeq[Datum],
   val ys: IndexedSeq[Datum],
-  val vs: IndexedSeq[IndexedSeq[RangeData]]
+  val vs: IndexedSeq[IndexedSeq[RangeData]],
+  val ordering: PartialOrdering[DomainData]
 ) extends CartesianFunction {
   //TODO: require smart constructor to provide validation?
 
   override def apply(data: DomainData): Either[LatisException, RangeData] = data match {
     case DomainData(x: Datum, y: Datum) =>
-      (searchDomain(xs, x), searchDomain(ys, y)) match {
-        case (Found(i), Found(j)) => Right(vs(i)(j))
-        //TODO: interpolate
-        case _ =>
-          val msg = s"No sample found matching $data"
-          Left(LatisException(msg))
-      }
+      for {
+        sr1   <- searchDomain(0, xs, x)
+        sr2   <- searchDomain(1, ys, y)
+        range <- applySearchResults(sr1, sr2)
+      } yield range
     case _ =>
-      val msg = s"Invalid evaluation value for IndexedFunction2D: $data"
+      val msg = s"Invalid evaluation value for CartesianFunction2D: $data"
       Left(LatisException(msg))
   }
 
+  private def applySearchResults(
+    sr1: SearchResult,
+    sr2: SearchResult
+  ): Either[LatisException, RangeData] =
+    (sr1, sr2) match {
+      case (Found(i), Found(j)) => Right(vs(i)(j))
+      //TODO: interp
+      case _ =>
+        val msg = "Evaluation failed." //replace with interp error
+        Left(LatisException(msg))
+    }
+
   /**
-   * Provide a sequence of samples to fulfill the MemoizedFunction trait.
+   * Provides a sequence of samples to fulfill the MemoizedFunction trait.
    */
   def sampleSeq: Seq[Sample] =
     for {
@@ -45,6 +58,8 @@ class CartesianFunction2D(
       ib <- ys.indices
     } yield Sample(DomainData(xs(ia), ys(ib)), RangeData(vs(ia)(ib)))
 }
+
+//==============================================================================
 
 object CartesianFunction2D {
   //TODO: FF fromSamples
@@ -87,7 +102,10 @@ object CartesianFunction2D {
       d1s <- anySeqToDatumSeq(xs)
       d2s <- anySeqToDatumSeq(ys)
       rss <- vs.map(_.flatten).toVector.traverse(anySeqToDatumSeq)
-      rs: IndexedSeq[IndexedSeq[RangeData]] = rss.transpose.map(RangeData(_)).grouped(ny).toIndexedSeq
-    } yield new CartesianFunction2D(d1s.toIndexedSeq, d2s.toIndexedSeq, rs)
+      rs: IndexedSeq[IndexedSeq[RangeData]] = rss.transpose
+        .map(RangeData(_))
+        .grouped(ny)
+        .toIndexedSeq
+    } yield new CartesianFunction2D(d1s.toIndexedSeq, d2s.toIndexedSeq, rs, DefaultDomainOrdering)
   }
 }
