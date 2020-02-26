@@ -92,35 +92,3 @@ trait DomainSet {
    */
   override def toString: String = model.toString
 }
-
-object DomainSet {
-
-  /**
-   * Defines a DomainSet with a 1D manifold (not Cartesian).
-   * This assumes that the values are Doubles for the sake of the model.
-   */
-  def apply(_elements: IndexedSeq[DomainData]): DomainSet = new DomainSet {
-
-    def elements: IndexedSeq[DomainData] = _elements
-
-    /**
-     * Returns the rank as determined by inspecting the first element.
-     */
-    override def rank: Int = elements.headOption match {
-      case Some(dd) => dd.length
-      case None     => ??? //TODO: empty DomainSet
-    }
-
-    /**
-     * Defines a model assuming variables are Doubles.
-     * TODO: determine from values
-     */
-    def model: DataType = {
-      val scalars = for {
-        i  <- (0 until rank)
-        md = Metadata(s"_$i") + ("type" -> "double")
-      } yield Scalar(md)
-      Tuple(scalars)
-    }
-  }
-}
