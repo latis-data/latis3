@@ -19,6 +19,10 @@ case class CompositeSampledFunction(sampledFunctions: Seq[SampledFunction])
   //TODO: flatten so we don't end up with nested CSFs?
   //TODO: make sure extrapolation is not enabled on SFs
 
+  // Assumes each component has the same ordering
+  def ordering: Option[PartialOrdering[DomainData]] =
+    sampledFunctions.headOption.flatMap(_.ordering)
+
   /**
    * Stream Samples by simply concatenating Samples from the component
    * SampledFunctions.
@@ -57,27 +61,7 @@ case class CompositeSampledFunction(sampledFunctions: Seq[SampledFunction])
   override def applyOperation(op: UnaryOperation, model: DataType): SampledFunction =
     CompositeSampledFunction(sampledFunctions.map(_.applyOperation(op, model)))
 
-  ///**
-  // * Override filter by delegating the predicate application
-  // * to each component SampledFunction.
-  // */
-  //override def filter(p: Sample => Boolean): SampledFunction =
-  //  CompositeSampledFunction(sampledFunctions.map(_.filter(p)))
-  //
-  ///**
-  // * Override map by delegating the function application
-  // * to each component SampledFunction.
-  // */
-  //override def map(f: Sample => Sample): SampledFunction =
-  //  CompositeSampledFunction(sampledFunctions.map(_.map(f)))
-  //
-  ///**
-  // * Override flatMap by delegating the function application
-  // * to each component SampledFunction.
-  // */
-  //override def flatMap(f: Sample => MemoizedFunction): SampledFunction =
-  //  CompositeSampledFunction(sampledFunctions.map(_.flatMap(f)))
-  ////TODO: optimize other operations by delegating to granules; e.g. select, project
+  //TODO: optimize other operations by delegating to granules; e.g. select, project
 }
 
 object CompositeSampledFunction {

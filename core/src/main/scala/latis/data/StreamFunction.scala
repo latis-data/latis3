@@ -3,10 +3,12 @@ package latis.data
 import cats.effect.IO
 import fs2.Stream
 
+import latis.util.DefaultDomainOrdering
 import latis.util.LatisException
+import latis.util.StreamUtils
 
 /**
- * Implement a SampledFunction with an fs2.Stream of Samples.
+ * Implements a SampledFunction with an fs2.Stream of Samples.
  * Note that evaluation of a StreamFunction is limited by
  * being traversable once.
  * A Dataset can be memoized with "force" to ensure that it has a
@@ -14,19 +16,20 @@ import latis.util.LatisException
  */
 case class StreamFunction(samples: Stream[IO, Sample]) extends SampledFunction {
 
-  def apply(data: DomainData): Either[LatisException, RangeData] =
-    //TODO: attach apply to a trait that this won't extend
-    Left(LatisException("Can't evaluate a StreamFunction"))
+  def ordering: Option[PartialOrdering[DomainData]] = None //TODO: allow ord arg
 
-  /*
-   * TODO: can/should we support an empty Stream?
-   * fs2.Stream doesn't define isEmpty but you can get
-   *   Stream.empty: Stream[F, INothing]
-   */
+  def apply(data: DomainData): Either[LatisException, RangeData] = {
+    //TODO: can't do it once? make Evaluation "rewind" the dataset
+    val ord: PartialOrdering[DomainData] = ordering.getOrElse(DefaultDomainOrdering)
+    //TODO: avoid unsafe run
+    StreamUtils.unsafeStreamToSeq(samples.find(s => ord.equiv(s.domain, data))).headOption match {
+      case Some(Sample(_, rd)) => Right(rd)
+      case None =>
+        val msg = s"No sample found matching $data"
+        Left(LatisException(msg))
+    }
+  }
 
-  /**
-   * We can't safely determine if a Stream is empty
-   * so we must assume that it is not.
-   */
-  //def isEmpty = false
+  override def apply(domainSet: DomainSet): Either[LatisException, SampledFunction] =
+    Left(LatisException("Can't resample a StreamFunction, for now"))
 }

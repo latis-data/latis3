@@ -1,19 +1,18 @@
 package latis.data
 
 /**
- * Implement a SampledFunction with a Seq of Samples.
+ * Implements a SampledFunction with a Seq of Samples.
+ * Note that the default ordering assumes a Cartesian
+ * domain set which we can't guarantee here.
  */
-case class SeqFunction(sampleSeq: Seq[Sample]) extends MemoizedFunction
-
-/*
- * TODO: use Iterable and change to IterableFunction?
- * but don't want IterableOnce
- * probably want to limit it to IndexedSeq
- */
+case class SeqFunction(
+  sampleSeq: Seq[Sample],
+  ordering: Option[PartialOrdering[DomainData]] = None
+) extends MemoizedFunction
 
 object SeqFunction extends FunctionFactory {
 
   def apply(sample: Sample): SeqFunction = SeqFunction(Seq(sample))
 
-  def fromSamples(samples: Seq[Sample]) = SeqFunction(samples)
+  def fromSamples(samples: Seq[Sample]): SeqFunction = SeqFunction(samples)
 }
