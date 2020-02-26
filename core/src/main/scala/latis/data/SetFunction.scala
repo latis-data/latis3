@@ -11,6 +11,12 @@ case class SetFunction(domainSet: DomainSet, rangeValues: Seq[RangeData]) extend
   //TODO: assert same size, make this private? any value in case class?
   //  require smart constructor returning either
 
+  /**
+   * Provides the ordering for this SampledFunction from the
+   * DomainSet that implements it.
+   */
+  def ordering: Option[PartialOrdering[DomainData]] = domainSet.ordering
+
   def sampleSeq: Seq[Sample] = (domainSet.elements.zip(rangeValues)).map {
     case (r, d) => Sample(r, d)
   }

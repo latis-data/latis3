@@ -64,9 +64,10 @@ object TupleData {
 
 trait SampledFunction extends Data {
   def samples: Stream[IO, Sample]
-  def apply(data: DomainData): Either[LatisException, RangeData]
+  def ordering: Option[PartialOrdering[DomainData]]
+  def apply(data: DomainData): Either[LatisException, RangeData] //TODO: eval?
 
-  def apply(domainSet: DomainSet): Either[LatisException, SampledFunction] =
+  def apply(domainSet: DomainSet): Either[LatisException, SampledFunction] = //TODO: resample?
     domainSet.elements.toVector.traverse(apply).map { range =>
       SetFunction(domainSet, range)
     }
@@ -74,6 +75,7 @@ trait SampledFunction extends Data {
   //def canHandleOperation(op: UnaryOperation): Boolean
   def applyOperation(op: UnaryOperation, model: DataType): SampledFunction = //TODO: Either
     op.applyToData(this, model) //default when special SF can't apply op
+
   def unsafeForce: MemoizedFunction = this match { //TODO: Either
       //TODO: optional to: FunctionFactory arg?
     case mf: MemoizedFunction => mf

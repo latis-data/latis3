@@ -1,7 +1,6 @@
 package latis
 
-import latis.data.DomainSet
-import latis.data.Sample
+import latis.data._
 import latis.ops._
 
 package object dataset {
@@ -22,6 +21,7 @@ package object dataset {
     def compose(df: DatasetFunction): Dataset = dataset.withOperation(Composition(df))
     def contains(varName: String, values: String*): Dataset = dataset.withOperation(Contains(varName, values: _*))
     def rename(varName: String, newName: String): Dataset = dataset.withOperation(Rename(varName, newName))
+    def eval(value: Data): Dataset = dataset.withOperation(Evaluation(value))
 
     def filter(predicate: Sample => Boolean): Dataset = dataset.withOperation(Filter(predicate))
     //TODO: map, flataMap, mapRange, but need to know how model changes

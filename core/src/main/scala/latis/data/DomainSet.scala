@@ -1,11 +1,11 @@
 package latis.data
 
-import latis.metadata._
 import latis.model._
+import latis.util.DefaultDomainOrdering
 
 /**
- * A DomainSet represents the data values that make up the domain
- * of a SampledFunction (specifically a SetFunction).
+ * Represents the data values that make up the domain of a SampledFunction.
+ * This is used explicitly for a SetFunction.
  */
 trait DomainSet {
 
@@ -13,6 +13,10 @@ trait DomainSet {
    * Provide the data type for the variables represented by this DomainSet.
    */
   def model: DataType
+
+  //TODO: implement ordering for DomainSets
+  //Note, can't simply use model unless we know if set is cartesian
+  def ordering: Option[PartialOrdering[DomainData]] = None
 
   /**
    * Return the number of dimensions covered by this DomainSet.
@@ -30,7 +34,7 @@ trait DomainSet {
    */
 
   /**
-   * Return the DomainData elements of this DomainSet
+   * Returns the DomainData elements of this DomainSet
    * based on its ordering. Multi-dimensional DomainSets
    * will vary slowest in its first dimension.
    * This returns an IndexedSeq to ensure that this
@@ -76,14 +80,19 @@ trait DomainSet {
    */
   def indexOf(data: DomainData): Int = elements.indexOf(data)
   //TODO: "search" to return SearchResult, InsertionPoint
-  //TODO: contains for exact match?
+  //TODO: "contains" for exact match?
 
   /**
    * Does the coverage of this DomainSet include the given element.
    * Note that this does not guarantee a *matching* element.
    */
-  def covers(data: DomainData)(implicit ord: Ordering[DomainData]): Boolean =
+  def covers(data: DomainData): Boolean = {
+    // Note that PartialOrdering is sufficient for gteq and lt
+    val ord: PartialOrdering[DomainData] =
+      ordering.getOrElse(DefaultDomainOrdering)
     ord.gteq(data, min) && ord.lt(data, max)
+  }
+
   //TODO: min/max may rule out many sets, e.g. polygon
 
   /**

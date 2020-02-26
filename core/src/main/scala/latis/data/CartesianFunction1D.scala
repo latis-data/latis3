@@ -1,7 +1,6 @@
 package latis.data
 
 import scala.collection.Searching.Found
-import scala.collection.Searching.InsertionPoint
 import scala.collection.Searching.SearchResult
 
 import cats.implicits._
@@ -22,7 +21,7 @@ import latis.util.LatisException
 class CartesianFunction1D(
   val xs: IndexedSeq[Datum],
   val vs: IndexedSeq[RangeData],
-  val ordering: PartialOrdering[DomainData]
+  val ordering: Option[PartialOrdering[DomainData]]
   //val interpolation: Option[Interpolation] = None
 ) extends CartesianFunction {
   //Note, using Seq instead of invariant Array to get variance
@@ -75,7 +74,7 @@ object CartesianFunction1D {
       val msg = s"Domain and Range lengths don't match: $nx, $nv"
       Left(LatisException(msg))
     } else {
-      Right(new CartesianFunction1D(xs, vs.map(RangeData(_)), DefaultDomainOrdering))
+      Right(new CartesianFunction1D(xs, vs.map(RangeData(_)), Some(DefaultDomainOrdering)))
     }
   }
 
@@ -86,6 +85,7 @@ object CartesianFunction1D {
    * correspond to a supported ValueType, and that each element in a Seq
    * has the same type.
    */
+  //TODO: will implicit value classes make this obsolete?
   def fromValues(xs: Seq[Any], vs: Seq[Any]*): Either[LatisException, CartesianFunction1D] = {
     // Ensures that data Seqs are not empty
     //TODO: allow empty domain?
@@ -109,13 +109,12 @@ object CartesianFunction1D {
       return Left(LatisException(msg))
     }
 
-    //
+    // Combines the data into a CartesianFunction
     for {
       d1s <- anySeqToDatumSeq(xs)
       rss <- vs.toVector.traverse(anySeqToDatumSeq)
       rs = rss.transpose.map(Data.fromSeq(_)).map(RangeData(_))
-      //rs = rss.transpose.map(RangeData(Data.fromSeq(_)))
-    } yield new CartesianFunction1D(d1s.toIndexedSeq, rs, DefaultDomainOrdering)
+    } yield new CartesianFunction1D(d1s.toIndexedSeq, rs, Some(DefaultDomainOrdering))
   }
 
 }

@@ -3,13 +3,15 @@ package latis.data
 import cats.effect.IO
 import fs2.Stream
 
+import latis.util.DefaultDomainOrdering
 import latis.util.LatisException
 import latis.util.StreamUtils._
 
 /**
- * This trait is implemented by SampledFunctions that
- * are not tied to an external data source, e.g. they hold
- * all data in memory.
+ * Defines a trait for SampledFunctions that
+ * are not tied to an external data source,
+ * e.g. they hold all data in memory or some
+ * other form of cache.
  */
 trait MemoizedFunction extends SampledFunction {
 
@@ -37,10 +39,14 @@ trait MemoizedFunction extends SampledFunction {
 
   /**
    * Evaluates this SampledFunction at the given domain value.
+   * This will use this SampledFunction's Ordering (or the default
+   * if it doesn't have one) only for equivalence. This implementation
+   * can't ensure a Cartesian topology to safely use a binary search.
    */
   override def apply(data: DomainData): Either[LatisException, RangeData] = {
+    val eq: Equiv[DomainData] = ordering.getOrElse(DefaultDomainOrdering)
     val osample: Option[Sample] = sampleSeq.find {
-      case Sample(d, _) => d.equals(data) //TODO: ord.equiv? SF needs ord akin to interp
+      case Sample(d, _) => eq.equiv(d, data)
       case _ => false
     }
     osample match {
@@ -123,7 +129,6 @@ object MemoizedFunction {
 
   /**
    * Extract a Seq of Samples from a SampledFunction.
-   * If the SampledFunction
    */
   def unapply(sf: SampledFunction): Option[Seq[Sample]] = sf match {
     case mf: MemoizedFunction =>

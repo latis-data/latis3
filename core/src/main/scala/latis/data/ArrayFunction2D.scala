@@ -1,27 +1,36 @@
 package latis.data
 
+import latis.util.DefaultDomainOrdering
 import latis.util.LatisException
 
 /**
- * A SampledFunction implemented with a 2D array.
+ * Defines a SampledFunction implemented with a 2D array.
  * The domain values are 0-based indices as Ints.
  */
 case class ArrayFunction2D(array: Array[Array[RangeData]]) extends MemoizedFunction {
 
+  /**
+   * Defines the ordering for the domain indices.
+   */
+  def ordering: Option[PartialOrdering[DomainData]] = Some(DefaultDomainOrdering)
+
   override def apply(data: DomainData): Either[LatisException, RangeData] = data match {
-    case RangeData(Index(i), Index(j)) => array.lift(i).flatMap(_.lift(j)) match {
-      case Some(r) => Right(r)
-      case None =>
-        val msg = s"No sample found matching $data"
-        Left(LatisException(msg))
-    }
+    case RangeData(Index(i), Index(j)) =>
+      array.lift(i).flatMap(_.lift(j)) match {
+        case Some(r) => Right(r)
+        case None =>
+          val msg = s"No sample found matching $data"
+          Left(LatisException(msg))
+      }
     case _ => Left(LatisException(s"Invalid evaluation value for ArrayFunction2D: $data"))
   }
 
   def sampleSeq: Seq[Sample] =
-    Seq.tabulate(array.length, array(0).length) { (i, j) =>
-      Sample(DomainData(i, j), RangeData(array(i)(j)))
-    }.flatten
+    Seq
+      .tabulate(array.length, array(0).length) { (i, j) =>
+        Sample(DomainData(i, j), RangeData(array(i)(j)))
+      }
+      .flatten
 
 }
 
@@ -34,8 +43,8 @@ object ArrayFunction2D extends FunctionFactory {
     case _ =>
       samples.last.domain match {
         case DomainData(Index(x), Index(y)) =>
-          val nx = x + 1
-          val ny = y + 1
+          val nx    = x + 1
+          val ny    = y + 1
           val array = Array.tabulate(nx, ny)((i, j) => RangeData(samples(i * ny + j).range))
           ArrayFunction2D(array)
         case _ => ??? //TODO: error, invalid sample type

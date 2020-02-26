@@ -21,7 +21,7 @@ class CartesianFunction2D(
   val xs: IndexedSeq[Datum],
   val ys: IndexedSeq[Datum],
   val vs: IndexedSeq[IndexedSeq[RangeData]],
-  val ordering: PartialOrdering[DomainData]
+  val ordering: Option[PartialOrdering[DomainData]]
 ) extends CartesianFunction {
   //TODO: require smart constructor to provide validation?
 
@@ -98,6 +98,7 @@ object CartesianFunction2D {
       return Left(LatisException(msg))
     }
 
+    // Cmbines the data into a CartesianFunction
     for {
       d1s <- anySeqToDatumSeq(xs)
       d2s <- anySeqToDatumSeq(ys)
@@ -106,6 +107,11 @@ object CartesianFunction2D {
         .map(RangeData(_))
         .grouped(ny)
         .toIndexedSeq
-    } yield new CartesianFunction2D(d1s.toIndexedSeq, d2s.toIndexedSeq, rs, DefaultDomainOrdering)
+    } yield new CartesianFunction2D(
+      d1s.toIndexedSeq,
+      d2s.toIndexedSeq,
+      rs,
+      Some(DefaultDomainOrdering)
+    )
   }
 }

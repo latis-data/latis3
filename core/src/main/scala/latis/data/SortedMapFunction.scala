@@ -2,9 +2,24 @@ package latis.data
 
 import scala.collection.immutable.SortedMap
 
+import latis.util.DefaultDomainOrdering
 import latis.util.LatisException
+import latis.util.LatisOrdering
 
-case class SortedMapFunction(sortedMap: SortedMap[DomainData, RangeData]) extends MemoizedFunction {
+/**
+ * Implements a SampledFunction in terms of a SortedMap.
+ * This takes advantage of the Map for evaluation.
+ */
+case class SortedMapFunction(
+  sortedMap: SortedMap[DomainData, RangeData]
+) extends MemoizedFunction {
+  //TODO: use nested SortedMaps for nD datasets
+
+  /**
+   * Provides the ordering for this SampledFunction from the
+   * SortedMap that implements it.
+   */
+  def ordering: Option[PartialOrdering[DomainData]] = Some(sortedMap.ordering)
 
   def sampleSeq: Seq[Sample] = sortedMap.toSeq
 
@@ -22,7 +37,12 @@ case class SortedMapFunction(sortedMap: SortedMap[DomainData, RangeData]) extend
 
 object SortedMapFunction { //extends FunctionFactory {
 
-  def fromSamples(samples: Seq[Sample])(implicit ordering: Ordering[DomainData]): MemoizedFunction =
-    SortedMapFunction(SortedMap(samples: _*)(ordering))
+  def fromSamples(
+    samples: Seq[Sample],
+    ordering: PartialOrdering[DomainData] = DefaultDomainOrdering
+  ): MemoizedFunction = {
+    val tord: Ordering[DomainData] = LatisOrdering.partialToTotal(ordering)
+    SortedMapFunction(SortedMap(samples: _*)(tord))
+  }
 
 }
