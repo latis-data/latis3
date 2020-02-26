@@ -16,12 +16,12 @@ trait ConfigLike {
   def getString(key: String): Option[String] =
     propertyMap.get(key)
 
-  def getOrElse(key: String, default: String): String =
+  def getOrElse(key: String, default: => String): String =
     propertyMap.getOrElse(key, default)
 
   def getInt(key: String): Option[Int] =
     propertyMap.get(key).map(_.toInt)
 
-  def getOrElse(key: String, default: Int): Int =
+  def getOrElse(key: String, default: => Int): Int =
     getInt(key).getOrElse(default)
 }
