@@ -16,11 +16,9 @@ case class ArrayFunction1D(array: Array[RangeData]) extends MemoizedFunction {
 
   override def apply(data: DomainData): Either[LatisException, RangeData] = data match {
     case DomainData(Index(i)) =>
-      array.lift(i) match {
-        case Some(r) => Right(r)
-        case None =>
-          val msg = s"No sample found matching $data"
-          Left(LatisException(msg))
+      array.lift(i).toRight {
+        val msg = s"No sample found matching $data"
+        LatisException(msg)
       }
     case _ => Left(LatisException(s"Invalid evaluation value for ArrayFunction1D: $data"))
   }
