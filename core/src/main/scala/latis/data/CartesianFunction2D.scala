@@ -98,7 +98,7 @@ object CartesianFunction2D {
       return Left(LatisException(msg))
     }
 
-    // Cmbines the data into a CartesianFunction
+    // Combines the data into a CartesianFunction
     for {
       d1s <- anySeqToDatumSeq(xs)
       d2s <- anySeqToDatumSeq(ys)
