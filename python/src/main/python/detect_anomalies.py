@@ -7,7 +7,10 @@ import numpy as np
 from matplotlib import pyplot
 
 # Custom modules
-import nonparametric_dynamic_thresholding as ndt
+# import sys
+# sys.path.append("..")
+# sys.path.append(".")
+# import nonparametric_dynamic_thresholding as ndt
 
 __author__ = 'Shawn Polson'
 __contact__ = 'shawn.polson@colorado.edu'
@@ -63,10 +66,10 @@ def detect_anomalies(ts, normal_model, ds_name, var_name, alg_name, outlier_def=
     time_series_with_outliers = time_series_with_outliers.reindex(columns=column_names)  # sort columns in specified order
 
     # Start a progress bar
-    widgets = [progressbar.Percentage(), progressbar.Bar(), progressbar.Timer(), ' ', progressbar.AdaptiveETA()]
-    progress_bar_sliding_window = progressbar.ProgressBar(
-        widgets=[progressbar.FormatLabel('Outliers (' + ds_name + ')')] + widgets,
-        maxval=int(len(X))).start()
+    # widgets = [progressbar.Percentage(), progressbar.Bar(), progressbar.Timer(), ' ', progressbar.AdaptiveETA()]
+    # progress_bar_sliding_window = progressbar.ProgressBar(
+    #     widgets=[progressbar.FormatLabel('Outliers (' + ds_name + ')')] + widgets,
+    #     maxval=int(len(X))).start()
 
     # Define outliers by distance from "normal" model
     if outlier_def == 'std':
@@ -82,7 +85,7 @@ def detect_anomalies(ts, normal_model, ds_name, var_name, alg_name, outlier_def=
                 time_series_with_outliers.at[ts.index[t], 'Outlier'] = 'True'
                 outlier_points.append(obs)
                 outlier_indices.append(ts.index[t])
-            progress_bar_sliding_window.update(t)  # advance progress bar
+            # progress_bar_sliding_window.update(t)  # advance progress bar
         outliers = outliers.append(pd.Series(outlier_points, index=outlier_indices))
 
     # Define outliers by distance from mean of errors
@@ -97,7 +100,7 @@ def detect_anomalies(ts, normal_model, ds_name, var_name, alg_name, outlier_def=
             error_points.append(error)
             error_indices.append(ts.index[t])
 
-            progress_bar_sliding_window.update(t)  # advance progress bar
+            # progress_bar_sliding_window.update(t)  # advance progress bar
         errors = errors.append(pd.Series(error_points, index=error_indices))
 
         mean_of_errors = float(errors.values.mean())
@@ -114,51 +117,51 @@ def detect_anomalies(ts, normal_model, ds_name, var_name, alg_name, outlier_def=
                 time_series_with_outliers.at[ts.index[t], 'Outlier'] = 'True'
                 outlier_points.append(obs)
                 outlier_indices.append(ts.index[t])
-            progress_bar_sliding_window.update(t)  # advance progress bar
+            # progress_bar_sliding_window.update(t)  # advance progress bar
         outliers = outliers.append(pd.Series(outlier_points, index=outlier_indices))
 
     # Define outliers using JPL's nonparamatric dynamic thresholding technique
-    elif outlier_def == 'dynamic':
-        progress_bar_sliding_window.update(int(len(X))/2)  # start progress bar timer
-        outlier_points = []
-        outlier_indices = []
-        if ndt_errors is not None:
-            smoothed_errors = ndt_errors
-        else:
-            smoothed_errors = ndt.get_errors(X, Y)
-
-        # These are the results of the nonparametric dynamic thresholding
-        E_seq, anom_scores = ndt.process_errors(X, smoothed_errors)
-        progress_bar_sliding_window.update(int(len(X)) - 1)  # advance progress bar timer
-
-        # Convert sets of outlier start/end indices into outlier points
-        for anom in E_seq:
-            start = anom[0]
-            end = anom[1]
-            for i in range(start, end+1):
-                time_series_with_outliers.at[ts.index[i], 'Outlier'] = 'True'
-                outlier_points.append(X[i])
-                outlier_indices.append(ts.index[i])
-        outliers = outliers.append(pd.Series(outlier_points, index=outlier_indices))
+    # elif outlier_def == 'dynamic':
+    #     # progress_bar_sliding_window.update(int(len(X))/2)  # start progress bar timer
+    #     outlier_points = []
+    #     outlier_indices = []
+    #     if ndt_errors is not None:
+    #         smoothed_errors = ndt_errors
+    #     else:
+    #         smoothed_errors = ndt.get_errors(X, Y)
+    # 
+    #     # These are the results of the nonparametric dynamic thresholding
+    #     E_seq, anom_scores = ndt.process_errors(X, smoothed_errors)
+    #     # progress_bar_sliding_window.update(int(len(X)) - 1)  # advance progress bar timer
+    # 
+    #     # Convert sets of outlier start/end indices into outlier points
+    #     for anom in E_seq:
+    #         start = anom[0]
+    #         end = anom[1]
+    #         for i in range(start, end+1):
+    #             time_series_with_outliers.at[ts.index[i], 'Outlier'] = 'True'
+    #             outlier_points.append(X[i])
+    #             outlier_indices.append(ts.index[i])
+    #     outliers = outliers.append(pd.Series(outlier_points, index=outlier_indices))
 
     # Plot anomalies
-    ax = ts.plot(color='#192C87', title=ds_name + ' with ' + alg_name + ' Outliers', label=var_name, figsize=(14, 6))
-    normal_model.plot(color='#0CCADC', label=alg_name, linewidth=1.5)
-    if len(outliers) > 0:
-        print('Detected outliers (' + ds_name + '): ' + str(len(outliers)))
-        outliers.plot(color='red', style='.', label='Outliers')
-    ax.set(xlabel='Time', ylabel=var_name)
-    pyplot.legend(loc='best')
+    # ax = ts.plot(color='#192C87', title=ds_name + ' with ' + alg_name + ' Outliers', label=var_name, figsize=(14, 6))
+    # normal_model.plot(color='#0CCADC', label=alg_name, linewidth=1.5)
+    # if len(outliers) > 0:
+    #     print('Detected outliers (' + ds_name + '): ' + str(len(outliers)))
+    #     outliers.plot(color='red', style='.', label='Outliers')
+    # ax.set(xlabel='Time', ylabel=var_name)
+    # pyplot.legend(loc='best')
 
     # Save plot
-    if plot_save_path is not None:
-        plot_dir = plot_save_path[:plot_save_path.rfind('/')+1]
-        if not os.path.exists(plot_dir):
-            os.makedirs(plot_dir)
-        pyplot.savefig(plot_save_path, dpi=500)
+    # if plot_save_path is not None:
+    #     plot_dir = plot_save_path[:plot_save_path.rfind('/')+1]
+    #     if not os.path.exists(plot_dir):
+    #         os.makedirs(plot_dir)
+    #     pyplot.savefig(plot_save_path, dpi=500)
 
-    pyplot.show()
-    pyplot.clf()
+    # pyplot.show()
+    # pyplot.clf()
 
     # Save data
     if data_save_path is not None:
@@ -342,28 +345,28 @@ def detect_anomalies_with_many_stds(ts, normal_model, ds_name, var_name, alg_nam
 
 
 
-if __name__ == "__main__":
-
-    datasets = ['Data/WheelRPM.csv']
-
-    for ds in range(len(datasets)):
-        ds_name = datasets[ds][5:-4]  # drop 'Data/' and '.csv'
-
-        file = 'save/datasets/' + ds_name + '/rrcf/data/' + ds_name + '_with_rrcf_scores.csv'
-        ts_with_model = pd.read_csv(file, header=0, parse_dates=[0], index_col=0, date_parser=parser)
-        # The very last anomaly scores are null, so fill them with 0s
-        ts_with_model.fillna(value=0, inplace=True)
-
-        var_name = ts_with_model.columns[0]
-        alg_name = ts_with_model.columns[1]
-
-        X = ts_with_model[var_name]
-        Y = ts_with_model[alg_name]
-
-        plot_file = './test_dir/datasets/' + ds_name + '/rolling mean/plots/' + ds_name + '_rolling_mean_outliers_from_dynamic_thresholding.png'
-        data_file = './test_dir/datasets/' + ds_name + '/rolling mean/data/' + ds_name + '_rolling_mean_outliers_from_dynamic_thresholding.csv'
-
-        data = detect_anomalies(X, Y, ds_name, var_name, alg_name, outlier_def='dynamic',
-                                plot_save_path=plot_file, data_save_path=data_file)
+# if __name__ == "__main__":
+# 
+#     datasets = ['Data/WheelRPM.csv']
+# 
+#     for ds in range(len(datasets)):
+#         ds_name = datasets[ds][5:-4]  # drop 'Data/' and '.csv'
+# 
+#         file = 'save/datasets/' + ds_name + '/rrcf/data/' + ds_name + '_with_rrcf_scores.csv'
+#         ts_with_model = pd.read_csv(file, header=0, parse_dates=[0], index_col=0, date_parser=parser)
+#         # The very last anomaly scores are null, so fill them with 0s
+#         ts_with_model.fillna(value=0, inplace=True)
+# 
+#         var_name = ts_with_model.columns[0]
+#         alg_name = ts_with_model.columns[1]
+# 
+#         X = ts_with_model[var_name]
+#         Y = ts_with_model[alg_name]
+# 
+#         plot_file = './test_dir/datasets/' + ds_name + '/rolling mean/plots/' + ds_name + '_rolling_mean_outliers_from_dynamic_thresholding.png'
+#         data_file = './test_dir/datasets/' + ds_name + '/rolling mean/data/' + ds_name + '_rolling_mean_outliers_from_dynamic_thresholding.csv'
+# 
+#         data = detect_anomalies(X, Y, ds_name, var_name, alg_name, outlier_def='dynamic',
+#                                 plot_save_path=plot_file, data_save_path=data_file)
 
 

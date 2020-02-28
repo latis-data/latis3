@@ -10,11 +10,17 @@ __author__ = 'Shawn Polson'
 __contact__ = 'shawn.polson@colorado.edu'
 
 
+def parser(x):
+    # return the current time instead of parsing dates, for now
+    return pd.datetime.today()
+
+
 def model_with_rolling_mean(ts, window, ds_name, var_name='Value', verbose=False, calc_errors=False):
     """Model the time series data with a rolling mean.
 
        Inputs:
-           ts [pd Series]: A pandas Series with a DatetimeIndex and a column for numerical values.
+           ts [Vector[Array[int, float]]: 
+           ---------------------ts [str]:       A string path to the time series data. Data is read as a pandas Series with a DatetimeIndex and a column for numerical values.
            window [int]:   Window size; the number of samples to include in the rolling mean.
            ds_name [str]:  Name of the dataset {bus voltage, etc.}
 
@@ -38,11 +44,22 @@ def model_with_rolling_mean(ts, window, ds_name, var_name='Value', verbose=False
         raise ValueError('\'window\' must be given a value greater than 0 when using rolling mean.')
 
     # Gather statistics
+    # === TESTING ========================
+    #ts.reshape(1001,2)
+    print("Trying to print ts:")
+    print(ts)
+    #return ts[1000]
+    # ====================================
+    #ts = pd.read_csv(ts, header=0, parse_dates=[0], index_col=0, squeeze=True, date_parser=parser)
+    ts = pd.DataFrame(data=ts, columns=['t', var_name])
+    ts['Time'] = pd.to_datetime('1970-01-01 00:00:00.' + ts['t'])
+    ts = ts.set_index('Time')
+    ts.to_csv("./save/PANDAS-DATAFRAME-FROM-JEP.csv")
     rolling_mean = ts.rolling(window=window, center=False).mean()
     first_window_mean = ts.iloc[:window].mean()
     for i in range(window):  # fill first 'window' samples with mean of those samples
         rolling_mean[i] = first_window_mean
-    X = ts.values
+    X = ts
     rolling_mean = pd.Series(rolling_mean, index=ts.index)
     errors = pd.Series()
 
@@ -92,4 +109,5 @@ def model_with_rolling_mean(ts, window, ds_name, var_name='Value', verbose=False
 
         return rolling_mean, errors
     else:
-        return rolling_mean
+        #return rolling_mean
+        return ts_with_rolling_mean
