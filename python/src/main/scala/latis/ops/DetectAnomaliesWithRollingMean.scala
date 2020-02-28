@@ -30,13 +30,9 @@ case class DetectAnomaliesWithRollingMean() extends UnaryOperation {
     MainInterpreter.setJepLibraryPath("/anaconda3/lib/python3.6/site-packages/jep/jep.cpython-36m-darwin.so")
     
     val interp = new SharedInterpreter
-    //val jep = new Jep()
     try {
-      //interp.exec("import model_with_rolling_mean")
       interp.runScript("python/src/main/python/model_with_rolling_mean.py")
-      //jep.runScript("python/src/main/python/model_with_rolling_mean.py")
-      
-      // any of the following work, these are just pseudo-examples
+      interp.runScript("python/src/main/python/detect_anomalies.py")
       
       // using exec(String) to invoke methods
       val ds_name = "SineWave"
@@ -53,32 +49,14 @@ case class DetectAnomaliesWithRollingMean() extends UnaryOperation {
       
     } finally if (interp != null) {
       interp.close()
-      //jep.close()
     }
     
-//    try {
-//      val interp = new SharedInterpreter
-//      try {
-//        val f = Array[Float](1.0f, 2.1f, 3.3f, 4.5f, 5.6f, 6.7f)
-//        val nd = new NDArray[Array[Float]](f, 3, 2)
-//        interp.set("x", nd)
-//      } finally if (interp != null) interp.close()
-//    }
-    
-//    val ds_name = "SineWave"
-//    val var_name = "Flux"
-//    val alg_name = "Rolling Mean"
-//    val save_path = s"./save/ds_with_rolling_mean_anomalies.csv"
-//    val jep = new Jep()
-//    jep.runScript("python/src/main/python/detect_anomalies.py")
-//    jep.runScript("python/src/main/python/model_with_rolling_mean.py")
-//
+
 //    jep.eval(s"ts_with_model = model_with_rolling_mean($samplesForPython, 10, '$ds_name', var_name='$var_name')")
 //    jep.eval(s"X = ts_with_model['$var_name']")
 //    jep.eval(s"Y = ts_with_model['$alg_name']")
 //    jep.eval(s"ts_with_anomalies = detect_anomalies(X, Y, '$ds_name', '$var_name', '$alg_name', outlier_def='errors', num_stds=2, data_save_path='$save_path')")
-
-
+    
 
     ???
   }
