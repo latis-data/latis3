@@ -46,15 +46,18 @@ def model_with_rolling_mean(ts, window, ds_name, var_name='Value', verbose=False
     # Gather statistics
     # === TESTING ========================
     #ts.reshape(1001,2)
-    print("Trying to print ts:")
-    print(ts)
+    #print("Trying to print ts:")
+    #print(ts)
     #return ts[1000]
-    # ====================================
-    #ts = pd.read_csv(ts, header=0, parse_dates=[0], index_col=0, squeeze=True, date_parser=parser)
+    #ts = pd.read_csv(ts, header=0, parse_dates=[0], index_col=0, squeeze=True, date_parser=parser)  # This is ORIG
     ts = pd.DataFrame(data=ts, columns=['t', var_name])
-    ts['Time'] = pd.to_datetime('1970-01-01 00:00:00.' + ts['t'])
-    ts = ts.set_index('Time')
-    ts.to_csv("./save/PANDAS-DATAFRAME-FROM-JEP.csv")
+    ts['t'] = ts['t'].apply(lambda time: str(time)[:-2])       # remove the ".0" from doubles
+    ts['Time'] = '1970-01-01 00:00:00.' + ts['t'].astype(str)  # make proper time strings from the int index values
+    ts['Time'] = pd.to_datetime(ts['Time'])                    # convert to a datetime
+    ts = ts.set_index('Time')                                  # set the datetime as the index
+    ts = ts.drop(['t'], axis=1)                                # remove the intermediate "t" column
+    ts.to_csv("./save/PANDAS-DATAFRAME-FROM-JEP.csv")          # save to a csv to inspect (unfortunate way to do this)
+    # ====================================
     rolling_mean = ts.rolling(window=window, center=False).mean()
     first_window_mean = ts.iloc[:window].mean()
     for i in range(window):  # fill first 'window' samples with mean of those samples
