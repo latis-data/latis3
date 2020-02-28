@@ -27,7 +27,8 @@ def parser(x):
     try:
         return datetime.strptime(new_time, '%Y-%m-%d %H:%M:%S')  # for bus voltage, battery temp, wheel temp, and wheel rpm data
     except:
-        return datetime.strptime(new_time, '%Y-%m-%d')  # for total bus current data
+        # return datetime.strptime(new_time, '%Y-%m-%d')  # for total bus current data
+        return datetime.today()
 
 
 def chunk(ts, window_size=18):
@@ -173,12 +174,12 @@ def autoencoder_prediction(dataset_path, ds_name, train_size=1.0, path_to_model=
     normalized = pd.Series(X_scaled, index=time_series.index)
     time_series = normalized
 
-    if verbose:
+    # if verbose:
         # describe the loaded dataset
-        print(time_series.head())
-        print(time_series.describe())
-        time_series.plot(title=dataset_path + ' Dataset')
-        pyplot.show()
+        # print(time_series.head())
+        # print(time_series.describe())
+        # time_series.plot(title=dataset_path + ' Dataset')
+        # pyplot.show()
 
 
     # Chunk the dataset
@@ -195,7 +196,7 @@ def autoencoder_prediction(dataset_path, ds_name, train_size=1.0, path_to_model=
 
     predictions = []
 
-    seedy(2)  # make reproducible randomness
+    # seedy(2)  # make reproducible randomness
     ae = AutoEncoder(train, encoding_dim=10, verbose=verbose)  # Note, training autoencoder just with train data
     ae.encoder_decoder()
     ae.fit(batch_size=50, epochs=1000)
@@ -209,38 +210,38 @@ def autoencoder_prediction(dataset_path, ds_name, train_size=1.0, path_to_model=
     predictions = predictions + autoencoder_predictions
     predictions = pd.Series(predictions, index=time_series.index)
 
-    ax = time_series.plot(color='#192C87', title=ds_name + ' with Autoencoder Predictions', label=var_name, figsize=(14, 6))
-    if len(unchunked_test) > 0:
-        unchunked_test.plot(color='#441594', label='Test Data')
-    predictions.plot(color='#0CCADC', label='Autoencoder Predictions', linewidth=1)
-    ax.set(xlabel='Time', ylabel=var_name)
-    pyplot.legend(loc='best')
+    # ax = time_series.plot(color='#192C87', title=ds_name + ' with Autoencoder Predictions', label=var_name, figsize=(14, 6))
+    # if len(unchunked_test) > 0:
+    #     unchunked_test.plot(color='#441594', label='Test Data')
+    # predictions.plot(color='#0CCADC', label='Autoencoder Predictions', linewidth=1)
+    # ax.set(xlabel='Time', ylabel=var_name)
+    # pyplot.legend(loc='best')
 
     # save plot before showing it
-    if int(train_size) == 1:
-        plot_filename = ds_name + '_with_autoencoder_full.png'
-    elif train_size == 0.5:
-        plot_filename = ds_name + '_with_autoencoder_half.png'
-    else:
-        plot_filename = ds_name + '_with_autoencoder_' + str(train_size) + '.png'
-    plot_path = './save/datasets/' + ds_name + '/autoencoder/plots/' + str(int(train_size * 100)) + ' percent/'
-    if not os.path.exists(plot_path):
-        os.makedirs(plot_path)
-    pyplot.savefig(plot_path + plot_filename, dpi=500)
-
-    pyplot.show()
-    pyplot.clf()  # clear the plot
+    # if int(train_size) == 1:
+    #     plot_filename = ds_name + '_with_autoencoder_full.png'
+    # elif train_size == 0.5:
+    #     plot_filename = ds_name + '_with_autoencoder_half.png'
+    # else:
+    #     plot_filename = ds_name + '_with_autoencoder_' + str(train_size) + '.png'
+    # plot_path = './save/datasets/' + ds_name + '/autoencoder/plots/' + str(int(train_size * 100)) + ' percent/'
+    # if not os.path.exists(plot_path):
+    #     os.makedirs(plot_path)
+    # pyplot.savefig(plot_path + plot_filename, dpi=500)
+    # 
+    # pyplot.show()
+    # pyplot.clf()  # clear the plot
 
     # Save compressed feature vectors
-    cfv = get_compressed_feature_vectors(encoder, chunked_ts)
-    if int(train_size) == 1:
-        cfv_filename = ds_name + '_compressed_by_autoencoder_full.npy'
-    elif train_size == 0.5:
-        cfv_filename = ds_name + '_compressed_by_autoencoder_half.npy'
-    else:
-        cfv_filename = ds_name + '_compressed_by_autoencoder_' + str(train_size) + '.npy'
-    cfv_path = './save/datasets/' + ds_name + '/autoencoder/data/' + str(int(train_size * 100)) + ' percent/'
-    np.save(cfv_path + cfv_filename, cfv)
+    # cfv = get_compressed_feature_vectors(encoder, chunked_ts)
+    # if int(train_size) == 1:
+    #     cfv_filename = ds_name + '_compressed_by_autoencoder_full.npy'
+    # elif train_size == 0.5:
+    #     cfv_filename = ds_name + '_compressed_by_autoencoder_half.npy'
+    # else:
+    #     cfv_filename = ds_name + '_compressed_by_autoencoder_' + str(train_size) + '.npy'
+    # cfv_path = './save/datasets/' + ds_name + '/autoencoder/data/' + str(int(train_size * 100)) + ' percent/'
+    # np.save(cfv_path + cfv_filename, cfv)
 
     # Save data to proper directory with encoded file name
     ts_with_autoencoder = pd.DataFrame({'Autoencoder': predictions, var_name: time_series})
@@ -248,16 +249,16 @@ def autoencoder_prediction(dataset_path, ds_name, train_size=1.0, path_to_model=
     column_names = [var_name, 'Autoencoder']  # column order
     ts_with_autoencoder = ts_with_autoencoder.reindex(columns=column_names)  # sort columns in specified order
 
-    if int(train_size) == 1:
-        data_filename = ds_name + '_with_autoencoder_full.csv'
-    elif train_size == 0.5:
-        data_filename = ds_name + '_with_autoencoder_half.csv'
-    else:
-        data_filename = ds_name + '_with_autoencoder_' + str(train_size) + '.csv'
-    data_path = './save/datasets/' + ds_name + '/autoencoder/data/' + str(int(train_size * 100)) + ' percent/'
-    if not os.path.exists(data_path):
-        os.makedirs(data_path)
-    ts_with_autoencoder.to_csv(data_path + data_filename)
+    # if int(train_size) == 1:
+    #     data_filename = ds_name + '_with_autoencoder_full.csv'
+    # elif train_size == 0.5:
+    #     data_filename = ds_name + '_with_autoencoder_half.csv'
+    # else:
+    #     data_filename = ds_name + '_with_autoencoder_' + str(train_size) + '.csv'
+    # data_path = './save/datasets/' + ds_name + '/autoencoder/data/' + str(int(train_size * 100)) + ' percent/'
+    # if not os.path.exists(data_path):
+    #     os.makedirs(data_path)
+    # ts_with_autoencoder.to_csv(data_path + data_filename)
 
     return ts_with_autoencoder
 
