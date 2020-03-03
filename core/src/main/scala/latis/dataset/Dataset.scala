@@ -13,12 +13,12 @@ import latis.metadata.MetadataLike
 import latis.model.DataType
 import latis.ops.UnaryOperation
 import latis.util.CacheManager
-import latis.util.LatisException
 
 /**
  * Defines the interface for a LaTiS Dataset.
  */
 trait Dataset extends MetadataLike {
+  //TODO: SampledDataset vs ComputationalDataset
 
   /**
    * Returns the Metadata describing this Dataset.
@@ -48,20 +48,6 @@ trait Dataset extends MetadataLike {
    */
   def withOperations(ops: Seq[UnaryOperation]): Dataset =
     ops.foldLeft(this)((ds, op) => ds.withOperation(op))
-
-  def asFunction(): DatasetFunction = {
-    //TODO: take interp/extrap args, turn SF into new executable F type
-    val ds: MemoizedDataset = unsafeForce()
-    val f: Data => Either[LatisException, Data] = {
-      (data: Data) => {
-        DomainData.fromData(data).flatMap { dd =>
-          ds.data.apply(dd).map(Data.fromSeq)
-        }
-      }
-    }
-
-    DatasetFunction(ds.metadata, ds.model, f)
-  }
 
   /**
    * Causes the data source to be read and released

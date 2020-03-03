@@ -3,19 +3,21 @@ package latis.ops
 import cats.implicits._
 
 import latis.data._
-import latis.dataset.DatasetFunction
+import latis.dataset.ComputationalDataset
+import latis.dataset.Dataset
+import latis.dataset.MemoizedDataset
 import latis.model._
 import latis.util.LatisException
 
 /**
  * Replaces a variable in a Dataset by using it to evaluate another Dataset.
  */
-case class Substitution(subFunction: DatasetFunction) extends MapOperation {
+case class Substitution(dataset: Dataset) extends MapOperation {
   //TODO: preserve nested tuples?
 
   def mapFunction(model: DataType): Sample => Sample = {
     // Get the subDataset domain and range types
-    val (subDomain, subRange) = subFunction.model match {
+    val (subDomain, subRange) = dataset.model match {
       case Function(d, r) => (d, r)
       case _ => throw LatisException("A substitution Dataset must not be a ConstantFunction.")
     }
@@ -35,6 +37,13 @@ case class Substitution(subFunction: DatasetFunction) extends MapOperation {
     def substitute(sample: Sample, path: SamplePath): Sample = path match {
       case Nil => ??? //empty path is not valid
       case (pos :: Nil) =>
+        val f: Data => Either[LatisException, Data] = (data: Data) =>
+          dataset match {
+            case ComputationalDataset(_, _, f) => f(data)
+            case mds: MemoizedDataset => DomainData.fromData(data).flatMap { dd =>
+              mds.data.asFunction.apply(dd).map(Data.fromSeq(_))
+            }
+          }
         pos match {
           case DomainPosition(i) =>
             // Get the domain values
@@ -42,7 +51,7 @@ case class Substitution(subFunction: DatasetFunction) extends MapOperation {
             // Extract the values to be replaced
             val slice: List[Datum] = vals.slice(i, i + domainVariableIDs.length)
             // Evaluate the substitution Dataset with the values to be replaced.
-            val sub: List[Datum] = subFunction(Data.fromSeq(slice)) match {
+            val sub: List[Datum] = f(Data.fromSeq(slice)) match {
               case Right(rd) =>
                 // Make sure these range data can be used for a domain, i.e. all Datum, no SF
                 rd match {
@@ -73,7 +82,7 @@ case class Substitution(subFunction: DatasetFunction) extends MapOperation {
                 throw LatisException("Substitution includes Function")
             }
             // Evaluate the substitution Dataset with the values to be replaced
-            val sub: List[Data] = subFunction(Data.fromSeq(slice)) match {
+            val sub: List[Data] = f(Data.fromSeq(slice)) match {
               case Right(d: Datum) => List(d)
               case Right(TupleData(ds @ _*)) => ds.toList
               case Left(le) => throw le
@@ -102,7 +111,7 @@ case class Substitution(subFunction: DatasetFunction) extends MapOperation {
   def applyToModel(model: DataType): DataType = {
     // Get the subDataset range Scalars.
     // Note, avoids nested tuples
-    val subScalars = subFunction.model match {
+    val subScalars = dataset.model match {
       case Function(_, r) => r.getScalars
       case _ => throw LatisException("A substitution Dataset must not be a ConstantFunction.")
     }
@@ -136,7 +145,7 @@ case class Substitution(subFunction: DatasetFunction) extends MapOperation {
   /**
    * Extracts the variable IDs from the domain of the Substitution Dataset.
    */
-  private val domainVariableIDs: Seq[String] = subFunction.model match {
+  private val domainVariableIDs: Seq[String] = dataset.model match {
     case Function(d, _) => d.getScalars.map(_.id)
     case _ => throw LatisException("A substitution Dataset must not be a ConstantFunction.")
   }

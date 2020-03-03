@@ -65,7 +65,8 @@ object CartesianFunction1D {
 
   def fromData(
     xs: IndexedSeq[Datum],
-    vs: IndexedSeq[Data]
+    vs: IndexedSeq[Data],
+    ordering: Option[PartialOrdering[DomainData]] = None
   ): Either[LatisException, CartesianFunction1D] = {
     // Validates that the domain and range variable Seqs have the same length
     val nx = xs.length
@@ -74,7 +75,7 @@ object CartesianFunction1D {
       val msg = s"Domain and Range lengths don't match: $nx, $nv"
       Left(LatisException(msg))
     } else {
-      Right(new CartesianFunction1D(xs, vs.map(RangeData(_)), Some(DefaultDomainOrdering)))
+      Right(new CartesianFunction1D(xs, vs.map(RangeData(_)), ordering))
     }
   }
 
