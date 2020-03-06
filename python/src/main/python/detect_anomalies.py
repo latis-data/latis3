@@ -61,7 +61,7 @@ def detect_anomalies(ts, normal_model, ds_name, var_name, alg_name, outlier_def=
     outliers = pd.Series()
     errors = pd.Series()
     time_series_with_outliers = pd.DataFrame({var_name: ts, alg_name: normal_model})
-    time_series_with_outliers['Outlier'] = 'False'
+    time_series_with_outliers['Outlier'] = False
     column_names = [var_name, alg_name, 'Outlier']  # column order
     time_series_with_outliers = time_series_with_outliers.reindex(columns=column_names)  # sort columns in specified order
 
@@ -82,7 +82,7 @@ def detect_anomalies(ts, normal_model, ds_name, var_name, alg_name, outlier_def=
             y = Y[t]
             error = abs(y - obs)
             if error > std*num_stds:
-                time_series_with_outliers.at[ts.index[t], 'Outlier'] = 'True'
+                time_series_with_outliers.at[ts.index[t], 'Outlier'] = True
                 outlier_points.append(obs)
                 outlier_indices.append(ts.index[t])
             # progress_bar_sliding_window.update(t)  # advance progress bar
@@ -114,7 +114,7 @@ def detect_anomalies(ts, normal_model, ds_name, var_name, alg_name, outlier_def=
             obs = X[t]
             error = errors[t]
             if error > threshold:
-                time_series_with_outliers.at[ts.index[t], 'Outlier'] = 'True'
+                time_series_with_outliers.at[ts.index[t], 'Outlier'] = True
                 outlier_points.append(obs)
                 outlier_indices.append(ts.index[t])
             # progress_bar_sliding_window.update(t)  # advance progress bar
@@ -139,26 +139,26 @@ def detect_anomalies(ts, normal_model, ds_name, var_name, alg_name, outlier_def=
     #         start = anom[0]
     #         end = anom[1]
     #         for i in range(start, end+1):
-    #             time_series_with_outliers.at[ts.index[i], 'Outlier'] = 'True'
+    #             time_series_with_outliers.at[ts.index[i], 'Outlier'] = True
     #             outlier_points.append(X[i])
     #             outlier_indices.append(ts.index[i])
     #     outliers = outliers.append(pd.Series(outlier_points, index=outlier_indices))
 
     # Plot anomalies
-    # ax = ts.plot(color='#192C87', title=ds_name + ' with ' + alg_name + ' Outliers', label=var_name, figsize=(14, 6))
-    # normal_model.plot(color='#0CCADC', label=alg_name, linewidth=1.5)
-    # if len(outliers) > 0:
-    #     print('Detected outliers (' + ds_name + '): ' + str(len(outliers)))
-    #     outliers.plot(color='red', style='.', label='Outliers')
-    # ax.set(xlabel='Time', ylabel=var_name)
-    # pyplot.legend(loc='best')
+    ax = ts.plot(color='#192C87', title=ds_name + ' with ' + alg_name + ' Outliers', label=var_name, figsize=(14, 6))
+    normal_model.plot(color='#0CCADC', label=alg_name, linewidth=1.5)
+    if len(outliers) > 0:
+        print('Detected outliers (' + ds_name + '): ' + str(len(outliers)))
+        outliers.plot(color='red', style='.', label='Outliers')
+    ax.set(xlabel='Time', ylabel=var_name)
+    pyplot.legend(loc='best')
 
     # Save plot
-    # if plot_save_path is not None:
-    #     plot_dir = plot_save_path[:plot_save_path.rfind('/')+1]
-    #     if not os.path.exists(plot_dir):
-    #         os.makedirs(plot_dir)
-    #     pyplot.savefig(plot_save_path, dpi=500)
+    if plot_save_path is not None:
+        plot_dir = plot_save_path[:plot_save_path.rfind('/')+1]
+        if not os.path.exists(plot_dir):
+            os.makedirs(plot_dir)
+        pyplot.savefig(plot_save_path, dpi=500)
 
     # pyplot.show()
     # pyplot.clf()
@@ -217,7 +217,7 @@ def detect_anomalies_with_many_stds(ts, normal_model, ds_name, var_name, alg_nam
     outliers3 = pd.Series()
     errors = pd.Series()
     time_series_with_outliers = pd.DataFrame({var_name: ts, alg_name: normal_model})
-    time_series_with_outliers['Outlier'] = 'False'
+    time_series_with_outliers['Outlier'] = False
     column_names = [var_name, alg_name, 'Outlier']  # column order
     time_series_with_outliers1 = time_series_with_outliers.reindex(columns=column_names)  # sort columns in specified order
     time_series_with_outliers2 = time_series_with_outliers.reindex(columns=column_names)  # sort columns in specified order
@@ -245,11 +245,11 @@ def detect_anomalies_with_many_stds(ts, normal_model, ds_name, var_name, alg_nam
                 error = abs(y - obs)
                 if error > std * num_stds:
                     if i == 0:
-                        time_series_with_outliers1.at[ts.index[t], 'Outlier'] = 'True'
+                        time_series_with_outliers1.at[ts.index[t], 'Outlier'] = True
                     elif i == 1:
-                        time_series_with_outliers2.at[ts.index[t], 'Outlier'] = 'True'
+                        time_series_with_outliers2.at[ts.index[t], 'Outlier'] = True
                     elif i == 2:
-                        time_series_with_outliers3.at[ts.index[t], 'Outlier'] = 'True'
+                        time_series_with_outliers3.at[ts.index[t], 'Outlier'] = True
                     outlier_points.append(obs)
                     outlier_indices.append(ts.index[t])
                 progress = progress + 1
@@ -287,11 +287,11 @@ def detect_anomalies_with_many_stds(ts, normal_model, ds_name, var_name, alg_nam
                 error = error_vals[t]
                 if error > threshold:
                     if i == 0:
-                        time_series_with_outliers1.at[ts.index[t], 'Outlier'] = 'True'
+                        time_series_with_outliers1.at[ts.index[t], 'Outlier'] = True
                     elif i == 1:
-                        time_series_with_outliers2.at[ts.index[t], 'Outlier'] = 'True'
+                        time_series_with_outliers2.at[ts.index[t], 'Outlier'] = True
                     elif i == 2:
-                        time_series_with_outliers3.at[ts.index[t], 'Outlier'] = 'True'
+                        time_series_with_outliers3.at[ts.index[t], 'Outlier'] = True
                     outlier_points.append(obs)
                     outlier_indices.append(ts.index[t])
                 progress = progress + 1
