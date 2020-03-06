@@ -11,8 +11,7 @@ package object dataset {
   implicit class DatasetOps(dataset: Dataset) {
     def select(exp: String): Dataset = dataset.withOperation(Selection(exp))
     def project(exp: String): Dataset = dataset.withOperation(Projection(exp))
-    def stride(n: Int): Dataset = dataset.withOperation(Stride(n))
-    def stride(stride: Array[Int]): Dataset = dataset.withOperation(Stride(stride))
+    def stride(s: Int, ss: Int*): Dataset = dataset.withOperation(Stride((s +: ss).toArray))
     def uncurry(): Dataset = dataset.withOperation(Uncurry())
     def curry(n: Int): Dataset = dataset.withOperation(Curry(n))
     def groupByVariable(vars: String*): Dataset = dataset.withOperation(GroupByVariable(vars: _*))
