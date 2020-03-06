@@ -9,12 +9,6 @@ import latis.model._
  * ConstantFunction.
  */
 case class Evaluation(data: Data) extends UnaryOperation {
-  /*
-  TODO: reconcile with DatasetFunction
-    This allows us to evaluate SampledFunctions so we so longer need Dataset.asFunction.
-    However, we do need a way to wrap a computational function so we can compose and
-    substitute.
-   */
 
   def applyToModel(model: DataType): DataType = {
     //TODO: assert that data is of the right type based on the model domain
