@@ -15,7 +15,8 @@ def parser(x):
     return pd.datetime.today()
 
 
-def model_with_rolling_mean(ts, window, ds_name, var_name='Value', verbose=False, calc_errors=False):
+def model_with_rolling_mean(ts, window, ds_name, var_name='Value', verbose=False, calc_errors=False,
+                            plot_save_path=None, data_save_path=None):
     """Model the time series data with a rolling mean.
 
        Inputs:
@@ -70,39 +71,42 @@ def model_with_rolling_mean(ts, window, ds_name, var_name='Value', verbose=False
     # ====================================
     rolling_mean = pd.Series(rolling_mean, index=ts.index)
     errors = pd.Series()
-
-    # Save data to proper directory with encoded file name
-    ts_with_rolling_mean = pd.DataFrame({'Rolling Mean': rolling_mean, var_name: ts})
+ 
+        
+    ts_with_rolling_mean = pd.DataFrame({'Rolling_Mean': rolling_mean, var_name: ts})
     ts_with_rolling_mean.rename_axis('Time', axis='index', inplace=True)  # name index 'Time'
-    column_names = [var_name, 'Rolling Mean']  # column order
+    column_names = [var_name, 'Rolling_Mean']  # column order
     ts_with_rolling_mean = ts_with_rolling_mean.reindex(columns=column_names)  # sort columns in specified order
+    
+    if data_save_path is not None:
+        # Save data to proper directory with encoded file name
+        data_filename = ds_name + '_with_rolling_mean.csv'
+        data_path = './save/datasets/' + ds_name + '/rolling_mean/data/'
+        if not os.path.exists(data_path):
+            os.makedirs(data_path)
+        ts_with_rolling_mean.to_csv(data_path + data_filename)
 
-    data_filename = ds_name + '_with_rolling_mean.csv'
-    data_path = './save/datasets/' + ds_name + '/rolling mean/data/'
-    if not os.path.exists(data_path):
-        os.makedirs(data_path)
-    ts_with_rolling_mean.to_csv(data_path + data_filename)
-
-    # Save plot to proper directory with encoded file name
-    ax = ts.plot(color='#192C87', title=ds_name + ' with Rolling Mean', label=var_name, figsize=(14, 6))
-    rolling_mean.plot(color='#0CCADC', label='Rolling Mean', linewidth=2.5)  #61AEFF is a nice baby blue
-    ax.set(xlabel='Time', ylabel=var_name)
-    pyplot.legend(loc='best')
-
-    plot_filename = ds_name + '_with_rolling_mean.png'
-    plot_path = './save/datasets/' + ds_name + '/rolling mean/plots/'
-    if not os.path.exists(plot_path):
-        os.makedirs(plot_path)
-    pyplot.savefig(plot_path + plot_filename, dpi=500)
-
-    if verbose:
-        pyplot.show()
+    if plot_save_path is not None:
+        # Save plot to proper directory with encoded file name
+        ax = ts.plot(color='#192C87', title=ds_name + ' with Rolling_Mean', label=var_name, figsize=(14, 6))
+        rolling_mean.plot(color='#0CCADC', label='Rolling_Mean', linewidth=2.5)  #61AEFF is a nice baby blue
+        ax.set(xlabel='Time', ylabel=var_name)
+        pyplot.legend(loc='best')
+    
+        plot_filename = ds_name + '_with_rolling_mean.png'
+        plot_path = './save/datasets/' + ds_name + '/rolling_mean/plots/'
+        if not os.path.exists(plot_path):
+            os.makedirs(plot_path)
+        pyplot.savefig(plot_path + plot_filename, dpi=500)
+    
+        if verbose:
+            pyplot.show()
 
     if calc_errors:
         # Start a progress bar
         widgets = [progressbar.Percentage(), progressbar.Bar(), progressbar.Timer(), ' ', progressbar.AdaptiveETA()]
         progress_bar_sliding_window = progressbar.ProgressBar(
-            widgets=[progressbar.FormatLabel('Rolling Mean errors ')] + widgets,
+            widgets=[progressbar.FormatLabel('Rolling_Mean_errors ')] + widgets,
             maxval=int(len(X))).start()
 
         # Get errors
