@@ -2,12 +2,13 @@ package latis.data
 
 import latis.metadata.Metadata
 import latis.model._
+import latis.util.LatisException
 
 /**
  * Define a two-dimensional Cartesian DomainSet with regularly spaced elements.
  * This is implemented as a product of two LinearSet1Ds.
  */
-class LinearSet2D(set1: LinearSet1D, set2: LinearSet1D, val model: DataType = LinearSet2D.defaultModel)
+class LinearSet2D(set1: LinearSet1D, set2: LinearSet1D, val model: DataType)
   extends DomainSet
   with Serializable {
   //TODO: ProductSet, could be used for any set of 1D sets
@@ -41,11 +42,17 @@ class LinearSet2D(set1: LinearSet1D, set2: LinearSet1D, val model: DataType = Li
       if (set1.isDefinedAt(i1) && set2.isDefinedAt(i2))
         i1 * set2.length + i2
       else -1
-    case _ => ??? //TODO: invalid arg, -1?
+    case _ =>
+      val msg = s"Invalid value for two-dimensional domain set: $data"
+      throw LatisException(msg)
   }
 }
 
 object LinearSet2D {
+
+  def apply(set1: LinearSet1D, set2: LinearSet1D, model: DataType = LinearSet2D.defaultModel): LinearSet2D = {
+    new LinearSet2D(set1, set2, model)
+  }
 
   /**
    * Define the model of this DomainSet assuming double value types

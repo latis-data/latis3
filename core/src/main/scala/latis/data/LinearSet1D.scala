@@ -2,6 +2,7 @@ package latis.data
 
 import latis.metadata._
 import latis.model._
+import latis.util.LatisException
 
 /**
  * Define a one-dimensional DomainSet in terms of a start value,
@@ -58,6 +59,9 @@ class LinearSet1D(start: Double, increment: Double, count: Int)
         // Must be integral for a match to an existing element
         if (i == Math.floor(i)) i.toInt //TODO: precision issues?
         else -1
+      case _ =>
+        val msg = s"Invalid value for one-dimensional domain set: $data"
+        throw LatisException(msg)
     }
     if (isDefinedAt(index)) index
     else -1
