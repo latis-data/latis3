@@ -41,6 +41,7 @@ def model_with_rolling_mean(ts, window, ds_name, var_name='Value', verbose=False
            rolling_mean = detect_anomalies_with_rolling_mean(time_series, window_size, 'BusVoltage', False)
     """
 
+    # TODO: CONSIDER MAKING WINDOW A PERCENTAGE OF TS'S LENGTH
     if window <= 0:
         raise ValueError('\'window\' must be given a value greater than 0 when using rolling mean.')
 
