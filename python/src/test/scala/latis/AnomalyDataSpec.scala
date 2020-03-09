@@ -23,7 +23,7 @@ class AnomalyDataSpec extends FlatSpec {
   "The anomalous sine wave dataset" should "be manipulated by a Python script" in {
     val ds = Dataset.fromName("sine_wave_with_anomalies")
       .withOperations(Seq(Selection("time", ">=" , "2000-01-01"), 
-        DetectAnomaliesWithRollingMean()))
+        DetectAnomaliesWithRollingMean(10, "SineWave", "Flux")))
     
     //TextWriter().write(ds)
 
