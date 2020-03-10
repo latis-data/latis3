@@ -19,6 +19,14 @@ case class GroupByBin(
   aggregation: Aggregation = DefaultAggregation()
 ) extends GroupOperation {
 
+  /**
+   * Extends the default by constructing a SetFunction with the domainSet.
+   */
+  override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
+    val range = super.applyToData(data, model).unsafeForce.sampleSeq.map(_.range).toIndexedSeq
+    SetFunction(domainSet, range)
+  }
+
   /*
   TODO: NearestNeaighborAgg, need diff agg for each bin, with DomainData to be closest to
     AggProvider? takes a DomainData
