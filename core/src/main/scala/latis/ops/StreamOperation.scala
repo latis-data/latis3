@@ -29,7 +29,7 @@ trait StreamOperation extends UnaryOperation {
   /**
    * Applies this operation to SampledFunction data.
    */
-  final override def applyToData(data: SampledFunction, model: DataType): SampledFunction =
+  override def applyToData(data: SampledFunction, model: DataType): SampledFunction =
     SampledFunction(data.samples.through(pipe(model)))
 
 }
