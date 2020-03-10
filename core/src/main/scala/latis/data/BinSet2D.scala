@@ -25,7 +25,13 @@ object BinSet2D {
    * Note that this assumes that each dimension has the same units when
    * computing the aspect ratio.
    */
-  def fromExtents(min: (Double, Double), max: (Double, Double), count: Int): BinSet2D = {
+  def fromExtents(
+    min: (Double, Double),
+    max: (Double, Double),
+    count: Int,
+    model: DataType = LinearSet2D.defaultModel
+  ): BinSet2D = {
+    //TODO: make sure model has type set to double
     val d1 = max._1 - min._1
     val d2 = max._2 - min._2
     val n1: Int = Math.round(Math.sqrt(d1 * count / d2)).toInt
@@ -34,6 +40,6 @@ object BinSet2D {
     val set1 = BinSet1D.fromExtents(min._1, max._1, n1)
     val set2 = BinSet1D.fromExtents(min._2, max._2, n2)
 
-    BinSet2D(set1, set2)
+    BinSet2D(set1, set2, model)
   }
 }
