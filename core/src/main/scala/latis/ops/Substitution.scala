@@ -43,6 +43,9 @@ case class Substitution(dataset: Dataset) extends MapOperation {
             case mds: MemoizedDataset => DomainData.fromData(data).flatMap { dd =>
               mds.data.asFunction.apply(dd).map(Data.fromSeq(_))
             }
+            case _ =>
+              val msg = "Substitution not enabled for non-memoized Datasets."
+              throw LatisException(msg)
           }
         pos match {
           case DomainPosition(i) =>
