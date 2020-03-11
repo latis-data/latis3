@@ -74,6 +74,7 @@ case class DetectAnomaliesWithRollingMean(
       //val save_path = "./save/ds_with_rolling_mean_anomalies.csv"
       //val plot_path = "./save/ds_with_rolling_mean_anomalies.png"
       
+      //TODO: consider building "samplesForPython" as it's being passed in to avoid storing it for longer than needed
       val ds_numpy: NDArray[Array[Double]] = new NDArray[Array[Double]](samplesForPython.flatten, samplesForPython.length, samplesForPython(0).length)
       interp.set("ds_numpy", ds_numpy)
       
