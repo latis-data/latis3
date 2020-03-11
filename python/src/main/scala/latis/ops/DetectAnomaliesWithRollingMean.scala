@@ -13,8 +13,6 @@ import latis.metadata.Metadata
  * @param outlierDef the definition of an outlier to be used—either "errors," "std," or "dynamic"
  * @param sigma the number of standard deviations away from the mean used to define point outliers
  * @param dsName the name of the dataset
- *              
- * TODO: Get dsName and varName from the model?
  */
 case class DetectAnomaliesWithRollingMean(
   window: Int = 10,
@@ -23,7 +21,9 @@ case class DetectAnomaliesWithRollingMean(
   dsName: String = "Dataset") extends UnaryOperation {
 
   /**
-   * Provides a new model resulting from this Operation.
+   * Adds two new variables to the model's range,
+   * "rollingMean" and "outlier," such that the model 
+   * becomes (time -> (value, rollingMean, outlier).
    */
   override def applyToModel(model: DataType): DataType = {
     model match {
@@ -46,7 +46,11 @@ case class DetectAnomaliesWithRollingMean(
   }
 
   /**
-   * Provides new Data resulting from this Operation.
+   * Detects anomalies in the time series with two Python scripts.
+   * The first models the time series with a rolling mean (using the 
+   * specified window size), and the second compares the time series 
+   * with the rolling mean to label anomalies based on the specified
+   * outlier definition.
    */
   override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
     val samples = data.unsafeForce.sampleSeq
@@ -55,8 +59,8 @@ case class DetectAnomaliesWithRollingMean(
     }.toArray
 
     MainInterpreter.setJepLibraryPath("/anaconda3/lib/python3.6/site-packages/jep/jep.cpython-36m-darwin.so")
-    
     val interp = new SharedInterpreter
+    
     try {
       interp.runScript("python/src/main/python/model_with_rolling_mean.py")
       interp.runScript("python/src/main/python/detect_anomalies.py")
@@ -70,7 +74,6 @@ case class DetectAnomaliesWithRollingMean(
       //val save_path = "./save/ds_with_rolling_mean_anomalies.csv"
       //val plot_path = "./save/ds_with_rolling_mean_anomalies.png"
       
-      //TODO: consider making a python list var [] and appending NDArrays[Array[Double]] to it in samplesForPython's map
       val ds_numpy: NDArray[Array[Double]] = new NDArray[Array[Double]](samplesForPython.flatten, samplesForPython.length, samplesForPython(0).length)
       interp.set("ds_numpy", ds_numpy)
       
