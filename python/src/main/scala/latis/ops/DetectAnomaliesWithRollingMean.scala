@@ -8,13 +8,19 @@ import latis.metadata.Metadata
 /**
  * Defines an Operation that detects anomalies in a univariate time series
  * (i.e., time -> value) with a rolling mean algorithm.
+ * 
+ * @param window the window size used for the rolling mean
+ * @param dsName the name of the dataset
+ * @param varName the name of the dependent variable
+ * @param outlierDef the definition of an outlier to be used—either "errors," "std," or "dynamic"
+ * @param sigma the number of standard deviations away from the mean used to define point outliers
  */
 case class DetectAnomaliesWithRollingMean(
   window: Int = 10, 
   dsName: String = "Dataset", 
   varName: String = "Value",
   outlierDef: String = "errors",
-  numStds: Int = 2) extends UnaryOperation {
+  sigma: Int = 2) extends UnaryOperation {
 
   /**
    * Provides a new model resulting from this Operation.
@@ -68,7 +74,7 @@ case class DetectAnomaliesWithRollingMean(
       interp.exec(s"ts_with_model = model_with_rolling_mean(ds_numpy, $window, '$ds_name', var_name='$var_name')")
       interp.exec(s"X = ts_with_model['$var_name']")
       interp.exec(s"Y = ts_with_model['$alg_name']")
-      interp.exec(s"ts_with_anomalies = detect_anomalies(X, Y, '$ds_name', '$var_name', '$alg_name', outlier_def='$outlierDef', num_stds=$numStds)")
+      interp.exec(s"ts_with_anomalies = detect_anomalies(X, Y, '$ds_name', '$var_name', '$alg_name', outlier_def='$outlierDef', num_stds=$sigma)")
       
       //TODO: don't hardcode all this
       interp.exec("rollingMeans = ts_with_anomalies.Rolling_Mean.to_numpy()")
