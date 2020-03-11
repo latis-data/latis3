@@ -10,17 +10,17 @@ import latis.metadata.Metadata
  * (i.e., time -> value) with a rolling mean algorithm.
  * 
  * @param window the window size used for the rolling mean
- * @param dsName the name of the dataset
- * @param varName the name of the dependent variable
  * @param outlierDef the definition of an outlier to be used—either "errors," "std," or "dynamic"
  * @param sigma the number of standard deviations away from the mean used to define point outliers
+ * @param dsName the name of the dataset
+ *              
+ * TODO: Get dsName and varName from the model?
  */
 case class DetectAnomaliesWithRollingMean(
-  window: Int = 10, 
-  dsName: String = "Dataset", 
-  varName: String = "Value",
+  window: Int = 10,
   outlierDef: String = "errors",
-  sigma: Int = 2) extends UnaryOperation {
+  sigma: Int = 2,
+  dsName: String = "Dataset") extends UnaryOperation {
 
   /**
    * Provides a new model resulting from this Operation.
@@ -49,8 +49,7 @@ case class DetectAnomaliesWithRollingMean(
    * Provides new Data resulting from this Operation.
    */
   override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
-    val allData = data.unsafeForce
-    val samples = allData.sampleSeq
+    val samples = data.unsafeForce.sampleSeq
     val samplesForPython: Array[Array[Double]] = samples.map {
       case Sample(DomainData(Index(i)), RangeData(Real(f))) => Array(i, f)
     }.toArray
@@ -63,20 +62,23 @@ case class DetectAnomaliesWithRollingMean(
       interp.runScript("python/src/main/python/detect_anomalies.py")
       
       val ds_name = dsName
-      val var_name = varName
+      val var_name = model match {
+        case Function(_, r: Scalar) =>
+          r.id        
+      }
       val alg_name = "Rolling_Mean"
-//      val save_path = "./save/ds_with_rolling_mean_anomalies.csv"
-//      val plot_path = "./save/ds_with_rolling_mean_anomalies.png"
+      //val save_path = "./save/ds_with_rolling_mean_anomalies.csv"
+      //val plot_path = "./save/ds_with_rolling_mean_anomalies.png"
       
       //TODO: consider making a python list var [] and appending NDArrays[Array[Double]] to it in samplesForPython's map
       val ds_numpy: NDArray[Array[Double]] = new NDArray[Array[Double]](samplesForPython.flatten, samplesForPython.length, samplesForPython(0).length)
       interp.set("ds_numpy", ds_numpy)
+      
       interp.exec(s"ts_with_model = model_with_rolling_mean(ds_numpy, $window, '$ds_name', var_name='$var_name')")
       interp.exec(s"X = ts_with_model['$var_name']")
       interp.exec(s"Y = ts_with_model['$alg_name']")
       interp.exec(s"ts_with_anomalies = detect_anomalies(X, Y, '$ds_name', '$var_name', '$alg_name', outlier_def='$outlierDef', num_stds=$sigma)")
       
-      //TODO: don't hardcode all this
       interp.exec("rollingMeans = ts_with_anomalies.Rolling_Mean.to_numpy()")
       interp.exec("outliers = ts_with_anomalies.Outlier.to_numpy()")
       val rollingMeanCol = interp.getValue("rollingMeans", classOf[NDArray[Array[Double]]]).getData
