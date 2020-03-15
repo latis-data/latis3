@@ -4,6 +4,7 @@ import java.util.concurrent.Executors
 
 import scala.concurrent.ExecutionContext
 
+import cats.effect.Blocker
 import cats.effect.ContextShift
 import cats.effect.IO
 import fs2.Stream
@@ -14,11 +15,10 @@ import fs2.Stream
 object StreamUtils {
 
   /**
-   * Provide a single blocking ExecutionContext for use with
-   * fs2.io.readInputStream (e.g. UrlStreamSource).
+   * An execution context for blocking operations.
    */
-  val blockingExecutionContext: ExecutionContext =
-    ExecutionContext.fromExecutorService(Executors.newCachedThreadPool)
+  val blocker: Blocker =
+    Blocker.liftExecutorService(Executors.newCachedThreadPool())
 
   /**
    * Provide an implicit ContextShift for use with

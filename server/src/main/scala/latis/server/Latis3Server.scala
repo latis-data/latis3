@@ -9,7 +9,7 @@ import org.http4s.server.Router
 import org.http4s.server.blaze._
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
-import pureconfig.module.catseffect._
+import pureconfig.module.catseffect.syntax._
 
 object Latis3Server extends IOApp {
 

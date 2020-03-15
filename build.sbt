@@ -1,19 +1,24 @@
 ThisBuild / organization := "io.latis-data"
 ThisBuild / scalaVersion := "2.12.11"
 
-val coursierVersion   = "2.0.0-RC5-2"
-val fs2Version        = "1.0.2"
-val http4sVersion     = "0.20.13"
-val pureconfigVersion = "0.12.1"
+val attoVersion       = "0.7.2"
+val catsVersion       = "2.1.1"
+val catsEffectVersion = "2.1.3"
+val coursierVersion   = "2.0.0-RC6-12"
+val fs2Version        = "2.3.0"
+val http4sVersion     = "0.21.3"
+val junitVersion      = "4.13"
+val netcdfVersion     = "5.3.1"
+val pureconfigVersion = "0.12.3"
 
 lazy val commonSettings = compilerFlags ++ Seq(
   libraryDependencies ++= Seq(
-    "org.typelevel" %% "cats-core"   % "1.5.0",
-    "org.typelevel" %% "cats-effect" % "1.1.0",
+    "org.typelevel" %% "cats-core"   % catsVersion,
+    "org.typelevel" %% "cats-effect" % catsEffectVersion,
     "co.fs2"        %% "fs2-core"    % fs2Version,
     "co.fs2"        %% "fs2-io"      % fs2Version,
-    "com.typesafe"   % "config"      % "1.3.4",
-    "org.scalatest" %% "scalatest"   % "3.0.5" % Test
+    "com.typesafe"   % "config"      % "1.4.0",
+    "org.scalatest" %% "scalatest"   % "3.0.8" % Test
   )
 )
 
@@ -82,14 +87,14 @@ lazy val core = project
   .settings(
     name := "latis3-core",
     libraryDependencies ++= Seq(
-      "org.scala-lang.modules" %% "scala-xml"           % "1.0.6",
-      "io.circe"               %% "circe-core"          % "0.12.3",
-      "org.scodec"             %% "scodec-core"         % "1.10.3",
-      "org.scodec"             %% "scodec-stream"       % "1.2.0",
       "org.scala-lang"          % "scala-reflect"       % scalaVersion.value,
+      "org.scala-lang.modules" %% "scala-xml"           % "1.3.0",
+      "io.circe"               %% "circe-core"          % "0.13.0",
+      "org.scodec"             %% "scodec-core"         % "1.11.7",
+      "org.scodec"             %% "scodec-stream"       % "2.0.0",
       "org.http4s"             %% "http4s-blaze-client" % http4sVersion,
-      "org.tpolecat"           %% "atto-core"           % "0.7.0",
-      "junit"                   % "junit"               % "4.12"  % Test
+      "org.tpolecat"           %% "atto-core"           % attoVersion,
+      "junit"                   % "junit"               % junitVersion  % Test
     )
   )
 
@@ -109,10 +114,10 @@ lazy val `dap2-service` = project
     libraryDependencies ++= Seq(
       "org.http4s"     %% "http4s-core" % http4sVersion % Provided,
       "org.http4s"     %% "http4s-dsl"  % http4sVersion % Provided,
-      "org.tpolecat"   %% "atto-core"   % "0.7.0",
-      "org.scalacheck" %% "scalacheck"  % "1.13.5" % Test,
-      "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.8" % Test,
-      "junit"           % "junit"       % "4.12"  % Test
+      "org.tpolecat"   %% "atto-core"   % attoVersion,
+      "org.scalacheck" %% "scalacheck"  % "1.14.3" % Test,
+      "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.5" % Test,
+      "junit"           % "junit"       % junitVersion  % Test
     )
   )
 
@@ -142,8 +147,8 @@ lazy val `service-interface` = project
     name := "latis3-service-interface",
     libraryDependencies ++= Seq(
       "org.http4s"    %% "http4s-core" % http4sVersion,
-      "org.typelevel" %% "cats-core"   % "1.5.0",
-      "org.typelevel" %% "cats-effect" % "1.1.0"
+      "org.typelevel" %% "cats-core"   % catsVersion,
+      "org.typelevel" %% "cats-effect" % catsEffectVersion
     )
   )
 
@@ -153,9 +158,9 @@ lazy val netcdf = project
   .settings(
     name := "latis3-netcdf",
     libraryDependencies ++= Seq(
-      "edu.ucar"            % "cdm-core"         % "5.3.1",
-      "edu.ucar"            % "httpservices"     % "5.3.1",
-      "edu.ucar"            % "netcdf4"          % "5.3.1",
+      "edu.ucar"            % "cdm-core"         % netcdfVersion,
+      "edu.ucar"            % "httpservices"     % netcdfVersion,
+      "edu.ucar"            % "netcdf4"          % netcdfVersion,
     ),
     resolvers ++= Seq(
       "Unidata" at "https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases"

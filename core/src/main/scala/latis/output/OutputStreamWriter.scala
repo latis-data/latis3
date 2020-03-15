@@ -2,9 +2,8 @@ package latis.output
 
 import java.io.OutputStream
 
-import scala.concurrent.ExecutionContext
-
 import cats.Applicative
+import cats.effect.Blocker
 import cats.effect.ContextShift
 import cats.effect.Sync
 import cats.implicits._
@@ -17,11 +16,11 @@ import latis.util.StreamUtils
  */
 class OutputStreamWriter[F[_]: ContextShift: Sync](
   outputStream: F[OutputStream],
-  blockingEC: ExecutionContext
+  blocker: Blocker
 ) extends Writer[F, Byte] {
 
   override val write: Pipe[F, Byte, Unit] =
-    fs2.io.writeOutputStream(outputStream, blockingEC)
+    fs2.io.writeOutputStream(outputStream, blocker)
 }
 
 object OutputStreamWriter {
@@ -35,5 +34,5 @@ object OutputStreamWriter {
   def unsafeFromOutputStream[F[_]: Applicative: ContextShift: Sync](
     os: OutputStream
   ): OutputStreamWriter[F] =
-    new OutputStreamWriter(os.pure[F], StreamUtils.blockingExecutionContext)
+    new OutputStreamWriter(os.pure[F], StreamUtils.blocker)
 }

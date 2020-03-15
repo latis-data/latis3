@@ -5,8 +5,7 @@ import fs2.Stream
 import scodec._
 import scodec.Codec
 import scodec.bits._
-import scodec.codecs.implicits._
-import scodec.stream.{StreamEncoder, encode => sEncode}
+import scodec.stream.StreamEncoder
 import scodec.{Encoder => SEncoder}
 import latis.data.Data._
 import latis.data._
@@ -28,7 +27,7 @@ class BinaryEncoder extends Encoder[IO, BitVector] {
 
   /** Instance of scodec.stream.StreamEncoder for Sample. */
   def sampleStreamEncoder(model: DataType): StreamEncoder[Sample] =
-    sEncode.many(sampleEncoder(model))
+    StreamEncoder.many(sampleEncoder(model))
 
   def sampleEncoder(model: DataType): SEncoder[Sample] = new SEncoder[(DomainData, RangeData)] {
     def encode(sample: (DomainData, RangeData)): Attempt[BitVector] =
