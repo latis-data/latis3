@@ -86,6 +86,7 @@ lazy val core = project
       "io.circe"               %% "circe-core"          % "0.12.3",
       "org.scodec"             %% "scodec-core"         % "1.10.3",
       "org.scodec"             %% "scodec-stream"       % "1.2.0",
+      "org.scala-lang"          % "scala-reflect"       % "2.12.8",
       "org.http4s"             %% "http4s-blaze-client" % http4sVersion,
       "org.tpolecat"           %% "atto-core"           % "0.7.0",
       "junit"                   % "junit"               % "4.12"  % Test
