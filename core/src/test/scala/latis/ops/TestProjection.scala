@@ -3,7 +3,7 @@ package latis.ops
 import org.junit.Assert._
 import org.junit.Ignore
 import org.junit.Test
-import org.scalatest.junit.JUnitSuite
+import org.scalatestplus.junit.JUnitSuite
 
 import latis.metadata.Metadata
 import latis.model._

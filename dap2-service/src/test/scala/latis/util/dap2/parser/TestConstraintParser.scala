@@ -1,7 +1,7 @@
 package latis.util.dap2.parser
 
 import org.junit._, Assert._
-import org.scalatest.junit.JUnitSuite
+import org.scalatestplus.junit.JUnitSuite
 
 import ast._
 
