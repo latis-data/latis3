@@ -146,3 +146,18 @@ lazy val `service-interface` = project
       "org.typelevel" %% "cats-effect" % "1.1.0"
     )
   )
+
+lazy val netcdf = project
+  .dependsOn(core)
+  .settings(commonSettings)
+  .settings(
+    name := "latis3-netcdf",
+    libraryDependencies ++= Seq(
+      "edu.ucar"            % "cdm-core"         % "5.3.1",
+      "edu.ucar"            % "httpservices"     % "5.3.1",
+      "edu.ucar"            % "netcdf4"          % "5.3.1",
+    ),
+    resolvers ++= Seq(
+      "Unidata" at "https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases"
+    )
+  )
