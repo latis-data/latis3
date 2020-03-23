@@ -58,7 +58,7 @@ case class DetectAnomaliesWithRollingMean(
       case Sample(DomainData(Index(i)), RangeData(Real(f))) => Array(i, f)
     }.toArray
 
-    MainInterpreter.setJepLibraryPath("/anaconda3/lib/python3.6/site-packages/jep/jep.cpython-36m-darwin.so")
+    MainInterpreter.setJepLibraryPath("/anaconda3/lib/python3.7/site-packages/jep/jep.cpython-37m-darwin.so")
     val interp = new SharedInterpreter
     
     try {
@@ -83,7 +83,7 @@ case class DetectAnomaliesWithRollingMean(
       interp.exec(s"Y = ts_with_model['$alg_name']")
       interp.exec(s"ts_with_anomalies = detect_anomalies(X, Y, '$ds_name', '$var_name', '$alg_name', outlier_def='$outlierDef', num_stds=$sigma)")
       
-      interp.exec("rollingMeans = ts_with_anomalies.Rolling_Mean.to_numpy()")
+      interp.exec(s"rollingMeans = ts_with_anomalies.$alg_name.to_numpy()")
       interp.exec("outliers = ts_with_anomalies.Outlier.to_numpy()")
       val rollingMeanCol = interp.getValue("rollingMeans", classOf[NDArray[Array[Double]]]).getData
       val outlierCol = interp.getValue("outliers", classOf[NDArray[Array[Boolean]]]).getData
