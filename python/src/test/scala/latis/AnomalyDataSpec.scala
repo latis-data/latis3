@@ -20,7 +20,7 @@ class AnomalyDataSpec extends FlatSpec {
     }
   }
 
-  "The anomalous sine wave dataset" should "be manipulated by a Python script" in {
+  "The anomalous sine wave dataset" should "be manipulated by a rolling mean script" in {
     val ds = Dataset.fromName("sine_wave_with_anomalies")
       .withOperations(Seq(Selection("time", ">=" , "2000-01-01"), 
         DetectAnomaliesWithRollingMean(dsName="SineWave")))
@@ -37,4 +37,22 @@ class AnomalyDataSpec extends FlatSpec {
     }
     
   }
+
+//  "The anomalous sine wave dataset" should "be manipulated by an autoencoder script" in {
+//    val ds = Dataset.fromName("sine_wave_with_anomalies")
+//      .withOperations(Seq(Selection("time", ">=" , "2000-01-01"),
+//        DetectAnomaliesWithAutoencoder(dsName="SineWave")))
+//
+//    //TextWriter().write(ds)
+//
+//    StreamUtils.unsafeHead(ds.samples) match {
+//      //TODO: Need a Data trait to match on Booleans...
+//      case Sample(DomainData(Number(t)), RangeData(Real(f), Real(a), _)) =>
+//        t should be (1)
+//        f should be (0.841470985)
+//        a should be (999999999.9)
+//      //TODO: o should be (false)
+//    }
+//
+//  }
 }
