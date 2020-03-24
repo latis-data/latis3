@@ -2,8 +2,8 @@
 import datetime
 import os
 import pandas as pd
-from pandas import datetime
-from pandas import read_csv
+#from pandas import datetime
+from pandas import *
 import numpy as np
 from matplotlib import pyplot
 import keras
@@ -13,10 +13,10 @@ from keras.models import load_model
 from keras.callbacks import TensorBoard
 from keras.layers.advanced_activations import LeakyReLU
 import numpy as np
-from tensorflow import set_random_seed
+from tensorflow import *
 from sklearn import preprocessing
-from sklearn.preprocessing import normalize
-
+from sklearn.preprocessing import *
+from tensorflow.python import *
 
 __author__ = 'Shawn Polson'
 __contact__ = 'shawn.polson@colorado.edu'
@@ -69,9 +69,9 @@ def get_compressed_feature_vectors(encoder, ts):
     return np.array(compressed_feature_vectors)
 
 
-def seedy(s):
-    np.random.seed(s)
-    set_random_seed(s)
+# def seedy(s):
+#     np.random.seed(s)
+#     set_random_seed(s)
 
 
 class AutoEncoder:
@@ -137,11 +137,12 @@ class AutoEncoder:
             self.model.save(r'./weights/ae_weights.h5')
 
 
-def autoencoder_prediction(dataset_path, ds_name, train_size=1.0, path_to_model=None, var_name='Value', verbose=False):
+def autoencoder_prediction(ts, ds_name, train_size=1.0, path_to_model=None, var_name='Value', verbose=False):
     """Predict the given time series with an autoencoder.
 
        Inputs:
-           dataset_path [str]: A string path to the time series data. Data is read as a pandas Series with a DatetimeIndex and a column for numerical values.
+           ts [Vector[Array[int, float]]: 
+           -----------dataset_path [str]: A string path to the time series data. Data is read as a pandas Series with a DatetimeIndex and a column for numerical values.
            ds_name [str]:      The name of the dataset.
            train_size [float]: The percentage of data to use for training, as a float (e.g., 0.66).
 
@@ -165,7 +166,14 @@ def autoencoder_prediction(dataset_path, ds_name, train_size=1.0, path_to_model=
 
     # Load the dataset
     #print('Reading the dataset: ' + dataset_path)
-    time_series = read_csv(dataset_path, header=0, parse_dates=[0], index_col=0, squeeze=True, date_parser=parser)
+    #time_series = read_csv(dataset_path, header=0, parse_dates=[0], index_col=0, squeeze=True, date_parser=parser) #ORIG
+    ts = pd.DataFrame(data=ts, columns=['t', var_name])
+    ts['t'] = ts['t'].apply(lambda time: str(time)[:-2])         # remove the ".0" from doubles
+    ts['Time'] = '1970-01-01 00:00:00.' + ts['t'].astype(str)    # make proper time strings from the int index values
+    ts = ts.drop(['t'], axis=1)                                  # remove the intermediate "t" column
+    ts['Time'] = pd.to_datetime(ts['Time'])                      # convert to a datetime
+    ts = ts.set_index('Time')                                    # set the datetime as the index
+    time_series = pd.Series(ts[var_name].values, index=ts.index) # convert to a series now that it's just index -> value
 
     # Normalize data values between 0 and 1
     X = time_series.values.reshape(-1, 1)
