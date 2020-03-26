@@ -126,18 +126,18 @@ object NetcdfAdapter {
     val path: String = uri.getScheme match {
       case null =>
         uri.getPath //assume file path
-      case "s3" =>
-        // Create a local file name
-        val (bucket, key) = AWSUtils.parseS3URI(uri)
-        val dir = LatisConfig.get("file.cache.dir") match {
-          case Some(dir) => dir
-          case None      => Files.createTempDirectory("latis").toString
-        }
-        val file = Paths.get(dir, bucket, key).toFile
-        // If the file does not exist, make a local copy
-        //TODO: deal with concurrency
-        if (!file.exists) AWSUtils.copyS3ObjectToFile(uri, file)
-        file.toString
+//      case "s3" =>
+//        // Create a local file name
+//        val (bucket, key) = AWSUtils.parseS3URI(uri)
+//        val dir = LatisConfig.get("file.cache.dir") match {
+//          case Some(dir) => dir
+//          case None      => Files.createTempDirectory("latis").toString
+//        }
+//        val file = Paths.get(dir, bucket, key).toFile
+//        // If the file does not exist, make a local copy
+//        //TODO: deal with concurrency
+//        if (!file.exists) AWSUtils.copyS3ObjectToFile(uri, file)
+//        file.toString
       case "file" =>
         uri.getPath
       case _ =>
