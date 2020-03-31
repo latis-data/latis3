@@ -1,6 +1,6 @@
 package latis.ops
 
-import jep.{Interpreter, Jep, MainInterpreter, NDArray, SharedInterpreter}
+import jep.{Interpreter, Jep, MainInterpreter, NDArray, SharedInterpreter, JepException}
 import latis.data._
 import latis.model._
 import latis.metadata.Metadata
@@ -57,8 +57,13 @@ case class DetectAnomaliesWithRollingMean(
     val samplesForPython: Array[Array[Double]] = samples.map {
       case Sample(DomainData(Index(i)), RangeData(Real(f))) => Array(i, f)
     }.toArray
-
-    MainInterpreter.setJepLibraryPath("/anaconda3/lib/python3.7/site-packages/jep/jep.cpython-37m-darwin.so")
+    
+    try {
+      MainInterpreter.setJepLibraryPath(System.getProperty("user.dir") + "/python/lib/jep.cpython-36m-darwin.so")
+    } catch {
+      case _: JepException => //JEP library path already set
+    }
+    
     val interp = new SharedInterpreter
     
     try {

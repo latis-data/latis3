@@ -1,6 +1,6 @@
 package latis.ops
 
-import jep.{MainInterpreter, NDArray, SharedInterpreter}
+import jep.{JepException, MainInterpreter, NDArray, SharedInterpreter}
 import latis.data._
 import latis.metadata.Metadata
 import latis.model._
@@ -58,7 +58,12 @@ case class DetectAnomaliesWithAutoencoder(
       case Sample(DomainData(Index(i)), RangeData(Real(f))) => Array(i, f)
     }.toArray
 
-    MainInterpreter.setJepLibraryPath("/anaconda3/lib/python3.7/site-packages/jep/jep.cpython-37m-darwin.so")
+    try {
+      MainInterpreter.setJepLibraryPath(System.getProperty("user.dir") + "/python/lib/jep.cpython-36m-darwin.so")
+    } catch {
+      case _: JepException => //JEP library path already set
+    }
+    
     val interp = new SharedInterpreter
     
     try {
