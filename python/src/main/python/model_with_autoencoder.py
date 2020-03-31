@@ -1,22 +1,28 @@
-# Standard modules
 import datetime
 import os
 import pandas as pd
-#from pandas import datetime
-from pandas import *
+from pandas import datetime
+from pandas import read_csv
 import numpy as np
+import matplotlib
+matplotlib.use('agg')
 from matplotlib import pyplot
-import keras
-from keras.layers import Input, Dense
-from keras.models import Model
-from keras.models import load_model
-from keras.callbacks import TensorBoard
-from keras.layers.advanced_activations import LeakyReLU
-import numpy as np
-from tensorflow import *
 from sklearn import preprocessing
-from sklearn.preprocessing import *
-from tensorflow.python import *
+from sklearn.preprocessing import normalize
+import numpy as np
+# import keras
+# from keras.callbacks import TensorBoard
+# from keras.layers.advanced_activations import LeakyReLU
+# from keras.layers import Input, Dense
+# from keras.models import Model
+
+# import tensorflow
+# #from tensorflow import set_random_seed
+from tensorflow.keras.models import Model, load_model,Sequential
+from tensorflow.keras.layers import Input, Dense
+from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard
+from tensorflow.keras import regularizers
+
 
 __author__ = 'Shawn Polson'
 __contact__ = 'shawn.polson@colorado.edu'
@@ -121,7 +127,7 @@ class AutoEncoder:
     def fit(self, batch_size=10, epochs=300):
         self.model.compile(optimizer='sgd', loss='mse')
         log_dir = './log/'
-        tbCallBack = keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=0, write_graph=True, write_images=True)
+        tbCallBack = TensorBoard(log_dir=log_dir, histogram_freq=0, write_graph=True, write_images=True)
         self.model.fit(self.x, self.x,
                        epochs=epochs,
                        batch_size=batch_size,
@@ -167,7 +173,7 @@ def autoencoder_prediction(ts, ds_name, train_size=1.0, path_to_model=None, var_
     # Load the dataset
     #print('Reading the dataset: ' + dataset_path)
     #time_series = read_csv(dataset_path, header=0, parse_dates=[0], index_col=0, squeeze=True, date_parser=parser) #ORIG
-    ts = pd.DataFrame(data=ts, columns=['t', var_name])
+    ts = pd.DataFrame(ts, columns=['t', var_name])
     ts['t'] = ts['t'].apply(lambda time: str(time)[:-2])         # remove the ".0" from doubles
     ts['Time'] = '1970-01-01 00:00:00.' + ts['t'].astype(str)    # make proper time strings from the int index values
     ts = ts.drop(['t'], axis=1)                                  # remove the intermediate "t" column
