@@ -3,6 +3,8 @@ import os
 import progressbar
 import pandas as pd
 import numpy as np
+import matplotlib
+matplotlib.use('agg')
 from matplotlib import pyplot
 
 
@@ -61,7 +63,7 @@ def model_with_rolling_mean(ts, window, ds_name, var_name='Value', verbose=False
     ts = pd.Series(ts[var_name].values, index=ts.index)        # convert to a series now that it's just index -> value
     #ts.to_csv("./save/PANDAS-DATAFRAME-FROM-JEP.csv")          # save to a csv to inspect (unfortunate way to do this)
     # ====================================
-    rolling_mean = ts.rolling(window=window, center=False).mean() #TODO: NEEDS TO BE A SERIES
+    rolling_mean = ts.rolling(window=window, center=False).mean()
     first_window_mean = ts.iloc[:window].mean()
     for i in range(window):  # fill first 'window' samples with mean of those samples
         rolling_mean[i] = first_window_mean
