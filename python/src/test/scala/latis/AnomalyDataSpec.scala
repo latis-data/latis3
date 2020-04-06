@@ -28,12 +28,12 @@ class AnomalyDataSpec extends FlatSpec {
     //TextWriter().write(ds)
 
     StreamUtils.unsafeHead(ds.samples) match {
-      //TODO: Need a Data trait to match on Booleans...
-      case Sample(DomainData(Number(t)), RangeData(Real(f), Real(rm), _)) =>
+      //TODO: Need a Data trait to match on Booleans?
+      case Sample(DomainData(Number(t)), RangeData(Real(f), Real(rm), o: Data.BooleanValue)) =>
         t should be (1)
         f should be (0.841470985)
         rm should be (0.9432600027000001)
-        //TODO: o should be (false)
+        o.value should be (false)
     }
 
   }
@@ -46,12 +46,12 @@ class AnomalyDataSpec extends FlatSpec {
     //TextWriter().write(ds)
 
     StreamUtils.unsafeHead(ds.samples) match {
-      //TODO: Need a Data trait to match on Booleans...
-      case Sample(DomainData(Number(t)), RangeData(Real(f), Real(a), _)) =>
+      //TODO: Need a Data trait to match on Booleans?
+      case Sample(DomainData(Number(t)), RangeData(Real(f), Real(a), o: Data.BooleanValue)) =>
         t should be (1)
         f should be (0.841470985)
         a should be (0.5363466169117648)
-      //TODO: o should be (false)
+        o.value should be (false)
     }
 
   }
