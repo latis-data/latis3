@@ -138,7 +138,7 @@ trait BooleanDatum extends Any with Datum {
   def asBoolean: Boolean
 }
 object BooleanDatum {
-  // Extract a Boolean from a BooleanData
+  // Extract a Boolean from a BooleanDatum
   def unapply(data: BooleanDatum): Option[Boolean] = Option(data.asBoolean)
 }
 
