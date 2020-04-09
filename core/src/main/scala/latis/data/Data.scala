@@ -132,6 +132,17 @@ object NullDatum extends Datum with Serializable {
 }
 
 /**
+ * BooleanDatum is a type of Data whose value is represented as a Boolean.
+ */
+trait BooleanDatum extends Any with Datum {
+  def asBoolean: Boolean
+}
+object BooleanDatum {
+  // Extract a Boolean from a BooleanData
+  def unapply(data: BooleanDatum): Option[Boolean] = Option(data.asBoolean)
+}
+
+/**
  * Define a base trait for all numeric data.
  * Implementers of Number must be able to provide values as various
  * primitive numeric types.
@@ -259,8 +270,9 @@ object Data {
   //Note, these are implicit so we can construct DomainData from primitive types
   //  Import latis.data.Data._ to get implicit Data construction from supported types
 
-  implicit class BooleanValue(val value: Boolean) extends AnyVal with Datum with Serializable {
+  implicit class BooleanValue(val value: Boolean) extends AnyVal with BooleanDatum with Serializable {
     override def toString = s"BooleanValue($value)"
+    override def asBoolean: Boolean = value
   }
 
   implicit class ByteValue(val value: Byte) extends AnyVal with Index with Serializable {
