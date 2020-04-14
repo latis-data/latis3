@@ -1,9 +1,11 @@
 package latis.ops
 
-import jep.{Interpreter, Jep, MainInterpreter, NDArray, SharedInterpreter, JepException}
+import jep.{Interpreter, Jep, JepException, MainInterpreter, NDArray, SharedInterpreter}
 import latis.data._
 import latis.model._
 import latis.metadata.Metadata
+import latis.time.{Time, TimeFormat, TimeScale}
+import latis.units.UnitConverter
 
 /**
  * Defines an Operation that detects anomalies in a univariate time series
@@ -54,9 +56,24 @@ case class DetectAnomaliesWithRollingMean(
    */
   override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
     val samples = data.unsafeForce.sampleSeq
-    val samplesForPython: Array[Array[Double]] = samples.map {
-      case Sample(DomainData(Index(i)), RangeData(Real(f))) => Array(i, f)
-    }.toArray
+    
+    val samplesForPython: Array[Array[Double]] = model match {
+      case Function(time: Time, _: Scalar) =>
+        //convert all Time values to ms since 1970-01-01 for the Python scripts
+        if (time.isFormatted) { //textual Time
+          val tf = time.timeFormat.get
+          samples.map {
+            case Sample(DomainData(Text(t)), RangeData(Number(n))) =>
+              Array(tf.parse(t).asInstanceOf[Double], n) //TODO: properly cast to Double
+          }.toArray
+        } else { //numeric Time
+          val uc = UnitConverter(time.timeScale, TimeScale.Default)
+          samples.map {
+            case Sample(DomainData(Number(t)), RangeData(Number(n))) =>
+              Array(uc.convert(t).asInstanceOf[Double], n) //TODO: properly cast to Double
+          }.toArray
+        }
+    }
     
     try {
       MainInterpreter.setJepLibraryPath(System.getProperty("user.dir") + "/python/lib/jep.cpython-36m-darwin.so")
