@@ -28,14 +28,9 @@ __author__ = 'Shawn Polson'
 __contact__ = 'shawn.polson@colorado.edu'
 
 
-def parser(x):
-    new_time = ''.join(x.split('.')[0])  # remove microseconds from time data
-    try:
-        return datetime.strptime(new_time, '%Y-%m-%d %H:%M:%S')  # for bus voltage, battery temp, wheel temp, and wheel rpm data
-    except:
-        # return datetime.strptime(new_time, '%Y-%m-%d')  # for total bus current data
-        return datetime.today()
-
+def time_parser(x):
+    # Assume the time is given in ms since 1970-01-01
+    return pd.to_datetime(x, unit='ms', origin='unix')
 
 def chunk(ts, window_size=18):
     remainder = len(ts) % window_size  # if ts isn't divisible by window_size, drop the first [remainder] data points
@@ -147,10 +142,10 @@ def autoencoder_prediction(ts, ds_name, train_size=1.0, path_to_model=None, var_
     """Predict the given time series with an autoencoder.
 
        Inputs:
-           ts [Vector[Array[int, float]]: 
-           -----------dataset_path [str]: A string path to the time series data. Data is read as a pandas Series with a DatetimeIndex and a column for numerical values.
-           ds_name [str]:      The name of the dataset.
-           train_size [float]: The percentage of data to use for training, as a float (e.g., 0.66).
+           ts [Array[Array[int, float]]: The time series data as an array of arrays.
+                                         It becomes a pandas Series with a DatetimeIndex and a column for numerical values.
+           ds_name [str]:                The name of the dataset.
+           train_size [float]:           The percentage of data to use for training, as a float (e.g., 0.66).
 
        Optional Inputs:
            path_to_model [str]:   Path to a file of a trained autoencoder model. When set, no training will be done because that model will be used.
@@ -171,15 +166,10 @@ def autoencoder_prediction(ts, ds_name, train_size=1.0, path_to_model=None, var_
        """
 
     # Load the dataset
-    #print('Reading the dataset: ' + dataset_path)
-    #time_series = read_csv(dataset_path, header=0, parse_dates=[0], index_col=0, squeeze=True, date_parser=parser) #ORIG
-    ts = pd.DataFrame(ts, columns=['t', var_name])
-    ts['t'] = ts['t'].apply(lambda time: str(time)[:-2])         # remove the ".0" from doubles
-    ts['Time'] = '1970-01-01 00:00:00.' + ts['t'].astype(str)    # make proper time strings from the int index values
-    ts = ts.drop(['t'], axis=1)                                  # remove the intermediate "t" column
-    ts['Time'] = pd.to_datetime(ts['Time'])                      # convert to a datetime
-    ts = ts.set_index('Time')                                    # set the datetime as the index
-    time_series = pd.Series(ts[var_name].values, index=ts.index) # convert to a series now that it's just index -> value
+    time_series = pd.DataFrame(data=ts, columns=['Time', var_name])
+    time_series['Time'] = time_series['Time'].apply(lambda time: time_parser(time))  # convert times to datetimes
+    time_series = time_series.set_index('Time')                                      # set the datetime column as the index
+    time_series = time_series.squeeze()                                              # convert to a Series
 
     # Normalize data values between 0 and 1
     X = time_series.values.reshape(-1, 1)
