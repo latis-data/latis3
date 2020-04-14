@@ -13,11 +13,6 @@ lazy val commonSettings = compilerFlags ++ Seq(
     "co.fs2"        %% "fs2-core"    % fs2Version,
     "co.fs2"        %% "fs2-io"      % fs2Version,
     "com.typesafe"   % "config"      % "1.3.4"
-  ),
-  // Resolvers for our Artifactory repos
-  resolvers ++= Seq(
-    "Artifactory Release" at artifactory + "sbt-release",
-    "Artifactory Snapshot" at artifactory + "sbt-snapshot"
   )
 )
 
