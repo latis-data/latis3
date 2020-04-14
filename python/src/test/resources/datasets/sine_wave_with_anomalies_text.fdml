@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<dataset id="sine_wave_with_anomalies_text"
+         title="Test Data with Anomalies and text times"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="http://latis-data.io/schemas/1.0/fdml-with-text-adapter.xsd">
+
+  <source uri="data/sine_wave_with_anomalies_text.txt"/>
+
+  <adapter class="latis.input.TextAdapter"
+           skipLines="1"/>
+
+  <function>
+    <scalar id="time"
+            units="yyyy-MM-DD"
+            type="string"
+            class="latis.time.Time"/>
+    <scalar id="flux" type="double"/>
+  </function>
+
+</dataset>

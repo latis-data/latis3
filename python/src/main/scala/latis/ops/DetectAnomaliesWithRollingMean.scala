@@ -59,18 +59,20 @@ case class DetectAnomaliesWithRollingMean(
     
     val samplesForPython: Array[Array[Double]] = model match {
       case Function(time: Time, _: Scalar) =>
-        //convert all Time values to ms since 1970-01-01 for the Python scripts
-        if (time.isFormatted) { //textual Time
+        //convert all time values to ms since 1970-01-01
+        if (time.isFormatted) { //textual times
           val tf = time.timeFormat.get
           samples.map {
             case Sample(DomainData(Text(t)), RangeData(Number(n))) =>
-              Array(tf.parse(t).asInstanceOf[Double], n) //TODO: properly cast to Double
+              tf.parse(t) match {
+                case Right(v) => Array(v, n)
+              }
           }.toArray
-        } else { //numeric Time
+        } else { //numeric times
           val uc = UnitConverter(time.timeScale, TimeScale.Default)
           samples.map {
             case Sample(DomainData(Number(t)), RangeData(Number(n))) =>
-              Array(uc.convert(t).asInstanceOf[Double], n) //TODO: properly cast to Double
+              Array(uc.convert(t), n)
           }.toArray
         }
     }

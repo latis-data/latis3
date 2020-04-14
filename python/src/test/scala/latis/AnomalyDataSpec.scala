@@ -20,7 +20,7 @@ class AnomalyDataSpec extends FlatSpec {
     }
   }
 
-  "The anomalous sine wave dataset" should "be manipulated by a rolling mean script" in {
+  "The rolling mean script" should "manipulate the anomalous sine wave dataset" in {
     val ds = Dataset.fromName("sine_wave_with_anomalies")
       .withOperations(Seq(Selection("time", ">=" , "2000-01-01"), 
         DetectAnomaliesWithRollingMean(dsName="SineWave")))
@@ -28,7 +28,7 @@ class AnomalyDataSpec extends FlatSpec {
     //TextWriter().write(ds)
 
     StreamUtils.unsafeHead(ds.samples) match {
-      //TODO: Need a Data trait to match on Booleans?
+      //TODO: Need a Data trait to match on Booleans
       case Sample(DomainData(Number(t)), RangeData(Real(f), Real(rm), o: Data.BooleanValue)) =>
         t should be (1)
         f should be (0.841470985)
@@ -38,7 +38,25 @@ class AnomalyDataSpec extends FlatSpec {
 
   }
 
-  "The anomalous sine wave dataset" should "be manipulated by an autoencoder script" in {
+  "The rolling mean script" should "also work with Text times" in {
+    val ds = Dataset.fromName("sine_wave_with_anomalies_text")
+      .withOperations(Seq(Selection("time", ">=" , "2000-01-01"),
+        DetectAnomaliesWithRollingMean(dsName="SineWave")))
+
+    //TextWriter().write(ds)
+
+    StreamUtils.unsafeHead(ds.samples) match {
+      //TODO: Need a Data trait to match on Booleans
+      case Sample(DomainData(Text(t)), RangeData(Real(f), Real(rm), o: Data.BooleanValue)) =>
+        t should be ("2000-01-02")
+        f should be (0.841470985)
+        rm should be (0.9432600027000001)
+        o.value should be (false)
+    }
+
+  }
+
+  "The autoencoder script" should "manipulate the anomalous sine wave dataset" in {
     val ds = Dataset.fromName("sine_wave_with_anomalies")
       .withOperations(Seq(Selection("time", ">=" , "2000-01-01"),
         DetectAnomaliesWithAutoencoder(0.66, dsName="SineWave")))
@@ -46,7 +64,7 @@ class AnomalyDataSpec extends FlatSpec {
     //TextWriter().write(ds)
 
     StreamUtils.unsafeHead(ds.samples) match {
-      //TODO: Need a Data trait to match on Booleans?
+      //TODO: Need a Data trait to match on Booleans
       case Sample(DomainData(Number(t)), RangeData(Real(f), Real(a), o: Data.BooleanValue)) =>
         t should be (1)
         f should be (0.841470985)
