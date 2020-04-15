@@ -55,77 +55,73 @@ case class DetectAnomaliesWithRollingMean(
    * outlier definition.
    */
   override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
-    val samples = data.unsafeForce.sampleSeq
-    
-    val samplesForPython: Array[Array[Double]] = model match {
-      case Function(time: Time, _: Scalar) =>
-        //convert all time values to ms since 1970-01-01
-        if (time.isFormatted) { //textual times
-          val tf = time.timeFormat.get
-          samples.map {
-            case Sample(DomainData(Text(t)), RangeData(Number(n))) =>
-              tf.parse(t) match {
-                case Right(v) => Array(v, n)
-              }
-          }.toArray
-        } else { //numeric times
-          val uc = UnitConverter(time.timeScale, TimeScale.Default)
-          samples.map {
-            case Sample(DomainData(Number(t)), RangeData(Number(n))) =>
-              Array(uc.convert(t), n)
-          }.toArray
-        }
-    }
-    
-    try {
-      MainInterpreter.setJepLibraryPath(System.getProperty("user.dir") + "/python/lib/jep.cpython-36m-darwin.so")
-    } catch {
-      case _: JepException => //JEP library path already set
-    }
-    
+    setJepPath
     val interp = new SharedInterpreter
+    val algName = "Rolling_Mean"
+    val varName = model match {
+      case Function(_, r: Scalar) => r.id
+    }
+    val samples = data.unsafeForce.sampleSeq
     
     try {
       interp.runScript("python/src/main/python/model_with_rolling_mean.py")
       interp.runScript("python/src/main/python/detect_anomalies.py")
       
-      val ds_name = dsName
-      val var_name = model match {
-        case Function(_, r: Scalar) =>
-          r.id        
-      }
-      val alg_name = "Rolling_Mean"
-      //val save_path = "./save/ds_with_rolling_mean_anomalies.csv"
-      //val plot_path = "./save/ds_with_rolling_mean_anomalies.png"
+      interp.set("dataset", new NDArray[Array[Double]](
+        //copy all the data with time values formatted as ms since 1970-01-01
+        model match {
+          case Function(time: Time, _) =>
+            if (time.isFormatted) { //text times
+              val tf = time.timeFormat.get
+              samples.map {
+                case Sample(DomainData(Text(t)), RangeData(Number(n))) =>
+                  tf.parse(t) match {
+                    case Right(v) => Array(v, n)
+                  }
+              }.toArray.flatten
+            } else { //numeric times
+              val uc = UnitConverter(time.timeScale, TimeScale.Default)
+              samples.map {
+                case Sample(DomainData(Number(t)), RangeData(Number(n))) =>
+                  Array(uc.convert(t), n)
+              }.toArray.flatten
+            }
+        }, samples.length, 2)
+      )
       
-      //TODO: consider building "samplesForPython" as it's being passed in to avoid storing it for longer than needed
-      val ds_numpy: NDArray[Array[Double]] = new NDArray[Array[Double]](samplesForPython.flatten, samplesForPython.length, samplesForPython(0).length)
-      interp.set("ds_numpy", ds_numpy)
+      interp.exec(s"ts_with_model = model_with_rolling_mean(dataset, $window, '$dsName', var_name='$varName')")
+      interp.exec(s"X = ts_with_model['$varName']")
+      interp.exec(s"Y = ts_with_model['$algName']")
+      interp.exec(s"ts_with_anomalies = detect_anomalies(X, Y, '$dsName', '$varName', '$algName', outlier_def='$outlierDef', num_stds=$sigma)")
       
-      interp.exec(s"ts_with_model = model_with_rolling_mean(ds_numpy, $window, '$ds_name', var_name='$var_name')")
-      interp.exec(s"X = ts_with_model['$var_name']")
-      interp.exec(s"Y = ts_with_model['$alg_name']")
-      interp.exec(s"ts_with_anomalies = detect_anomalies(X, Y, '$ds_name', '$var_name', '$alg_name', outlier_def='$outlierDef', num_stds=$sigma)")
-      
-      interp.exec(s"rollingMeans = ts_with_anomalies.$alg_name.to_numpy()")
+      interp.exec(s"modelOutput = ts_with_anomalies.$algName.to_numpy()")
       interp.exec("outliers = ts_with_anomalies.Outlier.to_numpy()")
-      val rollingMeanCol = interp.getValue("rollingMeans", classOf[NDArray[Array[Double]]]).getData
-      val outlierCol = interp.getValue("outliers", classOf[NDArray[Array[Boolean]]]).getData
       
-      //Reconstruct the SampledFunction with the new data
+      val modelOutputCol = interp.getValue("modelOutput", classOf[NDArray[Array[Double]]]).getData
+      val outlierCol = interp.getValue("outliers", classOf[NDArray[Array[Boolean]]]).getData
+
+      //Reconstruct the SampledFunction with the anomaly data included
       //TODO: is .zipWithIndex noticeably slower than a manual for loop?
       val samplesWithAnomalyData: Seq[Sample] = samples.zipWithIndex.map { case (smp, i) =>
         smp match {
           case Sample(dd, rd) => {
-             Sample(dd, rd :+ Data.DoubleValue(rollingMeanCol(i)) :+ Data.BooleanValue(outlierCol(i))) 
+             Sample(dd, rd :+ Data.DoubleValue(modelOutputCol(i)) :+ Data.BooleanValue(outlierCol(i))) 
           }
         }
       }
-      
       SampledFunction(samplesWithAnomalyData)
     } finally if (interp != null) {
       interp.close()
     }
   }
 
+  /**
+   * Set the path to the JEP library file if it hasn't already been set.
+   */
+  private def setJepPath: Unit = try {
+    MainInterpreter.setJepLibraryPath(System.getProperty("user.dir") + "/python/lib/jep.cpython-36m-darwin.so")
+  } catch {
+    case _: JepException => //JEP library path already set
+  }
+  
 }
