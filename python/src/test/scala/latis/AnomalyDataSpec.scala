@@ -73,5 +73,23 @@ class AnomalyDataSpec extends FlatSpec {
     }
 
   }
+
+  "The autoencoder script" should "also work with Text times" in {
+    val ds = Dataset.fromName("sine_wave_with_anomalies_text")
+      .withOperations(Seq(Selection("time", ">=" , "2000-01-01"),
+        DetectAnomaliesWithAutoencoder(0.66, dsName="SineWave")))
+
+    //TextWriter().write(ds)
+
+    StreamUtils.unsafeHead(ds.samples) match {
+      //TODO: Need a Data trait to match on Booleans
+      case Sample(DomainData(Text(t)), RangeData(Real(f), Real(a), o: Data.BooleanValue)) =>
+        t should be ("2000-01-02")
+        f should be (0.841470985)
+        a should be (0.5363466169117648)
+        o.value should be (false)
+    }
+
+  }
   
 }
