@@ -12,7 +12,8 @@ lazy val commonSettings = compilerFlags ++ Seq(
     "org.typelevel" %% "cats-effect" % "1.1.0",
     "co.fs2"        %% "fs2-core"    % fs2Version,
     "co.fs2"        %% "fs2-io"      % fs2Version,
-    "com.typesafe"   % "config"      % "1.3.4"
+    "com.typesafe"   % "config"      % "1.3.4",
+    "org.scalatest" %% "scalatest"   % "3.0.5" % Test
   )
 )
 
@@ -87,8 +88,7 @@ lazy val core = project
       "org.scodec"             %% "scodec-stream"       % "1.2.0",
       "org.http4s"             %% "http4s-blaze-client" % http4sVersion,
       "org.tpolecat"           %% "atto-core"           % "0.7.0",
-      "junit"                   % "junit"               % "4.12"  % Test,
-      "org.scalatest"          %% "scalatest"           % "3.0.5" % Test
+      "junit"                   % "junit"               % "4.12"  % Test
     )
   )
 
@@ -111,8 +111,7 @@ lazy val `dap2-service` = project
       "org.tpolecat"   %% "atto-core"   % "0.7.0",
       "org.scalacheck" %% "scalacheck"  % "1.13.5" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.8" % Test,
-      "junit"           % "junit"       % "4.12"  % Test,
-      "org.scalatest"  %% "scalatest"   % "3.0.5" % Test
+      "junit"           % "junit"       % "4.12"  % Test
     )
   )
 
