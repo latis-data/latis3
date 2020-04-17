@@ -115,6 +115,16 @@ lazy val `dap2-service` = project
     )
   )
 
+lazy val `python` = project
+  .dependsOn(core)
+  .settings(commonSettings)
+  .settings(
+    name := "python",
+    libraryDependencies ++= Seq(
+      "black.ninia"    % "jep"       % "3.9.0"
+    )
+  )
+
 lazy val server = project
   .dependsOn(core)
   .dependsOn(`service-interface`)
