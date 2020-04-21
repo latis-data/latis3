@@ -22,7 +22,7 @@ class AnomalyDataSpec extends FlatSpec {
 
   "The rolling mean script" should "manipulate the anomalous sine wave dataset" in {
     val ds = Dataset.fromName("sine_wave_with_anomalies")
-      .withOperations(Seq(Selection("time", ">=" , "2000-01-01"), 
+      .withOperations(Seq(Selection("time", ">=" , "2000-01-01"),
         DetectAnomaliesWithRollingMean(dsName="SineWave")))
 
     //TextWriter().write(ds)
@@ -81,6 +81,21 @@ class AnomalyDataSpec extends FlatSpec {
         f should be (0.841470985)
         a should be (0.5363466169117648)
         o should be (false)
+    }
+  }
+
+  "The rolling mean modeling operation" should "add its new column to the dataset." in {
+    val ds = Dataset.fromName("sine_wave_with_anomalies")
+      .withOperations(Seq(Selection("time", ">=" , "2000-01-01"),
+        ModelWithRollingMean()))
+
+    //TextWriter().write(ds)
+
+    StreamUtils.unsafeHead(ds.samples) match {
+      case Sample(DomainData(Number(t)), RangeData(Real(f), Real(rm))) =>
+        t should be (1)
+        f should be (0.841470985)
+        rm should be (0.9432600027000001)
     }
   }
   

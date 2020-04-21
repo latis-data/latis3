@@ -88,8 +88,8 @@ case class DetectAnomaliesWithRollingMean(
             }
         }, samples.length, 2)
       )
-      
-      interp.exec(s"ts_with_model = model_with_rolling_mean(dataset, $window, '$dsName', var_name='$varName')")
+
+      interp.exec(s"ts_with_model = model_with_rolling_mean(dataset, $window, '$algName', '$varName')")
       interp.exec(s"X = ts_with_model['$varName']")
       interp.exec(s"Y = ts_with_model['$algName']")
       interp.exec(s"ts_with_anomalies = detect_anomalies(X, Y, '$dsName', '$varName', '$algName', outlier_def='$outlierDef', num_stds=$sigma)")

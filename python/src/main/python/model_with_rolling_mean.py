@@ -17,19 +17,22 @@ def time_parser(x):
     return pd.to_datetime(x, unit='ms', origin='unix')
 
 
-def model_with_rolling_mean(ts, window, ds_name, var_name='Value', verbose=False, calc_errors=False,
-                            plot_save_path=None, data_save_path=None):
+def model_with_rolling_mean(ts, window, col_name='Rolling_Mean', var_name='Value', ds_name='Dataset', verbose=False, 
+                            calc_errors=False, plot_save_path=None, data_save_path=None):
     """Model the time series data with a rolling mean.
 
        Inputs:
            ts [Array[Array[int, float]]: The time series data as an array of arrays.
                                          It becomes a pandas Series with a DatetimeIndex and a column for numerical values.
            window [int]:                 Window size; the number of samples to include in the rolling mean.
-           ds_name [str]:                Name of the dataset {bus voltage, etc.}
 
        Optional Inputs:
+           col_name [str]:     The name of the rolling mean column.
+                               Default is 'Rolling_Mean'.
            var_name [str]:     The name of the dependent variable in the time series.
                                Default is 'Value'.
+           ds_name [str]:      Name of the dataset {bus voltage, etc.}
+                               Default is 'Dataset'.
            verbose [bool]:     When True, a plot of the rolling mean will be displayed.
            calc_errors [bool]: Whether or not to calculate and return errors between data and rolling mean.
 
@@ -63,9 +66,9 @@ def model_with_rolling_mean(ts, window, ds_name, var_name='Value', verbose=False
     errors = pd.Series()
  
         
-    ts_with_rolling_mean = pd.DataFrame({'Rolling_Mean': rolling_mean, var_name: ts})
+    ts_with_rolling_mean = pd.DataFrame({col_name: rolling_mean, var_name: ts})
     ts_with_rolling_mean.rename_axis('Time', axis='index', inplace=True)  # name index 'Time'
-    column_names = [var_name, 'Rolling_Mean']  # column order
+    column_names = [var_name, col_name]  # column order
     ts_with_rolling_mean = ts_with_rolling_mean.reindex(columns=column_names)  # sort columns in specified order
     
     if data_save_path is not None:
@@ -79,7 +82,7 @@ def model_with_rolling_mean(ts, window, ds_name, var_name='Value', verbose=False
     if plot_save_path is not None:
         # Save plot to proper directory with encoded file name
         ax = ts.plot(color='#192C87', title=ds_name + ' with Rolling_Mean', label=var_name, figsize=(14, 6))
-        rolling_mean.plot(color='#0CCADC', label='Rolling_Mean', linewidth=2.5)  #61AEFF is a nice baby blue
+        rolling_mean.plot(color='#0CCADC', label=col_name, linewidth=2.5)  #61AEFF is a nice baby blue
         ax.set(xlabel='Time', ylabel=var_name)
         pyplot.legend(loc='best')
     
