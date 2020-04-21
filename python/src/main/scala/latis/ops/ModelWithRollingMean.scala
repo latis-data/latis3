@@ -4,7 +4,7 @@ import jep.NDArray
 import jep.SharedInterpreter
 
 /**
- * Defines an Operation that detects anomalies in a univariate time series
+ * Defines an Operation that models a univariate time series
  * (i.e., time -> value) with a rolling mean algorithm.
  */
 case class ModelWithRollingMean(window: Int = 10) extends ModelTimeSeries {
