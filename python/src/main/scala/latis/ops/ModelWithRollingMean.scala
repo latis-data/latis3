@@ -6,6 +6,8 @@ import jep.SharedInterpreter
 /**
  * Defines an Operation that models a univariate time series
  * (i.e., time -> value) with a rolling mean algorithm.
+ * 
+ *  @param window the window size used for the rolling mean
  */
 case class ModelWithRollingMean(window: Int = 10) extends ModelTimeSeries {
   

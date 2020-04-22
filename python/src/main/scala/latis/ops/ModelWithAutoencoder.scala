@@ -6,6 +6,8 @@ import jep.SharedInterpreter
 /**
  * Defines an Operation that models a univariate time series
  * (i.e., time -> value) with an autoencoder algorithm.
+ * 
+ * @param trainSize the percentage of data used as the training set
  */
 case class ModelWithAutoencoder(trainSize: Double = 1.0) extends ModelTimeSeries {
   
