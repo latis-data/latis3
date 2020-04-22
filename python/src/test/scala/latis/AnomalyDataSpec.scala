@@ -98,5 +98,20 @@ class AnomalyDataSpec extends FlatSpec {
         rm should be (0.9432600027000001)
     }
   }
+
+  "The autoencoder modeling operation" should "add its new column to the dataset." in {
+    val ds = Dataset.fromName("sine_wave_with_anomalies")
+      .withOperations(Seq(Selection("time", ">=" , "2000-01-01"),
+        ModelWithAutoencoder()))
+
+    //TextWriter().write(ds)
+
+    StreamUtils.unsafeHead(ds.samples) match {
+      case Sample(DomainData(Number(t)), RangeData(Real(f), Real(a))) =>
+        t should be (1)
+        f should be (0.841470985)
+        a should be (0.5363466169117648)
+    }
+  }
   
 }

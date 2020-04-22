@@ -138,19 +138,23 @@ class AutoEncoder:
             self.model.save(r'./weights/ae_weights.h5')
 
 
-def autoencoder_prediction(ts, ds_name, train_size=1.0, path_to_model=None, var_name='Value', verbose=False):
+def autoencoder_prediction(ts, train_size=1.0, col_name='Autoencoder', var_name='Value', ds_name='Dataset', path_to_model=None, verbose=False):
     """Predict the given time series with an autoencoder.
 
        Inputs:
            ts [Array[Array[int, float]]: The time series data as an array of arrays.
                                          It becomes a pandas Series with a DatetimeIndex and a column for numerical values.
-           ds_name [str]:                The name of the dataset.
-           train_size [float]:           The percentage of data to use for training, as a float (e.g., 0.66).
 
        Optional Inputs:
-           path_to_model [str]:   Path to a file of a trained autoencoder model. When set, no training will be done because that model will be used.
+           train_size [float]:    The percentage of data to use for training, as a float (e.g., 0.66).
+                                  Default is 1.0.
+           col_name [str]:        The name of the autoencoder column.
+                                  Default is 'Autoencoder'.
            var_name [str]:        The name of the dependent variable in the time series.
                                   Default is 'Value'.
+           ds_name [str]:         The name of the dataset.
+                                  Default is 'Dataset'.
+           path_to_model [str]:   Path to a file of a trained autoencoder model. When set, no training will be done because that model will be used.
            verbose [bool]:        When True, describe the time series dataset upon loading it, and pass 'verbose=True' down the chain to any other functions called during outlier detection.
                                   Default is False.
 
@@ -248,9 +252,9 @@ def autoencoder_prediction(ts, ds_name, train_size=1.0, path_to_model=None, var_
     # np.save(cfv_path + cfv_filename, cfv)
 
     # Save data to proper directory with encoded file name
-    ts_with_autoencoder = pd.DataFrame({'Autoencoder': predictions, var_name: time_series})
+    ts_with_autoencoder = pd.DataFrame({col_name: predictions, var_name: time_series})
     ts_with_autoencoder.rename_axis('Time', axis='index', inplace=True)  # name index 'Time'
-    column_names = [var_name, 'Autoencoder']  # column order
+    column_names = [var_name, col_name]  # column order
     ts_with_autoencoder = ts_with_autoencoder.reindex(columns=column_names)  # sort columns in specified order
 
     # if int(train_size) == 1:

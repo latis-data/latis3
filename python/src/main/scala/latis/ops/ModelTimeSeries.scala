@@ -34,7 +34,7 @@ trait ModelTimeSeries extends UnaryOperation {
   def runModelingAlgorithm(interpreter: SharedInterpreter): Array[Double]
   
   /** The name of the interpreter variable that stores the time series. */
-  protected val interpreterDsName = "dataset"
+  protected val interpDs = "dataset"
   
   /**
    * Adds a new variable to the model's range named `modelAlg` 
@@ -89,7 +89,7 @@ trait ModelTimeSeries extends UnaryOperation {
    * Copy all the data with time values formatted as ms since 1970-01-01.
    */
   private def copyDataForPython(interpreter: SharedInterpreter, model: DataType, samples: Seq[Sample]): Unit = {
-    interpreter.set(interpreterDsName, new NDArray[Array[Double]](
+    interpreter.set(interpDs, new NDArray[Array[Double]](
       model match {
         case Function(time: Time, _) =>
           if (time.isFormatted) { //text times
