@@ -1,10 +1,11 @@
 package latis.ops
 
-import jep.{NDArray, SharedInterpreter}
+import jep.NDArray
+import jep.SharedInterpreter
 
 /**
  * Defines an Operation that models a univariate time series
- * (i.e., time -> value) with a rolling mean algorithm.
+ * (i.e., time -> value) with an autoencoder algorithm.
  */
 case class ModelWithAutoencoder(trainSize: Double = 1.0) extends ModelTimeSeries {
   
@@ -15,7 +16,7 @@ case class ModelWithAutoencoder(trainSize: Double = 1.0) extends ModelTimeSeries
   def modelVarType: String = "double"
 
   /**
-   * Executes Python code that models the dataset with a rolling mean then returns the model's output.
+   * Executes Python code that models the dataset with an autoencoder then returns the model's output.
    */
   def runModelingAlgorithm(interpreter: SharedInterpreter): Array[Double] = {
     interpreter.exec(s"ts_with_model = autoencoder_prediction($interpDs, $trainSize, col_name='$modelAlg')")
