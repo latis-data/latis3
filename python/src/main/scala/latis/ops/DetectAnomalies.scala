@@ -85,7 +85,6 @@ case class DetectAnomalies(
       )
 
       //TODO: turn "dataset" into a two pandas Series, X and Y
-      //TODO: populate ts_with_anomalies
       interp.exec(s"ts_with_anomalies = detect_anomalies(X, Y, outlier_def='$anomalyDef', num_stds=$sigma)")
       interp.exec("outliers = ts_with_anomalies.Outlier.to_numpy()")
       val anomalyCol = interp.getValue("outliers", classOf[NDArray[Array[Boolean]]]).getData
