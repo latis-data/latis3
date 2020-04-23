@@ -39,7 +39,7 @@ lazy val compilerFlags = Seq(
   )
 )
 
-val artifactory = "http://web-artifacts.lasp.colorado.edu/artifactory/"
+val artifactory = "https://web-artifacts.lasp.colorado.edu/artifactory/"
 lazy val publishSettings = Seq(
   publishTo := {
     if (isSnapshot.value) {
