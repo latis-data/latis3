@@ -36,7 +36,7 @@ class AnomalyDataSpec extends FlatSpec {
     }
   }
 
-  it should "also work with Text times" in {
+  it should "work with Text times" in {
     val ds = Dataset.fromName("sine_wave_with_anomalies_text")
       .withOperations(Seq(Selection("time", ">=" , "2000-01-01"),
         DetectAnomaliesWithRollingMean(dsName="SineWave")))
@@ -68,7 +68,7 @@ class AnomalyDataSpec extends FlatSpec {
     }
   }
 
-  it should "also work with Text times" in {
+  it should "work with Text times" in {
     val ds = Dataset.fromName("sine_wave_with_anomalies_text")
       .withOperations(Seq(Selection("time", ">=" , "2000-01-01"),
         DetectAnomaliesWithAutoencoder(0.66, dsName="SineWave")))
