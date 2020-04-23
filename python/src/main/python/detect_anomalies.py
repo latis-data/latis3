@@ -24,18 +24,21 @@ def parser(x):
         return datetime.strptime(new_time, '%Y-%m-%d')  # for total bus current data
 
 
-def detect_anomalies(ts, normal_model, ds_name, var_name, alg_name, outlier_def='std', num_stds=2, ndt_errors=None,
+def detect_anomalies(ts, normal_model, var_name='Value', alg_name='Model_Algorithm', ds_name='Dataset', outlier_def='std', num_stds=2, ndt_errors=None,
                      plot_save_path=None, data_save_path=None):
     """Detect outliers in the time series data by comparing points against a "normal" model.
 
        Inputs:
            ts [pd Series]:           A pandas Series with a DatetimeIndex and a column for numerical values.
            normal_model [pd Series]: A pandas Series with a DatetimeIndex and a column for numerical values.
-           ds_name [str]:            The name of the time series dataset.
-           var_name [str]:           The name of the dependent variable in the time series.
-           alg_name [str]:           The name of the algorithm used to create 'normal_model'.
 
        Optional Inputs:
+           var_name [str]:       The name of the dependent variable in the time series.
+                                 Default is 'Value'.
+           alg_name [str]:       The name of the algorithm used to create 'normal_model'.
+                                 Default is 'Model_Algorithm'.
+           ds_name [str]:        The name of the time series dataset.
+                                 Default is 'Dataset'.
            outlier_def [str]:    {'std', 'errors', 'dynamic'} The definition of an outlier to be used. Can be 'std' for [num_stds] from the data's mean,
                                  'errors' for [num_stds] from the mean of the errors, or 'dynamic' for nonparametric dynamic thresholding
                                  Default is 'std'.
@@ -173,18 +176,21 @@ def detect_anomalies(ts, normal_model, ds_name, var_name, alg_name, outlier_def=
     return time_series_with_outliers
 
 
-def detect_anomalies_with_many_stds(ts, normal_model, ds_name, var_name, alg_name, outlier_def='std', stds=[2,4,8],
+def detect_anomalies_with_many_stds(ts, normal_model, var_name='Value', alg_name='Model_Algorithm', ds_name='Dataset', outlier_def='std', stds=[2,4,8],
                                     plot_save_path=None, data_save_path=None):
     """Detect outliers in the time series data by comparing points against a "normal" model, using a set of three standard deviations as thresholds.
 
        Inputs:
            ts [pd Series]:           A pandas Series with a DatetimeIndex and a column for numerical values.
            normal_model [pd Series]: A pandas Series with a DatetimeIndex and a column for numerical values.
-           ds_name [str]:            The name of the time series dataset.
-           var_name [str]:           The name of the dependent variable in the time series.
-           alg_name [str]:           The name of the algorithm used to create 'normal_model'.
 
        Optional Inputs:
+           var_name [str]:       The name of the dependent variable in the time series.
+                                 Default is 'Value'.
+           alg_name [str]:       The name of the algorithm used to create 'normal_model'.
+                                 Default is 'Model_Algorithm'.
+           ds_name [str]:        The name of the time series dataset.
+                                 Default is 'Dataset'.
            outlier_def [str]:    {'std', 'errors'} The definition of an outlier to be used. Can be 'std' for [num_stds] from the data's mean
                                  or 'errors' for [num_stds] from the mean of the errors.
                                  Default is 'std'.
