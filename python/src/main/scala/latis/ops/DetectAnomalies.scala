@@ -90,7 +90,7 @@ case class DetectAnomalies(
     
     //TODO: turn "dataset" into a pandas Dataframe
     
-    data
+    //data
 //    setJepPath
 //    val interp = new SharedInterpreter
 //    val algName = "Rolling_Mean"

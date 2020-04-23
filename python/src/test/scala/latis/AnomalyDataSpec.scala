@@ -99,6 +99,19 @@ class AnomalyDataSpec extends FlatSpec {
     }
   }
 
+  "The DetectAnomalies operation" should "work." in {
+    val ds = Dataset.fromName("sine_wave_with_anomalies")
+      .withOperations(Seq(Selection("time", ">=" , "2000-01-01"),
+        ModelWithRollingMean(),
+        /*DetectAnomalies("flux", "rollingMean")*/))
+    
+    val ds2 = ds.withOperation(
+      DetectAnomalies("flux", "rollingMean"))
+
+    TextWriter().write(ds2)
+    
+  }
+
   "The autoencoder modeling operation" should "add its new column to the dataset." in {
     val ds = Dataset.fromName("sine_wave_with_anomalies")
       .withOperations(Seq(Selection("time", ">=" , "2000-01-01"),
