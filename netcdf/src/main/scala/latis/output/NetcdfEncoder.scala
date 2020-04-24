@@ -24,7 +24,9 @@ import latis.util.LatisException
 /**
  * Makes a [[https://www.unidata.ucar.edu/software/netcdf/ NetCDF4]] file from a [[latis.dataset.Dataset]].
  *
- * This encoder assumes the dataset is uncurried.
+ * This encoder assumes:
+ *   - the dataset is uncurried
+ *   - the dataset is sorted so that the first domain variable changes slowest
  *
  * Throws a `LatisExeption` if the dataset includes any of the following types:
  *   - `Boolean`
@@ -142,28 +144,28 @@ object NetcdfEncoder {
       case (s, a) =>
         s.valueType match {
           case ByteValueType =>
-            val b = a.asInstanceOf[Array[Byte]].distinct;
+            val b = a.asInstanceOf[Array[Byte]].distinct
             NcArray.factory(scalarToNetcdfDataType(s), Array(b.length), b)
           case CharValueType =>
-            val b = a.asInstanceOf[Array[Char]].distinct;
+            val b = a.asInstanceOf[Array[Char]].distinct
             NcArray.factory(scalarToNetcdfDataType(s), Array(b.length), b)
           case ShortValueType =>
-            val b = a.asInstanceOf[Array[Short]].distinct;
+            val b = a.asInstanceOf[Array[Short]].distinct
             NcArray.factory(scalarToNetcdfDataType(s), Array(b.length), b)
           case IntValueType =>
-            val b = a.asInstanceOf[Array[Int]].distinct;
+            val b = a.asInstanceOf[Array[Int]].distinct
             NcArray.factory(scalarToNetcdfDataType(s), Array(b.length), b)
           case LongValueType =>
-            val b = a.asInstanceOf[Array[Long]].distinct;
+            val b = a.asInstanceOf[Array[Long]].distinct
             NcArray.factory(scalarToNetcdfDataType(s), Array(b.length), b)
           case FloatValueType =>
-            val b = a.asInstanceOf[Array[Float]].distinct;
+            val b = a.asInstanceOf[Array[Float]].distinct
             NcArray.factory(scalarToNetcdfDataType(s), Array(b.length), b)
           case DoubleValueType =>
-            val b = a.asInstanceOf[Array[Double]].distinct;
+            val b = a.asInstanceOf[Array[Double]].distinct
             NcArray.factory(scalarToNetcdfDataType(s), Array(b.length), b)
           case StringValueType =>
-            val b = a.asInstanceOf[Array[String]].distinct;
+            val b = a.asInstanceOf[Array[String]].distinct
             NcArray.factory(scalarToNetcdfDataType(s), Array(b.length), b)
           case t => throw LatisException(s"Unsupported type: $t")
         }
@@ -216,14 +218,5 @@ object NetcdfEncoder {
       case "string" => NcDataType.STRING
       // Boolean is not supported by netCDF3
       case t => throw LatisException(s"Unsupported type: $t")
-    }
-
-  private def addVariablesFromScalars(
-    file: NetcdfFileWriter,
-    dim: Dimension,
-    ss: Seq[Scalar]
-  ): Seq[Variable] =
-    ss.map { s =>
-      file.addVariable(s.id, scalarToNetcdfDataType(s), dim.getShortName)
     }
 }
