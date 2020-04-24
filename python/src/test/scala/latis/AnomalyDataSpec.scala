@@ -67,24 +67,6 @@ class AnomalyDataSpec extends FlatSpec {
     }
   }
 
-  "The DetectAnomalies operation" should "work with a rolling mean model." in {
-    val ds = Dataset.fromName("sine_wave_with_anomalies")
-      .withOperations(Seq(Selection("time", ">=" , "2000-01-01"),
-        ModelWithRollingMean(),
-        DetectAnomalies("flux", "rollingMean", sigma=0.5)))
-
-    //TextWriter().write(ds)
-
-    StreamUtils.unsafeHead(ds.samples) match {
-      case Sample(DomainData(Number(t)), RangeData(Real(f), Real(rm), BooleanDatum(o))) =>
-        t should be (1)
-        f should be (0.841470985)
-        rm should be (0.9432600027000001)
-        o should be (false)
-    }
-
-  }
-
   "The autoencoder script" should "manipulate the anomalous sine wave dataset" in {
     val ds = Dataset.fromName("sine_wave_with_anomalies")
       .withOperations(Seq(Selection("time", ">=" , "2000-01-01"),
@@ -129,6 +111,40 @@ class AnomalyDataSpec extends FlatSpec {
         t should be (1)
         f should be (0.841470985)
         a should be (0.5363466169117648)
+    }
+  }
+
+  "The DetectAnomalies operation" should "work with a rolling mean model." in {
+    val ds = Dataset.fromName("sine_wave_with_anomalies")
+      .withOperations(Seq(Selection("time", ">=" , "2000-01-01"),
+        ModelWithRollingMean(),
+        DetectAnomalies("flux", "rollingMean", sigma=1.0)))
+
+    //TextWriter().write(ds)
+
+    StreamUtils.unsafeHead(ds.samples) match {
+      case Sample(DomainData(Number(t)), RangeData(Real(f), Real(rm), BooleanDatum(o))) =>
+        t should be (1)
+        f should be (0.841470985)
+        rm should be (0.9432600027000001)
+        o should be (false)
+    }
+  }
+
+  it should "work with an autoencoder model." in {
+    val ds = Dataset.fromName("sine_wave_with_anomalies")
+      .withOperations(Seq(Selection("time", ">=" , "2000-01-01"),
+        ModelWithAutoencoder(),
+        DetectAnomalies("flux", "autoencoder", sigma=1.0)))
+
+    //TextWriter().write(ds)
+
+    StreamUtils.unsafeHead(ds.samples) match {
+      case Sample(DomainData(Number(t)), RangeData(Real(f), Real(a), BooleanDatum(o))) =>
+        t should be (1)
+        f should be (0.841470985)
+        a should be (0.5363466169117648)
+        o should be (false)
     }
   }
   

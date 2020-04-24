@@ -10,6 +10,7 @@ import latis.model._
 import latis.time.Time
 import latis.time.TimeScale
 import latis.units.UnitConverter
+import latis.util.LatisException
 
 /**
  * Defines an Operation that detects anomalies in a univariate time series
@@ -27,6 +28,9 @@ case class DetectAnomalies(
   Y: String,
   anomalyDef: String = "errors",
   sigma: Double = 2.0) extends UnaryOperation {
+
+  /** The name of the interpreter variable that stores the time series. */
+  protected val interpDs = "dataset"
 
   /**
    * Adds a new "anomaly" variable to the model's range.
@@ -47,9 +51,9 @@ case class DetectAnomalies(
   }
 
   /**
-   * Detects anomalies in the time series with a Python script that compares the
-   * original values (`X`) with modeled values (`Y`) based on the specified anomaly
-   * definition. Adds the "anomaly" variable to the SampledFunction's range.
+   * Detects anomalies in the time series with Python code that compares the original
+   * values (`X`) with modeled values (`Y`) based on the specified anomaly definition.
+   * Adds the "anomaly" variable to the SampledFunction's range.
    */
   override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
     setJepPath
@@ -59,46 +63,8 @@ case class DetectAnomalies(
     try {
       interp.runScript("python/src/main/python/detect_anomalies.py")
 
-      interp.set("dataset", new NDArray[Array[Double]](
-        //copy the Time, X, and Y data with time values formatted as ms since 1970-01-01
-        model match {
-          case Function(time: Time, _) =>
-            if (time.isFormatted) { //text times
-              val tf = time.timeFormat.get
-              samples.map {
-                case Sample(DomainData(Text(t)), r: RangeData) =>
-                  tf.parse(t) match {
-                    case Right(v) =>
-                      //TODO: find X and Y in r by name, then Array(v, x, y)
-                      val x = r(0) match { case Number(n) => n }
-                      val y = r(1) match { case Number(n) => n } 
-                      Array(v, x, y)
-                  }
-              }.toArray.flatten
-            } else { //numeric times
-              val uc = UnitConverter(time.timeScale, TimeScale.Default)
-              samples.map {
-                case Sample(DomainData(Number(t)), r: RangeData) =>
-                  //TODO: find X and Y in r by name, then Array(uc.convert(t), X, Y)
-                  val x = r(0) match { case Number(n) => n }
-                  val y = r(1) match { case Number(n) => n }
-                  Array(uc.convert(t), x, y)
-              }.toArray.flatten
-            }
-        }, samples.length, 3) //TODO: is this shape right?
-      )
-
-      //TODO: turn "dataset" into a two pandas Series, X and Y
-      interp.exec("import pandas as pd")
-      interp.exec(s"ts = pd.DataFrame(data=dataset, columns=['Time', '$X', '$Y'])")
-      interp.exec("ts['Time'] = ts['Time'].apply(lambda time: pd.to_datetime(time, unit='ms', origin='unix'))")
-      interp.exec("ts = ts.set_index('Time')")
-      interp.exec(s"X = ts['$X']")
-      interp.exec(s"Y = ts['$Y']")
-      interp.exec(s"ts_with_anomalies = detect_anomalies(X, Y, outlier_def='$anomalyDef', num_stds=$sigma)")
-      interp.exec("outliers = ts_with_anomalies.Outlier.to_numpy()")
-      
-      val anomalyCol = interp.getValue("outliers", classOf[NDArray[Array[Boolean]]]).getData
+      copyDataForPython(interp, model, samples)
+      val anomalyCol = runAnomalyDetectionCode(interp)
 
       //Reconstruct the SampledFunction with the anomaly data included
       //TODO: is .zipWithIndex noticeably slower than a manual for loop?
@@ -113,6 +79,62 @@ case class DetectAnomalies(
     } finally if (interp != null) {
       interp.close()
     }
+  }
+
+  /**
+   * Copies the Time, X, and Y data with time values formatted as ms since 1970-01-01.
+   */
+  private def copyDataForPython(interpreter: SharedInterpreter, model: DataType, samples: Seq[Sample]): Unit = {
+    val xPos = model.getPath(X) match {
+      case Some(List(RangePosition(n))) => n
+      case _ => throw new LatisException(s"Cannot find variable: $X")
+    }
+    val yPos = model.getPath(Y) match {
+      case Some(List(RangePosition(n))) => n
+      case _ => throw new LatisException(s"Cannot find variable: $Y")
+    }
+    
+    interpreter.set(interpDs, new NDArray[Array[Double]](
+      model match {
+        case Function(time: Time, _) =>
+          if (time.isFormatted) { //text times
+            val tf = time.timeFormat.get
+            samples.map {
+              case Sample(DomainData(Text(t)), r: RangeData) =>
+                tf.parse(t) match {
+                  case Right(v) =>
+                    val x = r(xPos) match { case Number(n) => n }
+                    val y = r(yPos) match { case Number(n) => n }
+                    Array(v, x, y)
+                }
+            }.toArray.flatten
+          } else { //numeric times
+            val uc = UnitConverter(time.timeScale, TimeScale.Default)
+            samples.map {
+              case Sample(DomainData(Number(t)), r: RangeData) =>
+                val x = r(xPos) match { case Number(n) => n }
+                val y = r(yPos) match { case Number(n) => n }
+                Array(uc.convert(t), x, y)
+            }.toArray.flatten
+          }
+      }, samples.length, 3)
+    )
+  }
+
+  /**
+   * Executes Python code that stores the data in pandas Series before passing
+   * them to the anomaly detection script. Returns the new "anomaly" column.
+   */
+  private def runAnomalyDetectionCode(interpreter: SharedInterpreter): Array[Boolean] = {
+    interpreter.exec("import pandas as pd")
+    interpreter.exec(s"ts = pd.DataFrame(data=$interpDs, columns=['Time', '$X', '$Y'])")
+    interpreter.exec("ts['Time'] = ts['Time'].apply(lambda t: pd.to_datetime(t, unit='ms', origin='unix'))")
+    interpreter.exec("ts = ts.set_index('Time')")
+    interpreter.exec(s"X = ts['$X']")
+    interpreter.exec(s"Y = ts['$Y']")
+    interpreter.exec(s"ts_with_anomalies = detect_anomalies(X, Y, outlier_def='$anomalyDef', num_stds=$sigma)")
+    interpreter.exec("outliers = ts_with_anomalies.Outlier.to_numpy()")
+    interpreter.getValue("outliers", classOf[NDArray[Array[Boolean]]]).getData
   }
 
   /**
