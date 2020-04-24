@@ -26,7 +26,7 @@ case class DetectAnomalies(
   X: String,
   Y: String,
   anomalyDef: String = "errors",
-  sigma: Int = 2) extends UnaryOperation {
+  sigma: Double = 2.0) extends UnaryOperation {
 
   /**
    * Adds a new "anomaly" variable to the model's range.
@@ -68,25 +68,36 @@ case class DetectAnomalies(
               samples.map {
                 case Sample(DomainData(Text(t)), r: RangeData) =>
                   tf.parse(t) match {
-                    case Right(v) => 
-                      ???
-                      //TODO: find X and Y in r by name, then Array(v, X, Y)
+                    case Right(v) =>
+                      //TODO: find X and Y in r by name, then Array(v, x, y)
+                      val x = r(0) match { case Number(n) => n }
+                      val y = r(1) match { case Number(n) => n } 
+                      Array(v, x, y)
                   }
               }.toArray.flatten
             } else { //numeric times
               val uc = UnitConverter(time.timeScale, TimeScale.Default)
               samples.map {
                 case Sample(DomainData(Number(t)), r: RangeData) =>
-                  ???
                   //TODO: find X and Y in r by name, then Array(uc.convert(t), X, Y)
+                  val x = r(0) match { case Number(n) => n }
+                  val y = r(1) match { case Number(n) => n }
+                  Array(uc.convert(t), x, y)
               }.toArray.flatten
             }
         }, samples.length, 3) //TODO: is this shape right?
       )
 
       //TODO: turn "dataset" into a two pandas Series, X and Y
+      interp.exec("import pandas as pd")
+      interp.exec(s"ts = pd.DataFrame(data=dataset, columns=['Time', '$X', '$Y'])")
+      interp.exec("ts['Time'] = ts['Time'].apply(lambda time: pd.to_datetime(time, unit='ms', origin='unix'))")
+      interp.exec("ts = ts.set_index('Time')")
+      interp.exec(s"X = ts['$X']")
+      interp.exec(s"Y = ts['$Y']")
       interp.exec(s"ts_with_anomalies = detect_anomalies(X, Y, outlier_def='$anomalyDef', num_stds=$sigma)")
       interp.exec("outliers = ts_with_anomalies.Outlier.to_numpy()")
+      
       val anomalyCol = interp.getValue("outliers", classOf[NDArray[Array[Boolean]]]).getData
 
       //Reconstruct the SampledFunction with the anomaly data included
