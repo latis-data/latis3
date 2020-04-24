@@ -1,10 +1,14 @@
 package latis.ops
 
-import jep.{JepException, MainInterpreter, NDArray, SharedInterpreter}
+import jep.JepException
+import jep.MainInterpreter
+import jep.NDArray
+import jep.SharedInterpreter
 import latis.data._
 import latis.metadata.Metadata
 import latis.model._
-import latis.time.{Time, TimeScale}
+import latis.time.Time
+import latis.time.TimeScale
 import latis.units.UnitConverter
 
 /**
