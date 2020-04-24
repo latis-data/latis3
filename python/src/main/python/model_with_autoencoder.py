@@ -142,7 +142,7 @@ def autoencoder_prediction(ts, train_size=1.0, col_name='Autoencoder', var_name=
     """Predict the given time series with an autoencoder.
 
        Inputs:
-           ts [Array[Array[int, float]]: The time series data as an array of arrays.
+           ts [Array[Array[float, float]]: The time series data as an array of arrays.
                                          It becomes a pandas Series with a DatetimeIndex and a column for numerical values.
 
        Optional Inputs:
