@@ -64,6 +64,31 @@ class NetcdfEncoderSpec extends FlatSpec {
       file.delete()
     }
   }
+
+  it should "encode a 2-D dataset to NetCDF" in {
+    val enc          = NetcdfEncoder(new File("test3.nc"))
+    val expectedTime = Array(1, 2, 3)
+    val expectedWavelength = Array(430.1, 538.5)
+    val expectedFlag = Array[Byte](0, 0, 0, -1, 0, 0)
+    val expectedFlux = Array(1.0, 2.5, 1.2, 5.1e-2, 0.9, 2.1)
+
+    val file   = enc.encode(time_series_2D).compile.toList.unsafeRunSync().head
+    val ncFile = NetcdfFile.open(file.getAbsolutePath)
+    try {
+      val arrs    = ncFile.readArrays(ncFile.getVariables)
+      val timeArr = arrs.get(0).getDataAsByteBuffer.asIntBuffer
+      val wavelengthArr = arrs.get(1).getDataAsByteBuffer.asDoubleBuffer
+      val flagArr = arrs.get(2).getDataAsByteBuffer
+      val fluxArr = arrs.get(3).getDataAsByteBuffer.asDoubleBuffer
+      timeArr should be(IntBuffer.wrap(expectedTime))
+      wavelengthArr should be(DoubleBuffer.wrap(expectedWavelength))
+      flagArr should be(ByteBuffer.wrap(expectedFlag))
+      fluxArr should be(DoubleBuffer.wrap(expectedFlux))
+    } finally {
+      ncFile.close()
+      file.delete()
+    }
+  }
 }
 
 object NetcdfEncoderSpec {
@@ -100,6 +125,32 @@ object NetcdfEncoderSpec {
         Scalar(Metadata("flux") + ("type" -> "double")),
         Scalar(Metadata("long") + ("type" -> "long")),
         Scalar(Metadata("str") + ("type"  -> "string"))
+      )
+    )
+    val data = SampledFunction(samples)
+
+    new MemoizedDataset(md, model, data)
+  }
+
+  private val time_series_2D: MemoizedDataset = {
+    val samples = Seq(
+      Sample(DomainData(1, 430.1), RangeData(0: Byte, 1.0)),
+      Sample(DomainData(1, 538.5), RangeData(0: Byte, 2.5)),
+      Sample(DomainData(2, 430.1), RangeData(0: Byte, 1.2)),
+      Sample(DomainData(2, 538.5), RangeData(-1: Byte, 5.1e-2)),
+      Sample(DomainData(3, 430.1), RangeData(0: Byte, 0.9)),
+      Sample(DomainData(3, 538.5), RangeData(0: Byte, 2.1))
+    )
+
+    val md = Metadata("time_series_2D")
+    val model = Function(
+      Tuple(
+        Scalar(Metadata("time") + ("type" -> "int")),
+        Scalar(Metadata("wavelength") + ("type"  -> "double"))
+      ),
+      Tuple(
+        Scalar(Metadata("flag") + ("type" -> "byte")),
+        Scalar(Metadata("flux") + ("type" -> "double"))
       )
     )
     val data = SampledFunction(samples)
