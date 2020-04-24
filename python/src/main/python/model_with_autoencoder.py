@@ -28,14 +28,9 @@ __author__ = 'Shawn Polson'
 __contact__ = 'shawn.polson@colorado.edu'
 
 
-def parser(x):
-    new_time = ''.join(x.split('.')[0])  # remove microseconds from time data
-    try:
-        return datetime.strptime(new_time, '%Y-%m-%d %H:%M:%S')  # for bus voltage, battery temp, wheel temp, and wheel rpm data
-    except:
-        # return datetime.strptime(new_time, '%Y-%m-%d')  # for total bus current data
-        return datetime.today()
-
+def time_parser(x):
+    # Assume the time is given in ms since 1970-01-01
+    return pd.to_datetime(x, unit='ms', origin='unix')
 
 def chunk(ts, window_size=18):
     remainder = len(ts) % window_size  # if ts isn't divisible by window_size, drop the first [remainder] data points
@@ -143,19 +138,23 @@ class AutoEncoder:
             self.model.save(r'./weights/ae_weights.h5')
 
 
-def autoencoder_prediction(ts, ds_name, train_size=1.0, path_to_model=None, var_name='Value', verbose=False):
+def autoencoder_prediction(ts, train_size=1.0, col_name='Autoencoder', var_name='Value', ds_name='Dataset', path_to_model=None, verbose=False):
     """Predict the given time series with an autoencoder.
 
        Inputs:
-           ts [Vector[Array[int, float]]: 
-           -----------dataset_path [str]: A string path to the time series data. Data is read as a pandas Series with a DatetimeIndex and a column for numerical values.
-           ds_name [str]:      The name of the dataset.
-           train_size [float]: The percentage of data to use for training, as a float (e.g., 0.66).
+           ts [Array[Array[float, float]]: The time series data as an array of arrays.
+                                         It becomes a pandas Series with a DatetimeIndex and a column for numerical values.
 
        Optional Inputs:
-           path_to_model [str]:   Path to a file of a trained autoencoder model. When set, no training will be done because that model will be used.
+           train_size [float]:    The percentage of data to use for training, as a float (e.g., 0.66).
+                                  Default is 1.0.
+           col_name [str]:        The name of the autoencoder column.
+                                  Default is 'Autoencoder'.
            var_name [str]:        The name of the dependent variable in the time series.
                                   Default is 'Value'.
+           ds_name [str]:         The name of the dataset.
+                                  Default is 'Dataset'.
+           path_to_model [str]:   Path to a file of a trained autoencoder model. When set, no training will be done because that model will be used.
            verbose [bool]:        When True, describe the time series dataset upon loading it, and pass 'verbose=True' down the chain to any other functions called during outlier detection.
                                   Default is False.
 
@@ -171,15 +170,10 @@ def autoencoder_prediction(ts, ds_name, train_size=1.0, path_to_model=None, var_
        """
 
     # Load the dataset
-    #print('Reading the dataset: ' + dataset_path)
-    #time_series = read_csv(dataset_path, header=0, parse_dates=[0], index_col=0, squeeze=True, date_parser=parser) #ORIG
-    ts = pd.DataFrame(ts, columns=['t', var_name])
-    ts['t'] = ts['t'].apply(lambda time: str(time)[:-2])         # remove the ".0" from doubles
-    ts['Time'] = '1970-01-01 00:00:00.' + ts['t'].astype(str)    # make proper time strings from the int index values
-    ts = ts.drop(['t'], axis=1)                                  # remove the intermediate "t" column
-    ts['Time'] = pd.to_datetime(ts['Time'])                      # convert to a datetime
-    ts = ts.set_index('Time')                                    # set the datetime as the index
-    time_series = pd.Series(ts[var_name].values, index=ts.index) # convert to a series now that it's just index -> value
+    time_series = pd.DataFrame(data=ts, columns=['Time', var_name])
+    time_series['Time'] = time_series['Time'].apply(lambda time: time_parser(time))  # convert times to datetimes
+    time_series = time_series.set_index('Time')                                      # set the datetime column as the index
+    time_series = time_series.squeeze()                                              # convert to a Series
 
     # Normalize data values between 0 and 1
     X = time_series.values.reshape(-1, 1)
@@ -258,9 +252,9 @@ def autoencoder_prediction(ts, ds_name, train_size=1.0, path_to_model=None, var_
     # np.save(cfv_path + cfv_filename, cfv)
 
     # Save data to proper directory with encoded file name
-    ts_with_autoencoder = pd.DataFrame({'Autoencoder': predictions, var_name: time_series})
+    ts_with_autoencoder = pd.DataFrame({col_name: predictions, var_name: time_series})
     ts_with_autoencoder.rename_axis('Time', axis='index', inplace=True)  # name index 'Time'
-    column_names = [var_name, 'Autoencoder']  # column order
+    column_names = [var_name, col_name]  # column order
     ts_with_autoencoder = ts_with_autoencoder.reindex(columns=column_names)  # sort columns in specified order
 
     # if int(train_size) == 1:

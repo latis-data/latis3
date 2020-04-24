@@ -19,41 +19,95 @@ class AnomalyDataSpec extends FlatSpec {
         f should be (0.841470985)
     }
   }
-
-  "The anomalous sine wave dataset" should "be manipulated by a rolling mean script" in {
+  
+  "The rolling mean modeling operation" should "add its new column to the dataset" in {
     val ds = Dataset.fromName("sine_wave_with_anomalies")
-      .withOperations(Seq(Selection("time", ">=" , "2000-01-01"), 
-        DetectAnomaliesWithRollingMean(dsName="SineWave")))
+      .withOperation(ModelWithRollingMean())
 
     //TextWriter().write(ds)
 
     StreamUtils.unsafeHead(ds.samples) match {
-      //TODO: Need a Data trait to match on Booleans?
-      case Sample(DomainData(Number(t)), RangeData(Real(f), Real(rm), o: Data.BooleanValue)) =>
+      case Sample(DomainData(Number(t)), RangeData(Real(f), Real(rm))) =>
         t should be (1)
         f should be (0.841470985)
         rm should be (0.9432600027000001)
-        o.value should be (false)
     }
-
   }
 
-  "The anomalous sine wave dataset" should "be manipulated by an autoencoder script" in {
-    val ds = Dataset.fromName("sine_wave_with_anomalies")
-      .withOperations(Seq(Selection("time", ">=" , "2000-01-01"),
-        DetectAnomaliesWithAutoencoder(0.66, dsName="SineWave")))
+  it should "work with Text times" in {
+    val ds = Dataset.fromName("sine_wave_with_anomalies_text")
+      .withOperation(ModelWithRollingMean())
 
     //TextWriter().write(ds)
 
     StreamUtils.unsafeHead(ds.samples) match {
-      //TODO: Need a Data trait to match on Booleans?
-      case Sample(DomainData(Number(t)), RangeData(Real(f), Real(a), o: Data.BooleanValue)) =>
+      case Sample(DomainData(Text(t)), RangeData(Real(f), Real(rm))) =>
+        t should be ("2000-01-02")
+        f should be (0.841470985)
+        rm should be (0.9432600027000001)
+    }
+  }
+  
+  "The autoencoder modeling operation" should "add its new column to the dataset" in {
+    val ds = Dataset.fromName("sine_wave_with_anomalies")
+      .withOperation(ModelWithAutoencoder())
+
+    //TextWriter().write(ds)
+
+    StreamUtils.unsafeHead(ds.samples) match {
+      case Sample(DomainData(Number(t)), RangeData(Real(f), Real(a))) =>
         t should be (1)
         f should be (0.841470985)
         a should be (0.5363466169117648)
-        o.value should be (false)
     }
+  }
 
+  it should "work with Text times" in {
+    val ds = Dataset.fromName("sine_wave_with_anomalies_text")
+      .withOperation(ModelWithAutoencoder())
+
+    //TextWriter().write(ds)
+
+    StreamUtils.unsafeHead(ds.samples) match {
+      case Sample(DomainData(Text(t)), RangeData(Real(f), Real(a))) =>
+        t should be ("2000-01-02")
+        f should be (0.841470985)
+        a should be (0.5363466169117648)
+    }
+  }
+
+  "The DetectAnomalies operation" should "work with a rolling mean model" in {
+    val ds = Dataset.fromName("sine_wave_with_anomalies")
+      .withOperations(Seq(
+        ModelWithRollingMean(),
+        DetectAnomalies("flux", "rollingMean", sigma=1.0)))
+
+    //TextWriter().write(ds)
+
+    StreamUtils.unsafeHead(ds.samples) match {
+      case Sample(DomainData(Number(t)), RangeData(Real(f), Real(rm), BooleanDatum(o))) =>
+        t should be (1)
+        f should be (0.841470985)
+        rm should be (0.9432600027000001)
+        o should be (false)
+    }
+  }
+
+  it should "work with an autoencoder model" in {
+    val ds = Dataset.fromName("sine_wave_with_anomalies_text")
+      .withOperations(Seq(
+        ModelWithAutoencoder(),
+        DetectAnomalies("flux", "autoencoder", sigma=1.0)))
+
+    //TextWriter().write(ds)
+
+    StreamUtils.unsafeHead(ds.samples) match {
+      case Sample(DomainData(Text(t)), RangeData(Real(f), Real(a), BooleanDatum(o))) =>
+        t should be ("2000-01-02")
+        f should be (0.841470985)
+        a should be (0.5363466169117648)
+        o should be (false)
+    }
   }
   
 }

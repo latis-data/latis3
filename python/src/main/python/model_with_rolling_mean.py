@@ -12,24 +12,27 @@ __author__ = 'Shawn Polson'
 __contact__ = 'shawn.polson@colorado.edu'
 
 
-def parser(x):
-    # return the current time instead of parsing dates, for now
-    return pd.datetime.today()
+def time_parser(x):
+    # Assume the time is given in ms since 1970-01-01
+    return pd.to_datetime(x, unit='ms', origin='unix')
 
 
-def model_with_rolling_mean(ts, window, ds_name, var_name='Value', verbose=False, calc_errors=False,
-                            plot_save_path=None, data_save_path=None):
+def model_with_rolling_mean(ts, window, col_name='Rolling_Mean', var_name='Value', ds_name='Dataset', verbose=False, 
+                            calc_errors=False, plot_save_path=None, data_save_path=None):
     """Model the time series data with a rolling mean.
 
        Inputs:
-           ts [Vector[Array[int, float]]: 
-           ---------------------ts [str]:       A string path to the time series data. Data is read as a pandas Series with a DatetimeIndex and a column for numerical values.
-           window [int]:   Window size; the number of samples to include in the rolling mean.
-           ds_name [str]:  Name of the dataset {bus voltage, etc.}
+           ts [Array[Array[float, float]]: The time series data as an array of arrays.
+                                         It becomes a pandas Series with a DatetimeIndex and a column for numerical values.
+           window [int]:                 Window size; the number of samples to include in the rolling mean.
 
        Optional Inputs:
+           col_name [str]:     The name of the rolling mean column.
+                               Default is 'Rolling_Mean'.
            var_name [str]:     The name of the dependent variable in the time series.
                                Default is 'Value'.
+           ds_name [str]:      Name of the dataset {bus voltage, etc.}
+                               Default is 'Dataset'.
            verbose [bool]:     When True, a plot of the rolling mean will be displayed.
            calc_errors [bool]: Whether or not to calculate and return errors between data and rolling mean.
 
@@ -43,42 +46,29 @@ def model_with_rolling_mean(ts, window, ds_name, var_name='Value', verbose=False
            rolling_mean = detect_anomalies_with_rolling_mean(time_series, window_size, 'BusVoltage', False)
     """
 
-    # TODO: CONSIDER MAKING WINDOW A PERCENTAGE OF TS'S LENGTH
+    # TODO: Consider making window a percentage of ts's length
     if window <= 0:
         raise ValueError('\'window\' must be given a value greater than 0 when using rolling mean.')
 
     # Gather statistics
-    # === TESTING ========================
-    #ts.reshape(1001,2)
-    #print("Trying to print ts:")
-    #print(ts)
-    #return ts[1000]
-    #ts = pd.read_csv(ts, header=0, parse_dates=[0], index_col=0, squeeze=True, date_parser=parser)  # This is ORIG
-    ts = pd.DataFrame(data=ts, columns=['t', var_name])
-    ts['t'] = ts['t'].apply(lambda time: str(time)[:-2])       # remove the ".0" from doubles
-    ts['Time'] = '1970-01-01 00:00:00.' + ts['t'].astype(str)  # make proper time strings from the int index values
-    ts = ts.drop(['t'], axis=1)                                # remove the intermediate "t" column
-    ts['Time'] = pd.to_datetime(ts['Time'])                    # convert to a datetime
-    ts = ts.set_index('Time')                                  # set the datetime as the index
-    ts = pd.Series(ts[var_name].values, index=ts.index)        # convert to a series now that it's just index -> value
-    #ts.to_csv("./save/PANDAS-DATAFRAME-FROM-JEP.csv")          # save to a csv to inspect (unfortunate way to do this)
-    # ====================================
+    ts = pd.DataFrame(data=ts, columns=['Time', var_name])
+    ts['Time'] = ts['Time'].apply(lambda time: time_parser(time))  # convert times to datetimes
+    ts = ts.set_index('Time')                                      # set the datetime column as the index
+    ts = ts.squeeze()                                              # convert to a Series
+
     rolling_mean = ts.rolling(window=window, center=False).mean()
     first_window_mean = ts.iloc[:window].mean()
     for i in range(window):  # fill first 'window' samples with mean of those samples
         rolling_mean[i] = first_window_mean
     X = ts
-    # === TESTING ========================
-    #X.to_csv("./save/PANDAS-DATAFRAME-FROM-JEP-X.csv")                       # save to a csv to inspect
-    #rolling_mean.to_csv("./save/PANDAS-DATAFRAME-FROM-JEP-ROLLINGMEAN.csv")  # save to a csv to inspect
-    # ====================================
+
     rolling_mean = pd.Series(rolling_mean, index=ts.index)
     errors = pd.Series()
  
         
-    ts_with_rolling_mean = pd.DataFrame({'Rolling_Mean': rolling_mean, var_name: ts})
+    ts_with_rolling_mean = pd.DataFrame({col_name: rolling_mean, var_name: ts})
     ts_with_rolling_mean.rename_axis('Time', axis='index', inplace=True)  # name index 'Time'
-    column_names = [var_name, 'Rolling_Mean']  # column order
+    column_names = [var_name, col_name]  # column order
     ts_with_rolling_mean = ts_with_rolling_mean.reindex(columns=column_names)  # sort columns in specified order
     
     if data_save_path is not None:
@@ -92,7 +82,7 @@ def model_with_rolling_mean(ts, window, ds_name, var_name='Value', verbose=False
     if plot_save_path is not None:
         # Save plot to proper directory with encoded file name
         ax = ts.plot(color='#192C87', title=ds_name + ' with Rolling_Mean', label=var_name, figsize=(14, 6))
-        rolling_mean.plot(color='#0CCADC', label='Rolling_Mean', linewidth=2.5)  #61AEFF is a nice baby blue
+        rolling_mean.plot(color='#0CCADC', label=col_name, linewidth=2.5)  #61AEFF is a nice baby blue
         ax.set(xlabel='Time', ylabel=var_name)
         pyplot.legend(loc='best')
     
@@ -124,5 +114,4 @@ def model_with_rolling_mean(ts, window, ds_name, var_name='Value', verbose=False
 
         return rolling_mean, errors
     else:
-        #return rolling_mean
         return ts_with_rolling_mean
