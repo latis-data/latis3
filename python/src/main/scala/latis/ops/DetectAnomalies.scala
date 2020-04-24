@@ -82,7 +82,7 @@ case class DetectAnomalies(
   }
 
   /**
-   * Copies the Time, X, and Y data with time values formatted as ms since 1970-01-01.
+   * Copies into the interpreter the Time, X, and Y data with time values formatted as ms since 1970-01-01.
    */
   private def copyDataForPython(interpreter: SharedInterpreter, model: DataType, samples: Seq[Sample]): Unit = {
     val xPos = model.getPath(X) match {
@@ -138,7 +138,7 @@ case class DetectAnomalies(
   }
 
   /**
-   * Set the path to the JEP library file if it hasn't already been set.
+   * Sets the path to the JEP library file if it hasn't already been set.
    */
   private def setJepPath: Unit = try {
     MainInterpreter.setJepLibraryPath(System.getProperty("user.dir") + "/python/lib/jep.cpython-36m-darwin.so")

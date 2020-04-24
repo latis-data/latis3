@@ -86,7 +86,7 @@ trait ModelTimeSeries extends UnaryOperation {
   }
 
   /**
-   * Copy all the data with time values formatted as ms since 1970-01-01.
+   * Copies into the interpreter all the data with time values formatted as ms since 1970-01-01.
    */
   private def copyDataForPython(interpreter: SharedInterpreter, model: DataType, samples: Seq[Sample]): Unit = {
     interpreter.set(interpDs, new NDArray[Array[Double]](
@@ -112,7 +112,7 @@ trait ModelTimeSeries extends UnaryOperation {
   }
 
   /**
-   * Set the path to the JEP library file if it hasn't already been set.
+   * Sets the path to the JEP library file if it hasn't already been set.
    */
   private def setJepPath: Unit = try {
     MainInterpreter.setJepLibraryPath(System.getProperty("user.dir") + "/python/lib/jep.cpython-36m-darwin.so")
@@ -121,7 +121,7 @@ trait ModelTimeSeries extends UnaryOperation {
   }
 
   /**
-   * Throw an exception if the String contains a space.
+   * Throws an exception if the String contains a space.
    */
   private def assertNoSpaces(str: String): Unit = {
     if (str.contains(" ")) throw new RuntimeException(s"'$str' must not contain spaces.")
