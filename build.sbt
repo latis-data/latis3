@@ -1,5 +1,9 @@
+val scala212 = "2.12.11"
+val scala213 = "2.13.3"
+val scalaVersions = Seq(scala212, scala213)
+
 ThisBuild / organization := "io.latis-data"
-ThisBuild / scalaVersion := "2.12.11"
+ThisBuild / scalaVersion := scala213
 
 val attoVersion       = "0.8.0"
 val catsVersion       = "2.1.1"
@@ -19,7 +23,8 @@ lazy val commonSettings = compilerFlags ++ Seq(
     "co.fs2"        %% "fs2-io"      % fs2Version,
     "com.typesafe"   % "config"      % "1.4.0",
     "org.scalatest" %% "scalatest"   % "3.0.8" % Test
-  )
+  ),
+  crossScalaVersions := scalaVersions
 )
 
 lazy val compilerFlags = Seq(
@@ -27,16 +32,27 @@ lazy val compilerFlags = Seq(
     "-deprecation",
     "-encoding", "utf-8",
     "-feature",
-    "-language:higherKinds",
-    "-Ypartial-unification"
-  ),
+    "-language:higherKinds"
+  ) ++ (CrossVersion.partialVersion(scalaVersion.value) match {
+    case Some((2, 12)) => Seq("-Ypartial-unification")
+    case _             => Nil
+  }),
   Compile / compile / scalacOptions ++= Seq(
     "-unchecked",
-    "-Xlint",
-    "-Ywarn-dead-code",
-    "-Ywarn-numeric-widen",
-    "-Ywarn-value-discard"
-  )
+    "-Xlint"
+  ) ++ (CrossVersion.partialVersion(scalaVersion.value) match {
+    case Some((2, 12)) => Seq(
+      "-Ywarn-dead-code",
+      "-Ywarn-numeric-widen",
+      "-Ywarn-value-discard"
+    )
+    case Some((2, 13)) => Seq(
+      "-Wdead-code",
+      "-Wnumeric-widen",
+      "-Wvalue-discard"
+    )
+    case _             => Nil
+  })
 )
 
 lazy val dockerSettings = Seq(
@@ -65,6 +81,21 @@ lazy val dockerSettings = Seq(
 )
 
 //=== Sub-projects ============================================================
+
+lazy val latis = project
+  .in(file("."))
+  .aggregate(
+    core,
+    `dap2-service`,
+    `fdml-validator`,
+    server,
+    `service-interface`,
+    netcdf
+  )
+  .settings(
+    crossScalaVersions := Nil,
+    publish / skip := true
+  )
 
 lazy val core = project
   .settings(commonSettings)
@@ -144,7 +175,8 @@ lazy val `service-interface` = project
       "org.http4s"    %% "http4s-core" % http4sVersion,
       "org.typelevel" %% "cats-core"   % catsVersion,
       "org.typelevel" %% "cats-effect" % catsEffectVersion
-    )
+    ),
+    crossScalaVersions := scalaVersions
   )
 
 lazy val netcdf = project
