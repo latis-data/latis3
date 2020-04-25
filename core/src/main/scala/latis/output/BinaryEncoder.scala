@@ -2,11 +2,10 @@ package latis.output
 
 import cats.effect.IO
 import fs2.Stream
-import scodec._
+import scodec.{Encoder => SEncoder, _}
 import scodec.Codec
 import scodec.bits._
 import scodec.stream.StreamEncoder
-import scodec.{Encoder => SEncoder}
 import latis.data.Data._
 import latis.data._
 import latis.dataset._
