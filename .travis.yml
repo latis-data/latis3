@@ -1,29 +1,37 @@
-language: scala
+matrix:
+  include:
+    - language: scala
+    
+      cache:
+        directories:
+          - $HOME/.cache/coursier
+          - $HOME/.ivy2/cache
+          - $HOME/.sbt
+          - $HOME/local/lib
+      
+      before_cache:
+        - rm -fv $HOME/.ivy2/.sbt.ivy.lock
+        - find $HOME/.ivy2/cache -name "ivydata-*.properties" -print -delete
+        - find $HOME/.sbt        -name "*.lock"               -print -delete
+      
+      jdk:
+        - openjdk8
+      
+      dist: bionic
+      addons:
+        apt:
+          update: true
+          packages:
+          - libhdf5-dev
+      
+      install:
+        - travis/netcdf_build.sh
+      
+      env:
+        - LD_LIBRARY_PATH=$HOME/local/lib
 
-cache:
-  directories:
-    - $HOME/.cache/coursier
-    - $HOME/.ivy2/cache
-    - $HOME/.sbt
-    - $HOME/local/lib
-
-before_cache:
-  - rm -fv $HOME/.ivy2/.sbt.ivy.lock
-  - find $HOME/.ivy2/cache -name "ivydata-*.properties" -print -delete
-  - find $HOME/.sbt        -name "*.lock"               -print -delete
-
-jdk:
-  - openjdk8
-
-dist: bionic
-addons:
-  apt:
-    update: true
-    packages:
-    - libhdf5-dev
-
-install:
-  - travis/netcdf_build.sh
-
-env:
-  - LD_LIBRARY_PATH=$HOME/local/lib
+    - language: python
+      python: 3.7
+      install:
+        - pip install jep
+      
