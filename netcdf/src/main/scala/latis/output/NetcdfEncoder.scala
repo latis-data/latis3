@@ -25,7 +25,6 @@ import latis.util.LatisException
  * Makes a [[https://www.unidata.ucar.edu/software/netcdf/ NetCDF4]] file from a [[latis.dataset.Dataset]].
  *
  * This encoder assumes:
- *   - the dataset is uncurried
  *   - the dataset is sorted so that the first domain variable changes slowest
  *
  * Throws a `LatisExeption` if the dataset includes any of the following types:
