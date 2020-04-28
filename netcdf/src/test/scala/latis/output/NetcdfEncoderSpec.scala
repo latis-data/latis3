@@ -158,12 +158,18 @@ object NetcdfEncoderSpec {
 
   private val time_series_2D: MemoizedDataset = {
     val samples = Seq(
-      Sample(DomainData(1, 430.1), RangeData(0: Byte, 1.0)),
-      Sample(DomainData(1, 538.5), RangeData(0: Byte, 2.5)),
-      Sample(DomainData(2, 430.1), RangeData(0: Byte, 1.2)),
-      Sample(DomainData(2, 538.5), RangeData(-1: Byte, 5.1e-2)),
-      Sample(DomainData(3, 430.1), RangeData(0: Byte, 0.9)),
-      Sample(DomainData(3, 538.5), RangeData(0: Byte, 2.1))
+      Sample(DomainData(1), RangeData(SampledFunction(Seq(
+        Sample(DomainData(430.1), RangeData(0: Byte, 1.0)),
+        Sample(DomainData(538.5), RangeData(0: Byte, 2.5))
+      )))),
+      Sample(DomainData(2), RangeData(SampledFunction(Seq(
+        Sample(DomainData(430.1), RangeData(0: Byte, 1.2)),
+        Sample(DomainData(538.5), RangeData(-1: Byte, 5.1e-2))
+      )))),
+      Sample(DomainData(3), RangeData(SampledFunction(Seq(
+        Sample(DomainData(430.1), RangeData(0: Byte, 0.9)),
+        Sample(DomainData(538.5), RangeData(0: Byte, 2.1))
+      ))))
     )
 
     val md = Metadata("time_series_2D")
