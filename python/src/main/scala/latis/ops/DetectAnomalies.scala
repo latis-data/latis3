@@ -141,7 +141,7 @@ case class DetectAnomalies(
    * Sets the path to the JEP library file if it hasn't already been set.
    */
   private def setJepPath: Unit = try {
-    MainInterpreter.setJepLibraryPath(System.getProperty("user.dir") + "/python/lib/jep.cpython-36m-darwin.so")
+    MainInterpreter.setJepLibraryPath(System.getProperty("user.dir") + "/python/lib/jep.cpython-37m-darwin.so")
   } catch {
     case _: JepException => //JEP library path already set
   }
