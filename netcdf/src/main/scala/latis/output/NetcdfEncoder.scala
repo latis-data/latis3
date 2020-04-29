@@ -204,15 +204,15 @@ object NetcdfEncoder {
       .toList
 
   private def scalarToNetcdfDataType(s: Scalar): NcDataType =
-    s.metadata.getProperty("type", "").toLowerCase match {
-      case "byte"   => NcDataType.BYTE
-      case "char"   => NcDataType.CHAR
-      case "short"  => NcDataType.SHORT
-      case "int"    => NcDataType.INT
-      case "long"   => NcDataType.LONG
-      case "float"  => NcDataType.FLOAT
-      case "double" => NcDataType.DOUBLE
-      case "string" => NcDataType.STRING
+    s.valueType match {
+      case ByteValueType   => NcDataType.BYTE
+      case CharValueType   => NcDataType.CHAR
+      case ShortValueType  => NcDataType.SHORT
+      case IntValueType    => NcDataType.INT
+      case LongValueType   => NcDataType.LONG
+      case FloatValueType  => NcDataType.FLOAT
+      case DoubleValueType => NcDataType.DOUBLE
+      case StringValueType => NcDataType.STRING
       // Boolean is not supported by netCDF4
       case t => throw LatisException(s"Unsupported type: $t")
     }
