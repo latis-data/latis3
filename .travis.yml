@@ -26,7 +26,7 @@ addons:
 
 install:
   - travis/netcdf_build.sh
-  - python3.6 pip install jep
+  - python3.6 -m pip install jep
 
 env:
   - LD_LIBRARY_PATH=$HOME/local/lib
