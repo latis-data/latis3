@@ -14,6 +14,7 @@ import ucar.nc2.Variable
 
 import latis.data.Data
 import latis.data.Data._
+import latis.data.Datum
 import latis.data.Sample
 import latis.dataset.Dataset
 import latis.model.DataType
@@ -72,7 +73,7 @@ class NetcdfEncoder(file: File) extends Encoder[IO, File] {
 
       val dArrs = domainAccumulatorToNcArray(acc, dScalars)
       val shape = dArrs.map(_.getSize.toInt).toArray
-      val rArrs = accumulatorToNcArray(acc.slice(dScalars.length, acc.length), rScalars, shape)
+      val rArrs = accumulatorToNcArray(acc.drop(dScalars.length), rScalars, shape)
 
       // add dimensions
       dScalars.zip(shape).foreach { case (s, dim) => file.addDimension(s.id, dim) }
@@ -212,7 +213,7 @@ object NetcdfEncoder {
       case "float"  => NcDataType.FLOAT
       case "double" => NcDataType.DOUBLE
       case "string" => NcDataType.STRING
-      // Boolean is not supported by netCDF3
+      // Boolean is not supported by netCDF4
       case t => throw LatisException(s"Unsupported type: $t")
     }
 }

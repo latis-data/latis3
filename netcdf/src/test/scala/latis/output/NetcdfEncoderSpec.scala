@@ -91,7 +91,7 @@ class NetcdfEncoderSpec extends FlatSpec {
   }
 
   it should "encode a 3-D dataset to NetCDF" in {
-    val enc          = NetcdfEncoder(new File("test3.nc"))
+    val enc          = NetcdfEncoder(new File("test4.nc"))
     val expectedTime = Array(1, 2)
     val expectedWavelength = Array(430.1, 538.5)
     val expectedAnother = Array(1.1, 2.2)
