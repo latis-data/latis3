@@ -26,6 +26,7 @@ addons:
 
 install:
   - travis/netcdf_build.sh
+  - pyenv global 3.6
   - wget https://bootstrap.pypa.io/get-pip.py
   - python3.6 get-pip.py
   - python3.6 -m pip install jep
