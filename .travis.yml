@@ -14,6 +14,8 @@ before_cache:
 
 jdk:
   - openjdk8
+    
+python: 3.6
 
 dist: bionic
 addons:
@@ -21,12 +23,10 @@ addons:
     update: true
     packages:
       - libhdf5-dev
-        
-python: 3.6
 
 install:
   - travis/netcdf_build.sh
-  - python3.6 -m pip3 install jep
+  - python3.6 -m pip install jep
 
 env:
   - LD_LIBRARY_PATH=$HOME/local/lib
