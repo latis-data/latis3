@@ -1,0 +1,9 @@
+jep
+progressbar
+pandas
+numpy
+matplotlib
+datetime
+sklearn
+keras
+tensorflow
