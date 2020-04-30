@@ -30,7 +30,8 @@ install:
   - wget https://bootstrap.pypa.io/get-pip.py
   - python3.6 get-pip.py
   - python3.6 -m pip install jep
-  - ls /usr/bin/python3.6/
+  - pwd
+  - which python
   # - cp /usr/bin/python3.6/site-packages/jep/jep.cpython-36m-darwin.so $HOME/build/latis-data/latis3/python/lib/jep.cpython-36m-darwin.so
 
 env:
