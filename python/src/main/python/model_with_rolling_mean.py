@@ -51,7 +51,7 @@ def model_with_rolling_mean(ts, window, col_name='Rolling_Mean', var_name='Value
         raise ValueError('\'window\' must be given a value greater than 0 when using rolling mean.')
 
     # Gather statistics
-    ts = pd.DataFrame(data=ts, columns=['Time', var_name])
+    ts = pd.DataFrame(data=np.array(ts), columns=['Time', var_name])
     ts['Time'] = ts['Time'].apply(lambda time: time_parser(time))  # convert times to datetimes
     ts = ts.set_index('Time')                                      # set the datetime column as the index
     ts = ts.squeeze()                                              # convert to a Series
