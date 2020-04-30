@@ -32,7 +32,7 @@ install:
   - python3.6 -m pip install jep
   - pwd
   - which python
-  - ls /
+  - ls /opt/pyenv/shims/
   # - cp /usr/bin/python3.6/site-packages/jep/jep.cpython-36m-darwin.so $HOME/build/latis-data/latis3/python/lib/jep.cpython-36m-darwin.so
 
 env:
