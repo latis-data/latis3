@@ -33,7 +33,7 @@ install:
   - pwd
   - which python
   - ls /opt/pyenv/shims/
-  - find / -type d -name "jep"
+  # - find / -type d -name "jep"
   - ls /opt/python/3.6.10/lib/python3.6/site-packages/jep
   - ls /home/travis/.ivy2/cache/black.ninia/jep
   # - cp /usr/bin/python3.6/site-packages/jep/jep.cpython-36m-darwin.so $HOME/build/latis-data/latis3/python/lib/jep.cpython-36m-darwin.so
