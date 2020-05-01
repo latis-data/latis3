@@ -13,7 +13,7 @@ import latis.model.Function
 import latis.model.Scalar
 import latis.ops.Uncurry
 
-class CsvEncoder extends Encoder[IO, String] {
+class CsvEncoder(header: Dataset => Stream[IO, String]) extends Encoder[IO, String] {
 
   /**
    * Encodes the Stream of Samples from the given Dataset as a Stream
@@ -23,7 +23,7 @@ class CsvEncoder extends Encoder[IO, String] {
   override def encode(dataset: Dataset): Stream[IO, String] = {
     val uncurriedDataset = dataset.withOperation(Uncurry())
     // Encode each Sample as a String in the Stream
-    uncurriedDataset.samples
+    header(dataset) ++ uncurriedDataset.samples
       .map(encodeSample(uncurriedDataset.model, _) + lineSeparator)
   }
 
@@ -34,11 +34,32 @@ class CsvEncoder extends Encoder[IO, String] {
     (model, sample) match {
       case (Function(domain, range), Sample(ds, rs)) =>
         val scalars = domain.getScalars ++ range.getScalars
-        val datas = ds ++ rs
-        scalars.zip(datas).map {
-          case (s: Scalar, d: Datum) =>
-            s.formatValue(d)
-          case _ => ???
-        }.mkString(",")
+        val datas   = ds ++ rs
+        scalars
+          .zip(datas)
+          .map {
+            case (s: Scalar, d: Datum) =>
+              s.formatValue(d)
+            case _ => ???
+          }
+          .mkString(",")
     }
+}
+
+object CsvEncoder {
+
+  /** Default encoder with no header */
+  def apply(): CsvEncoder = new CsvEncoder(_ => Stream())
+
+  def apply(header: Dataset => Stream[IO, String]): CsvEncoder = new CsvEncoder(header)
+
+//  def apply(header: Dataset => String): CsvEncoder = new CsvEncoder(ds => Stream(header(ds)))
+
+  def withColumnID: CsvEncoder = {
+    def header(dataset: Dataset): Stream[IO, String] = dataset.model match {
+      case Function(domain, range) =>
+        Stream((domain.getScalars ++ range.getScalars).map(_.id).mkString(", "))
+    }
+    CsvEncoder(header)
+  }
 }
