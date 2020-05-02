@@ -26,20 +26,7 @@ addons:
 
 install:
   - travis/netcdf_build.sh
-  - pyenv global 3.6
-  - wget https://bootstrap.pypa.io/get-pip.py
-  - python3.6 get-pip.py
-  #- python3.6 -m pip install jep
-  - python3.6 -m pip -q install -r python/requirements/requirements.txt
-  - python3.6 -m pip install jep
-  #- pwd
-  #- which python
-  #- ls /opt/pyenv/shims/
-  # - find / -type d -name "jep"
-  #- ls /opt/python/3.6.10/lib/python3.6/site-packages/jep
-  #- ls /home/travis/.ivy2/cache/black.ninia/jep
-  - cp /opt/python/3.6.10/lib/python3.6/site-packages/jep/jep.cpython-36m-x86_64-linux-gnu.so /home/travis/build/latis-data/latis3/python/lib/jep.cpython-36m-x86_64-linux-gnu.so
-  #- ls /home/travis/build/latis-data/latis3/python/lib/
+  - travis/python_build.sh
 
 env:
   - LD_LIBRARY_PATH=$HOME/local/lib
