@@ -19,21 +19,19 @@ __author__ = 'Shawn Polson'
 __contact__ = 'shawn.polson@colorado.edu'
 
 
-def parser(x):
-    new_time = ''.join(x.split('.')[0])  # remove microseconds from time data
-    try:
-        return datetime.strptime(new_time, '%Y-%m-%d %H:%M:%S')  # for bus voltage, battery temp, wheel temp, and wheel rpm data
-    except:
-        return datetime.today()
+def time_parser(x):
+    # Assume the time is given in ms since 1970-01-01
+    return pd.to_datetime(x, unit='ms', origin='unix')
 
 
-def score_with_rrcf(dataset_path, ds_name, var_name, num_trees=100, shingle_size=18, tree_size=256):
+def score_with_rrcf(ts, ds_name, var_name, num_trees=100, shingle_size=18, tree_size=256, col_name='RRCF'):
     """Get anomaly scores for each point in the given time series using a robust random cut forest.
 
        Inputs:
-           dataset_path [str]: A string path to the time series data. Data is read as a pandas Series with a DatetimeIndex and a column for numerical values.
-           ds_name [str]:      The name of the dataset.
-           var_name [str]:     The name of the dependent variable in the time series.
+           ts [Array[Array[float, float]]: The time series data as an array of arrays.
+                                           It becomes a pandas Series with a DatetimeIndex and a column for numerical values.
+           ds_name [str]:                  The name of the dataset.
+           var_name [str]:                 The name of the dependent variable in the time series.
 
        Optional Inputs:
            num_trees [int]:    The number of trees in the generated forest.
@@ -42,6 +40,8 @@ def score_with_rrcf(dataset_path, ds_name, var_name, num_trees=100, shingle_size
                                Default is 18.
            tree_size [int]:    The size of each tree in the generated forest.
                                Default is 256.
+           col_name [str]:     The name of the RRCF column.
+                               Default is 'RRCF'.
 
        Outputs:
             ts_with_scores [pd DataFrame]: The original time series with an added column for anomaly scores.
@@ -53,7 +53,10 @@ def score_with_rrcf(dataset_path, ds_name, var_name, num_trees=100, shingle_size
            time_series_with_anomaly_scores = score_with_rrcf(dataset, ds_name, var_name)
        """
 
-    ts = pd.read_csv(dataset_path, header=0, parse_dates=[0], index_col=0, squeeze=True, date_parser=parser)
+    ts = pd.DataFrame(ts, columns=['Time', var_name])
+    ts['Time'] = ts['Time'].apply(lambda time: time_parser(time))  # convert times to datetimes
+    ts = ts.set_index('Time')                                      # set the datetime column as the index
+    ts = ts.squeeze()                                              # convert to a Series
 
     # Set tree parameters
     num_trees = num_trees
@@ -87,52 +90,52 @@ def score_with_rrcf(dataset_path, ds_name, var_name, num_trees=100, shingle_size
             avg_codisp[index] += tree.codisp(index) / num_trees
 
     # Plot
-    fig, ax1 = pyplot.subplots(figsize=(14, 6))
-
-    score_color = '#0CCADC'
-    ax1.set_ylabel('CoDisp', color=score_color)
-    ax1.set_xlabel('Time')
+    # fig, ax1 = pyplot.subplots(figsize=(14, 6))
+    # 
+    # score_color = '#0CCADC'
+    # ax1.set_ylabel('CoDisp', color=score_color)
+    # ax1.set_xlabel('Time')
     anom_score_series = pd.Series(list(avg_codisp.values()),
                                   index=ts.index[:-(shingle_size - 1)])  # TODO: ensure data and index line up perfectly
-    lns1 = ax1.plot(anom_score_series.sort_index(), label='RRCF Anomaly Score',
-                    color=score_color)  # Plot this series to get dates on the x-axis instead of number indices
-    ax1.tick_params(axis='y', labelcolor=score_color)
-    ax1.grid(False)
-    max_ylim = float(anom_score_series.max())
-    ax1.set_ylim(0, max_ylim)
-    ax2 = ax1.twinx()
-    data_color = '#192C87'
-    ax2.set_ylabel(var_name, color=data_color)
-    lns2 = ax2.plot(ts, label=var_name, color=data_color)
-    ax2.tick_params(axis='y', labelcolor=data_color)
-    ax2.grid(False)
-    pyplot.title(ds_name + ' and Anomaly Score')
-    # make the legend
-    lns = lns1 + lns2
-    labs = [l.get_label() for l in lns]
-    ax1.legend(lns, labs, loc='best')
-
-    # Save plot
-    plot_filename = ds_name + '_with_rrcf_scores.png'
-    plot_path = './save/datasets/' + ds_name + '/rrcf/plots/'
-    if not os.path.exists(plot_path):
-        os.makedirs(plot_path)
-    pyplot.savefig(plot_path + plot_filename, dpi=500)
-
-    pyplot.show()
-    pyplot.clf()
+    # lns1 = ax1.plot(anom_score_series.sort_index(), label='RRCF Anomaly Score',
+    #                 color=score_color)  # Plot this series to get dates on the x-axis instead of number indices
+    # ax1.tick_params(axis='y', labelcolor=score_color)
+    # ax1.grid(False)
+    # max_ylim = float(anom_score_series.max())
+    # ax1.set_ylim(0, max_ylim)
+    # ax2 = ax1.twinx()
+    # data_color = '#192C87'
+    # ax2.set_ylabel(var_name, color=data_color)
+    # lns2 = ax2.plot(ts, label=var_name, color=data_color)
+    # ax2.tick_params(axis='y', labelcolor=data_color)
+    # ax2.grid(False)
+    # pyplot.title(ds_name + ' and Anomaly Score')
+    # # make the legend
+    # lns = lns1 + lns2
+    # labs = [l.get_label() for l in lns]
+    # ax1.legend(lns, labs, loc='best')
+    # 
+    # # Save plot
+    # plot_filename = ds_name + '_with_rrcf_scores.png'
+    # plot_path = './save/datasets/' + ds_name + '/rrcf/plots/'
+    # if not os.path.exists(plot_path):
+    #     os.makedirs(plot_path)
+    # pyplot.savefig(plot_path + plot_filename, dpi=500)
+    # 
+    # pyplot.show()
+    # pyplot.clf()
 
     # Save data
-    ts_with_scores = pd.DataFrame({'RRCF Anomaly Score': anom_score_series, var_name: ts})
+    ts_with_scores = pd.DataFrame({col_name: anom_score_series, var_name: ts})
     ts_with_scores.rename_axis('Time', axis='index', inplace=True)  # name index 'Time'
-    column_names = [var_name, 'RRCF Anomaly Score']  # column order
+    column_names = [var_name, col_name]  # column order
     ts_with_scores = ts_with_scores.reindex(columns=column_names)  # sort columns in specified order
 
-    data_filename = ds_name + '_with_rrcf_scores.csv'
-    data_path = './save/datasets/' + ds_name + '/rrcf/data/'
-    if not os.path.exists(data_path):
-        os.makedirs(data_path)
-    ts_with_scores.to_csv(data_path + data_filename)
+    # data_filename = ds_name + '_with_rrcf_scores.csv'
+    # data_path = './save/datasets/' + ds_name + '/rrcf/data/'
+    # if not os.path.exists(data_path):
+    #     os.makedirs(data_path)
+    # ts_with_scores.to_csv(data_path + data_filename)
 
     return ts_with_scores
 

@@ -29,7 +29,8 @@ case class ScoreWithRRCF(
     interpreter.exec(s"ts_with_scores = score_with_rrcf($interpDs," +
       s"num_trees=$numTrees," +
       s"shingle_size=$shingleSize," +
-      s"tree_size=$treeSize)")
+      s"tree_size=$treeSize," +
+      s"col_name='$modelAlg')")
     interpreter.exec(s"scores = ts_with_scores.$modelAlg.to_numpy()")
     interpreter.getValue("scores", classOf[NDArray[Array[Double]]]).getData
   }
