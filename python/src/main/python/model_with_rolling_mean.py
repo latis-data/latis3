@@ -53,7 +53,7 @@ def model_with_rolling_mean(ts, window, col_name='Rolling_Mean', var_name='Value
 
     print("Shawn rulez")
     print(ts)
-    print(ts.getData)
+    print(ts.getData())
 
     # Gather statistics
     ts = pd.DataFrame(ts, columns=['Time', var_name])
