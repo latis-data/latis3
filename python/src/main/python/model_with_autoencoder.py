@@ -183,11 +183,11 @@ def autoencoder_prediction(ts, train_size=1.0, col_name='Autoencoder', var_name=
     time_series = normalized
 
     # if verbose:
-    # describe the loaded dataset
-    # print(time_series.head())
-    # print(time_series.describe())
-    # time_series.plot(title=dataset_path + ' Dataset')
-    # pyplot.show()
+        # describe the loaded dataset
+        # print(time_series.head())
+        # print(time_series.describe())
+        # time_series.plot(title=dataset_path + ' Dataset')
+        # pyplot.show()
 
 
     # Chunk the dataset
