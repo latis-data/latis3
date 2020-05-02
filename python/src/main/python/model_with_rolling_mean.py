@@ -51,10 +51,7 @@ def model_with_rolling_mean(ts, window, col_name='Rolling_Mean', var_name='Value
     if window <= 0:
         raise ValueError('\'window\' must be given a value greater than 0 when using rolling mean.')
 
-    print("Shawn rulez")
-    print(ts)
-    print(jep.JEP_NUMPY_ENABLED)
-    print(ts.getData())
+    # print(jep.JEP_NUMPY_ENABLED)
 
     # Gather statistics
     ts = pd.DataFrame(ts, columns=['Time', var_name])
