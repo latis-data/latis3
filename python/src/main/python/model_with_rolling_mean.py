@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib
 matplotlib.use('agg')
 from matplotlib import pyplot
+import jep
 
 
 __author__ = 'Shawn Polson'
@@ -52,7 +53,7 @@ def model_with_rolling_mean(ts, window, col_name='Rolling_Mean', var_name='Value
 
     print("Shawn rulez")
     print(ts)
-    print(str(ts))
+    print(ts.getData)
 
     # Gather statistics
     ts = pd.DataFrame(ts, columns=['Time', var_name])
