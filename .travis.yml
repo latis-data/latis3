@@ -31,6 +31,7 @@ install:
   - python3.6 get-pip.py
   #- python3.6 -m pip install jep
   - python3.6 -m pip -q install -r python/requirements/requirements.txt
+  - python3.6 -m pip install jep
   #- pwd
   #- which python
   #- ls /opt/pyenv/shims/
