@@ -129,13 +129,13 @@ class AutoEncoder:
                        callbacks=[tbCallBack],
                        verbose=self.verbose)
 
-    def save(self):
-        if not os.path.exists(r'./weights'):
-            os.mkdir(r'./weights')
-        else:
-            self.encoder.save(r'./weights/encoder_weights.h5')
-            self.decoder.save(r'./weights/decoder_weights.h5')
-            self.model.save(r'./weights/ae_weights.h5')
+    # def save(self):
+    #     if not os.path.exists(r'./weights'):
+    #         os.mkdir(r'./weights')
+    #     else:
+    #         self.encoder.save(r'./weights/encoder_weights.h5')
+    #         self.decoder.save(r'./weights/decoder_weights.h5')
+    #         self.model.save(r'./weights/ae_weights.h5')
 
 
 def autoencoder_prediction(ts, train_size=1.0, col_name='Autoencoder', var_name='Value', ds_name='Dataset', path_to_model=None, verbose=False):
@@ -183,11 +183,11 @@ def autoencoder_prediction(ts, train_size=1.0, col_name='Autoencoder', var_name=
     time_series = normalized
 
     # if verbose:
-        # describe the loaded dataset
-        # print(time_series.head())
-        # print(time_series.describe())
-        # time_series.plot(title=dataset_path + ' Dataset')
-        # pyplot.show()
+    # describe the loaded dataset
+    # print(time_series.head())
+    # print(time_series.describe())
+    # time_series.plot(title=dataset_path + ' Dataset')
+    # pyplot.show()
 
 
     # Chunk the dataset
@@ -208,7 +208,7 @@ def autoencoder_prediction(ts, train_size=1.0, col_name='Autoencoder', var_name=
     ae = AutoEncoder(train, encoding_dim=10, verbose=verbose)  # Note, training autoencoder just with train data
     ae.encoder_decoder()
     ae.fit(batch_size=50, epochs=1000)
-    ae.save()
+    # ae.save()
 
     encoder = ae.encoder  # load_model(r'weights/encoder_weights.h5')
     decoder = ae.decoder  # load_model(r'weights/decoder_weights.h5')
