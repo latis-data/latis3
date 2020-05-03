@@ -13,11 +13,14 @@ import pureconfig.module.catseffect.syntax._
 
 object Latis3Server extends IOApp {
 
-  private val loader: ServiceInterfaceLoader =
-    new ServiceInterfaceLoader()
-
   private val latisConfigSource: ConfigSource =
     ConfigSource.default.at("latis")
+
+  private val getDependencyConf: IO[DependencyConf] =
+    latisConfigSource.loadF[IO, DependencyConf]
+
+  private val getRepositoryConf: IO[RepositoryConf] =
+    latisConfigSource.loadF[IO, RepositoryConf]
 
   private val getServerConf: IO[ServerConf] =
     latisConfigSource.loadF[IO, ServerConf]
@@ -49,10 +52,19 @@ object Latis3Server extends IOApp {
 
   def run(args: List[String]): IO[ExitCode] =
     for {
-      serverConf  <- getServerConf
-      serviceConf <- getServiceConf
-      services    <- loader.loadServices(serviceConf)
-      routes       = constructRoutes(services)
-      _           <- startServer(routes, serverConf)
+      serverConf     <- getServerConf
+      serviceConf    <- getServiceConf
+      repositoryConf <- getRepositoryConf
+      dependencyConf <- getDependencyConf
+      loader         <- new DependencyFetcher(
+        repositoryConf,
+        dependencyConf
+      ).fetch
+      services       <- new ServiceInterfaceLoader(
+        serviceConf,
+        loader
+      ).loadServices
+      routes          = constructRoutes(services)
+      _              <- startServer(routes, serverConf)
     } yield ExitCode.Success
 }

@@ -14,61 +14,45 @@ final case class ServerConf(
   mapping: String
 )
 
+final case class DependencyConf(
+  dependencies: List[DependencySpec]
+)
+
+sealed trait DependencySpec
+
+final case class JarDependencySpec(url: URL) extends DependencySpec
+
+final case class MavenDependencySpec(
+  group: String,
+  artifact: String,
+  version: String
+) extends DependencySpec
+
+object DependencySpec {
+  implicit val coproductHint: CoproductHint[DependencySpec] =
+    new FieldCoproductHint[DependencySpec]("type") {
+      override def fieldValue(name: String): String = name match {
+        case "MavenDependencySpec" => "maven"
+        case "JarDependencySpec"   => "jar"
+      }
+    }
+}
+
+final case class RepositoryConf(
+  repositories: List[URL]
+)
+
 final case class ServiceConf(
   services: List[ServiceSpec]
 )
 
-sealed trait ServiceSpec {
-  val mapping: String
-  val clss: String
-}
-
-final case class MavenServiceSpec(
-  name: String,
-  version: String,
+final case class ServiceSpec(
   mapping: String,
   clss: String
-) extends ServiceSpec
-
-final case class JarServiceSpec(
-  path: URL,
-  mapping: String,
-  clss: String
-) extends ServiceSpec
-
-final case class ClassPathServiceSpec(
-  mapping: String,
-  clss: String
-) extends ServiceSpec
+)
 
 object ServiceSpec {
-  implicit val mssHint: ProductHint[MavenServiceSpec] =
-    ProductHint(
-      ConfigFieldMapping(CamelCase, KebabCase).withOverrides(
-        "clss" -> "class"
-      )
-    )
-
-  implicit val jssHint: ProductHint[JarServiceSpec] =
-    ProductHint(
-      ConfigFieldMapping(CamelCase, KebabCase).withOverrides(
-        "clss" -> "class"
-      )
-    )
-
-  implicit val cssHint: ProductHint[ClassPathServiceSpec] =
-    ProductHint(
-      ConfigFieldMapping(CamelCase, KebabCase).withOverrides(
-        "clss" -> "class"
-      )
-    )
-
-  implicit val coproductHint: CoproductHint[ServiceSpec] =
-    new FieldCoproductHint[ServiceSpec]("type") {
-      override def fieldValue(name: String): String = name match {
-        case "MavenServiceSpec"     => "maven"
-        case "JarServiceSpec"       => "jar"
-        case "ClassPathServiceSpec" => "class"
-      }
-    }
+  implicit val ssHint: ProductHint[ServiceSpec] = ProductHint(
+    ConfigFieldMapping(CamelCase, KebabCase).withOverrides("clss" -> "class")
+  )
 }
