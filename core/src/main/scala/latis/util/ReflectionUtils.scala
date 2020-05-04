@@ -1,6 +1,6 @@
 package latis.util
 
-import scala.reflect.runtime._
+import scala.reflect.runtime.{universe => ru}
 
 /**
  * Collection of utility methods for using reflection.
@@ -28,9 +28,10 @@ object ReflectionUtils {
   /**
    * Get the companion object for the given class name.
    */
-  def getCompanionObject(className: String): Any = {
-    val moduleSymbol = currentMirror.staticModule(className)
-    val moduleMirror = currentMirror.reflectModule(moduleSymbol)
+  def getCompanionObject(loader: ClassLoader, className: String): Any = {
+    val mirror = ru.runtimeMirror(loader)
+    val moduleSymbol = mirror.staticModule(className)
+    val moduleMirror = mirror.reflectModule(moduleSymbol)
     moduleMirror.instance
   }
 
@@ -38,14 +39,19 @@ object ReflectionUtils {
    * Call a given methodName on the companion object of the given className
    * with the given arguments.
    */
-  def callMethodOnCompanionObject(className: String, methodName: String, args: AnyRef*): Any = {
+  def callMethodOnCompanionObject(
+    loader: ClassLoader,
+    className: String,
+    methodName: String,
+    args: AnyRef*
+  ): Any = {
     /*
      * Notes:
      * - We need AnyRef for the args since it directly maps to Object for the method invocation.
      * - The class.getMethod appears to require an exact match on the parameter classes,
      *   not accounting for subclass relationships. Thus we do that test ourselves here.
      */
-    val companionObject = getCompanionObject(className)
+    val companionObject = getCompanionObject(loader, className)
     val method = {
       val maybeMethod = companionObject.getClass().getMethods.find { method =>
         val argClasses = args.map(_.getClass)       // types of args passed to method
@@ -65,4 +71,15 @@ object ReflectionUtils {
 
     method.invoke(companionObject, args: _*)
   }
+
+  def callMethodOnCompanionObject(
+    className: String,
+    methodName: String,
+    args: AnyRef*
+  ): Any = callMethodOnCompanionObject(
+    getClass().getClassLoader(),
+    className,
+    methodName,
+    args
+  )
 }

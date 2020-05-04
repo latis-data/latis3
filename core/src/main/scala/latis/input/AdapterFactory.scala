@@ -18,12 +18,15 @@ trait AdapterFactory {
  */
 object AdapterFactory {
 
-  def makeAdapter(model: DataType, config: AdapterConfig): Adapter =
+  def makeAdapter(model: DataType, config: AdapterConfig, cl: ClassLoader): Adapter =
     try {
-      callMethodOnCompanionObject(config.className, "apply", model, config).asInstanceOf[Adapter]
+      callMethodOnCompanionObject(cl, config.className, "apply", model, config).asInstanceOf[Adapter]
     } catch {
       case e: Exception =>
         throw new RuntimeException("Failed to construct Adapter: " + config.className, e)
     }
+
+  def makeAdapter(model: DataType, config: AdapterConfig): Adapter =
+    makeAdapter(model, config, getClass().getClassLoader())
 
 }

@@ -11,7 +11,7 @@ import latis.util._
 /**
  * Attempt to find a Dataset by mapping the id to a FDML descriptor.
  */
-class FdmlDatasetResolver extends DatasetResolver {
+class FdmlDatasetResolver(loader: ClassLoader) extends DatasetResolver {
 
   /**
    * Optionally returns a Dataset with the given identifier if an FDML
@@ -26,7 +26,7 @@ class FdmlDatasetResolver extends DatasetResolver {
       uri     <- NetUtils.parseUri(id + ".fdml")
       fdml    <- resolveFdml(uri)
       dataset <- Either.catchNonFatal {
-        FdmlReader.read(fdml, validate)
+        new FdmlReader(loader).read(fdml, validate)
       }
     } yield dataset
     //TODO: need a way to capture Dataset construction failure

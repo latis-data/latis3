@@ -11,12 +11,16 @@ import latis.dataset.Dataset
 import latis.util.FdmlUtils
 import latis.util.NetUtils
 
-object FdmlReader {
+/**
+ * From an FDML file an FdmlReader reader creates a dataset,
+ * configures its adapter, and builds the dataset's model.
+ */
+final class FdmlReader(cl: ClassLoader) {
 
   def read(uri: URI, validate: Boolean = false): Dataset = {
     if (validate) FdmlUtils.validateFdml(uri).leftMap(throw _)
     val fdml: Fdml = NetUtils.readUriIntoString(uri) match {
-      case Right(x) => new Fdml(XML.loadString(x))
+      case Right(x) => new Fdml(XML.loadString(x), cl)
       case Left(e)  => throw e
     }
     new AdaptedDataset(
@@ -27,4 +31,10 @@ object FdmlReader {
       //TODO: operations
     )
   }
+}
+
+object FdmlReader {
+
+  /** Create an FdmlReader that uses the caller's class loader. */
+  def apply(): FdmlReader = new FdmlReader(getClass().getClassLoader())
 }

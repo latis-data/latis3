@@ -9,7 +9,7 @@ import latis.metadata.Metadata
 import latis.model._
 import latis.util.ReflectionUtils
 
-class Fdml(xml: Elem) {
+class Fdml(xml: Elem, cl: ClassLoader) {
 
   // Defines global metadata
   def metadata: Metadata = Metadata(getAttributes(xml))
@@ -62,10 +62,12 @@ class Fdml(xml: Elem) {
     val config = AdapterConfig(properties: _*)
     ReflectionUtils
       .callMethodOnCompanionObject(
+        cl,
         "latis.input.AdapterFactory",
         "makeAdapter",
         model,
-        config
+        config,
+        cl
       )
       .asInstanceOf[Adapter]
   }
@@ -104,6 +106,7 @@ class Fdml(xml: Elem) {
       val md = Metadata(mdMap)
       if (classMap.nonEmpty) {
         val s = ReflectionUtils.callMethodOnCompanionObject(
+          cl,
           classMap("class"),
           "apply",
           md
