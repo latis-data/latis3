@@ -117,7 +117,7 @@ trait ModelTimeSeries extends UnaryOperation {
 
   /**
    * Sets the path to the JEP library file if it hasn't already been set.
-   * The file name is based off the operation system.
+   * The file name is based off the operating system.
    */
   private def setJepPath: Unit = try {
     val path = {
