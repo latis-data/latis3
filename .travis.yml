@@ -14,8 +14,6 @@ before_cache:
 
 jdk:
   - openjdk8
-    
-python: 3.6
 
 dist: bionic
 addons:
