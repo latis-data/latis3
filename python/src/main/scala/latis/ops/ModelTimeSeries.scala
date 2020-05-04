@@ -16,7 +16,7 @@ import latis.units.UnitConverter
  * (i.e., time -> value) with a specified algorithm.
  * TODO: Should we avoid overloading the term "model"?
  */
-trait ModelTimeSeries extends UnaryOperation {
+trait ModelTimeSeries extends JepOperation {
 
   /** 
    * The name of the modeling algorithm (must not contain spaces).
@@ -113,25 +113,6 @@ trait ModelTimeSeries extends UnaryOperation {
           }
       }, samples.length, 2)
     )
-  }
-
-  /**
-   * Sets the path to the JEP library file if it hasn't already been set.
-   * The file name is based off the operating system.
-   */
-  private def setJepPath: Unit = try {
-    val path = {
-      val os = System.getProperty("os.name").toLowerCase
-      val fileName = {
-        if (os.contains("win")) "jep.dll"
-        else if (os.contains("mac")) "jep.cpython-36m-darwin.so"
-        else "jep.cpython-36m-x86_64-linux-gnu.so"
-      }
-      System.getProperty("user.dir") + "/python/lib/" + fileName
-    }
-    MainInterpreter.setJepLibraryPath(path)
-  } catch {
-    case _: JepException => //JEP library path already set
   }
 
   /**
