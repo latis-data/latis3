@@ -38,7 +38,7 @@ class TestFdmlReader extends JUnitSuite {
   @Test
   def validate_on_load(): Unit = {
     try {
-      FdmlReader.read(new URI("datasets/invalid.fdml"), true)
+      FdmlReader().read(new URI("datasets/invalid.fdml"), true)
       fail("Validation did not work.")
     } catch {
       case e: Exception =>
