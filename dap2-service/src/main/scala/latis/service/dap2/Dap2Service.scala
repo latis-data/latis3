@@ -10,7 +10,7 @@ import org.http4s.HttpRoutes
 import org.http4s.Response
 import org.http4s.dsl.Http4sDsl
 
-import latis.input.DatasetResolver
+import latis.input.FdmlDatasetResolver
 import latis.dataset.Dataset
 import latis.ops
 import latis.ops.UnaryOperation
@@ -24,7 +24,7 @@ import latis.util.dap2.parser.ast
 /**
  * A service interface implementing the DAP 2 specification.
  */
-class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
+class Dap2Service(resolver: FdmlDatasetResolver) extends ServiceInterface(resolver) with Http4sDsl[IO] {
 
   override def routes: HttpRoutes[IO] =
     HttpRoutes.of {
@@ -42,7 +42,7 @@ class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
     }
 
   private def getDataset(id: String): Either[Dap2Error, Dataset] =
-    Try(DatasetResolver.getDataset(id))
+    Try(resolver.getDataset(id).get)
       .toEither
       .leftMap(_ => DatasetResolutionFailure(s"Failed to resolve dataset: $id"))
 

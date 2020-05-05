@@ -5,6 +5,8 @@ import scala.reflect.runtime.{ universe => ru }
 import cats.effect.IO
 import cats.implicits._
 
+import latis.input.FdmlDatasetResolver
+
 /** TODO */
 final class ServiceInterfaceLoader(
   conf: ServiceConf,
@@ -29,6 +31,8 @@ final class ServiceInterfaceLoader(
         val ctor = clss.toType.decl(ru.termNames.CONSTRUCTOR).asMethod
         cm.reflectConstructor(ctor)
       }
-      constructor().asInstanceOf[ServiceInterface]
+
+      val resolver = new FdmlDatasetResolver(loader)
+      constructor(resolver).asInstanceOf[ServiceInterface]
     }
 }
