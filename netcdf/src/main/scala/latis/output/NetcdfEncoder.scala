@@ -7,16 +7,15 @@ import cats.effect.Resource
 import fs2.Stream
 import ucar.ma2.{Array => NcArray}
 import ucar.ma2.{DataType => NcDataType}
-import ucar.nc2.Dimension
+import ucar.nc2.Attribute
 import ucar.nc2.NetcdfFileWriter
 import ucar.nc2.NetcdfFileWriter.Version.netcdf4
-import ucar.nc2.Variable
 
 import latis.data.Data
 import latis.data.Data._
-import latis.data.Datum
 import latis.data.Sample
 import latis.dataset.Dataset
+import latis.metadata.Metadata
 import latis.model.DataType
 import latis.model._
 import latis.ops.Uncurry
@@ -54,7 +53,7 @@ class NetcdfEncoder(file: File) extends Encoder[IO, File] {
       .flatMap { ncdf =>
         Stream
           .eval(uncurriedDataset.samples.compile.toVector)
-          .map(datasetToNetcdf(ncdf, uncurriedDataset.model, _))
+          .map(datasetToNetcdf(ncdf, uncurriedDataset.model, uncurriedDataset.metadata, _))
       }
       .as(file)
   }
@@ -62,15 +61,15 @@ class NetcdfEncoder(file: File) extends Encoder[IO, File] {
   private def datasetToNetcdf(
     file: NetcdfFileWriter,
     model: DataType,
-    datasetList: Vector[Sample]
+    metadata: Metadata,
+    samples: Vector[Sample]
   ): Unit = model match {
     case Function(domain, range) =>
       val dScalars = domain.getScalars
       val rScalars = range.getScalars
       val scalars  = dScalars ++ rScalars
       val acc: Accumulator =
-        accumulate(scalarsToAccumulator(scalars, datasetList.length), scalars, datasetList)
-
+        accumulate(scalarsToAccumulator(scalars, samples.length), scalars, samples)
       val dArrs = domainAccumulatorToNcArray(acc, dScalars)
       val shape = dArrs.map(_.getSize.toInt).toArray
       val rArrs = accumulatorToNcArray(acc.drop(dScalars.length), rScalars, shape)
@@ -81,13 +80,16 @@ class NetcdfEncoder(file: File) extends Encoder[IO, File] {
       val dimNames = dScalars.map(_.id).mkString(" ")
       val dVars    = dScalars.map(s => file.addVariable(s.id, scalarToNetcdfDataType(s), s.id))
       val rVars    = rScalars.map(s => file.addVariable(s.id, scalarToNetcdfDataType(s), dimNames))
+      // add metadata
+      for ((k, v) <- metadata.properties) file.addGlobalAttribute(k, v)
+      (dVars ++ rVars).zip(scalars).foreach {
+        case (variable, scalar) => scalar.metadata.properties.foreach { case (key, value) =>
+          variable.addAttribute(new Attribute(key, value))
+        }
+      }
       file.create() // create file and write metadata
       // write data
       (dVars ++ rVars).zip(dArrs ++ rArrs).foreach { case (v, a) => file.write(v, a) }
-    case _ =>
-      throw LatisException(
-        "dataset must be a function where domain and range are scalars or tuples of scalars"
-      )
   }
 }
 
