@@ -22,7 +22,7 @@ class CsvEncoderSpec extends FlatSpec {
   }
 
   it should "encode a dataset to CSV with a header" in {
-    val enc            = CsvEncoder.withColumnID
+    val enc            = CsvEncoder.withColumnName
     val csvList        = enc.encode(ds).compile.toList.unsafeRunSync()
     val expectedHeader = "time, b, c, d"
     csvList.head should be(expectedHeader)

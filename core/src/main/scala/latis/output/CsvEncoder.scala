@@ -51,15 +51,18 @@ object CsvEncoder {
   /** Default encoder with no header */
   def apply(): CsvEncoder = new CsvEncoder(_ => Stream())
 
-  def apply(header: Dataset => Stream[IO, String]): CsvEncoder = new CsvEncoder(header)
+  /**
+   * Creates an encoder with the provided header. An empty string will create a
+   * blank-line header.
+   * @param header function that creates a header from a Dataset
+   */
+  def withHeader(header: Dataset => String): CsvEncoder = new CsvEncoder(ds => Stream(header(ds)))
 
-//  def apply(header: Dataset => String): CsvEncoder = new CsvEncoder(ds => Stream(header(ds)))
-
-  def withColumnID: CsvEncoder = {
-    def header(dataset: Dataset): Stream[IO, String] = dataset.model match {
+  def withColumnName: CsvEncoder = {
+    def header(dataset: Dataset): String = dataset.model match {
       case Function(domain, range) =>
-        Stream((domain.getScalars ++ range.getScalars).map(_.id).mkString(", "))
+        (domain.getScalars ++ range.getScalars).map(_.id).mkString(", ")
     }
-    CsvEncoder(header)
+    CsvEncoder.withHeader(header)
   }
 }
