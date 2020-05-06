@@ -27,7 +27,7 @@ case class DetectAnomalies(
   X: String,
   Y: String,
   anomalyDef: String = "errors",
-  sigma: Double = 2.0) extends UnaryOperation {
+  sigma: Double = 2.0) extends JepOperation {
 
   /** The name of the interpreter variable that stores the time series. */
   protected val interpDs = "dataset"
@@ -135,15 +135,6 @@ case class DetectAnomalies(
     interpreter.exec(s"ts_with_anomalies = detect_anomalies(X, Y, outlier_def='$anomalyDef', num_stds=$sigma)")
     interpreter.exec("outliers = ts_with_anomalies.Outlier.to_numpy()")
     interpreter.getValue("outliers", classOf[NDArray[Array[Boolean]]]).getData
-  }
-
-  /**
-   * Sets the path to the JEP library file if it hasn't already been set.
-   */
-  private def setJepPath: Unit = try {
-    MainInterpreter.setJepLibraryPath(System.getProperty("user.dir") + "/python/lib/jep.cpython-36m-darwin.so")
-  } catch {
-    case _: JepException => //JEP library path already set
   }
   
 }

@@ -20,10 +20,11 @@ addons:
   apt:
     update: true
     packages:
-    - libhdf5-dev
+      - libhdf5-dev
 
 install:
   - travis/netcdf_build.sh
+  - travis/python_build.sh
 
 env:
   - LD_LIBRARY_PATH=$HOME/local/lib
