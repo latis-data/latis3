@@ -4,12 +4,15 @@ import java.io.File
 
 import cats.effect.IO
 import cats.effect.Resource
+import cats.implicits._
 import fs2.Stream
 import ucar.ma2.{Array => NcArray}
 import ucar.ma2.{DataType => NcDataType}
 import ucar.nc2.Attribute
+import ucar.nc2.Dimension
 import ucar.nc2.NetcdfFileWriter
 import ucar.nc2.NetcdfFileWriter.Version.netcdf4
+import ucar.nc2.Variable
 
 import latis.data.Data
 import latis.data.Data._
@@ -53,7 +56,7 @@ class NetcdfEncoder(file: File) extends Encoder[IO, File] {
       .flatMap { ncdf =>
         Stream
           .eval(uncurriedDataset.samples.compile.toVector)
-          .map(datasetToNetcdf(ncdf, uncurriedDataset.model, uncurriedDataset.metadata, _))
+          .evalMap(datasetToNetcdf(ncdf, uncurriedDataset.model, uncurriedDataset.metadata, _))
       }
       .as(file)
   }
@@ -63,33 +66,38 @@ class NetcdfEncoder(file: File) extends Encoder[IO, File] {
     model: DataType,
     metadata: Metadata,
     samples: Vector[Sample]
-  ): Unit = model match {
+  ): IO[Unit] = model match {
     case Function(domain, range) =>
       val dScalars = domain.getScalars
       val rScalars = range.getScalars
       val scalars  = dScalars ++ rScalars
+      val dimNames = dScalars.map(_.id).mkString(" ")
       val acc: Accumulator =
         accumulate(scalarsToAccumulator(scalars, samples.length), scalars, samples)
       val dArrs = domainAccumulatorToNcArray(acc, dScalars)
       val shape = dArrs.map(_.getSize.toInt).toArray
       val rArrs = accumulatorToNcArray(acc.drop(dScalars.length), rScalars, shape)
 
-      // add dimensions
-      dScalars.zip(shape).foreach { case (s, dim) => file.addDimension(s.id, dim) }
-      // add variables
-      val dimNames = dScalars.map(_.id).mkString(" ")
-      val dVars    = dScalars.map(s => file.addVariable(s.id, scalarToNetcdfDataType(s), s.id))
-      val rVars    = rScalars.map(s => file.addVariable(s.id, scalarToNetcdfDataType(s), dimNames))
-      // add metadata
-      for ((k, v) <- metadata.properties) file.addGlobalAttribute(k, v)
-      (dVars ++ rVars).zip(scalars).foreach {
-        case (variable, scalar) => scalar.metadata.properties.foreach { case (key, value) =>
-          variable.addAttribute(new Attribute(key, value))
+      for {
+        // add dimensions
+        _ <- dScalars.zip(shape).traverse { case (s, dim) => addDimension(file, s.id, dim) }
+        // add variables
+        dVars <- dScalars.traverse(s => addVariable(file, s.id, scalarToNetcdfDataType(s), s.id))
+        rVars <- rScalars.traverse(
+          s => addVariable(file, s.id, scalarToNetcdfDataType(s), dimNames)
+        )
+        // add metadata
+        _ <- metadata.properties.toList.traverse { case (k, v) => addGlobalAttribute(file, k, v) }
+        _ <- (dVars ++ rVars).zip(scalars).traverse {
+          case (variable, scalar) =>
+            scalar.metadata.properties.toList.traverse {
+              case (key, value) => addAttribute(variable, key, value)
+            }
         }
-      }
-      file.create() // create file and write metadata
-      // write data
-      (dVars ++ rVars).zip(dArrs ++ rArrs).foreach { case (v, a) => file.write(v, a) }
+        _ <- create(file) // create file and write metadata
+        // write data
+        _ <- (dVars ++ rVars).zip(dArrs ++ rArrs).traverse { case (v, d) => write(file, v, d) }
+      } yield ()
   }
 }
 
@@ -218,4 +226,31 @@ object NetcdfEncoder {
       // Boolean is not supported by netCDF4
       case t => throw LatisException(s"Unsupported type: $t")
     }
+
+  private def addDimension(file: NetcdfFileWriter, name: String, length: Int): IO[Dimension] =
+    IO { file.addDimension(name, length) }
+
+  private def addVariable(
+    file: NetcdfFileWriter,
+    varName: String,
+    ncType: NcDataType,
+    dimName: String
+  ): IO[Variable] =
+    IO { file.addVariable(varName, ncType, dimName) }
+
+  private def create(file: NetcdfFileWriter): IO[Unit] =
+    IO { file.create() }
+
+  private def write(file: NetcdfFileWriter, v: Variable, data: NcArray): IO[Unit] =
+    IO { file.write(v, data) }
+
+  private def addGlobalAttribute(
+    file: NetcdfFileWriter,
+    key: String,
+    value: String
+  ): IO[Attribute] =
+    IO { file.addGlobalAttribute(key, value) }
+
+  private def addAttribute(v: Variable, key: String, value: String): IO[Attribute] =
+    IO { v.addAttribute(new Attribute(key, value)) }
 }
