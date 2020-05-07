@@ -1,4 +1,5 @@
 package latis.input
+package fdml
 
 import java.net.URI
 import java.nio.file.Paths
