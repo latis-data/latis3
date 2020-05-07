@@ -34,7 +34,9 @@ def parser(x):
 
 
 def model_with_arima(ts, train_size, order, seasonal_order=(), seasonal_freq=None, trend=None,
-                                grid_search=False, path_to_model=None, verbose=False, ds_name='DS', var_name='Value'):
+                     grid_search=False, path_to_model=None, verbose=False,
+                     col_name='ARIMA', ds_name='Dataset', var_name='Value'):
+    #TODO: col_name
     """Model a time series with an ARIMA forecast.
 
        Inputs:
@@ -52,6 +54,8 @@ def model_with_arima(ts, train_size, order, seasonal_order=(), seasonal_freq=Non
            path_to_model [str]:    Path to a *.pkl file of a trained (S)ARIMA model. When set, no training will be done because that model will be used.
            verbose [bool]:         When True, show ACF and PACF plots before grid searching, plot residual training errors after fitting the model,
                                    and print predicted v. expected values during outlier detection. TODO: mention plot w/ forecast & outliers once it's under an "if verbose"
+           col_name [str]:         The name of the ARIMA column.
+                                   Default is 'ARIMA'.
            var_name [str]:         The name of the dependent variable in the time series.
                                    Default is 'Value'.
 
@@ -188,9 +192,9 @@ def model_with_arima(ts, train_size, order, seasonal_order=(), seasonal_freq=Non
     pyplot.clf()
 
     # Save data to proper directory with encoded file name
-    ts_with_arima = pd.DataFrame({'ARIMA': predictions_with_dates, var_name: ts})
+    ts_with_arima = pd.DataFrame({col_name: predictions_with_dates, var_name: ts})
     ts_with_arima.rename_axis('Time', axis='index', inplace=True)  # name index 'Time'
-    column_names = [var_name, 'ARIMA']  # column order
+    column_names = [var_name, col_name]  # column order
     ts_with_arima = ts_with_arima.reindex(columns=column_names)  # sort columns in specified order
 
     if int(train_size) == 1:
