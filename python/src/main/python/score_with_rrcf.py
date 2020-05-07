@@ -24,16 +24,18 @@ def time_parser(x):
     return pd.to_datetime(x, unit='ms', origin='unix')
 
 
-def score_with_rrcf(ts, ds_name, var_name, num_trees=100, shingle_size=18, tree_size=256, col_name='RRCF'):
+def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shingle_size=18, tree_size=256, col_name='RRCF'):
     """Get anomaly scores for each point in the given time series using a robust random cut forest.
 
        Inputs:
            ts [Array[Array[float, float]]: The time series data as an array of arrays.
                                            It becomes a pandas Series with a DatetimeIndex and a column for numerical values.
-           ds_name [str]:                  The name of the dataset.
-           var_name [str]:                 The name of the dependent variable in the time series.
 
        Optional Inputs:
+           ds_name [str]:      The name of the dataset.
+                               Default is 'Dataset'.
+           var_name [str]:     The name of the dependent variable in the time series.
+                               Default is 'Value'.
            num_trees [int]:    The number of trees in the generated forest.
                                Default is 100.
            shingle_size [int]: The size of each shingle when shingling the time series.
