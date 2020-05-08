@@ -105,7 +105,7 @@ def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shin
     # ax1.set_ylabel('CoDisp', color=score_color)
     # ax1.set_xlabel('Time')
     anom_score_series = pd.Series(list(avg_codisp.values()),
-                                  index=ts.index[:-(shingle_size - 1)])  # TODO: ensure data and index line up perfectly
+                                  index=ts.index)  # TODO: ensure data and index line up perfectly
 
     print("Got here in RRCF! 2")
     
