@@ -141,7 +141,7 @@ def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shin
     print(anom_score_series)
     
     
-    ts_with_scores = pd.DataFrame({col_name: anom_score_series, var_name: ts})
+    ts_with_scores = pd.DataFrame({col_name: anom_score_series.values, var_name: ts.values}, index=ts.index)
     print("ts_with_scores:")
     print(ts_with_scores)
     print("Got here in RRCF! 3")
