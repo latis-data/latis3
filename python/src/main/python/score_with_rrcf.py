@@ -138,10 +138,14 @@ def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shin
     # pyplot.clf()
 
     # Save data
+    print("anomaly_score_series and lengths:")
     print(anom_score_series)
+    print(len(anom_score_series))
+    print(len(ts))
+    print(len(ts.index))
     
     
-    ts_with_scores = pd.DataFrame({col_name: anom_score_series.values, var_name: ts.values}, index=ts.index[:-(shingle_size - 1)])
+    ts_with_scores = pd.DataFrame({col_name: anom_score_series, var_name: ts})
     print("ts_with_scores:")
     print(ts_with_scores)
     print("Got here in RRCF! 3")
