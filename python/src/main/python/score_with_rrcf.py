@@ -63,6 +63,7 @@ def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shin
            time_series_with_anomaly_scores = score_with_rrcf(dataset, ds_name, var_name)
        """
     
+    ts_orig = ts
     print("TS PRINTS RRCF:\n")
     print(str(ts))
     print(ts[0])
@@ -157,12 +158,22 @@ def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shin
     result = checkIfDuplicates(ts.index)
 
     if result:
-        print('Yes, list contains duplicates')
+        print('Yes, ts.index contains duplicates')
     else:
-        print('No duplicates found in list')
-    
-    
-    ts_with_scores = pd.DataFrame({col_name: anom_score_series, var_name: ts})
+        print('No duplicates found in ts.index')
+
+    for x in ts_orig:
+        print(x)
+
+    result = checkIfDuplicates(ts_orig)
+
+    if result:
+        print('Yes, ts_orig contains duplicates')
+    else:
+        print('No duplicates found in ts_orig')
+
+
+    ts_with_scores = pd.DataFrame({col_name: anom_score_series, var_name: ts}, ignore_index=True)
     print("ts_with_scores:")
     print(ts_with_scores)
     print("Got here in RRCF! 3")
