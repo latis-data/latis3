@@ -31,6 +31,17 @@ def checkIfDuplicates(listOfElems):
     else:
         return True
 
+    
+
+def checkIfDuplicatesString(listOfElems):
+    ''' Check if given list contains any duplicates '''
+    newList = [str(x) for x in listOfElems]
+    if len(newList) == len(set(newList)):
+        return False
+    else:
+        return True
+
+
 
 def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shingle_size=18, tree_size=256, col_name='RRCF'):
     """Get anomaly scores for each point in the given time series using a robust random cut forest.
@@ -165,15 +176,8 @@ def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shin
     for x in ts_orig:
         print(x)
 
-    # result2 = checkIfDuplicates(ts_orig)
-    # 
-    # if result2:
-    #     print('Yes, ts_orig contains duplicates')
-    # else:
-    #     print('No duplicates found in ts_orig')
 
-
-    ts_with_scores = pd.DataFrame({col_name: anom_score_series, var_name: ts}, ignore_index=True)
+    ts_with_scores = pd.DataFrame({col_name: anom_score_series.values, var_name: ts.values}, index=range(len(ts)))
     print("ts_with_scores:")
     print(ts_with_scores)
     print("Got here in RRCF! 3")
@@ -183,6 +187,13 @@ def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shin
     print("Got here in RRCF! 5")
     ts_with_scores = ts_with_scores.reindex(columns=column_names)  # sort columns in specified order
     print("Got here in RRCF! 6")
+
+    result2 = checkIfDuplicatesString(ts_orig)
+
+    if result2:
+        print('Yes, ts_orig contains duplicates')
+    else:
+        print('No duplicates found in ts_orig')
 
     # data_filename = ds_name + '_with_rrcf_scores.csv'
     # data_path = './save/datasets/' + ds_name + '/rrcf/data/'
