@@ -13,7 +13,7 @@ import latis.model.Function
 import latis.model.Scalar
 import latis.ops.Uncurry
 
-class CsvEncoder extends Encoder[IO, String] {
+class CsvEncoder(header: Dataset => Stream[IO, String]) extends Encoder[IO, String] {
 
   /**
    * Encodes the Stream of Samples from the given Dataset as a Stream
@@ -23,7 +23,7 @@ class CsvEncoder extends Encoder[IO, String] {
   override def encode(dataset: Dataset): Stream[IO, String] = {
     val uncurriedDataset = dataset.withOperation(Uncurry())
     // Encode each Sample as a String in the Stream
-    uncurriedDataset.samples
+    header(dataset) ++ uncurriedDataset.samples
       .map(encodeSample(uncurriedDataset.model, _) + lineSeparator)
   }
 
@@ -34,11 +34,35 @@ class CsvEncoder extends Encoder[IO, String] {
     (model, sample) match {
       case (Function(domain, range), Sample(ds, rs)) =>
         val scalars = domain.getScalars ++ range.getScalars
-        val datas = ds ++ rs
-        scalars.zip(datas).map {
-          case (s: Scalar, d: Datum) =>
-            s.formatValue(d)
-          case _ => ???
-        }.mkString(",")
+        val datas   = ds ++ rs
+        scalars
+          .zip(datas)
+          .map {
+            case (s: Scalar, d: Datum) =>
+              s.formatValue(d)
+            case _ => ???
+          }
+          .mkString(",")
     }
+}
+
+object CsvEncoder {
+
+  /** Default encoder with no header */
+  def apply(): CsvEncoder = new CsvEncoder(_ => Stream())
+
+  /**
+   * Creates an encoder with the provided header. An empty string will create a
+   * blank-line header.
+   * @param header function that creates a header from a Dataset
+   */
+  def withHeader(header: Dataset => String): CsvEncoder = new CsvEncoder(ds => Stream(header(ds)))
+
+  def withColumnName: CsvEncoder = {
+    def header(dataset: Dataset): String = dataset.model match {
+      case Function(domain, range) =>
+        (domain.getScalars ++ range.getScalars).map(_.id).mkString(",")
+    }
+    CsvEncoder.withHeader(header)
+  }
 }
