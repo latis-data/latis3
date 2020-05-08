@@ -80,7 +80,7 @@ class AnomalyDataSpec extends FlatSpec {
     val ds = Dataset.fromName("sine_wave_with_anomalies")
       .withOperation(ScoreWithRRCF())
 
-    //TextWriter().write(ds)
+    TextWriter().write(ds)
 
     StreamUtils.unsafeHead(ds.samples) match {
       case Sample(DomainData(Number(t)), RangeData(Real(f), Real(rrcf))) =>
