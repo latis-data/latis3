@@ -158,6 +158,12 @@ def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shin
     # pyplot.clf()
 
     # Save data
+    
+    #Make anom_score_series same lengths as ts
+    num_elems_needed = len(ts) - len(anom_score_series)
+    for i in range(num_elems_needed):
+        anom_score_series.append(pd.Series([0.0]))
+    
     print("anomaly_score_series and lengths:")
     print(anom_score_series)
     print(len(anom_score_series))
