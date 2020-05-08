@@ -138,7 +138,12 @@ def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shin
     # pyplot.clf()
 
     # Save data
+    print(anom_score_series)
+    
+    
     ts_with_scores = pd.DataFrame({col_name: anom_score_series, var_name: ts})
+    print("ts_with_scores:")
+    print(ts_with_scores)
     print("Got here in RRCF! 3")
     ts_with_scores.rename_axis('Time', axis='index', inplace=True)  # name index 'Time'
     print("Got here in RRCF! 4")
