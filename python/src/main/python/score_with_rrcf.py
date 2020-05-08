@@ -70,7 +70,7 @@ def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shin
     shingle_size = shingle_size
     tree_size = tree_size
     
-    print("Got here in RRCF!")
+    print("Got here in RRCF! 1")
 
     # Create a forest of empty trees
     forest = []
@@ -106,6 +106,9 @@ def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shin
     # ax1.set_xlabel('Time')
     anom_score_series = pd.Series(list(avg_codisp.values()),
                                   index=ts.index[:-(shingle_size - 1)])  # TODO: ensure data and index line up perfectly
+
+    print("Got here in RRCF! 2")
+    
     # lns1 = ax1.plot(anom_score_series.sort_index(), label='RRCF Anomaly Score',
     #                 color=score_color)  # Plot this series to get dates on the x-axis instead of number indices
     # ax1.tick_params(axis='y', labelcolor=score_color)
@@ -136,9 +139,13 @@ def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shin
 
     # Save data
     ts_with_scores = pd.DataFrame({col_name: anom_score_series, var_name: ts})
+    print("Got here in RRCF! 3")
     ts_with_scores.rename_axis('Time', axis='index', inplace=True)  # name index 'Time'
+    print("Got here in RRCF! 4")
     column_names = [var_name, col_name]  # column order
+    print("Got here in RRCF! 5")
     ts_with_scores = ts_with_scores.reindex(columns=column_names)  # sort columns in specified order
+    print("Got here in RRCF! 6")
 
     # data_filename = ds_name + '_with_rrcf_scores.csv'
     # data_path = './save/datasets/' + ds_name + '/rrcf/data/'
