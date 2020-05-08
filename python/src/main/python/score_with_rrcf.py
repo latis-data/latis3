@@ -24,6 +24,14 @@ def time_parser(x):
     return pd.to_datetime(x, unit='ms', origin='unix')
 
 
+def checkIfDuplicates(listOfElems):
+    ''' Check if given list contains any duplicates '''
+    if len(listOfElems) == len(set(listOfElems)):
+        return False
+    else:
+        return True
+
+
 def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shingle_size=18, tree_size=256, col_name='RRCF'):
     """Get anomaly scores for each point in the given time series using a robust random cut forest.
 
@@ -145,6 +153,13 @@ def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shin
     print(len(ts.index))
     for x in ts.index:
         print(x)
+
+    result = checkIfDuplicates(ts.index)
+
+    if result:
+        print('Yes, list contains duplicates')
+    else:
+        print('No duplicates found in list')
     
     
     ts_with_scores = pd.DataFrame({col_name: anom_score_series, var_name: ts})
