@@ -55,8 +55,7 @@ def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shin
            time_series_with_anomaly_scores = score_with_rrcf(dataset, ds_name, var_name)
        """
     
-    print("TS PRINTS:\n")
-    print(ts)
+    print("TS PRINTS RRCF:\n")
     print(str(ts))
     print(ts[0])
     print(ts[-1])
