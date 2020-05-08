@@ -54,6 +54,12 @@ def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shin
        Example:
            time_series_with_anomaly_scores = score_with_rrcf(dataset, ds_name, var_name)
        """
+    
+    print("TS PRINTS:\n")
+    print(ts)
+    print(str(ts))
+    print(ts[0])
+    print(ts[-1])
 
     ts = pd.DataFrame(ts, columns=['Time', var_name])
     ts['Time'] = ts['Time'].apply(lambda time: time_parser(time))  # convert times to datetimes
