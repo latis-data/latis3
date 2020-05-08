@@ -24,25 +24,6 @@ def time_parser(x):
     return pd.to_datetime(x, unit='ms', origin='unix')
 
 
-def checkIfDuplicates(listOfElems):
-    ''' Check if given list contains any duplicates '''
-    if len(listOfElems) == len(set(listOfElems)):
-        return False
-    else:
-        return True
-
-    
-
-def checkIfDuplicatesString(listOfElems):
-    ''' Check if given list contains any duplicates '''
-    newList = [str(x) for x in listOfElems]
-    if len(newList) == len(set(newList)):
-        return False
-    else:
-        return True
-
-
-
 def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shingle_size=18, tree_size=256, col_name='RRCF'):
     """Get anomaly scores for each point in the given time series using a robust random cut forest.
 
@@ -73,12 +54,6 @@ def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shin
        Example:
            time_series_with_anomaly_scores = score_with_rrcf(dataset, ds_name, var_name)
        """
-    
-    ts_orig = ts
-    print("TS PRINTS RRCF:\n")
-    print(str(ts))
-    print(ts[0])
-    print(ts[-1])
 
     ts = pd.DataFrame(data=ts, columns=['Time', var_name])
     ts['Time'] = ts['Time'].apply(lambda time: time_parser(time))  # convert times to datetimes
@@ -89,8 +64,6 @@ def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shin
     num_trees = num_trees
     shingle_size = shingle_size
     tree_size = tree_size
-    
-    print("Got here in RRCF! 1")
 
     # Create a forest of empty trees
     forest = []
@@ -124,11 +97,10 @@ def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shin
     # score_color = '#0CCADC'
     # ax1.set_ylabel('CoDisp', color=score_color)
     # ax1.set_xlabel('Time')
+
     anom_score_series = pd.Series(list(avg_codisp.values()),
                                   index=ts.index[:-(shingle_size - 1)])  # TODO: ensure data and index line up perfectly
 
-    print("Got here in RRCF! 2")
-    
     # lns1 = ax1.plot(anom_score_series.sort_index(), label='RRCF Anomaly Score',
     #                 color=score_color)  # Plot this series to get dates on the x-axis instead of number indices
     # ax1.tick_params(axis='y', labelcolor=score_color)
@@ -157,50 +129,17 @@ def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shin
     # pyplot.show()
     # pyplot.clf()
 
-    # Save data
-    
-    #Make anom_score_series same lengths as ts
+    # Make anom_score_series same length as ts
     num_elems_needed = len(ts) - len(anom_score_series)
     for i in range(num_elems_needed):
-        anom_score_series = anom_score_series.append(pd.Series([0.0]))
-    
-    print("anomaly_score_series and lengths:")
-    print(anom_score_series)
-    print(len(anom_score_series))
-    print(len(ts))
-    print(len(ts.index))
-    for x in ts.index:
-        print(x)
-
-    result = checkIfDuplicates(ts.index)
-
-    if result:
-        print('Yes, ts.index contains duplicates')
-    else:
-        print('No duplicates found in ts.index')
-
-    for x in ts_orig:
-        print(x)
-
+        anom_score_series = anom_score_series.append(pd.Series([float("NaN")]))
 
     ts_with_scores = pd.DataFrame({col_name: anom_score_series.values, var_name: ts.values}, index=range(len(ts)))
-    print("ts_with_scores:")
-    print(ts_with_scores)
-    print("Got here in RRCF! 3")
     ts_with_scores.rename_axis('Time', axis='index', inplace=True)  # name index 'Time'
-    print("Got here in RRCF! 4")
     column_names = [var_name, col_name]  # column order
-    print("Got here in RRCF! 5")
     ts_with_scores = ts_with_scores.reindex(columns=column_names)  # sort columns in specified order
-    print("Got here in RRCF! 6")
 
-    result2 = checkIfDuplicatesString(ts_orig)
-
-    if result2:
-        print('Yes, ts_orig contains duplicates')
-    else:
-        print('No duplicates found in ts_orig')
-
+    # Save data
     # data_filename = ds_name + '_with_rrcf_scores.csv'
     # data_path = './save/datasets/' + ds_name + '/rrcf/data/'
     # if not os.path.exists(data_path):
