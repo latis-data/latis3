@@ -36,7 +36,7 @@ case class ModelWithArima(
       s"(${seasonalOrder._1}, ${seasonalOrder._2}, ${seasonalOrder._3})," +
       s"${seasonalOrder._4}," +
       s"'$trend'," +
-      s"$gridSearch," +
+      s"${if (gridSearch) "True" else "False"}," +
       s"col_name='$modelAlg')")
     interpreter.exec(s"model_output = ts_with_model.$modelAlg.to_numpy()")
     interpreter.getValue("model_output", classOf[NDArray[Array[Double]]]).getData
