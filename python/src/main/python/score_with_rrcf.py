@@ -165,12 +165,12 @@ def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shin
     for x in ts_orig:
         print(x)
 
-    result = checkIfDuplicates(ts_orig)
-
-    if result:
-        print('Yes, ts_orig contains duplicates')
-    else:
-        print('No duplicates found in ts_orig')
+    # result2 = checkIfDuplicates(ts_orig)
+    # 
+    # if result2:
+    #     print('Yes, ts_orig contains duplicates')
+    # else:
+    #     print('No duplicates found in ts_orig')
 
 
     ts_with_scores = pd.DataFrame({col_name: anom_score_series, var_name: ts}, ignore_index=True)
