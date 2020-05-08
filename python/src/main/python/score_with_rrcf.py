@@ -60,7 +60,7 @@ def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shin
     print(ts[0])
     print(ts[-1])
 
-    ts = pd.DataFrame(ts, columns=['Time', var_name])
+    ts = pd.DataFrame(data=ts, columns=['Time', var_name])
     ts['Time'] = ts['Time'].apply(lambda time: time_parser(time))  # convert times to datetimes
     ts = ts.set_index('Time')                                      # set the datetime column as the index
     ts = ts.squeeze()                                              # convert to a Series
@@ -69,6 +69,8 @@ def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shin
     num_trees = num_trees
     shingle_size = shingle_size
     tree_size = tree_size
+    
+    print("Got here in RRCF!")
 
     # Create a forest of empty trees
     forest = []
