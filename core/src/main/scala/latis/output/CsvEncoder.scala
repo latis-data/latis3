@@ -61,7 +61,7 @@ object CsvEncoder {
   def withColumnName: CsvEncoder = {
     def header(dataset: Dataset): String = dataset.model match {
       case Function(domain, range) =>
-        (domain.getScalars ++ range.getScalars).map(_.id).mkString(", ")
+        (domain.getScalars ++ range.getScalars).map(_.id).mkString(",")
     }
     CsvEncoder.withHeader(header)
   }
