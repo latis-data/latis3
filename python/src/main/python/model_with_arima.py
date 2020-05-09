@@ -317,8 +317,8 @@ def score_model(data, config, debug=False):
             print(e)
             error = None
     # check for an interesting result
-    if len(rmses) > 0:
-        # print(' > Model[%s] %s' % (str(config), str(rmses))) # TODO: "if verbose" or don't print
+    # if len(rmses) > 0:
+    #     print(' > Model[%s] %s' % (str(config), str(rmses))) # TODO: "if verbose" or don't print
     return (config, rmses)
 
 
@@ -464,8 +464,8 @@ def grid_search_sarima_params(ts, freq):
     # TODO: don't print this?
     # print('\n' + '----------------------------------GRID SEARCHING COMPLETE------------------------------------------')
     # print('RESULTS:' + '\n')
-    for config_and_score in configs_with_scores:
-        # print(str(config_and_score))
+    # for config_and_score in configs_with_scores:
+    #     print(str(config_and_score))
 
     best_order_config = configs_with_scores[0][0]  # TODO: always returning the best score doesn't lead to constant overfitting, does it?
 
