@@ -25,12 +25,9 @@ __author__ = 'Shawn Polson'
 __contact__ = 'shawn.polson@colorado.edu'
 
 
-def parser(x):
-    new_time = ''.join(x.split('.')[0])  # remove microseconds from time data
-    try:
-        return datetime.strptime(new_time, '%Y-%m-%d %H:%M:%S')  # for bus voltage, battery temp, wheel temp, and wheel rpm data
-    except:
-        return datetime.today()
+def time_parser(x):
+    # Assume the time is given in ms since 1970-01-01
+    return pd.to_datetime(x, unit='ms', origin='unix')
 
 
 def model_with_arima(ts, train_size, order, seasonal_order=(), seasonal_freq=None, trend=None,
@@ -40,9 +37,9 @@ def model_with_arima(ts, train_size, order, seasonal_order=(), seasonal_freq=Non
     """Model a time series with an ARIMA forecast.
 
        Inputs:
-           ts [str]:           A string path to the time series data. Data is read as a pandas Series with a DatetimeIndex and a column for numerical values.
-           train_size [float]: The percentage of data to use for training, as a float (e.g., 0.66).
-           order [tuple]:      The order hyperparameters (p,d,q) for this ARIMA model.
+           ts [Array[Array[float, float]]:  The time series data as an array of arrays.
+           train_size [float]:              The percentage of data to use for training, as a float (e.g., 0.66).
+           order [tuple]:                   The order hyperparameters (p,d,q) for this ARIMA model.
 
 
        Optional Inputs:
@@ -89,17 +86,20 @@ def model_with_arima(ts, train_size, order, seasonal_order=(), seasonal_freq=Non
         #     lag_pacf = pacf(ts, nlags=20, method='ols')
         #     pyplot.show()
         if seasonal_freq is None:  # ARIMA grid search
-            print('No seasonal frequency was given, so grid searching ARIMA(p,d,q) hyperparameters.')
+            # print('No seasonal frequency was given, so grid searching ARIMA(p,d,q) hyperparameters.')
             order = grid_search_arima_params(ts)
-            print('Grid search found hyperparameters: ' + str(order) + '\n')
+            # print('Grid search found hyperparameters: ' + str(order) + '\n')
         else:  # SARIMA grid search
-            print('Seasonal frequency was given, so grid searching ARIMA(p,d,q)(P,D,Q) hyperparameters.')
+            # print('Seasonal frequency was given, so grid searching ARIMA(p,d,q)(P,D,Q) hyperparameters.')
             order, seasonal_order, trend = grid_search_sarima_params(ts, seasonal_freq)
-            print('Grid search found hyperparameters: ' + str(order) + str(seasonal_order) + '\n')
+            # print('Grid search found hyperparameters: ' + str(order) + str(seasonal_order) + '\n')
 
     # Train or load ARIMA/SARIMA model
-    #X = ts
-    X = read_csv(ts, header=0, parse_dates=[0], index_col=0, squeeze=True, date_parser=parser)
+    X = pd.DataFrame(data=ts, columns=['Time', var_name])
+    X['Time'] = X['Time'].apply(lambda time: time_parser(time))  # convert times to datetimes
+    X = X.set_index('Time')                                      # set the datetime column as the index
+    X = X.squeeze()                                              # convert to a Series
+    
     split = int(len(X) * train_size)
     train, test = X[0:split], X[split:len(X)]
     threshold = float(train.values.std(ddof=0)) * 2.0  # TODO: 2stds; finalize/decide std scheme (pass it in?)
@@ -112,16 +112,10 @@ def model_with_arima(ts, train_size, order, seasonal_order=(), seasonal_freq=Non
 
     if path_to_model is not None:
         # load pre-trained model
-        print('Loading model: ' + path_to_model)
         trained_model_fit = ARIMAResults.load(path_to_model)
     else:
-        current_time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-        print('Before fitting: ' + current_time + '\n')
-
         trained_model_fit = trained_model.fit(disp=1)
 
-        current_time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-        print('After fitting: ' + current_time + '\n')
         # # save the just-trained model
         # try:
         #     current_time = str(datetime.now().strftime("%Y-%m-%dT%H-%M-%S"))
@@ -135,7 +129,7 @@ def model_with_arima(ts, train_size, order, seasonal_order=(), seasonal_freq=Non
         #     print('Saving model failed:')
         #     print(e)
 
-    print(trained_model_fit.summary())
+    # print(trained_model_fit.summary())
 
     # if verbose:
     #     # plot residual errors
@@ -165,31 +159,31 @@ def model_with_arima(ts, train_size, order, seasonal_order=(), seasonal_freq=Non
     #     print(e)
 
     # Plot the forecast and outliers
-    if len(seasonal_order) < 4:  # ARIMA title
-        title_text = ds_name + ' with ' + str(order) + ' ARIMA Forecast'
-    else:  # SARIMA title
-        title_text = ds_name + ' with ' + str(order) + '_' + str(seasonal_order) + '_' + str(trend) + ' ARIMA Forecast'
-    ax = X.plot(color='#192C87', title=title_text, label=var_name, figsize=(14, 6))
-    if len(test) > 0:
-        test.plot(color='#441594', label='Test Data')
-    predictions_with_dates.plot(color='#0CCADC', label='ARIMA Forecast')
-    ax.set(xlabel='Time', ylabel=var_name)
-    pyplot.legend(loc='best')
+    # if len(seasonal_order) < 4:  # ARIMA title
+    #     title_text = ds_name + ' with ' + str(order) + ' ARIMA Forecast'
+    # else:  # SARIMA title
+    #     title_text = ds_name + ' with ' + str(order) + '_' + str(seasonal_order) + '_' + str(trend) + ' ARIMA Forecast'
+    # ax = X.plot(color='#192C87', title=title_text, label=var_name, figsize=(14, 6))
+    # if len(test) > 0:
+    #     test.plot(color='#441594', label='Test Data')
+    # predictions_with_dates.plot(color='#0CCADC', label='ARIMA Forecast')
+    # ax.set(xlabel='Time', ylabel=var_name)
+    # pyplot.legend(loc='best')
 
     # save the plot before showing it
-    if train_size == 1:
-        plot_filename = ds_name + '_with_arima_full.png'
-    elif train_size == 0.5:
-        plot_filename = ds_name + '_with_arima_half.png'
-    else:
-        plot_filename = ds_name + '_with_arima_' + str(train_size) + '.png'
-    plot_path = './save/datasets/' + ds_name + '/arima/plots/' + str(int(train_size*100)) + ' percent/'
-    if not os.path.exists(plot_path):
-        os.makedirs(plot_path)
-    pyplot.savefig(plot_path + plot_filename, dpi=500)
-
-    #pyplot.show()
-    pyplot.clf()
+    # if train_size == 1:
+    #     plot_filename = ds_name + '_with_arima_full.png'
+    # elif train_size == 0.5:
+    #     plot_filename = ds_name + '_with_arima_half.png'
+    # else:
+    #     plot_filename = ds_name + '_with_arima_' + str(train_size) + '.png'
+    # plot_path = './save/datasets/' + ds_name + '/arima/plots/' + str(int(train_size*100)) + ' percent/'
+    # if not os.path.exists(plot_path):
+    #     os.makedirs(plot_path)
+    # pyplot.savefig(plot_path + plot_filename, dpi=500)
+    # 
+    # #pyplot.show()
+    # pyplot.clf()
 
     # Save data to proper directory with encoded file name
     ts_with_arima = pd.DataFrame({col_name: predictions_with_dates, var_name: ts})
@@ -197,16 +191,16 @@ def model_with_arima(ts, train_size, order, seasonal_order=(), seasonal_freq=Non
     column_names = [var_name, col_name]  # column order
     ts_with_arima = ts_with_arima.reindex(columns=column_names)  # sort columns in specified order
 
-    if int(train_size) == 1:
-        data_filename = ds_name + '_with_arima_full.csv'
-    elif train_size == 0.5:
-        data_filename = ds_name + '_with_arima_half.csv'
-    else:
-        data_filename = ds_name + '_with_arima_' + str(train_size) + '.csv'
-    data_path = './save/datasets/' + ds_name + '/arima/data/' + str(int(train_size * 100)) + ' percent/'
-    if not os.path.exists(data_path):
-        os.makedirs(data_path)
-    ts_with_arima.to_csv(data_path + data_filename)
+    # if int(train_size) == 1:
+    #     data_filename = ds_name + '_with_arima_full.csv'
+    # elif train_size == 0.5:
+    #     data_filename = ds_name + '_with_arima_half.csv'
+    # else:
+    #     data_filename = ds_name + '_with_arima_' + str(train_size) + '.csv'
+    # data_path = './save/datasets/' + ds_name + '/arima/data/' + str(int(train_size * 100)) + ' percent/'
+    # if not os.path.exists(data_path):
+    #     os.makedirs(data_path)
+    # ts_with_arima.to_csv(data_path + data_filename)
 
     return ts_with_arima
 
@@ -324,7 +318,7 @@ def score_model(data, config, debug=False):
             error = None
     # check for an interesting result
     if len(rmses) > 0:
-        print(' > Model[%s] %s' % (str(config), str(rmses))) # TODO: "if verbose" or don't print
+        # print(' > Model[%s] %s' % (str(config), str(rmses))) # TODO: "if verbose" or don't print
     return (config, rmses)
 
 
@@ -377,7 +371,7 @@ def sarima_forecast_and_score(training, validation, config):
     trend = config[2]
 
     trained_model = SARIMAX(training, order=order, seasonal_order=seasonal_order, trend=trend, enforce_stationarity=False, enforce_invertibility=False)
-    print('Training with configs: ' + str(config))
+    # print('Training with configs: ' + str(config))
     trained_model_fit = trained_model.fit(disp=1)
 
     predictions = trained_model_fit.predict(start=1, end=len(X)-1, typ='levels')
@@ -429,7 +423,7 @@ def grid_search_arima_params(ts):
                     print('ARIMA%s MSE=%.3f' % (order, mse))
                 except:
                     continue
-    print('Best ARIMA%s MSE=%.3f' % (best_cfg, best_score))
+    # print('Best ARIMA%s MSE=%.3f' % (best_cfg, best_score))
     order = best_cfg  # TODO: always returning the best score doesn't lead to constant overfitting, does it?
     return order
 
@@ -468,10 +462,10 @@ def grid_search_sarima_params(ts, freq):
     configs_with_scores = get_cross_validation_scores(training_data, possible_order_configs)  # get cross validation scores for each order_config
 
     # TODO: don't print this?
-    print('\n' + '----------------------------------GRID SEARCHING COMPLETE------------------------------------------')
-    print('RESULTS:' + '\n')
+    # print('\n' + '----------------------------------GRID SEARCHING COMPLETE------------------------------------------')
+    # print('RESULTS:' + '\n')
     for config_and_score in configs_with_scores:
-        print(str(config_and_score))
+        # print(str(config_and_score))
 
     best_order_config = configs_with_scores[0][0]  # TODO: always returning the best score doesn't lead to constant overfitting, does it?
 
