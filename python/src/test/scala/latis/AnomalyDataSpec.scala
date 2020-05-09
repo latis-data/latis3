@@ -58,7 +58,8 @@ class AnomalyDataSpec extends FlatSpec {
       case Sample(DomainData(Number(t)), RangeData(Real(f), Real(a))) =>
         t should be (1)
         f should be (0.841470985)
-        a should be (Float.NaN)
+        println(a.getClass)
+        a should be (Double.NaN)
     }
   }
 
