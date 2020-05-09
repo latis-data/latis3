@@ -1,5 +1,4 @@
-package latis.input
-package fdml
+package latis.input.fdml
 
 import java.net.URI
 

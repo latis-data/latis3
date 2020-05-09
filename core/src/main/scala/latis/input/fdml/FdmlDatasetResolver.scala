@@ -1,5 +1,4 @@
-package latis.input
-package fdml
+package latis.input.fdml
 
 import java.net.URI
 import java.nio.file.Paths
@@ -7,6 +6,7 @@ import java.nio.file.Paths
 import cats.implicits._
 
 import latis.dataset.Dataset
+import latis.input.DatasetResolver
 import latis.util._
 
 /**
