@@ -186,7 +186,7 @@ def model_with_arima(ts, train_size, order, seasonal_order=(), seasonal_freq=Non
     # pyplot.clf()
 
     # Save data to proper directory with encoded file name
-    ts_with_arima = pd.DataFrame({col_name: predictions_with_dates, var_name: ts})
+    ts_with_arima = pd.DataFrame({col_name: predictions_with_dates.values, var_name: X.values}, index=predict_index)
     ts_with_arima.rename_axis('Time', axis='index', inplace=True)  # name index 'Time'
     column_names = [var_name, col_name]  # column order
     ts_with_arima = ts_with_arima.reindex(columns=column_names)  # sort columns in specified order
