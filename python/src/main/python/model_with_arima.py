@@ -142,9 +142,9 @@ def model_with_arima(ts, train_size, order, seasonal_order=(), seasonal_freq=Non
 
     # Forecast with the trained ARIMA/SARIMA model
     #predictions = trained_model_fit.predict(start=1, end=len(X)-1, typ='levels')
-    predictions = trained_model_fit.predict()
-    # predict_index = pd.Index(X.index)
-    predictions_with_dates = pd.Series(predictions.values, index=X.index)
+    predictions = trained_model_fit.predict(start=1, end=len(X)-1)
+    predict_index = pd.Index(X.index[1:len(X)])
+    predictions_with_dates = pd.Series(predictions.values, index=predict_index)
     errors = pd.Series()
 
 
@@ -186,7 +186,7 @@ def model_with_arima(ts, train_size, order, seasonal_order=(), seasonal_freq=Non
     # pyplot.clf()
 
     # Save data to proper directory with encoded file name
-    ts_with_arima = pd.DataFrame({col_name: predictions_with_dates.values, var_name: X.values}, index=X.index)
+    ts_with_arima = pd.DataFrame({col_name: predictions_with_dates.values, var_name: X.values}, index=predict_index)
     ts_with_arima.rename_axis('Time', axis='index', inplace=True)  # name index 'Time'
     column_names = [var_name, col_name]  # column order
     ts_with_arima = ts_with_arima.reindex(columns=column_names)  # sort columns in specified order
