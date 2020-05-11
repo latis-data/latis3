@@ -187,10 +187,16 @@ def model_with_arima(ts, train_size, order, seasonal_order=(), seasonal_freq=Non
     # 
     # #pyplot.show()
     # pyplot.clf()
-    
+
+    # Fill with NaNs the prediction values that were differenced away
+    num_elems_needed = len(X) - len(predictions_with_dates)
+    for i in range(num_elems_needed):
+        predictions_with_dates = pd.Series([float("NaN")]).append(predictions_with_dates)
+
     print("ARIMA lengths:")
     print(len(predictions_with_dates))
     print(len(X))
+
 
     # Save data to proper directory with encoded file name
     ts_with_arima = pd.DataFrame({col_name: predictions_with_dates, var_name: X})
