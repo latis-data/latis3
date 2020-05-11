@@ -100,6 +100,8 @@ def model_with_arima(ts, train_size, order, seasonal_order=(), seasonal_freq=Non
     X = X.set_index('Time')                                      # set the datetime column as the index
     X = X.squeeze()                                              # convert to a Series
     
+    print("Got here ARIMA 1")
+    
     split = int(len(X) * train_size)
     train, test = X[0:split], X[split:len(X)]
     # threshold = float(train.values.std(ddof=0)) * 2.0  # TODO: 2stds; finalize/decide std scheme (pass it in?)
@@ -147,6 +149,7 @@ def model_with_arima(ts, train_size, order, seasonal_order=(), seasonal_freq=Non
     predictions_with_dates = pd.Series(predictions.values, index=predict_index)
     errors = pd.Series()
 
+    print("Got here ARIMA 2")
 
     # try:
     #     model_error = sqrt(mean_squared_error(X[1:len(X)], predictions_with_dates))
@@ -184,12 +187,20 @@ def model_with_arima(ts, train_size, order, seasonal_order=(), seasonal_freq=Non
     # 
     # #pyplot.show()
     # pyplot.clf()
+    
+    print("ARIMA lengths:")
+    print(len(predictions_with_dates))
+    print(len(X))
 
     # Save data to proper directory with encoded file name
     ts_with_arima = pd.DataFrame({col_name: predictions_with_dates, var_name: X})
+    print("Got here ARIMA 3")
     ts_with_arima.rename_axis('Time', axis='index', inplace=True)  # name index 'Time'
+    print("Got here ARIMA 4")
     column_names = [var_name, col_name]  # column order
+    print("Got here ARIMA 5")
     ts_with_arima = ts_with_arima.reindex(columns=column_names)  # sort columns in specified order
+    print("Got here ARIMA 6")
 
     # if int(train_size) == 1:
     #     data_filename = ds_name + '_with_arima_full.csv'
