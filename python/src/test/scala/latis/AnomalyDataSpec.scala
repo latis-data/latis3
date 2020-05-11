@@ -47,6 +47,62 @@ class AnomalyDataSpec extends FlatSpec {
         rm should be (0.9432600027000001)
     }
   }
+
+  "The ARIMA modeling operation" should "add its new column to the dataset" in {
+    val ds = Dataset.fromName("sine_wave_with_anomalies")
+      .withOperation(ModelWithArima(0.5, (1,0,0), (0,1,0,50)))
+
+    //TextWriter().write(ds)
+
+    StreamUtils.unsafeHead(ds.samples) match {
+      case Sample(DomainData(Number(t)), RangeData(Real(f), Real(a))) =>
+        t should be (1)
+        f should be (0.841470985)
+        a.isNaN should be (true)
+    }
+  }
+
+  it should "work with Text times" in {
+    val ds = Dataset.fromName("sine_wave_with_anomalies_text")
+      .withOperation(ModelWithArima(0.5, (1,0,0), (0,1,0,50)))
+
+    //TextWriter().write(ds)
+
+    StreamUtils.unsafeHead(ds.samples) match {
+      case Sample(DomainData(Text(t)), RangeData(Real(f), Real(a))) =>
+        t should be ("2000-01-02")
+        f should be (0.841470985)
+        a.isNaN should be (true)
+    }
+  }
+
+  "The robust random cut forest operation" should "add its new column to the dataset" in {
+    val ds = Dataset.fromName("sine_wave_with_anomalies")
+      .withOperation(ScoreWithRRCF())
+
+    //TextWriter().write(ds)
+
+    StreamUtils.unsafeHead(ds.samples) match {
+      case Sample(DomainData(Number(t)), RangeData(Real(f), Real(rrcf))) =>
+        t should be (1)
+        f should be (0.841470985)
+        rrcf should be (0.0)
+    }
+  }
+
+  it should "work with Text times" in {
+    val ds = Dataset.fromName("sine_wave_with_anomalies_text")
+      .withOperation(ScoreWithRRCF())
+
+    //TextWriter().write(ds)
+
+    StreamUtils.unsafeHead(ds.samples) match {
+      case Sample(DomainData(Text(t)), RangeData(Real(f), Real(rrcf))) =>
+        t should be ("2000-01-02")
+        f should be (0.841470985)
+        rrcf should be (0.0)
+    }
+  }
   
   "The autoencoder modeling operation" should "add its new column to the dataset" in {
     val ds = Dataset.fromName("sine_wave_with_anomalies")

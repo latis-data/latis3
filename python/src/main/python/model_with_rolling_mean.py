@@ -23,8 +23,8 @@ def model_with_rolling_mean(ts, window, col_name='Rolling_Mean', var_name='Value
 
        Inputs:
            ts [Array[Array[float, float]]: The time series data as an array of arrays.
-                                         It becomes a pandas Series with a DatetimeIndex and a column for numerical values.
-           window [int]:                 Window size; the number of samples to include in the rolling mean.
+                                           It becomes a pandas Series with a DatetimeIndex and a column for numerical values.
+           window [int]:                   Window size; the number of samples to include in the rolling mean.
 
        Optional Inputs:
            col_name [str]:     The name of the rolling mean column.
