@@ -199,7 +199,7 @@ def model_with_arima(ts, train_size, order, seasonal_order=(), seasonal_freq=Non
 
 
     # Save data to proper directory with encoded file name
-    ts_with_arima = pd.DataFrame({col_name: predictions_with_dates, var_name: X})
+    ts_with_arima = pd.DataFrame({col_name: predictions_with_dates.values, var_name: X.values}, index=range(len(X)))
     print("Got here ARIMA 3")
     ts_with_arima.rename_axis('Time', axis='index', inplace=True)  # name index 'Time'
     print("Got here ARIMA 4")

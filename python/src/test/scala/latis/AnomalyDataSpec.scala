@@ -50,7 +50,7 @@ class AnomalyDataSpec extends FlatSpec {
 
   "The ARIMA modeling operation" should "add its new column to the dataset" in {
     val ds = Dataset.fromName("sine_wave_with_anomalies")
-      .withOperation(ModelWithArima(0.5, (2,2,0), (0,2,0,50)))
+      .withOperation(ModelWithArima(0.5, (1,0,0), (0,1,0,50)))
 
     //TextWriter().write(ds)
 
@@ -64,7 +64,7 @@ class AnomalyDataSpec extends FlatSpec {
 
   it should "work with Text times" in {
     val ds = Dataset.fromName("sine_wave_with_anomalies_text")
-      .withOperation(ModelWithArima(0.5, (2,2,0), (0,2,0,50)))
+      .withOperation(ModelWithArima(0.5, (1,0,0), (0,1,0,50)))
 
     //TextWriter().write(ds)
 
@@ -72,7 +72,7 @@ class AnomalyDataSpec extends FlatSpec {
       case Sample(DomainData(Text(t)), RangeData(Real(f), Real(a))) =>
         t should be ("2000-01-02")
         f should be (0.841470985)
-        a should be (0.9432600027000001)
+        a.isNaN should be (true)
     }
   }
 
