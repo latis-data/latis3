@@ -70,11 +70,6 @@ def get_compressed_feature_vectors(encoder, ts):
     return np.array(compressed_feature_vectors)
 
 
-# def seedy(s):
-#     np.random.seed(s)
-#     set_random_seed(s)
-
-
 class AutoEncoder:
     def __init__(self, train_data, encoding_dim=3, verbose=False):
         self.encoding_dim = encoding_dim
@@ -129,16 +124,18 @@ class AutoEncoder:
                        callbacks=[tbCallBack],
                        verbose=self.verbose)
 
-    # def save(self):
-    #     if not os.path.exists(r'./weights'):
-    #         os.mkdir(r'./weights')
-    #     else:
-    #         self.encoder.save(r'./weights/encoder_weights.h5')
-    #         self.decoder.save(r'./weights/decoder_weights.h5')
-    #         self.model.save(r'./weights/ae_weights.h5')
+    def save(self):
+        if not os.path.exists(r'./weights'):
+            os.mkdir(r'./weights')
+        else:
+            self.encoder.save(r'./weights/encoder_weights.h5')
+            self.decoder.save(r'./weights/decoder_weights.h5')
+            self.model.save(r'./weights/ae_weights.h5')
 
 
-def autoencoder_prediction(ts, train_size=1.0, col_name='Autoencoder', var_name='Value', ds_name='Dataset', path_to_model=None, verbose=False):
+def autoencoder_prediction(ts, train_size=1.0, col_name='Autoencoder', var_name='Value', ds_name='Dataset',
+                           verbose=False, plot_save_path=None, cfv_save_path=None, data_save_path=None,
+                           load_model=False, save_model=False):
     """Predict the given time series with an autoencoder.
 
        Inputs:
@@ -154,7 +151,11 @@ def autoencoder_prediction(ts, train_size=1.0, col_name='Autoencoder', var_name=
                                   Default is 'Value'.
            ds_name [str]:         The name of the dataset.
                                   Default is 'Dataset'.
-           path_to_model [str]:   Path to a file of a trained autoencoder model. When set, no training will be done because that model will be used.
+           cfv_save_path [str]:   The path to the root directory where the compressed feature vectors can be saved.
+           plot_save_path [str]:  The path to the root directory where a plot of the autoencoder prediction can be saved.
+           data_save_path [str]:  The path to the root directory where the autoencoder predictions can be saved as a CSV.
+           load_model [bool]:     When True, try to load a model with pre-trained weights and use it.
+           save_model [bool]:     When True, the autoencoder weights will be saved to disk in a 'weights' directory.
            verbose [bool]:        When True, describe the time series dataset upon loading it, and pass 'verbose=True' down the chain to any other functions called during outlier detection.
                                   Default is False.
 
@@ -182,14 +183,6 @@ def autoencoder_prediction(ts, train_size=1.0, col_name='Autoencoder', var_name=
     normalized = pd.Series(X_scaled, index=time_series.index)
     time_series = normalized
 
-    # if verbose:
-        # describe the loaded dataset
-        # print(time_series.head())
-        # print(time_series.describe())
-        # time_series.plot(title=dataset_path + ' Dataset')
-        # pyplot.show()
-
-
     # Chunk the dataset
     window_size = 18
     chunked_ts = chunk(time_series, window_size)
@@ -202,90 +195,67 @@ def autoencoder_prediction(ts, train_size=1.0, col_name='Autoencoder', var_name=
     split = int(len(time_series) * train_size)
     unchunked_test = time_series[split:]
 
-    predictions = []
+    if load_model:
+        encoder = load_model(r'weights/encoder_weights.h5')
+        decoder = load_model(r'weights/decoder_weights.h5')
+    else:
+        ae = AutoEncoder(train, encoding_dim=10, verbose=verbose)  # Note, training autoencoder just with train data
+        ae.encoder_decoder()
+        ae.fit(batch_size=50, epochs=1000)
+        if save_model:
+            ae.save()
 
-    # seedy(2)  # make reproducible randomness
-    ae = AutoEncoder(train, encoding_dim=10, verbose=verbose)  # Note, training autoencoder just with train data
-    ae.encoder_decoder()
-    ae.fit(batch_size=50, epochs=1000)
-    # ae.save()
-
-    encoder = ae.encoder  # load_model(r'weights/encoder_weights.h5')
-    decoder = ae.decoder  # load_model(r'weights/decoder_weights.h5')
+        encoder = ae.encoder
+        decoder = ae.decoder
 
     predictions = time_series.values[:len(time_series)%window_size].tolist()
     autoencoder_predictions = get_autoencoder_predictions(encoder, decoder, chunked_ts)  # note, network won't have seen test portion
     predictions = predictions + autoencoder_predictions
     predictions = pd.Series(predictions, index=time_series.index)
 
-    # ax = time_series.plot(color='#192C87', title=ds_name + ' with Autoencoder Predictions', label=var_name, figsize=(14, 6))
-    # if len(unchunked_test) > 0:
-    #     unchunked_test.plot(color='#441594', label='Test Data')
-    # predictions.plot(color='#0CCADC', label='Autoencoder Predictions', linewidth=1)
-    # ax.set(xlabel='Time', ylabel=var_name)
-    # pyplot.legend(loc='best')
+    if plot_save_path is not None:
+        # Save plot
+        ax = time_series.plot(color='#192C87', title=ds_name + ' with Autoencoder Predictions', label=var_name, figsize=(14, 6))
+        if len(unchunked_test) > 0:
+            unchunked_test.plot(color='#441594', label='Test Data')
+        predictions.plot(color='#0CCADC', label='Autoencoder Predictions', linewidth=1)
+        ax.set(xlabel='Time', ylabel=var_name)
+        pyplot.legend(loc='best')
 
-    # save plot before showing it
-    # if int(train_size) == 1:
-    #     plot_filename = ds_name + '_with_autoencoder_full.png'
-    # elif train_size == 0.5:
-    #     plot_filename = ds_name + '_with_autoencoder_half.png'
-    # else:
-    #     plot_filename = ds_name + '_with_autoencoder_' + str(train_size) + '.png'
-    # plot_path = './save/datasets/' + ds_name + '/autoencoder/plots/' + str(int(train_size * 100)) + ' percent/'
-    # if not os.path.exists(plot_path):
-    #     os.makedirs(plot_path)
-    # pyplot.savefig(plot_path + plot_filename, dpi=500)
-    # 
-    # pyplot.show()
-    # pyplot.clf()  # clear the plot
+        # save plot before showing it
+        plot_filename = ds_name + '_with_autoencoder_' + str(train_size) + '.png'
+        if plot_save_path.endswith('/'):
+            plot_path = plot_save_path + ds_name + '/autoencoder/plots/' + str(int(train_size * 100)) + ' percent/'
+        else:
+            plot_path = plot_save_path + '/' + ds_name + '/autoencoder/plots/' + str(int(train_size * 100)) + ' percent/'
+        if not os.path.exists(plot_path):
+            os.makedirs(plot_path)
+        pyplot.savefig(plot_path + plot_filename, dpi=500)
 
-    # Save compressed feature vectors
-    # cfv = get_compressed_feature_vectors(encoder, chunked_ts)
-    # if int(train_size) == 1:
-    #     cfv_filename = ds_name + '_compressed_by_autoencoder_full.npy'
-    # elif train_size == 0.5:
-    #     cfv_filename = ds_name + '_compressed_by_autoencoder_half.npy'
-    # else:
-    #     cfv_filename = ds_name + '_compressed_by_autoencoder_' + str(train_size) + '.npy'
-    # cfv_path = './save/datasets/' + ds_name + '/autoencoder/data/' + str(int(train_size * 100)) + ' percent/'
-    # np.save(cfv_path + cfv_filename, cfv)
+    if cfv_save_path is not None:
+        # Save compressed feature vectors
+        cfv = get_compressed_feature_vectors(encoder, chunked_ts)
+        cfv_filename = ds_name + '_compressed_by_autoencoder_' + str(train_size) + '.npy'
+        if cfv_save_path.endswith('/'):
+            cfv_path = cfv_save_path + ds_name + '/autoencoder/data/' + str(int(train_size * 100)) + ' percent/'
+        else:
+            cfv_path = cfv_save_path + '/' + ds_name + '/autoencoder/data/' + str(int(train_size * 100)) + ' percent/'
+        np.save(cfv_path + cfv_filename, cfv)
 
-    # Save data to proper directory with encoded file name
     ts_with_autoencoder = pd.DataFrame({col_name: predictions, var_name: time_series})
     ts_with_autoencoder.rename_axis('Time', axis='index', inplace=True)  # name index 'Time'
     column_names = [var_name, col_name]  # column order
     ts_with_autoencoder = ts_with_autoencoder.reindex(columns=column_names)  # sort columns in specified order
 
-    # if int(train_size) == 1:
-    #     data_filename = ds_name + '_with_autoencoder_full.csv'
-    # elif train_size == 0.5:
-    #     data_filename = ds_name + '_with_autoencoder_half.csv'
-    # else:
-    #     data_filename = ds_name + '_with_autoencoder_' + str(train_size) + '.csv'
-    # data_path = './save/datasets/' + ds_name + '/autoencoder/data/' + str(int(train_size * 100)) + ' percent/'
-    # if not os.path.exists(data_path):
-    #     os.makedirs(data_path)
-    # ts_with_autoencoder.to_csv(data_path + data_filename)
+    if data_save_path is not None:
+        # Save data to proper directory with encoded file name
+        data_filename = ds_name + '_with_autoencoder_' + str(train_size) + '.csv'
+        if data_save_path.endswith('/'):
+            data_path = data_save_path + ds_name + '/autoencoder/data/' + str(int(train_size * 100)) + ' percent/'
+        else:
+            data_path = data_save_path + '/' + ds_name + '/autoencoder/data/' + str(int(train_size * 100)) + ' percent/'
+        if not os.path.exists(data_path):
+            os.makedirs(data_path)
+        ts_with_autoencoder.to_csv(data_path + data_filename)
 
     return ts_with_autoencoder
-
-
-
-# if __name__ == "__main__":
-#     print('Autoencoder_Prediction.py is being run directly\n')
-#
-#     ds_num = 0  # used to select dataset path and variable name together
-#
-#     dataset = ['Data/BusVoltage.csv', 'Data/TotalBusCurrent.csv', 'Data/BatteryTemperature.csv',
-#                'Data/WheelTemperature.csv', 'Data/WheelRPM.csv'][ds_num]
-#     name = ['Voltage (V)', 'Current (A)', 'Temperature (C)', 'Temperature (C)', 'RPM'][ds_num]
-#
-#     ds_name = dataset[5:-4]  # drop 'Data/' and '.csv'
-#
-#     time_series, predictions = autoencoder_prediction(dataset_path=dataset, ds_name=ds_name, var_name=name,
-#                                                       train_size=0.5, verbose=True)
-#
-#
-# else:
-#     print('Autoencoder_Prediction.py is being imported into another module\n')
