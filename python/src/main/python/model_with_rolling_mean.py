@@ -64,13 +64,12 @@ def model_with_rolling_mean(ts, window, col_name='Rolling_Mean', var_name='Value
 
     rolling_mean = pd.Series(rolling_mean, index=ts.index)
     errors = pd.Series()
- 
-        
+
     ts_with_rolling_mean = pd.DataFrame({col_name: rolling_mean, var_name: ts})
     ts_with_rolling_mean.rename_axis('Time', axis='index', inplace=True)  # name index 'Time'
     column_names = [var_name, col_name]  # column order
     ts_with_rolling_mean = ts_with_rolling_mean.reindex(columns=column_names)  # sort columns in specified order
-    
+
     if data_save_path is not None:
         # Save data to proper directory with encoded file name
         data_filename = ds_name + '_with_rolling_mean.csv'
@@ -85,13 +84,13 @@ def model_with_rolling_mean(ts, window, col_name='Rolling_Mean', var_name='Value
         rolling_mean.plot(color='#0CCADC', label=col_name, linewidth=2.5)  #61AEFF is a nice baby blue
         ax.set(xlabel='Time', ylabel=var_name)
         pyplot.legend(loc='best')
-    
+
         plot_filename = ds_name + '_with_rolling_mean.png'
         plot_path = './save/datasets/' + ds_name + '/rolling_mean/plots/'
         if not os.path.exists(plot_path):
             os.makedirs(plot_path)
         pyplot.savefig(plot_path + plot_filename, dpi=500)
-    
+
         if verbose:
             pyplot.show()
 
