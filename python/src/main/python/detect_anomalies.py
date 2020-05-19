@@ -6,11 +6,11 @@ from pandas import datetime
 import numpy as np
 from matplotlib import pyplot
 
-# Custom modules
-import sys
-sys.path.append("..")
-sys.path.append(".")
-import nonparametric_dynamic_thresholding as ndt
+# Custom modules TODO: figure out why these imports are breaking
+# import sys
+# sys.path.append("..")
+# sys.path.append(".")
+# import nonparametric_dynamic_thresholding as ndt
 
 __author__ = 'Shawn Polson'
 __contact__ = 'shawn.polson@colorado.edu'
@@ -127,31 +127,32 @@ def detect_anomalies(ts, normal_model, var_name='Value', alg_name='Model_Algorit
                 progress_bar_sliding_window.update(t)  # advance progress bar
         outliers = outliers.append(pd.Series(outlier_points, index=outlier_indices))
 
+    # TODO: uncomment once ndt import is fixed
     # Define outliers using JPL's nonparamatric dynamic thresholding technique
-    elif outlier_def == 'dynamic':
-        if verbose:
-            progress_bar_sliding_window.update(int(len(X))/2)  # start progress bar timer
-        outlier_points = []
-        outlier_indices = []
-        if ndt_errors is not None:
-            smoothed_errors = ndt_errors
-        else:
-            smoothed_errors = ndt.get_errors(X, Y)
-
-        # These are the results of the nonparametric dynamic thresholding
-        E_seq, anom_scores = ndt.process_errors(X, smoothed_errors)
-        if verbose:
-            progress_bar_sliding_window.update(int(len(X)) - 1)  # advance progress bar timer
-
-        # Convert sets of outlier start/end indices into outlier points
-        for anom in E_seq:
-            start = anom[0]
-            end = anom[1]
-            for i in range(start, end+1):
-                time_series_with_outliers.at[ts.index[i], 'Outlier'] = True
-                outlier_points.append(X[i])
-                outlier_indices.append(ts.index[i])
-        outliers = outliers.append(pd.Series(outlier_points, index=outlier_indices))
+    # elif outlier_def == 'dynamic':
+    #     if verbose:
+    #         progress_bar_sliding_window.update(int(len(X))/2)  # start progress bar timer
+    #     outlier_points = []
+    #     outlier_indices = []
+    #     if ndt_errors is not None:
+    #         smoothed_errors = ndt_errors
+    #     else:
+    #         smoothed_errors = ndt.get_errors(X, Y)
+    #
+    #     # These are the results of the nonparametric dynamic thresholding
+    #     E_seq, anom_scores = ndt.process_errors(X, smoothed_errors)
+    #     if verbose:
+    #         progress_bar_sliding_window.update(int(len(X)) - 1)  # advance progress bar timer
+    #
+    #     # Convert sets of outlier start/end indices into outlier points
+    #     for anom in E_seq:
+    #         start = anom[0]
+    #         end = anom[1]
+    #         for i in range(start, end+1):
+    #             time_series_with_outliers.at[ts.index[i], 'Outlier'] = True
+    #             outlier_points.append(X[i])
+    #             outlier_indices.append(ts.index[i])
+    #     outliers = outliers.append(pd.Series(outlier_points, index=outlier_indices))
 
     if plot_save_path is not None:
         # Plot anomalies
