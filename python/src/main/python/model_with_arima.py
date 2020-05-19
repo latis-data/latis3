@@ -55,6 +55,9 @@ def model_with_arima(ts, train_size, order, seasonal_order=(), seasonal_freq=Non
                                    Default is 'ARIMA'.
            var_name [str]:         The name of the dependent variable in the time series.
                                    Default is 'Value'.
+           model_save_path [str]:  The path to the root directory where the ARIMA model can be saved.
+           plot_save_path [str]:   The path to the root directory where a plot of the ARIMA prediction can be saved.
+           data_save_path [str]:   The path to the root directory where the ARIMA predictions can be saved as a CSV.
 
 
        Outputs:
