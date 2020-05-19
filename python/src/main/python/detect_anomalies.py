@@ -24,8 +24,9 @@ def parser(x):
         return datetime.strptime(new_time, '%Y-%m-%d')  # for total bus current data
 
 
-def detect_anomalies(ts, normal_model, var_name='Value', alg_name='Model_Algorithm', ds_name='Dataset', outlier_def='std', num_stds=2, ndt_errors=None,
-                     plot_save_path=None, data_save_path=None, verbose=False):
+def detect_anomalies(ts, normal_model, var_name='Value', alg_name='Model_Algorithm', ds_name='Dataset', 
+                     outlier_def='std', num_stds=2, ndt_errors=None, plot_save_path=None, data_save_path=None, 
+                     verbose=False):
     """Detect outliers in the time series data by comparing points against a "normal" model.
 
        Inputs:
@@ -54,10 +55,6 @@ def detect_anomalies(ts, normal_model, var_name='Value', alg_name='Model_Algorit
 
        Optional Outputs:
            None
-
-       Example:
-           time_series_with_outliers = detect_anomalies(time_series, model, 'BatteryTemperature', 'Temperature (C)',
-                                                        'ARIMA', 'dynamic', plot_path, data_path)
     """
 
     X = ts.values

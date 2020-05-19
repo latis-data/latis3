@@ -27,23 +27,22 @@ def model_with_rolling_mean(ts, window, col_name='Rolling_Mean', var_name='Value
            window [int]:                   Window size; the number of samples to include in the rolling mean.
 
        Optional Inputs:
-           col_name [str]:     The name of the rolling mean column.
-                               Default is 'Rolling_Mean'.
-           var_name [str]:     The name of the dependent variable in the time series.
-                               Default is 'Value'.
-           ds_name [str]:      Name of the dataset {bus voltage, etc.}
-                               Default is 'Dataset'.
-           verbose [bool]:     When True, a plot of the rolling mean will be displayed.
-           calc_errors [bool]: Whether or not to calculate and return errors between data and rolling mean.
+           col_name [str]:       The name of the rolling mean column.
+                                 Default is 'Rolling_Mean'.
+           var_name [str]:       The name of the dependent variable in the time series.
+                                 Default is 'Value'.
+           ds_name [str]:        Name of the dataset {bus voltage, etc.}
+                                 Default is 'Dataset'.
+           verbose [bool]:       When True, a plot of the rolling mean will be displayed.
+           calc_errors [bool]:   Whether or not to calculate and return errors between data and rolling mean.
+           plot_save_path [str]: The path to the root directory where a plot of the rolling mean can be saved.
+           data_save_path [str]: The path to the root directory where the rolling mean can be saved as a CSV.
 
        Outputs:
            rolling_mean [pd Series]: The rolling mean, as a pandas Series with a DatetimeIndex and a column for the rolling mean.
 
        Optional Outputs:
            errors [pd Series]: The errors at each point, as a pandas Series with a DatetimeIndex and a column for the errors.
-
-       Example:
-           rolling_mean = detect_anomalies_with_rolling_mean(time_series, window_size, 'BusVoltage', False)
     """
 
     # TODO: Consider making window a percentage of ts's length

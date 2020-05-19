@@ -10,14 +10,6 @@ from matplotlib import pyplot
 from sklearn import preprocessing
 from sklearn.preprocessing import normalize
 import numpy as np
-# import keras
-# from keras.callbacks import TensorBoard
-# from keras.layers.advanced_activations import LeakyReLU
-# from keras.layers import Input, Dense
-# from keras.models import Model
-
-# import tensorflow
-# #from tensorflow import set_random_seed
 from tensorflow.keras.models import Model, load_model,Sequential
 from tensorflow.keras.layers import Input, Dense
 from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard
@@ -74,17 +66,14 @@ class AutoEncoder:
     def __init__(self, train_data, encoding_dim=3, verbose=False):
         self.encoding_dim = encoding_dim
         r = lambda: np.random.randint(1, 3)
-        # self.x = np.array([[r(), r(), r()] for _ in range(1000)])
-        # self.x = np.array([[r(), r(), r(), r(), r(), r(), r(), r(), r(), r(), r(), r(), r(), r(), r(), r(), r(), r()] for _ in range(1000)])
         self.x = train_data
-        # print(self.x)
         self.verbose = 0
         if verbose:
             self.verbose = 1
 
     def _encoder(self):
         inputs = Input(shape=self.x[0].shape)
-        #h1 = Dense(150, activation='tanh')(inputs)
+        # h1 = Dense(150, activation='tanh')(inputs)
         h2 = Dense(75, activation='tanh')(inputs)
         encoded = Dense(self.encoding_dim, activation='tanh')(h2)
         model = Model(inputs, encoded)
@@ -111,7 +100,6 @@ class AutoEncoder:
         model = Model(inputs, dc_out)
 
         self.model = model
-        # print(self.model.summary())
         return model
 
     def fit(self, batch_size=10, epochs=300):
@@ -134,13 +122,13 @@ class AutoEncoder:
 
 
 def autoencoder_prediction(ts, train_size=1.0, col_name='Autoencoder', var_name='Value', ds_name='Dataset',
-                           verbose=False, plot_save_path=None, cfv_save_path=None, data_save_path=None,
+                           verbose=False, cfv_save_path=None, data_save_path=None, plot_save_path=None,
                            load_model=False, save_model=False):
     """Predict the given time series with an autoencoder.
 
        Inputs:
            ts [Array[Array[float, float]]: The time series data as an array of arrays.
-                                         It becomes a pandas Series with a DatetimeIndex and a column for numerical values.
+                                           It becomes a pandas Series with a DatetimeIndex and a column for numerical values.
 
        Optional Inputs:
            train_size [float]:    The percentage of data to use for training, as a float (e.g., 0.66).
@@ -151,23 +139,19 @@ def autoencoder_prediction(ts, train_size=1.0, col_name='Autoencoder', var_name=
                                   Default is 'Value'.
            ds_name [str]:         The name of the dataset.
                                   Default is 'Dataset'.
-           cfv_save_path [str]:   The path to the root directory where the compressed feature vectors can be saved.
-           plot_save_path [str]:  The path to the root directory where a plot of the autoencoder prediction can be saved.
-           data_save_path [str]:  The path to the root directory where the autoencoder predictions can be saved as a CSV.
-           load_model [bool]:     When True, try to load a model with pre-trained weights and use it.
-           save_model [bool]:     When True, the autoencoder weights will be saved to disk in a 'weights' directory.
            verbose [bool]:        When True, describe the time series dataset upon loading it, and pass 'verbose=True' down the chain to any other functions called during outlier detection.
                                   Default is False.
+           cfv_save_path [str]:   The path to the root directory where the compressed feature vectors can be saved.
+           data_save_path [str]:  The path to the root directory where the autoencoder predictions can be saved as a CSV.
+           plot_save_path [str]:  The path to the root directory where a plot of the autoencoder prediction can be saved.
+           load_model [bool]:     When True, try to load a model with pre-trained weights and use it.
+           save_model [bool]:     When True, the autoencoder weights will be saved to disk in a 'weights' directory.
 
        Outputs:
             ts_with_autoencoder [pd DataFrame]: The original time series with an added column for this autoencoer's predictions.
 
        Optional Outputs:
            None
-
-       Example:
-           time_series_with_autoencoder = autoencoder_prediction(dataset_path=dataset, ds_name, train_size=0.5, var_name=name,
-                                                                 verbose=True)
        """
 
     # Load the dataset

@@ -11,7 +11,7 @@ import rrcf
 import progressbar
 register_matplotlib_converters()
 
-# Custom modules
+# Custom modules TODO: figure out why this breaks
 #from model_with_autoencoder import *
 
 
@@ -53,9 +53,6 @@ def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shin
 
        Optional Outputs:
            None
-
-       Example:
-           time_series_with_anomaly_scores = score_with_rrcf(dataset, ds_name, var_name)
        """
 
     ts = pd.DataFrame(data=ts, columns=['Time', var_name])

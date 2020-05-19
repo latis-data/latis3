@@ -15,11 +15,11 @@ from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.arima_model import ARIMAResults
 from sklearn.metrics import mean_squared_error
 
-# Custom modules
+# Custom modules TODO: figure out why these break
 # import grid_search_hyperparameters
 # from grid_search_hyperparameters import grid_search_arima_params
 # from grid_search_hyperparameters import grid_search_sarima_params
-#import nonparametric_dynamic_thresholding as ndt
+# import nonparametric_dynamic_thresholding as ndt
 
 __author__ = 'Shawn Polson'
 __contact__ = 'shawn.polson@colorado.edu'
@@ -53,6 +53,8 @@ def model_with_arima(ts, train_size, order, seasonal_order=(), seasonal_freq=Non
                                    and print predicted v. expected values during outlier detection. TODO: mention plot w/ forecast & outliers once it's under an "if verbose"
            col_name [str]:         The name of the ARIMA column.
                                    Default is 'ARIMA'.
+           ds_name [str]:          The name of the dataset.
+                                   Default is 'Dataset'.
            var_name [str]:         The name of the dependent variable in the time series.
                                    Default is 'Value'.
            model_save_path [str]:  The path to the root directory where the ARIMA model can be saved.
@@ -65,11 +67,6 @@ def model_with_arima(ts, train_size, order, seasonal_order=(), seasonal_freq=Non
 
        Optional Outputs:
            None
-
-       Example:
-           time_series_with_arima = model_with_arima(time_series, train_size=0.8, order=(12,0,0),
-                                                                             seasonal_order=(0,1,0), seasonal_freq=365,
-                                                                             verbose=False)
     """
 
     # Finalize ARIMA/SARIMA hyperparameters
@@ -180,7 +177,6 @@ def model_with_arima(ts, train_size, order, seasonal_order=(), seasonal_freq=Non
 
 # ----------- grid_search_hyperparameters ------------------------------------------------------------------------------
 # Standard modules
-# TODO: use a progressbar?
 # import progressbar
 from ast import literal_eval as make_tuple
 import pandas as pd
@@ -285,17 +281,13 @@ def score_model(data, config, debug=False):
         except Exception as e:
             print(e)
             error = None
-    # check for an interesting result
-    # if len(rmses) > 0:
-    #     print(' > Model[%s] %s' % (str(config), str(rmses))) # TODO: "if verbose" or don't print
+
     return (config, rmses)
 
 
 def nested_cross_validation(data, config, n_folds=5):
     # Split the data into n_folds+1 chunks
     data = pd.Series(data)
-    # data.plot(color='blue', title='Holdout Data (before splitting into folds)') # TODO: delete me
-    # pyplot.show()
     folds = []
     fold_size = len(data) / (n_folds+1)
     for i in range(n_folds+1):  # 0 through 5 when n_folds=5
@@ -303,16 +295,6 @@ def nested_cross_validation(data, config, n_folds=5):
             folds.append(pd.Series(data[i*fold_size:]))  # last fold gets any off-by-one remainder point
         else:
             folds.append(pd.Series(data[i*fold_size:(i*fold_size)+fold_size]))
-
-    # I can trust that this logic splits the data into perfect folds
-    # data.plot(color='black', title='Holdout Data (after splitting into folds)')  # TODO: delete me
-    # folds[0].plot(color='blue')
-    # folds[1].plot(color='green')
-    # folds[2].plot(color='red')
-    # folds[3].plot(color='purple')
-    # folds[4].plot(color='orange')
-    # folds[5].plot(color='pink')
-    # pyplot.show()
 
     RMSEs = train_and_validate(folds, config)
     return RMSEs
@@ -340,7 +322,6 @@ def sarima_forecast_and_score(training, validation, config):
     trend = config[2]
 
     trained_model = SARIMAX(training, order=order, seasonal_order=seasonal_order, trend=trend, enforce_stationarity=False, enforce_invertibility=False)
-    # print('Training with configs: ' + str(config))
     trained_model_fit = trained_model.fit(disp=1)
 
     predictions = trained_model_fit.predict(start=1, end=len(X)-1, typ='levels')
@@ -349,7 +330,6 @@ def sarima_forecast_and_score(training, validation, config):
 
     model_rmse = sqrt(mean_squared_error(X[1:len(X)], predictions_with_index))
     return model_rmse
-
 
 
 #----Grid Search Functions------------------------------------------------------------------------------------
@@ -392,7 +372,6 @@ def grid_search_arima_params(ts):
                     print('ARIMA%s MSE=%.3f' % (order, mse))
                 except:
                     continue
-    # print('Best ARIMA%s MSE=%.3f' % (best_cfg, best_score))
     order = best_cfg  # TODO: always returning the best score doesn't lead to constant overfitting, does it?
     return order
 
@@ -420,7 +399,6 @@ def grid_search_sarima_params(ts, freq):
            order, seasonal_order, trend = grid_search_sarima_params(time_series, seasonal_freq)
        """
 
-    #trivial_data = [10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 90.0, 80.0, 70.0, 60.0, 50.0, 40.0, 30.0, 20.0]
     data = ts.values
     holdout_size = 0.2  # TODO: try 0.5?
     split = int(len(data) * (1-holdout_size))
@@ -430,12 +408,6 @@ def grid_search_sarima_params(ts, freq):
 
     configs_with_scores = get_cross_validation_scores(training_data, possible_order_configs)  # get cross validation scores for each order_config
 
-    # TODO: don't print this?
-    # print('\n' + '----------------------------------GRID SEARCHING COMPLETE------------------------------------------')
-    # print('RESULTS:' + '\n')
-    # for config_and_score in configs_with_scores:
-    #     print(str(config_and_score))
-
     best_order_config = configs_with_scores[0][0]  # TODO: always returning the best score doesn't lead to constant overfitting, does it?
 
     order = best_order_config[0]
@@ -443,68 +415,3 @@ def grid_search_sarima_params(ts, freq):
     trend = best_order_config[2]
 
     return order, seasonal_order, trend
-
-
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-
-
-# TODO: remove below
-# if __name__ == "__main__":
-# 
-#     datasets = ['Data/BusVoltage.csv', 'Data/TotalBusCurrent.csv', 'Data/BatteryTemperature.csv',
-#                 'Data/WheelTemperature.csv', 'Data/WheelRPM.csv']
-#     var_names = ['Voltage (V)', 'Current (A)', 'Temperature (C)', 'Temperature (C)', 'RPM']
-# 
-#     hyperparams = [
-#         {'order': (1, 0, 0), 'seasonal_order': (0, 1, 0), 'freq': 365, 'trend': 'c'},
-#         {'order': (1, 0, 2), 'seasonal_order': (0, 1, 0), 'freq': 365, 'trend': 'c'},
-#         {'order': (0, 1, 0), 'seasonal_order': (0, 1, 0), 'freq': 365, 'trend': 'n'},
-#         {'order': (1, 0, 0), 'seasonal_order': (0, 1, 0), 'freq': 365, 'trend': 'c'},
-#         {'order': (1, 0, 0), 'seasonal_order': (0, 1, 0), 'freq': 365, 'trend': 'c'}
-#     ]
-# 
-#     # 50% ARIMAs
-#     for ds in range(len(datasets)):
-#         dataset = datasets[ds]
-#         var_name = var_names[ds]
-#         ds_name = dataset[5:-4]  # drop 'Data/' and '.csv'
-#         order = hyperparams[ds]['order']
-#         seasonal_order = hyperparams[ds]['seasonal_order']
-#         freq = hyperparams[ds]['freq']
-#         trend = hyperparams[ds]['trend']
-#         print('dataset: ' + dataset)
-# 
-#         # Load the dataset
-#         time_series = pd.read_csv(dataset, header=0, parse_dates=[0], index_col=0, squeeze=True, date_parser=parser)
-# 
-#         # Daily average dataset
-#         time_series = time_series.resample('24H').mean()
-# 
-#         # Use custom module 'model_with_arima' which also saves plots and data
-#         blah = model_with_arima(time_series, ds_name=ds_name, train_size=0.5, order=order, seasonal_order=seasonal_order,
-#                                 seasonal_freq=freq, trend=trend,
-#                                 var_name=var_name, verbose=True)
-# 
-#     # 100% ARIMAs
-#     for ds in range(len(datasets)):
-#         dataset = datasets[ds]
-#         var_name = var_names[ds]
-#         ds_name = dataset[5:-4]  # drop 'Data/' and '.csv'
-#         order = hyperparams[ds]['order']
-#         seasonal_order = hyperparams[ds]['seasonal_order']
-#         freq = hyperparams[ds]['freq']
-#         trend = hyperparams[ds]['trend']
-#         print('dataset: ' + dataset)
-# 
-#         # Load the dataset
-#         time_series = pd.read_csv(dataset, header=0, parse_dates=[0], index_col=0, squeeze=True, date_parser=parser)
-# 
-#         # Daily average dataset
-#         time_series = time_series.resample('24H').mean()
-# 
-#         # Use custom module 'model_with_arima' which also saves plots and data
-#         blah = model_with_arima(time_series, ds_name=ds_name, train_size=1, order=order, seasonal_order=seasonal_order,
-#                                 seasonal_freq=freq, trend=trend,
-#                                 var_name=var_name, verbose=True)
