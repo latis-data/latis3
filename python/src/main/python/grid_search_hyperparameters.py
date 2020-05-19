@@ -247,7 +247,6 @@ def grid_search_sarima_params(ts, freq):
            order, seasonal_order, trend = grid_search_sarima_params(time_series, seasonal_freq)
        """
 
-    #trivial_data = [10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 90.0, 80.0, 70.0, 60.0, 50.0, 40.0, 30.0, 20.0]
     data = ts.values
     holdout_size = 0.2  # TODO: try 0.5?
     split = int(len(data) * (1-holdout_size))
