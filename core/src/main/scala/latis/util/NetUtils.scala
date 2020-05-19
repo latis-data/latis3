@@ -1,6 +1,8 @@
 package latis.util
 
 import java.net.URI
+import java.nio.file.Path
+import java.nio.file.Paths
 
 import cats.implicits._
 import fs2.text
@@ -8,6 +10,12 @@ import fs2.text
 import latis.input.StreamSource
 
 object NetUtils {
+
+  /** Returns a Path corresponding to the given file URI. */
+  def getFilePath(uri: URI): Either[LatisException, Path] =
+    if (uri.getScheme() != "file") {
+      LatisException("Only file URIs are supported").asLeft
+    } else Paths.get(uri).asRight
 
   /**
    * Creates a URI from the given string.
