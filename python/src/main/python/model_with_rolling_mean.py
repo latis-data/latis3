@@ -27,23 +27,22 @@ def model_with_rolling_mean(ts, window, col_name='Rolling_Mean', var_name='Value
            window [int]:                   Window size; the number of samples to include in the rolling mean.
 
        Optional Inputs:
-           col_name [str]:     The name of the rolling mean column.
-                               Default is 'Rolling_Mean'.
-           var_name [str]:     The name of the dependent variable in the time series.
-                               Default is 'Value'.
-           ds_name [str]:      Name of the dataset {bus voltage, etc.}
-                               Default is 'Dataset'.
-           verbose [bool]:     When True, a plot of the rolling mean will be displayed.
-           calc_errors [bool]: Whether or not to calculate and return errors between data and rolling mean.
+           col_name [str]:       The name of the rolling mean column.
+                                 Default is 'Rolling_Mean'.
+           var_name [str]:       The name of the dependent variable in the time series.
+                                 Default is 'Value'.
+           ds_name [str]:        Name of the dataset {bus voltage, etc.}
+                                 Default is 'Dataset'.
+           verbose [bool]:       When True, a plot of the rolling mean will be displayed.
+           calc_errors [bool]:   Whether or not to calculate and return errors between data and rolling mean.
+           plot_save_path [str]: The path to the root directory where a plot of the rolling mean can be saved.
+           data_save_path [str]: The path to the root directory where the rolling mean can be saved as a CSV.
 
        Outputs:
            rolling_mean [pd Series]: The rolling mean, as a pandas Series with a DatetimeIndex and a column for the rolling mean.
 
        Optional Outputs:
            errors [pd Series]: The errors at each point, as a pandas Series with a DatetimeIndex and a column for the errors.
-
-       Example:
-           rolling_mean = detect_anomalies_with_rolling_mean(time_series, window_size, 'BusVoltage', False)
     """
 
     # TODO: Consider making window a percentage of ts's length
@@ -64,13 +63,12 @@ def model_with_rolling_mean(ts, window, col_name='Rolling_Mean', var_name='Value
 
     rolling_mean = pd.Series(rolling_mean, index=ts.index)
     errors = pd.Series()
- 
-        
+
     ts_with_rolling_mean = pd.DataFrame({col_name: rolling_mean, var_name: ts})
     ts_with_rolling_mean.rename_axis('Time', axis='index', inplace=True)  # name index 'Time'
     column_names = [var_name, col_name]  # column order
     ts_with_rolling_mean = ts_with_rolling_mean.reindex(columns=column_names)  # sort columns in specified order
-    
+
     if data_save_path is not None:
         # Save data to proper directory with encoded file name
         data_filename = ds_name + '_with_rolling_mean.csv'
@@ -85,13 +83,13 @@ def model_with_rolling_mean(ts, window, col_name='Rolling_Mean', var_name='Value
         rolling_mean.plot(color='#0CCADC', label=col_name, linewidth=2.5)  #61AEFF is a nice baby blue
         ax.set(xlabel='Time', ylabel=var_name)
         pyplot.legend(loc='best')
-    
+
         plot_filename = ds_name + '_with_rolling_mean.png'
         plot_path = './save/datasets/' + ds_name + '/rolling_mean/plots/'
         if not os.path.exists(plot_path):
             os.makedirs(plot_path)
         pyplot.savefig(plot_path + plot_filename, dpi=500)
-    
+
         if verbose:
             pyplot.show()
 

@@ -11,7 +11,7 @@ import rrcf
 import progressbar
 register_matplotlib_converters()
 
-# Custom modules
+# Custom modules TODO: figure out why this breaks
 #from model_with_autoencoder import *
 
 
@@ -24,7 +24,8 @@ def time_parser(x):
     return pd.to_datetime(x, unit='ms', origin='unix')
 
 
-def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shingle_size=18, tree_size=256, col_name='RRCF'):
+def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shingle_size=18, tree_size=256, 
+                    col_name='RRCF', plot_save_path=None, data_save_path=None):
     """Get anomaly scores for each point in the given time series using a robust random cut forest.
 
        Inputs:
@@ -32,27 +33,26 @@ def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shin
                                            It becomes a pandas Series with a DatetimeIndex and a column for numerical values.
 
        Optional Inputs:
-           ds_name [str]:      The name of the dataset.
-                               Default is 'Dataset'.
-           var_name [str]:     The name of the dependent variable in the time series.
-                               Default is 'Value'.
-           num_trees [int]:    The number of trees in the generated forest.
-                               Default is 100.
-           shingle_size [int]: The size of each shingle when shingling the time series.
-                               Default is 18.
-           tree_size [int]:    The size of each tree in the generated forest.
-                               Default is 256.
-           col_name [str]:     The name of the RRCF column.
-                               Default is 'RRCF'.
+           ds_name [str]:        The name of the dataset.
+                                 Default is 'Dataset'.
+           var_name [str]:       The name of the dependent variable in the time series.
+                                 Default is 'Value'.
+           num_trees [int]:      The number of trees in the generated forest.
+                                 Default is 100.
+           shingle_size [int]:   The size of each shingle when shingling the time series.
+                                 Default is 18.
+           tree_size [int]:      The size of each tree in the generated forest.
+                                 Default is 256.
+           col_name [str]:       The name of the RRCF column.
+                                 Default is 'RRCF'.
+           plot_save_path [str]: The path to the root directory where a plot of the RRCF's output can be saved.
+           data_save_path [str]: The path to the root directory where the RRCF's output can be saved as a CSV.
 
        Outputs:
             ts_with_scores [pd DataFrame]: The original time series with an added column for anomaly scores.
 
        Optional Outputs:
            None
-
-       Example:
-           time_series_with_anomaly_scores = score_with_rrcf(dataset, ds_name, var_name)
        """
 
     ts = pd.DataFrame(data=ts, columns=['Time', var_name])
@@ -91,43 +91,43 @@ def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shin
                 avg_codisp[index] = 0
             avg_codisp[index] += tree.codisp(index) / num_trees
 
-    # Plot
-    # fig, ax1 = pyplot.subplots(figsize=(14, 6))
-    # 
-    # score_color = '#0CCADC'
-    # ax1.set_ylabel('CoDisp', color=score_color)
-    # ax1.set_xlabel('Time')
-
     anom_score_series = pd.Series(list(avg_codisp.values()),
-                                  index=ts.index[:-(shingle_size - 1)])  # TODO: ensure data and index line up perfectly
+                                  index=ts.index[:-(shingle_size - 1)])
 
-    # lns1 = ax1.plot(anom_score_series.sort_index(), label='RRCF Anomaly Score',
-    #                 color=score_color)  # Plot this series to get dates on the x-axis instead of number indices
-    # ax1.tick_params(axis='y', labelcolor=score_color)
-    # ax1.grid(False)
-    # max_ylim = float(anom_score_series.max())
-    # ax1.set_ylim(0, max_ylim)
-    # ax2 = ax1.twinx()
-    # data_color = '#192C87'
-    # ax2.set_ylabel(var_name, color=data_color)
-    # lns2 = ax2.plot(ts, label=var_name, color=data_color)
-    # ax2.tick_params(axis='y', labelcolor=data_color)
-    # ax2.grid(False)
-    # pyplot.title(ds_name + ' and Anomaly Score')
-    # # make the legend
-    # lns = lns1 + lns2
-    # labs = [l.get_label() for l in lns]
-    # ax1.legend(lns, labs, loc='best')
-    # 
-    # # Save plot
-    # plot_filename = ds_name + '_with_rrcf_scores.png'
-    # plot_path = './save/datasets/' + ds_name + '/rrcf/plots/'
-    # if not os.path.exists(plot_path):
-    #     os.makedirs(plot_path)
-    # pyplot.savefig(plot_path + plot_filename, dpi=500)
-    # 
-    # pyplot.show()
-    # pyplot.clf()
+    if plot_save_path is not None:
+        # Plot
+        fig, ax1 = pyplot.subplots(figsize=(14, 6))
+        score_color = '#0CCADC'
+        ax1.set_ylabel('CoDisp', color=score_color)
+        ax1.set_xlabel('Time')
+
+        lns1 = ax1.plot(anom_score_series.sort_index(), label='RRCF Anomaly Score',
+                        color=score_color)  # Plot this series to get dates on the x-axis instead of number indices
+        ax1.tick_params(axis='y', labelcolor=score_color)
+        ax1.grid(False)
+        max_ylim = float(anom_score_series.max())
+        ax1.set_ylim(0, max_ylim)
+        ax2 = ax1.twinx()
+        data_color = '#192C87'
+        ax2.set_ylabel(var_name, color=data_color)
+        lns2 = ax2.plot(ts, label=var_name, color=data_color)
+        ax2.tick_params(axis='y', labelcolor=data_color)
+        ax2.grid(False)
+        pyplot.title(ds_name + ' and Anomaly Score')
+        # make the legend
+        lns = lns1 + lns2
+        labs = [l.get_label() for l in lns]
+        ax1.legend(lns, labs, loc='best')
+
+        # Save plot
+        plot_filename = ds_name + '_with_rrcf_scores.png'
+        if plot_save_path.endswith('/'):
+            plot_path = plot_save_path + ds_name + '/rrcf/plots/'
+        else:
+            plot_path = plot_save_path + '/' + ds_name + '/rrcf/plots/'
+        if not os.path.exists(plot_path):
+            os.makedirs(plot_path)
+        pyplot.savefig(plot_path + plot_filename, dpi=500)
 
     # Make anom_score_series same length as ts
     num_elems_needed = len(ts) - len(anom_score_series)
@@ -139,12 +139,16 @@ def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shin
     column_names = [var_name, col_name]  # column order
     ts_with_scores = ts_with_scores.reindex(columns=column_names)  # sort columns in specified order
 
-    # Save data
-    # data_filename = ds_name + '_with_rrcf_scores.csv'
-    # data_path = './save/datasets/' + ds_name + '/rrcf/data/'
-    # if not os.path.exists(data_path):
-    #     os.makedirs(data_path)
-    # ts_with_scores.to_csv(data_path + data_filename)
+    if data_save_path is not None:
+        # Save data
+        data_filename = ds_name + '_with_rrcf_scores.csv'
+        if data_save_path.endswith('/'):
+            data_path = data_save_path + ds_name + '/rrcf/data/'
+        else:
+            data_path = data_save_path + '/' + ds_name + '/rrcf/data/'
+        if not os.path.exists(data_path):
+            os.makedirs(data_path)
+        ts_with_scores.to_csv(data_path + data_filename)
 
     return ts_with_scores
 
@@ -282,20 +286,3 @@ def score_with_rrcf(ts, ds_name='Dataset', var_name='Value', num_trees=100, shin
 #     ts_with_scores.to_csv(data_path + data_filename)
 # 
 #     return ts_with_scores
-
-
-
-# if __name__ == "__main__":
-#     print('score_with_rrcf.py is being run directly\n')
-#
-#     ds_num = 1  # used to select dataset path and variable name together
-#
-#     dataset = ['Data/BusVoltage.csv', 'Data/TotalBusCurrent.csv', 'Data/BatteryTemperature.csv',
-#                'Data/WheelTemperature.csv', 'Data/WheelRPM.csv'][ds_num]
-#     var_name = ['Voltage (V)', 'Current (A)', 'Temperature (C)', 'Temperature (C)', 'RPM'][ds_num]
-#
-#     ds_name = dataset[5:-4]  # drop 'Data/' and '.csv'
-#
-#     cfv = 'save/datasets/' + ds_name + '/autoencoder/data/50 percent/' + ds_name + '_compressed_by_autoencoder_half.npy'
-#
-#     time_series_with_scores = score_features_with_rrcf(dataset, cfv, ds_name, var_name)
