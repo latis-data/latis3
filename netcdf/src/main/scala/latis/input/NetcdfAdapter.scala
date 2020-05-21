@@ -101,7 +101,7 @@ case class NetcdfAdapter(
 }
 
 //TODO: move some of this to NetcdfUtils?
-object NetcdfAdapter {
+object NetcdfAdapter extends AdapterFactory {
   /**
    * Constructor used by the AdapterFactory.
    */
