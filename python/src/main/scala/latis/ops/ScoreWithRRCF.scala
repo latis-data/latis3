@@ -3,6 +3,8 @@ package latis.ops
 import jep.NDArray
 import jep.SharedInterpreter
 
+import latis.ops.anomalies.ModelTimeSeries
+
 /**
  * Defines an Operation that assigns anomaly scores to points in a univariate 
  * time series (i.e., time -> value) with a robust random cut forest algorithm.

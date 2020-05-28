@@ -3,8 +3,10 @@ package latis
 import latis.data._
 import latis.dataset.Dataset
 import latis.ops._
+import latis.ops.anomalies._
 import latis.output.TextWriter
 import latis.util.StreamUtils
+
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
@@ -136,7 +138,7 @@ class AnomalyDataSpec extends FlatSpec {
     val ds = Dataset.fromName("sine_wave_with_anomalies")
       .withOperations(Seq(
         ModelWithRollingMean(),
-        DetectAnomalies("flux", "rollingMean", sigma=1.0)))
+        DetectAnomalies("flux", "rollingMean", Errors, 1.0)))
 
     //TextWriter().write(ds)
 

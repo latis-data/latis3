@@ -1,12 +1,12 @@
-package latis.ops
+package latis.ops.anomalies
 
-import jep.JepException
-import jep.MainInterpreter
 import jep.NDArray
 import jep.SharedInterpreter
+
 import latis.data._
 import latis.metadata.Metadata
 import latis.model._
+import latis.ops.JepOperation
 import latis.time.Time
 import latis.time.TimeScale
 import latis.units.UnitConverter
@@ -20,13 +20,13 @@ import latis.util.LatisException
  *
  * @param X the name of the variable that stores the original time series values
  * @param Y the name of the variable that stores the modeled time series values
- * @param anomalyDef the definition of an anomaly to be used—either "errors", "std", or "dynamic"
+ * @param anomalyDef the definition of an anomaly to be used—either Errors, Std, or Dynamic
  * @param sigma the number of standard deviations away from the mean used to define point anomalies
  */
 case class DetectAnomalies(
   X: String,
   Y: String,
-  anomalyDef: String = "errors",
+  anomalyDef: AnomalyDef = Errors,
   sigma: Double = 2.0) extends JepOperation {
 
   /** The name of the interpreter variable that stores the time series. */
@@ -132,7 +132,7 @@ case class DetectAnomalies(
     interpreter.exec("ts = ts.set_index('Time')")
     interpreter.exec(s"X = ts['$X']")
     interpreter.exec(s"Y = ts['$Y']")
-    interpreter.exec(s"ts_with_anomalies = detect_anomalies(X, Y, outlier_def='$anomalyDef', num_stds=$sigma)")
+    interpreter.exec(s"ts_with_anomalies = detect_anomalies(X, Y, outlier_def='${anomalyDef.asString}', num_stds=$sigma)")
     interpreter.exec("outliers = ts_with_anomalies.Outlier.to_numpy()")
     interpreter.getValue("outliers", classOf[NDArray[Array[Boolean]]]).getData
   }
