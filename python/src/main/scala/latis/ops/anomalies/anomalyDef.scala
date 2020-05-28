@@ -21,7 +21,7 @@ final case object Std extends AnomalyDef {
   override def asString: String = "std"
 }
 
-/** Define anomalies using nonparametric dynamic thresholding */
+/** Defines anomalies using nonparametric dynamic thresholding */
 final case object Dynamic extends AnomalyDef {
   override def asString: String = "dynamic"
 }
