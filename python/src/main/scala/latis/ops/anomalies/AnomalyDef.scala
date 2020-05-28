@@ -14,9 +14,11 @@ sealed trait AnomalyDef {
 final case object Errors extends AnomalyDef {
   override def asString: String = "errors"
 }
+
 final case object Std extends AnomalyDef {
   override def asString: String = "std"
 }
+
 final case object Dynamic extends AnomalyDef {
   override def asString: String = "dynamic"
 }
