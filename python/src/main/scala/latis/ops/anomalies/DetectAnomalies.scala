@@ -20,7 +20,7 @@ import latis.util.LatisException
  *
  * @param X the name of the variable that stores the original time series values
  * @param Y the name of the variable that stores the modeled time series values
- * @param anomalyDef the definition of an anomaly to be used—either Errors, Std, or Dynamic
+ * @param anomalyDef the definition of an anomaly to be used
  * @param sigma the number of standard deviations away from the mean used to define point anomalies
  */
 case class DetectAnomalies(
