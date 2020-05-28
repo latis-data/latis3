@@ -1,9 +1,7 @@
-package latis.ops
+package latis.ops.anomalies
 
 import jep.NDArray
 import jep.SharedInterpreter
-
-import latis.ops.anomalies.ModelTimeSeries
 
 /**
  * Defines an Operation that models a univariate time series

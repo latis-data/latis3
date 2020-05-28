@@ -80,7 +80,7 @@ class AnomalyDataSpec extends FlatSpec {
 
   "The robust random cut forest operation" should "add its new column to the dataset" in {
     val ds = Dataset.fromName("sine_wave_with_anomalies")
-      .withOperation(ScoreWithRRCF())
+      .withOperation(ScoreWithRrcf())
 
     //TextWriter().write(ds)
 
@@ -94,7 +94,7 @@ class AnomalyDataSpec extends FlatSpec {
 
   it should "work with Text times" in {
     val ds = Dataset.fromName("sine_wave_with_anomalies_text")
-      .withOperation(ScoreWithRRCF())
+      .withOperation(ScoreWithRrcf())
 
     //TextWriter().write(ds)
 
