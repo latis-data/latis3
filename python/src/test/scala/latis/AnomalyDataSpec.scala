@@ -1,14 +1,14 @@
 package latis
 
+import org.scalatest.FlatSpec
+import org.scalatest.Matchers._
+
 import latis.data._
 import latis.dataset.Dataset
 import latis.ops._
 import latis.ops.anomalies._
 import latis.output.TextWriter
 import latis.util.StreamUtils
-
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
 
 class AnomalyDataSpec extends FlatSpec {
 
