@@ -1,7 +1,7 @@
 package latis.ops.anomalies
 
 /**
- * Defines the three definitions of "anomaly" that can be used in the DetectAnomalies Operation.
+ * Defines the definitions of "anomaly" that can be used in the DetectAnomalies Operation.
  */
 sealed trait AnomalyDef {
 
