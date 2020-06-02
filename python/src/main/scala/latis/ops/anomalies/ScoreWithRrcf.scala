@@ -1,4 +1,4 @@
-package latis.ops
+package latis.ops.anomalies
 
 import jep.NDArray
 import jep.SharedInterpreter
@@ -11,7 +11,7 @@ import jep.SharedInterpreter
  * @param shingleSize the size of each shingle when shingling the time series
  * @param treeSize the size of each tree in the generated forest
  */
-case class ScoreWithRRCF(
+case class ScoreWithRrcf(
   numTrees: Int = 100,
   shingleSize: Int = 18,
   treeSize: Int = 256) extends ModelTimeSeries {

@@ -1,4 +1,4 @@
-package latis.ops
+package latis.ops.anomalies
 
 import jep.NDArray
 import jep.SharedInterpreter

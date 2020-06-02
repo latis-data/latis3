@@ -1,12 +1,12 @@
-package latis.ops
+package latis.ops.anomalies
 
-import jep.JepException
-import jep.MainInterpreter
 import jep.NDArray
 import jep.SharedInterpreter
+
 import latis.data._
 import latis.metadata.Metadata
 import latis.model._
+import latis.ops.JepOperation
 import latis.time.Time
 import latis.time.TimeScale
 import latis.units.UnitConverter
