@@ -10,6 +10,7 @@ import latis.ops.JepOperation
 import latis.time.Time
 import latis.time.TimeScale
 import latis.units.UnitConverter
+import latis.util.LatisConfig
 import latis.util.LatisException
 
 /**
@@ -58,16 +59,16 @@ case class DetectAnomalies(
   override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
     setJepPath
     val interp = new SharedInterpreter
+    val pythonDir = LatisConfig.getOrElse("latis.python.path", "python/src/main/python")
     val samples = data.unsafeForce.sampleSeq
 
     try {
-      interp.runScript("python/src/main/python/detect_anomalies.py")
+      interp.runScript(s"$pythonDir/detect_anomalies.py")
 
       copyDataForPython(interp, model, samples)
       val anomalyCol = runAnomalyDetectionCode(interp)
 
       //Reconstruct the SampledFunction with the anomaly data included
-      //TODO: is .zipWithIndex noticeably slower than a manual for loop?
       val samplesWithAnomalyData: Seq[Sample] = samples.zipWithIndex.map { case (smp, i) =>
         smp match {
           case Sample(dd, rd) => {

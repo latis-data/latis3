@@ -16,7 +16,7 @@ case class ScoreWithRrcf(
   shingleSize: Int = 18,
   treeSize: Int = 256) extends ModelTimeSeries {
   
-  def pathToModelScript: String = "python/src/main/python/score_with_rrcf.py"
+  def modelScript: String = "score_with_rrcf.py"
 
   def modelAlg: String = "rrcf"
   

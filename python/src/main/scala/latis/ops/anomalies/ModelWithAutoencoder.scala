@@ -11,7 +11,7 @@ import jep.SharedInterpreter
  */
 case class ModelWithAutoencoder(trainSize: Double = 1.0) extends ModelTimeSeries {
   
-  def pathToModelScript: String = "python/src/main/python/model_with_autoencoder.py"
+  def modelScript: String = "model_with_autoencoder.py"
 
   def modelAlg: String = "autoencoder"
   
