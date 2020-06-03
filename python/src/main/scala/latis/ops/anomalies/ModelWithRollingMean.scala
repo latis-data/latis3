@@ -11,7 +11,7 @@ import jep.SharedInterpreter
  */
 case class ModelWithRollingMean(window: Int = 10) extends ModelTimeSeries {
   
-  def pathToModelScript: String = "python/src/main/python/model_with_rolling_mean.py"
+  def modelScript: String = "model_with_rolling_mean.py"
 
   def modelAlg: String = "rollingMean"
   

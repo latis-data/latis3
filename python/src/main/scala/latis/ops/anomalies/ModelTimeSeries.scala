@@ -10,6 +10,7 @@ import latis.ops.JepOperation
 import latis.time.Time
 import latis.time.TimeScale
 import latis.units.UnitConverter
+import latis.util.LatisConfig
 
 /**
  * Defines an Operation that models a univariate time series
@@ -28,9 +29,9 @@ trait ModelTimeSeries extends JepOperation {
   def modelVarType: String
 
   /**
-   * Path to the Python script that models the time series.
+   * The name of the Python script that models the time series.
    */
-  def pathToModelScript: String
+  def modelScript: String
 
   /**
    * Executes Python code that models the dataset then returns the model's output.
@@ -65,17 +66,17 @@ trait ModelTimeSeries extends JepOperation {
   override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
     assertNoSpaces(modelAlg)
     setJepPath
-    
+
     val interp = new SharedInterpreter
+    val pythonDir = LatisConfig.getOrElse("latis.python.path", "python/src/main/python")
     val samples = data.unsafeForce.sampleSeq
 
     try {
-      interp.runScript(pathToModelScript)
+      interp.runScript(s"$pythonDir/$modelScript")
       copyDataForPython(interp, model, samples)
       val modelOutputCol = runModelingAlgorithm(interp)
 
       //Reconstruct the SampledFunction with the modeled data included
-      //TODO: is .zipWithIndex noticeably slower than a manual for loop?
       val samplesWithModelData: Seq[Sample] = samples.zipWithIndex.map { case (smp, i) =>
         smp match {
           case Sample(dd, rd) => {

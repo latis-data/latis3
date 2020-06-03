@@ -20,7 +20,7 @@ case class ModelWithArima(
   trend: String = "c",
   gridSearch: Boolean = false) extends ModelTimeSeries {
   
-  def pathToModelScript: String = "python/src/main/python/model_with_arima.py"
+  def modelScript: String = "model_with_arima.py"
 
   def modelAlg: String = "arima"
   
