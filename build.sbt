@@ -82,6 +82,7 @@ lazy val core = project
   .settings(
     name := "latis3-core",
     libraryDependencies ++= Seq(
+      "com.propensive"          % "contextual_2.12"     % "1.2.1",
       "org.scala-lang.modules" %% "scala-xml"           % "1.0.6",
       "io.circe"               %% "circe-core"          % "0.12.3",
       "org.scodec"             %% "scodec-core"         % "1.10.3",
@@ -121,7 +122,7 @@ lazy val `python` = project
   .settings(
     name := "python",
     libraryDependencies ++= Seq(
-      "black.ninia"    % "jep"       % "3.9.0"
+      "black.ninia" % "jep" % "3.9.0"
     )
   )
 
