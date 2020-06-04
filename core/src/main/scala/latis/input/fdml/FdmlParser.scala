@@ -9,6 +9,8 @@ import cats.implicits._
 
 import latis.metadata.Metadata
 import latis.model.ValueType
+import latis.ops.parser.ast.CExpr
+import latis.ops.parser.parsers.subexpression
 import latis.util.FdmlUtils
 import latis.util.LatisException
 import latis.util.NetUtils

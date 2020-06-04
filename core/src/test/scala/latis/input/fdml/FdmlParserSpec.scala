@@ -11,6 +11,7 @@ import org.scalatest.Matchers._
 import latis.model.DoubleValueType
 import latis.model.IntValueType
 import latis.model.StringValueType
+import latis.ops.parser.ast
 import latis.util.LatisException
 import latis.util.NetUtils
 

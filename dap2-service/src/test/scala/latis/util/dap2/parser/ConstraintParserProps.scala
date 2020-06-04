@@ -3,6 +3,7 @@ package latis.util.dap2.parser
 import org.scalacheck._
 import org.scalacheck.ScalacheckShapeless._
 
+import latis.ops.parser.ast._
 import ast._
 
 object ConstraintParserProps extends Properties("DAP 2 Constraint Parser") {
