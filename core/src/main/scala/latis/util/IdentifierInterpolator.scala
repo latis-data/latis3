@@ -6,6 +6,9 @@ case class Identifier(id: String) extends AnyVal {
   override def toString: String = id
 }
 
+/**
+ * Defines a String interpolator that will raise a compile error if the String isn't a valid LaTiS identifier. 
+ */
 object IdentifierInterpolator extends Interpolator {
   
   type Output = Identifier
