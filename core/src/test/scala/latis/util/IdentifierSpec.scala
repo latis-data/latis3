@@ -18,7 +18,7 @@ class IdentifierSpec extends FlatSpec {
   
   //TODO: Ideally, we would like to not have to use .toString
   it should "not equal the original string when .toString is not used" in {
-    val id: Identifier = identifier"myString"
+    val id = identifier"myString"
     id should not be ("myString")
   }
   
@@ -27,7 +27,7 @@ class IdentifierSpec extends FlatSpec {
     identifier"1_myString"
     identifier"abcABC_123"
     identifier"123"
-    identifier"_"
+    identifier"__"
   }
   
   "An invalid Identifier" should "not compile" in {
