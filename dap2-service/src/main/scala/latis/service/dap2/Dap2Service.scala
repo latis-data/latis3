@@ -10,17 +10,18 @@ import org.http4s.HttpRoutes
 import org.http4s.Response
 import org.http4s.dsl.Http4sDsl
 
-import latis.input.DatasetResolver
 import latis.dataset.Dataset
+import latis.input.DatasetResolver
 import latis.ops
 import latis.ops.UnaryOperation
 import latis.output.CsvEncoder
+import latis.ops.parser.ast
 import latis.output.Encoder
 import latis.output.TextEncoder
 import latis.server.ServiceInterface
 import latis.service.dap2.error._
 import latis.util.dap2.parser.ConstraintParser
-import latis.util.dap2.parser.ast
+import latis.util.dap2.parser.ast.ConstraintExpression
 
 /**
  * A service interface implementing the DAP 2 specification.
@@ -52,7 +53,7 @@ class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
 
     ConstraintParser.parse(ce)
       .leftMap(ParseFailure(_))
-      .flatMap { cexprs: ast.ConstraintExpression =>
+      .flatMap { cexprs: ConstraintExpression =>
         cexprs.exprs.traverse {
           case ast.Projection(vs)      => Right(ops.Projection(vs:_*))
           case ast.Selection(n, op, v) => Right(ops.Selection(n, ast.prettyOp(op), v))
