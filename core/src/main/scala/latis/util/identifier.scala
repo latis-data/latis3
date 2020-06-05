@@ -4,8 +4,8 @@ import contextual._
 
 case class Identifier(asString: String) extends AnyVal
 object Identifier {
-  implicit class IdentifierStringContext(sc: StringContext) {
-    val id = Prefix(IdentifierInterpolator, sc)
+  implicit class IdentifierStringContext(val sc: StringContext) extends AnyVal {
+    def id = Prefix(IdentifierInterpolator, sc)
   }
 }
 
