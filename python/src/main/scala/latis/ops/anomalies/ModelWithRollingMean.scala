@@ -16,7 +16,7 @@ case class ModelWithRollingMean(window: Int = 10) extends ModelTimeSeries {
   
   def modelScript: String = "model_with_rolling_mean.py"
 
-  def modelAlg: Identifier = identifier"rollingMean"
+  def modelAlg: Identifier = id"rollingMean"
   
   def modelVarType: String = "double"
 

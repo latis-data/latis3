@@ -21,7 +21,7 @@ case class ScoreWithRrcf(
   
   def modelScript: String = "score_with_rrcf.py"
 
-  def modelAlg: Identifier = identifier"rrcf"
+  def modelAlg: Identifier = id"rrcf"
   
   def modelVarType: String = "double"
 

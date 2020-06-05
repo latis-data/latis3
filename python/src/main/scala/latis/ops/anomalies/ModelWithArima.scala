@@ -25,7 +25,7 @@ case class ModelWithArima(
   
   def modelScript: String = "model_with_arima.py"
 
-  def modelAlg: Identifier = identifier"arima"
+  def modelAlg: Identifier = id"arima"
   
   def modelVarType: String = "double"
 

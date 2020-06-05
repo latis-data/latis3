@@ -31,7 +31,7 @@ object IdentifierInterpolator extends Interpolator {
 package object Implicits {
 
   implicit class UrlStringContext(sc: StringContext) {
-    val identifier = Prefix(IdentifierInterpolator, sc)
+    val id = Prefix(IdentifierInterpolator, sc)
   }
   
 }

@@ -16,7 +16,7 @@ case class ModelWithAutoencoder(trainSize: Double = 1.0) extends ModelTimeSeries
   
   def modelScript: String = "model_with_autoencoder.py"
 
-  def modelAlg: Identifier = identifier"autoencoder"
+  def modelAlg: Identifier = id"autoencoder"
   
   def modelVarType: String = "double"
 

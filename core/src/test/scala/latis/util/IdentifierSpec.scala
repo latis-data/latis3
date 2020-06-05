@@ -8,30 +8,30 @@ import latis.util.Implicits._
 class IdentifierSpec extends FlatSpec {
 
   "A valid Identifier" should "compile" in {
-    identifier"myString"
+    id"myString"
   }
   
   it should "equal the original string when .toString is used" in {
-    val id: Identifier = identifier"myString"
+    val id: Identifier = id"myString"
     id.toString should be ("myString")
   }
   
   //TODO: Ideally, we would like to not have to use .toString
   it should "not equal the original string when .toString is not used" in {
-    val id = identifier"myString"
+    val id = id"myString"
     id should not be ("myString")
   }
   
   it should "be able to contain letters, numbers, and underscores" in {
-    identifier"myString_1"
-    identifier"1_myString"
-    identifier"abcABC_123"
-    identifier"123"
-    identifier"__"
+    id"myString_1"
+    id"1_myString"
+    id"abcABC_123"
+    id"123"
+    id"__"
   }
   
   "An invalid Identifier" should "not compile" in {
-    assertDoesNotCompile("val id = identifier\"my string\"")
+    assertDoesNotCompile("val id = id\"my string\"")
   }
   
 }
