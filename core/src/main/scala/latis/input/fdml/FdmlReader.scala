@@ -9,6 +9,9 @@ import latis.dataset.Dataset
 import latis.input.Adapter
 import latis.metadata.Metadata
 import latis.model._
+import latis.ops
+import latis.ops.UnaryOperation
+import latis.ops.parser.ast
 import latis.util.LatisException
 import latis.util.ReflectionUtils
 
@@ -23,13 +26,15 @@ object FdmlReader {
 
   /** Creates a dataset from FDML. */
   def read(fdml: Fdml): Either[LatisException, Dataset] = for {
-    model   <- makeFunction(fdml.model)
-    adapter <- makeAdapter(fdml.adapter, model)
+    model      <- makeFunction(fdml.model)
+    adapter    <- makeAdapter(fdml.adapter, model)
+    operations <- makeOperations(fdml.operations)
   } yield new AdaptedDataset(
     fdml.metadata,
     model,
     adapter,
-    fdml.source.uri
+    fdml.source.uri,
+    operations
   )
 
   private def makeDataType(model: FModel): Either[LatisException, DataType] =
@@ -73,4 +78,22 @@ object FdmlReader {
       adapter.config
     ).asInstanceOf[Adapter]
   }.leftMap(LatisException(_))
+
+  private def makeOperations(
+    op: List[ast.CExpr]
+  ): Either[LatisException, List[UnaryOperation]] =
+    op.traverse(parseOperation)
+
+  private def parseOperation(
+    expression: ast.CExpr
+  ): Either[LatisException, UnaryOperation] =
+    expression match {
+      case ast.Projection(vs) => Right(ops.Projection(vs: _*))
+      case ast.Selection(n, op, v) =>
+        Right(ops.Selection(n, ast.prettyOp(op), v))
+      case ast.Operation("rename", oldName :: newName :: Nil) =>
+        Right(ops.Rename(oldName, newName))
+      case ast.Operation("project", vs) => Right(ops.Projection(vs: _*))
+      case ast.Operation(op, _) => Left(LatisException(s"Unknown operation: $op"))
+    }
 }

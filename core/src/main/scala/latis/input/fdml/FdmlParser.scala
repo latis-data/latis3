@@ -3,8 +3,11 @@ package latis.input.fdml
 import java.net.URI
 import java.net.URISyntaxException
 
+import scala.util.matching.Regex
 import scala.xml._
 
+import atto.Atto._
+import atto._
 import cats.implicits._
 
 import latis.metadata.Metadata
@@ -30,13 +33,15 @@ object FdmlParser {
 
   /** Parses FDML from XML. */
   def parseXml(xml: Elem): Either[LatisException, Fdml] = for {
-    _        <- isFdml(xml)
-    metadata <- parseMetadata(xml).asRight
-    source   <- parseSource(xml)
-    adapter  <- parseAdapter(xml)
-    function <- findRootFunction(xml)
-    model    <- parseFunction(function)
-  } yield Fdml(metadata, source, adapter, model)
+    _          <- isFdml(xml)
+    metadata   <- parseMetadata(xml).asRight
+    source     <- parseSource(xml)
+    adapter    <- parseAdapter(xml)
+    function   <- findRootFunction(xml)
+    model      <- parseFunction(function)
+    exprs      <- parseProcessingInstructions(xml)
+    operations <- parseExpressions(exprs)
+  } yield Fdml(metadata, source, adapter, model, operations)
 
   // Assuming that this is an FDML file if the root element is
   // <dataset>.
@@ -134,5 +139,27 @@ object FdmlParser {
         ty    <- ValueType.fromName(tyStr)
       } yield FScalar(id, ty, attrs)
       case _ => LatisException("Expecting a single scalar").asLeft
+    }
+
+  private def parseProcessingInstructions(xml: Elem): Either[LatisException, List[String]] = {
+    val expr: Regex = "expression=\"(.*)\"".r
+    xml.child.collect {
+      case ProcInstr("latis-operation", expr(v)) => v.asRight
+      case ProcInstr("latis-operation", s) =>
+        LatisException(s"latis-operation must contain expression in $s").asLeft
+    }.toList.sequence
+  }
+
+  private def parseExpressions(
+    expressions: List[String]
+  ): Either[LatisException, List[CExpr]] =
+    expressions.traverse(parseExpression)
+
+  private def parseExpression(
+    expression: String
+  ): Either[LatisException, CExpr] =
+    subexpression.parseOnly(expression) match {
+      case ParseResult.Done(_, e) => Right(e)
+      case _                      => Left(LatisException(s"Failed to parse expression $expression"))
     }
 }

@@ -5,13 +5,15 @@ import java.net.URI
 import latis.input.AdapterConfig
 import latis.metadata.Metadata
 import latis.model.ValueType
+import latis.ops.parser.ast.CExpr
 
 /** Abstract representation of an FDML file. */
 final case class Fdml(
   metadata: Metadata,
   source: FSource,
   adapter: FAdapter,
-  model: FFunction
+  model: FFunction,
+  operations: List[CExpr] = List.empty
 )
 
 /**

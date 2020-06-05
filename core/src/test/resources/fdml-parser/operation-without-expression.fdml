@@ -29,10 +29,6 @@
     </function>
   </function>
 
-  <?latis-operation expression="time > 2000-01-01"?>
-
-  <?latis-operation expression="a, b, c"?>
-
-  <?latis-operation expression="rename(Constantinople, Istanbul)"?>
+  <?latis-operation expiration="time > 2000-01-01"?>
 
 </dataset>

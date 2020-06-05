@@ -1,8 +1,5 @@
 package latis.input.fdml
 
-import scala.xml.Elem
-import scala.xml.XML
-
 import org.scalatest.EitherValues._
 import org.scalatest.FlatSpec
 import org.scalatest.Inside._
@@ -21,7 +18,7 @@ final class FdmlParserSpec extends FlatSpec {
 
   "An FDML parser" should "parse a valid FDML file" in
     withFdmlFile("fdml-parser/valid.fdml") { fdml =>
-      inside(fdml.right.value) { case Fdml(metadata, source, adapter, model) =>
+      inside(fdml.right.value) { case Fdml(metadata, source, adapter, model, operations) =>
         metadata.properties should contain ("id" -> "valid")
         metadata.properties should contain ("title" -> "Valid Dataset")
 
@@ -89,6 +86,12 @@ final class FdmlParserSpec extends FlatSpec {
               }
             }
           }
+        }
+
+        inside(operations) { case firstOp :: secondOp :: thirdOp :: Nil =>
+          firstOp should equal (ast.Selection("time", ast.Gt, "2000-01-01"))
+          secondOp should equal (ast.Projection(List("a", "b", "c")))
+          thirdOp should equal (ast.Operation("rename", List("Constantinople", "Istanbul")))
         }
       }
     }
@@ -171,6 +174,16 @@ final class FdmlParserSpec extends FlatSpec {
   it should "require that scalars have valid types" in
     withFdmlFile("fdml-parser/scalar-without-valid-type.fdml") { fdml =>
       fdml.left.value.getMessage should startWith ("Invalid Scalar value type")
+    }
+
+  it should "require that operations have expressions" in
+    withFdmlFile("fdml-parser/operation-without-expression.fdml") { fdml =>
+      fdml.left.value.getMessage should startWith ("latis-operation must contain expression in")
+    }
+
+  it should "require that operations have valid expressions" in
+    withFdmlFile("fdml-parser/operation-with-bad-expression.fdml") { fdml =>
+      fdml.left.value.getMessage should startWith ("Failed to parse expression")
     }
 
   private def withFdmlFile(uriStr: String)(f: Either[LatisException, Fdml] => Any): Any =
