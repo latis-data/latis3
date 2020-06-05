@@ -4,7 +4,7 @@ import jep.NDArray
 import jep.SharedInterpreter
 
 import latis.util.Identifier
-import latis.util.IdentifierInterpolator.IdentifierStringContext
+import latis.util.Identifier._
 
 /**
  * Defines an Operation that assigns anomaly scores to points in a univariate 

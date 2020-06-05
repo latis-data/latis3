@@ -3,6 +3,11 @@ package latis.util
 import contextual._
 
 case class Identifier(asString: String) extends AnyVal
+object Identifier {
+  implicit class IdentifierStringContext(sc: StringContext) {
+    val id = Prefix(IdentifierInterpolator, sc)
+  }
+}
 
 /**
  * Defines a String interpolator that will raise a compile error if the String isn't a valid LaTiS identifier. 
@@ -23,9 +28,5 @@ object IdentifierInterpolator extends Interpolator {
     Identifier(interpolation.literals.head)
   
   def checkValidIdentifier(str: String): Boolean = str.matches("\\w+")
-
-  implicit class IdentifierStringContext(sc: StringContext) {
-    val id = Prefix(IdentifierInterpolator, sc)
-  }
   
 }
