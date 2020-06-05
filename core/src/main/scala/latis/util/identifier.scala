@@ -2,9 +2,7 @@ package latis.util
 
 import contextual._
 
-case class Identifier(id: String) extends AnyVal {
-  override def toString: String = id
-}
+case class Identifier(asString: String) extends AnyVal
 
 /**
  * Defines a String interpolator that will raise a compile error if the String isn't a valid LaTiS identifier. 

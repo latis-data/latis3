@@ -52,7 +52,7 @@ trait ModelTimeSeries extends JepOperation {
       case Function(d, r: Scalar) =>
         val m = Scalar(
           Metadata(
-            "id" -> modelAlg.toString,
+            "id" -> modelAlg.asString,
             "type" -> modelVarType
           )
         )

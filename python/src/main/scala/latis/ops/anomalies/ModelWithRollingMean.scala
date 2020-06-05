@@ -24,8 +24,8 @@ case class ModelWithRollingMean(window: Int = 10) extends ModelTimeSeries {
    * Executes Python code that models the dataset with a rolling mean then returns the model's output.
    */
   def runModelingAlgorithm(interpreter: SharedInterpreter): Array[Double] = {
-    interpreter.exec(s"ts_with_model = model_with_rolling_mean($interpDs, $window, '${modelAlg.toString}')")
-    interpreter.exec(s"model_output = ts_with_model.${modelAlg.toString}.to_numpy()")
+    interpreter.exec(s"ts_with_model = model_with_rolling_mean($interpDs, $window, '${modelAlg.asString}')")
+    interpreter.exec(s"model_output = ts_with_model.${modelAlg.asString}.to_numpy()")
     interpreter.getValue("model_output", classOf[NDArray[Array[Double]]]).getData
   }
  

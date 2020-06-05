@@ -11,9 +11,9 @@ class IdentifierSpec extends FlatSpec {
     id"myString"
   }
   
-  it should "equal the original string when .toString is used" in {
+  it should "equal the original string when .asString is used" in {
     val id: Identifier = id"myString"
-    id.toString should be ("myString")
+    id.asString should be ("myString")
   }
   
   it should "be able to contain letters, numbers, and underscores" in {

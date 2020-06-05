@@ -33,8 +33,8 @@ case class ScoreWithRrcf(
       s"num_trees=$numTrees," +
       s"shingle_size=$shingleSize," +
       s"tree_size=$treeSize," +
-      s"col_name='${modelAlg.toString}')")
-    interpreter.exec(s"scores = ts_with_scores.${modelAlg.toString}.to_numpy()")
+      s"col_name='${modelAlg.asString}')")
+    interpreter.exec(s"scores = ts_with_scores.${modelAlg.asString}.to_numpy()")
     interpreter.getValue("scores", classOf[NDArray[Array[Double]]]).getData
   }
  
