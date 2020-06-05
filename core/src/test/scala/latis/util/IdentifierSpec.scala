@@ -16,12 +16,6 @@ class IdentifierSpec extends FlatSpec {
     id.toString should be ("myString")
   }
   
-  //TODO: Ideally, we would like to not have to use .toString
-  it should "not equal the original string when .toString is not used" in {
-    val id = id"myString"
-    id should not be ("myString")
-  }
-  
   it should "be able to contain letters, numbers, and underscores" in {
     id"myString_1"
     id"1_myString"
