@@ -3,7 +3,7 @@ package latis.util
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
-import latis.util.Implicits._
+import latis.util.IdentifierInterpolator.IdentifierStringContext
 
 class IdentifierSpec extends FlatSpec {
 

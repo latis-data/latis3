@@ -25,10 +25,6 @@ object IdentifierInterpolator extends Interpolator {
     Identifier(interpolation.literals.head)
   
   def checkValidIdentifier(str: String): Boolean = str.matches("\\w+")
-  
-}
-
-package object Implicits {
 
   implicit class IdentifierStringContext(sc: StringContext) {
     val id = Prefix(IdentifierInterpolator, sc)
