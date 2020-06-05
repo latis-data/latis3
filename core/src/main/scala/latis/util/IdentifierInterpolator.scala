@@ -30,7 +30,7 @@ object IdentifierInterpolator extends Interpolator {
 
 package object Implicits {
 
-  implicit class UrlStringContext(sc: StringContext) {
+  implicit class IdentifierStringContext(sc: StringContext) {
     val id = Prefix(IdentifierInterpolator, sc)
   }
   
