@@ -20,7 +20,7 @@ object DefaultDatumOrdering extends PartialOrdering[Datum] {
   def tryCompare(x: Datum, y: Datum): Option[Int] = (x, y) match {
     case (Number(d1), Number(d2)) =>
       if (d1.isNaN || d2.isNaN) None
-      else Some(Double.compare(d1, d2))
+      else Some(Ordering[Double].compare(d1, d2))
     case (Text(s1), Text(s2)) =>
       Some(String.compare(s1, s2))
     // Make NullDatum larger than any other
