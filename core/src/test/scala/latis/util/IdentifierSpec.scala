@@ -16,16 +16,19 @@ class IdentifierSpec extends FlatSpec {
     id.asString should be ("myString")
   }
   
-  it should "be able to contain letters, numbers, and underscores" in {
+  it should "be able to contain letters, numbers (not the first character), and underscores" in {
     id"myString_1"
-    id"1_myString"
+    id"_myString"
     id"abcABC_123"
-    id"123"
+    id"_123"
     id"__"
+    
   }
   
   "An invalid Identifier" should "not compile" in {
-    assertDoesNotCompile("val id = id\"my string\"")
+    assertDoesNotCompile("val id = id\"my string\"") //contains a space
+    assertDoesNotCompile("val id = id\"123_abc\"")   //starts with a number
+    assertDoesNotCompile("Identifier(\"myString\")") //can't construct them like this
   }
   
 }

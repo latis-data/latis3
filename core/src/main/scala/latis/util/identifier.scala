@@ -1,9 +1,13 @@
 package latis.util
 
 import contextual._
+import latis.util.IdentifierInterpolator.checkValidIdentifier
 
-case class Identifier(asString: String) extends AnyVal
+sealed abstract case class Identifier(asString: String)
 object Identifier {
+  def fromString(id: String): Option[Identifier] =
+    if (checkValidIdentifier(id)) Some(new Identifier(id) {}) else None
+  
   implicit class IdentifierStringContext(val sc: StringContext) extends AnyVal {
     def id = Prefix(IdentifierInterpolator, sc)
   }
@@ -25,8 +29,9 @@ object IdentifierInterpolator extends Interpolator {
   }
 
   def evaluate(interpolation: RuntimeInterpolation): Identifier =
-    Identifier(interpolation.literals.head)
+    Identifier.fromString(interpolation.literals.head).get
   
-  def checkValidIdentifier(str: String): Boolean = str.matches("\\w+")
+  /** Returns whether the String is a regex "word" that doesn't start with a digit. */
+  def checkValidIdentifier(str: String): Boolean = str.matches("^(?!\\d)\\w+")
   
 }
