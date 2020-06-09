@@ -3,6 +3,13 @@ package latis.util
 import contextual._
 import latis.util.IdentifierInterpolator.checkValidIdentifier
 
+/**
+ * Defines a LaTiS identifier, a name that may contain only:
+ *   - letters
+ *   - numbers
+ *   - underscores
+ * so long as the identifier does not start with a number.
+ */
 sealed abstract case class Identifier(asString: String)
 object Identifier {
   def fromString(id: String): Option[Identifier] =
