@@ -3,6 +3,9 @@ package latis.ops.anomalies
 import jep.NDArray
 import jep.SharedInterpreter
 
+import latis.util.Identifier
+import latis.util.Identifier._
+
 /**
  * Defines an Operation that models a univariate time series
  * (i.e., time -> value) with an ARIMA algorithm.
@@ -22,7 +25,7 @@ case class ModelWithArima(
   
   def modelScript: String = "model_with_arima.py"
 
-  def modelAlg: String = "arima"
+  def modelAlg: Identifier = id"arima"
   
   def modelVarType: String = "double"
 
@@ -37,8 +40,8 @@ case class ModelWithArima(
       s"${seasonalOrder._4}," +
       s"'$trend'," +
       s"${if (gridSearch) "True" else "False"}," +
-      s"col_name='$modelAlg')")
-    interpreter.exec(s"model_output = ts_with_model.$modelAlg.to_numpy()")
+      s"col_name='${modelAlg.asString}')")
+    interpreter.exec(s"model_output = ts_with_model.${modelAlg.asString}.to_numpy()")
     interpreter.getValue("model_output", classOf[NDArray[Array[Double]]]).getData
   }
  

@@ -3,6 +3,9 @@ package latis.ops.anomalies
 import jep.NDArray
 import jep.SharedInterpreter
 
+import latis.util.Identifier
+import latis.util.Identifier._
+
 /**
  * Defines an Operation that assigns anomaly scores to points in a univariate 
  * time series (i.e., time -> value) with a robust random cut forest algorithm.
@@ -18,7 +21,7 @@ case class ScoreWithRrcf(
   
   def modelScript: String = "score_with_rrcf.py"
 
-  def modelAlg: String = "rrcf"
+  def modelAlg: Identifier = id"rrcf"
   
   def modelVarType: String = "double"
 
@@ -30,8 +33,8 @@ case class ScoreWithRrcf(
       s"num_trees=$numTrees," +
       s"shingle_size=$shingleSize," +
       s"tree_size=$treeSize," +
-      s"col_name='$modelAlg')")
-    interpreter.exec(s"scores = ts_with_scores.$modelAlg.to_numpy()")
+      s"col_name='${modelAlg.asString}')")
+    interpreter.exec(s"scores = ts_with_scores.${modelAlg.asString}.to_numpy()")
     interpreter.getValue("scores", classOf[NDArray[Array[Double]]]).getData
   }
  

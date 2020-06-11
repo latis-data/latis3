@@ -10,6 +10,7 @@ import latis.ops.JepOperation
 import latis.time.Time
 import latis.time.TimeScale
 import latis.units.UnitConverter
+import latis.util.Identifier
 import latis.util.LatisConfig
 
 /**
@@ -20,10 +21,10 @@ import latis.util.LatisConfig
 trait ModelTimeSeries extends JepOperation {
 
   /** 
-   * The name of the modeling algorithm (must not contain spaces).
+   * The name of the modeling algorithm (must be a valid LaTiS identifier).
    * Becomes the name of the new Dataset variable that holds the modeled time series values.
    */
-  def modelAlg: String
+  def modelAlg: Identifier
 
   /** The type of the new Dataset variable. */
   def modelVarType: String
@@ -51,7 +52,7 @@ trait ModelTimeSeries extends JepOperation {
       case Function(d, r: Scalar) =>
         val m = Scalar(
           Metadata(
-            "id" -> modelAlg,
+            "id" -> modelAlg.asString,
             "type" -> modelVarType
           )
         )
@@ -64,7 +65,6 @@ trait ModelTimeSeries extends JepOperation {
    * Models the time series with the given Python script.
    */
   override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
-    assertNoSpaces(modelAlg)
     setJepPath
 
     val interp = new SharedInterpreter
@@ -116,11 +116,4 @@ trait ModelTimeSeries extends JepOperation {
     )
   }
 
-  /**
-   * Throws an exception if the String contains a space.
-   */
-  private def assertNoSpaces(str: String): Unit = {
-    if (str.contains(" ")) throw new RuntimeException(s"'$str' must not contain spaces.")
-  }
-  
 }
