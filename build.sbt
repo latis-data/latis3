@@ -122,11 +122,11 @@ lazy val `dap2-service` = project
     )
   )
 
-lazy val `python` = project
+lazy val python = project
   .dependsOn(core)
   .settings(commonSettings)
   .settings(
-    name := "python",
+    name := "latis3-python",
     libraryDependencies ++= Seq(
       "black.ninia" % "jep" % "3.9.0"
     )
