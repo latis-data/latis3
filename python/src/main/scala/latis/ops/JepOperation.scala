@@ -3,6 +3,8 @@ package latis.ops
 import jep.JepException
 import jep.MainInterpreter
 
+import latis.util.LatisConfig
+
 /**
  * Defines an Operation that uses JEP and acts on a single Dataset.
  */
@@ -20,7 +22,8 @@ trait JepOperation extends UnaryOperation {
         else if (os.contains("mac")) "jep.cpython-36m-darwin.so"
         else "jep.cpython-36m-x86_64-linux-gnu.so"
       }
-      System.getProperty("user.dir") + "/python/lib/" + fileName
+      val libDir = LatisConfig.getOrElse("latis.python.lib", "/python/lib/")
+      System.getProperty("user.dir") + libDir + fileName
     }
     MainInterpreter.setJepLibraryPath(path)
   } catch {
