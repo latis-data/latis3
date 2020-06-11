@@ -14,6 +14,7 @@ import latis.input.DatasetResolver
 import latis.dataset.Dataset
 import latis.ops
 import latis.ops.UnaryOperation
+import latis.output.CsvEncoder
 import latis.output.Encoder
 import latis.output.TextEncoder
 import latis.server.ServiceInterface
@@ -67,6 +68,7 @@ class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
     ext match {
       case ""    => getEncoder("html")
       case "txt" => Right(new TextEncoder)
+      case "csv" => Right(CsvEncoder.withColumnName)
       // TODO: Here we may need to dynamically construct an instance
       // of an encoder based on the extension and server/interface
       // configuration.

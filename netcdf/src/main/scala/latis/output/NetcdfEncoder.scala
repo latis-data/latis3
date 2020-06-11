@@ -4,9 +4,11 @@ import java.io.File
 
 import cats.effect.IO
 import cats.effect.Resource
+import cats.implicits._
 import fs2.Stream
-import ucar.ma2.{DataType => NcDataType}
 import ucar.ma2.{Array => NcArray}
+import ucar.ma2.{DataType => NcDataType}
+import ucar.nc2.Attribute
 import ucar.nc2.Dimension
 import ucar.nc2.NetcdfFileWriter
 import ucar.nc2.NetcdfFileWriter.Version.netcdf4
@@ -16,15 +18,18 @@ import latis.data.Data
 import latis.data.Data._
 import latis.data.Sample
 import latis.dataset.Dataset
-import latis.model._
+import latis.metadata.Metadata
 import latis.model.DataType
+import latis.model._
 import latis.ops.Uncurry
 import latis.util.LatisException
 
 /**
  * Makes a [[https://www.unidata.ucar.edu/software/netcdf/ NetCDF4]] file from a [[latis.dataset.Dataset]].
  *
- * This encoder assumes the dataset is uncurried.
+ * This encoder assumes:
+ *   - the dataset is Cartesian with no missing values
+ *   - the dataset is sorted so that the first domain variable changes slowest
  *
  * Throws a `LatisExeption` if the dataset includes any of the following types:
  *   - `Boolean`
@@ -51,7 +56,7 @@ class NetcdfEncoder(file: File) extends Encoder[IO, File] {
       .flatMap { ncdf =>
         Stream
           .eval(uncurriedDataset.samples.compile.toVector)
-          .map(datasetToNetcdf(ncdf, uncurriedDataset.model, _))
+          .evalMap(datasetToNetcdf(ncdf, uncurriedDataset.model, uncurriedDataset.metadata, _))
       }
       .as(file)
   }
@@ -59,23 +64,40 @@ class NetcdfEncoder(file: File) extends Encoder[IO, File] {
   private def datasetToNetcdf(
     file: NetcdfFileWriter,
     model: DataType,
-    datasetList: Vector[Sample]
-  ): Unit = model match {
-    case Function(domain: Scalar, range) =>
-      // add metadata (dimension(s) and variables)
-      val dim                 = file.addDimension(domain.id, datasetList.length)
-      val scalars             = domain +: range.getScalars
-      val vars: Seq[Variable] = addVariablesFromScalars(file, dim, scalars)
-      file.create() // create file and write metadata
+    metadata: Metadata,
+    samples: Vector[Sample]
+  ): IO[Unit] = model match {
+    case Function(domain, range) =>
+      val dScalars = domain.getScalars
+      val rScalars = range.getScalars
+      val scalars  = dScalars ++ rScalars
+      val dimNames = dScalars.map(_.id).mkString(" ")
+      val acc: Accumulator =
+        accumulate(scalarsToAccumulator(scalars, samples.length), scalars, samples)
+      val dArrs = domainAccumulatorToNcArray(acc, dScalars)
+      val shape = dArrs.map(_.getSize.toInt).toArray
+      val rArrs = accumulatorToNcArray(acc.drop(dScalars.length), rScalars, shape)
 
-      // write data
-      val acc: Accumulator   = scalarsToAccumulator(scalars, datasetList.length)
-      val data: Seq[NcArray] = accumulate(acc, scalars, datasetList)
-      vars.zip(data).foreach { case (v, d) => file.write(v, d) }
-    case _ =>
-      throw LatisException(
-        "dataset must be a function of a scalar to either a scalar or tuple of scalars"
-      )
+      for {
+        // add dimensions
+        _ <- dScalars.zip(shape).traverse { case (s, dim) => addDimension(file, s.id, dim) }
+        // add variables
+        dVars <- dScalars.traverse(s => addVariable(file, s.id, scalarToNetcdfDataType(s), s.id))
+        rVars <- rScalars.traverse(
+          s => addVariable(file, s.id, scalarToNetcdfDataType(s), dimNames)
+        )
+        // add metadata
+        _ <- metadata.properties.toList.traverse { case (k, v) => addGlobalAttribute(file, k, v) }
+        _ <- (dVars ++ rVars).zip(scalars).traverse {
+          case (variable, scalar) =>
+            scalar.metadata.properties.toList.traverse {
+              case (key, value) => addAttribute(variable, key, value)
+            }
+        }
+        _ <- create(file) // create file and write metadata
+        // write data
+        _ <- (dVars ++ rVars).zip(dArrs ++ rArrs).traverse { case (v, d) => write(file, v, d) }
+      } yield ()
   }
 }
 
@@ -85,11 +107,13 @@ object NetcdfEncoder {
 
   private type Accumulator = List[Any]
 
-  private def accumulate(acc: Accumulator, ss: Seq[Scalar], data: Seq[Sample]): Seq[NcArray] = {
+  private def accumulate(acc: Accumulator, ss: Seq[Scalar], data: Seq[Sample]): Accumulator = {
     for (i <- data.indices) yield {
       data(i) match {
-        case Sample(d, rs) =>
-          val vals: Array[Data] = (d ++ rs).toArray
+        // for each sample (row), add the domain and range values to the arrays
+        // (columns) in the accumulator.
+        case Sample(d, r) =>
+          val vals: Array[Data] = (d ++ r).toArray
           (vals, ss, acc).zipped.toList.foreach {
             case (v, s, a) =>
               s.valueType match {
@@ -111,14 +135,55 @@ object NetcdfEncoder {
                 case t => throw LatisException(s"Unsupported type: $t")
               }
           }
-        case _ =>
-          throw LatisException(
-            "dataset must be a function of a scalar to either a scalar or tuple of scalars"
-          )
       }
     }
-    val shape: Array[Int] = Array(data.length)
-    ss.zip(acc).map {
+    acc
+  }
+
+  /**
+   * Removes duplicate values from the input accumulator before converting to a
+   * NetCDF Array.
+   *
+   * Expects at least one input argument to be domain only.
+   */
+  private def domainAccumulatorToNcArray(acc: Accumulator, scalars: Seq[Scalar]): Seq[NcArray] =
+    scalars.zip(acc).map {
+      case (s, a) =>
+        s.valueType match {
+          case ByteValueType =>
+            val b = a.asInstanceOf[Array[Byte]].distinct
+            NcArray.factory(scalarToNetcdfDataType(s), Array(b.length), b)
+          case CharValueType =>
+            val b = a.asInstanceOf[Array[Char]].distinct
+            NcArray.factory(scalarToNetcdfDataType(s), Array(b.length), b)
+          case ShortValueType =>
+            val b = a.asInstanceOf[Array[Short]].distinct
+            NcArray.factory(scalarToNetcdfDataType(s), Array(b.length), b)
+          case IntValueType =>
+            val b = a.asInstanceOf[Array[Int]].distinct
+            NcArray.factory(scalarToNetcdfDataType(s), Array(b.length), b)
+          case LongValueType =>
+            val b = a.asInstanceOf[Array[Long]].distinct
+            NcArray.factory(scalarToNetcdfDataType(s), Array(b.length), b)
+          case FloatValueType =>
+            val b = a.asInstanceOf[Array[Float]].distinct
+            NcArray.factory(scalarToNetcdfDataType(s), Array(b.length), b)
+          case DoubleValueType =>
+            val b = a.asInstanceOf[Array[Double]].distinct
+            NcArray.factory(scalarToNetcdfDataType(s), Array(b.length), b)
+          case StringValueType =>
+            val b = a.asInstanceOf[Array[String]].distinct
+            NcArray.factory(scalarToNetcdfDataType(s), Array(b.length), b)
+          case t => throw LatisException(s"Unsupported type: $t")
+        }
+    }
+
+  private def accumulatorToNcArray(
+    acc: Accumulator,
+    scalars: Seq[Scalar],
+    shape: Array[Int]
+  ): Seq[NcArray] =
+    scalars.zip(acc).map {
       case (s, a) =>
         s.valueType match {
           case ByteValueType   => NcArray.factory(scalarToNetcdfDataType(s), shape, a)
@@ -132,7 +197,6 @@ object NetcdfEncoder {
           case t               => throw LatisException(s"Unsupported type: $t")
         }
     }
-  }
 
   private def scalarsToAccumulator(ss: Seq[Scalar], length: Int): Accumulator =
     ss.map(_.valueType)
@@ -150,25 +214,43 @@ object NetcdfEncoder {
       .toList
 
   private def scalarToNetcdfDataType(s: Scalar): NcDataType =
-    s.metadata.getProperty("type", "").toLowerCase match {
-      case "byte"   => NcDataType.BYTE
-      case "char"   => NcDataType.CHAR
-      case "short"  => NcDataType.SHORT
-      case "int"    => NcDataType.INT
-      case "long"   => NcDataType.LONG
-      case "float"  => NcDataType.FLOAT
-      case "double" => NcDataType.DOUBLE
-      case "string" => NcDataType.STRING
-      // Boolean is not supported by netCDF3
+    s.valueType match {
+      case ByteValueType   => NcDataType.BYTE
+      case CharValueType   => NcDataType.CHAR
+      case ShortValueType  => NcDataType.SHORT
+      case IntValueType    => NcDataType.INT
+      case LongValueType   => NcDataType.LONG
+      case FloatValueType  => NcDataType.FLOAT
+      case DoubleValueType => NcDataType.DOUBLE
+      case StringValueType => NcDataType.STRING
+      // Boolean is not supported by netCDF4
       case t => throw LatisException(s"Unsupported type: $t")
     }
 
-  private def addVariablesFromScalars(
+  private def addDimension(file: NetcdfFileWriter, name: String, length: Int): IO[Dimension] =
+    IO { file.addDimension(name, length) }
+
+  private def addVariable(
     file: NetcdfFileWriter,
-    dim: Dimension,
-    ss: Seq[Scalar]
-  ): Seq[Variable] =
-    ss.map { s =>
-      file.addVariable(s.id, scalarToNetcdfDataType(s), dim.getShortName)
-    }
+    varName: String,
+    ncType: NcDataType,
+    dimName: String
+  ): IO[Variable] =
+    IO { file.addVariable(varName, ncType, dimName) }
+
+  private def create(file: NetcdfFileWriter): IO[Unit] =
+    IO { file.create() }
+
+  private def write(file: NetcdfFileWriter, v: Variable, data: NcArray): IO[Unit] =
+    IO { file.write(v, data) }
+
+  private def addGlobalAttribute(
+    file: NetcdfFileWriter,
+    key: String,
+    value: String
+  ): IO[Attribute] =
+    IO { file.addGlobalAttribute(key, value) }
+
+  private def addAttribute(v: Variable, key: String, value: String): IO[Attribute] =
+    IO { v.addAttribute(new Attribute(key, value)) }
 }
