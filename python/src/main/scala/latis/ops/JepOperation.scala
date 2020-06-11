@@ -22,7 +22,7 @@ trait JepOperation extends UnaryOperation {
         else if (os.contains("mac")) "jep.cpython-36m-darwin.so"
         else "jep.cpython-36m-x86_64-linux-gnu.so"
       }
-      val libDir = LatisConfig.getOrElse("latis.python.lib", "/python/lib/")
+      val libDir = LatisConfig.getOrElse("latis.python.jep.lib", "/python/lib/")
       System.getProperty("user.dir") + libDir + fileName
     }
     MainInterpreter.setJepLibraryPath(path)
