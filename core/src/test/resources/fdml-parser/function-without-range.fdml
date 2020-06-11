@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<dataset id="function_without_range"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="http://latis-data.io/schemas/1.0/fdml-with-text-adapter.xsd">
+
+  <source uri="file:///fake/path"/>
+
+  <adapter class="latis.input.TextAdapter"
+           skipLines="1"/>
+
+  <function>
+    <scalar id="time"
+            units="days since 2000-01-01"
+            type="int"
+            class="latis.time.Time"/>
+  </function>
+
+</dataset>

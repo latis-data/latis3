@@ -1,13 +1,12 @@
 package latis.output
 
 import java.io.File
-import java.nio.ByteBuffer
 import java.nio.DoubleBuffer
 import java.nio.IntBuffer
-import java.nio.LongBuffer
 
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
+import ucar.ma2.{DataType => NcDataType}
 import ucar.nc2.NetcdfFile
 
 import latis.data._
@@ -19,7 +18,7 @@ class NetcdfEncoderSpec extends FlatSpec {
   import NetcdfEncoderSpec._
 
   "A NetCDF encoder" should "encode a 1-D dataset with a single range variable to NetCDF" in {
-    val enc          = NetcdfEncoder(new File("test1.nc"))
+    val enc          = NetcdfEncoder(File.createTempFile("netcdf_test", ".nc", null))
     val expectedTime = Array(1, 2, 3)
     val expectedFlux = Array(1.0, 2.5, 5.1e-2)
 
@@ -38,27 +37,103 @@ class NetcdfEncoderSpec extends FlatSpec {
   }
 
   it should "encode a 1-D dataset with multiple range variables to NetCDF" in {
-    val enc          = NetcdfEncoder(new File("test2.nc"))
+    val enc          = NetcdfEncoder(File.createTempFile("netcdf_test", ".nc", null))
     val expectedTime = Array(1, 2, 3)
     val expectedFlag = Array[Byte](0, 0, -1)
     val expectedFlux = Array(1.0, 2.5, 5.1e-2)
     val expectedLong = Array[Long](9001, 9001, 9001)
-    val expectedStr  = "foo bar baz "
+    val expectedStr  = Array("foo", "bar", "baz")
 
     val file   = enc.encode(time_series_1D_multi_range).compile.toList.unsafeRunSync().head
     val ncFile = NetcdfFile.open(file.getAbsolutePath)
     try {
-      val arrs    = ncFile.readArrays(ncFile.getVariables)
-      val timeArr = arrs.get(0).getDataAsByteBuffer.asIntBuffer
-      val flagArr = arrs.get(1).getDataAsByteBuffer
-      val fluxArr = arrs.get(2).getDataAsByteBuffer.asDoubleBuffer
-      val longArr = arrs.get(3).getDataAsByteBuffer.asLongBuffer
-      val strArr  = arrs.get(4).toString
-      timeArr should be(IntBuffer.wrap(expectedTime))
-      flagArr should be(ByteBuffer.wrap(expectedFlag))
-      fluxArr should be(DoubleBuffer.wrap(expectedFlux))
-      longArr should be(LongBuffer.wrap(expectedLong))
-      strArr should be(expectedStr)
+      ncFile.readSection("time").get1DJavaArray(NcDataType.INT) should be(expectedTime)
+      ncFile.readSection("flag").get1DJavaArray(NcDataType.BYTE) should be(expectedFlag)
+      ncFile.readSection("flux").get1DJavaArray(NcDataType.DOUBLE) should be(expectedFlux)
+      ncFile.readSection("long").get1DJavaArray(NcDataType.LONG) should be(expectedLong)
+      ncFile.readSection("str").get1DJavaArray(NcDataType.STRING) should be(expectedStr)
+    } finally {
+      ncFile.close()
+      file.delete()
+    }
+  }
+
+  it should "encode a 2-D dataset to NetCDF" in {
+    val enc                = NetcdfEncoder(File.createTempFile("netcdf_test", ".nc", null))
+    val expectedTime       = Array(1, 2, 3)
+    val expectedWavelength = Array(430.1, 538.5)
+    val expectedFlag       = Array[Byte](0, 0, 0, -1, 0, 0)
+    val expectedFlux       = Array(1.0, 2.5, 1.2, 5.1e-2, 0.9, 2.1)
+
+    val file   = enc.encode(time_series_2D).compile.toList.unsafeRunSync().head
+    val ncFile = NetcdfFile.open(file.getAbsolutePath)
+    try {
+      ncFile.readSection("time").get1DJavaArray(NcDataType.INT) should be(expectedTime)
+      ncFile.readSection("wavelength").get1DJavaArray(NcDataType.DOUBLE) should be(
+        expectedWavelength
+      )
+      ncFile.readSection("flag").get1DJavaArray(NcDataType.BYTE) should be(expectedFlag)
+      ncFile.readSection("flux").get1DJavaArray(NcDataType.DOUBLE) should be(expectedFlux)
+    } finally {
+      ncFile.close()
+      file.delete()
+    }
+  }
+
+  it should "encode a 3-D dataset to NetCDF" in {
+    val enc                = NetcdfEncoder(File.createTempFile("netcdf_test", ".nc", null))
+    val expectedTime       = Array(1, 2)
+    val expectedWavelength = Array(430.1, 538.5)
+    val expectedAnother    = Array(1.1, 2.2)
+    val expectedFlux       = Array(1.0, 2.5, 1.2, 5.1e-2, 0.9, 2.1, 0.9, 2.1)
+
+    val file   = enc.encode(time_series_3D).compile.toList.unsafeRunSync().head
+    val ncFile = NetcdfFile.open(file.getAbsolutePath)
+    try {
+      ncFile.readSection("time").get1DJavaArray(NcDataType.INT) should be(expectedTime)
+      ncFile.readSection("wavelength").get1DJavaArray(NcDataType.DOUBLE) should be(
+        expectedWavelength
+      )
+      ncFile.readSection("another").get1DJavaArray(NcDataType.DOUBLE) should be(expectedAnother)
+      ncFile.readSection("flux").get1DJavaArray(NcDataType.DOUBLE) should be(expectedFlux)
+    } finally {
+      ncFile.close()
+      file.delete()
+    }
+  }
+
+  it should "include global metadata in the file" in {
+    val enc              = NetcdfEncoder(File.createTempFile("netcdf_test", ".nc", null))
+    val expectedMetadata = Metadata("dataset_with_metadata") + ("globalFoo" -> "globalBar") + ("history" -> "Uncurry()")
+
+    val file   = enc.encode(dataset_with_metadata).compile.toList.unsafeRunSync().head
+    val ncFile = NetcdfFile.open(file.getAbsolutePath)
+    try {
+      expectedMetadata.properties.foreach {
+        case (k, v) => ncFile.findGlobalAttribute(k).getStringValue should be(v)
+      }
+    } finally {
+      ncFile.close()
+      file.delete()
+    }
+  }
+
+  it should "include variable metadata in the file" in {
+    val enc                  = NetcdfEncoder(File.createTempFile("netcdf_test", ".nc", null))
+    val expectedTimeMetadata = Metadata("time") + ("type" -> "int") + ("scalarFoo" -> "scalarBar")
+    val expectedFluxMetadata = Metadata("flux") + ("type" -> "double") + ("Foo" -> "Bar")
+
+    val file   = enc.encode(dataset_with_metadata).compile.toList.unsafeRunSync().head
+    val ncFile = NetcdfFile.open(file.getAbsolutePath)
+    try {
+      val timeVar = ncFile.findVariable("time")
+      expectedTimeMetadata.properties.foreach {
+        case (k, v) => timeVar.findAttribute(k).getStringValue should be(v)
+      }
+      val fluxVar = ncFile.findVariable("flux")
+      expectedFluxMetadata.properties.foreach {
+        case (k, v) => fluxVar.findAttribute(k).getStringValue should be(v)
+      }
     } finally {
       ncFile.close()
       file.delete()
@@ -101,6 +176,100 @@ object NetcdfEncoderSpec {
         Scalar(Metadata("long") + ("type" -> "long")),
         Scalar(Metadata("str") + ("type"  -> "string"))
       )
+    )
+    val data = SampledFunction(samples)
+
+    new MemoizedDataset(md, model, data)
+  }
+
+  private val time_series_2D: MemoizedDataset = {
+    val samples = Seq(
+      Sample(
+        DomainData(1),
+        RangeData(
+          SampledFunction(
+            Seq(
+              Sample(DomainData(430.1), RangeData(0: Byte, 1.0)),
+              Sample(DomainData(538.5), RangeData(0: Byte, 2.5))
+            )
+          )
+        )
+      ),
+      Sample(
+        DomainData(2),
+        RangeData(
+          SampledFunction(
+            Seq(
+              Sample(DomainData(430.1), RangeData(0: Byte, 1.2)),
+              Sample(DomainData(538.5), RangeData(-1: Byte, 5.1e-2))
+            )
+          )
+        )
+      ),
+      Sample(
+        DomainData(3),
+        RangeData(
+          SampledFunction(
+            Seq(
+              Sample(DomainData(430.1), RangeData(0: Byte, 0.9)),
+              Sample(DomainData(538.5), RangeData(0: Byte, 2.1))
+            )
+          )
+        )
+      )
+    )
+
+    val md = Metadata("time_series_2D")
+    val model = Function(
+      Scalar(Metadata("time") + ("type" -> "int")),
+      Function(
+        Scalar(Metadata("wavelength") + ("type" -> "double")),
+        Tuple(
+          Scalar(Metadata("flag") + ("type" -> "byte")),
+          Scalar(Metadata("flux") + ("type" -> "double"))
+        )
+      )
+    )
+    val data = SampledFunction(samples)
+
+    new MemoizedDataset(md, model, data)
+  }
+
+  private val time_series_3D: MemoizedDataset = {
+    val samples = Seq(
+      Sample(DomainData(1, 430.1, 1.1), RangeData(1.0)),
+      Sample(DomainData(1, 430.1, 2.2), RangeData(2.5)),
+      Sample(DomainData(1, 538.5, 1.1), RangeData(1.2)),
+      Sample(DomainData(1, 538.5, 2.2), RangeData(5.1e-2)),
+      Sample(DomainData(2, 430.1, 1.1), RangeData(0.9)),
+      Sample(DomainData(2, 430.1, 2.2), RangeData(2.1)),
+      Sample(DomainData(2, 538.5, 1.1), RangeData(0.9)),
+      Sample(DomainData(2, 538.5, 2.2), RangeData(2.1))
+    )
+
+    val md = Metadata("time_series_3D")
+    val model = Function(
+      Tuple(
+        Scalar(Metadata("time") + ("type"       -> "int")),
+        Scalar(Metadata("wavelength") + ("type" -> "double")),
+        Scalar(Metadata("another") + ("type"    -> "double"))
+      ),
+      Scalar(Metadata("flux") + ("type" -> "double"))
+    )
+    val data = SampledFunction(samples)
+
+    new MemoizedDataset(md, model, data)
+  }
+
+  private val dataset_with_metadata: MemoizedDataset = {
+    val samples = Seq(
+      Sample(DomainData(1), RangeData(1.0))
+    )
+
+    val md = Metadata("dataset_with_metadata") + ("globalFoo" -> "globalBar")
+    val model = Function(
+      Scalar(Metadata("time") + ("type" -> "int") + ("scalarFoo" -> "scalarBar")),
+      Scalar(Metadata("flux") + ("type" -> "double") + ("Foo"    -> "Bar"))
     )
     val data = SampledFunction(samples)
 

@@ -101,7 +101,12 @@ case class NetcdfAdapter(
 }
 
 //TODO: move some of this to NetcdfUtils?
-object NetcdfAdapter {
+object NetcdfAdapter extends AdapterFactory {
+  /**
+   * Constructor used by the AdapterFactory.
+   */
+  def apply(model: DataType, config: AdapterConfig): NetcdfAdapter =
+    new NetcdfAdapter(model, NetcdfAdapter.Config(config.properties: _*))
 
   /**
    * Defines a NetcdfAdapter specific configuration with type-safe accessors for

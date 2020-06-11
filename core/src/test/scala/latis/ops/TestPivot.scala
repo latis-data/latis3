@@ -2,7 +2,7 @@ package latis.ops
 
 import org.junit._
 import org.junit.Assert._
-import org.scalatest.junit.JUnitSuite
+import org.scalatestplus.junit.JUnitSuite
 import latis.data._
 
 class TestPivot extends JUnitSuite {

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" version="1.0">
+    <xs:redefine schemaLocation="http://latis-data.io/schemas/1.0/fdml.xsd">
+        <xs:attributeGroup name="adapter_attributes">
+            <xs:attributeGroup ref="adapter_attributes"/>
+            <xs:attribute name="section" type="xs:string"/>
+        </xs:attributeGroup>
+    </xs:redefine>
+</xs:schema>

@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<dataset name="matrixData"
-         uri="data/matrixData.txt"
+<dataset id="matrixData"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-         xsi:noNamespaceSchemaLocation="fdml.xsd">
+         xsi:noNamespaceSchemaLocation="http://latis-data.io/schemas/1.0/fdml-with-text-adapter.xsd">
   <adapter class="latis.input.MatrixTextAdapter"/>
+
+  <source uri="data/matrixData.txt"/>
 
   <function>
     <tuple>

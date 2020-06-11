@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<dataset id="scalar_without_type"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="http://latis-data.io/schemas/1.0/fdml-with-text-adapter.xsd">
+
+  <source uri="file:///fake/path"/>
+
+  <adapter class="latis.input.TextAdapter"
+           skipLines="1"/>
+
+  <function>
+    <scalar id="time"
+            units="days since 2000-01-01"
+            class="latis.time.Time"/>
+    <tuple>
+      <scalar id="a" type="int"/>
+      <scalar id="b" type="double"/>
+      <scalar id="c" type="string"/>
+    </tuple>
+  </function>
+
+</dataset>

@@ -2,7 +2,7 @@ package latis.util
 
 import org.junit._
 import org.junit.Assert._
-import org.scalatest.junit.JUnitSuite
+import org.scalatestplus.junit.JUnitSuite
 
 class TestPropertiesLike extends JUnitSuite {
   

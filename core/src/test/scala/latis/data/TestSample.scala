@@ -2,7 +2,7 @@ package latis.data
 
 import org.junit._
 import org.junit.Assert._
-import org.scalatest.junit.JUnitSuite
+import org.scalatestplus.junit.JUnitSuite
 
 class TestSample extends JUnitSuite {
   
