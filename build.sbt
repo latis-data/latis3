@@ -1,15 +1,15 @@
 ThisBuild / organization := "io.latis-data"
 ThisBuild / scalaVersion := "2.12.11"
 
-val attoVersion       = "0.7.2"
+val attoVersion       = "0.8.0"
 val catsVersion       = "2.1.1"
 val catsEffectVersion = "2.1.3"
-val coursierVersion   = "2.0.0-RC6-13"
-val fs2Version        = "2.3.0"
-val http4sVersion     = "0.21.3"
+val coursierVersion   = "2.0.0-RC6-21"
+val fs2Version        = "2.4.2"
+val http4sVersion     = "0.21.6"
 val junitVersion      = "4.13"
-val netcdfVersion     = "5.3.1"
-val pureconfigVersion = "0.12.3"
+val netcdfVersion     = "5.3.3"
+val pureconfigVersion = "0.13.0"
 
 lazy val commonSettings = compilerFlags ++ Seq(
   libraryDependencies ++= Seq(
