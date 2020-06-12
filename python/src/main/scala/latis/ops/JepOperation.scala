@@ -16,12 +16,10 @@ trait JepOperation extends UnaryOperation {
    * The file name is based off the operating system.
    */
   def setJepPath: Unit = try {
-    val path = LatisConfig.get("latis.python.jep.path") match {
-      case Some(p) => p
-      case _ => 
-        val msg = "Path to the JEP native library file not found. " +
-          "Please set an absolute path to it under 'latis.python.jep.path' in your config file."
-        throw LatisException(msg)
+    val path = LatisConfig.get("latis.python.jep.path").getOrElse {
+      val msg = "Path to the JEP native library file not found. " +
+        "Please set an absolute path to it under 'latis.python.jep.path' in your config file."
+      throw LatisException(msg)
     }
     MainInterpreter.setJepLibraryPath(path)
   } catch {
