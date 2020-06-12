@@ -11,5 +11,3 @@ else
   pip -q install -r python/requirements/jep.txt
   cp -r /opt/python/3.6/lib/python3.6/site-packages $HOME/local/lib
 fi
-touch /home/travis/build/latis-data/latis3/python/src/main/resources/reference.conf
-echo "latis.python.jep.lib = /opt/python/3.6/lib/python3.6/site-packages/jep/jep.cpython-36m-x86_64-linux-gnu.so" >> /home/travis/build/latis-data/latis3/python/src/main/resources/reference.conf
