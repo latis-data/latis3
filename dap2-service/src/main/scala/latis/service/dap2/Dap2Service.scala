@@ -57,6 +57,8 @@ class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
         cexprs.exprs.traverse {
           case ast.Projection(vs)      => Right(ops.Projection(vs:_*))
           case ast.Selection(n, op, v) => Right(ops.Selection(n, ast.prettyOp(op), v))
+          case ast.Operation("rename", oldName :: newName :: Nil) =>
+            Right(ops.Rename(oldName, newName))
           // TODO: Here we may need to dynamically construct an
           // instance of an operation based on the query string and
           // server/interface configuration.
