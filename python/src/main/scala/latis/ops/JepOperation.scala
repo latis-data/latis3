@@ -4,6 +4,7 @@ import jep.JepException
 import jep.MainInterpreter
 
 import latis.util.LatisConfig
+import latis.util.LatisException
 
 /**
  * Defines an Operation that uses JEP and acts on a single Dataset.
@@ -15,15 +16,12 @@ trait JepOperation extends UnaryOperation {
    * The file name is based off the operating system.
    */
   def setJepPath: Unit = try {
-    val path = {
-      val os = System.getProperty("os.name").toLowerCase
-      val fileName = {
-        if (os.contains("win")) "jep.dll"
-        else if (os.contains("mac")) "jep.cpython-36m-darwin.so"
-        else "jep.cpython-36m-x86_64-linux-gnu.so"
-      }
-      val libDir = LatisConfig.getOrElse("latis.python.jep.lib", "/python/lib/")
-      System.getProperty("user.dir") + libDir + fileName
+    val path = LatisConfig.get("latis.python.jep.lib") match {
+      case Some(p) => p
+      case _ => 
+        val msg = "Path to the JEP native library file not found. " +
+          "Please set an absolute path to it under 'latis.python.jep.lib' in your config file."
+        throw LatisException(msg)
     }
     MainInterpreter.setJepLibraryPath(path)
   } catch {
