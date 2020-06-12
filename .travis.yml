@@ -28,3 +28,6 @@ install:
 
 env:
   - LD_LIBRARY_PATH=$HOME/local/lib
+
+sbt_args:
+  -Dlatis.python.jep.path=/opt/python/3.6/lib/python3.6/site-packages/jep/jep.cpython-36m-x86_64-linux-gnu.so
