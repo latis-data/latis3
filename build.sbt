@@ -8,7 +8,7 @@ val coursierVersion   = "2.0.0-RC6-13"
 val fs2Version        = "2.3.0"
 val http4sVersion     = "0.21.3"
 val junitVersion      = "4.13"
-val netcdfVersion     = "5.3.1"
+val netcdfVersion     = "5.4.0-SNAPSHOT"
 val pureconfigVersion = "0.12.3"
 
 lazy val commonSettings = compilerFlags ++ Seq(
@@ -174,6 +174,7 @@ lazy val netcdf = project
       "edu.ucar"            % "netcdf4"          % netcdfVersion,
     ),
     resolvers ++= Seq(
-      "Unidata" at "https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases"
+      "Unidata" at "https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases",
+      "Unidata Snapshots" at "https://artifacts.unidata.ucar.edu/content/repositories/unidata-snapshots"
     )
   )
