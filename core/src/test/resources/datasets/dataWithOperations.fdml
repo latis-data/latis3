@@ -22,7 +22,7 @@
     </tuple>
   </function>
 
-  <?latis-operation expression="time > 0"?>
+  <?latis-operation expression="time > 2000-01-01"?>
 
   <?latis-operation expression="b, Constantinople"?>
 

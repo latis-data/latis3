@@ -3,6 +3,7 @@ package latis.input.fdml
 import java.net.URI
 
 import org.scalatest.FlatSpec
+import org.scalatest.Inside._
 import org.scalatest.Matchers._
 
 import latis.data._
@@ -13,6 +14,17 @@ class FdmlReaderSpec extends FlatSpec {
 
   "An FDML Reader" should "create a dataset from FDML" in {
     val ds = FdmlReader.read(new URI("datasets/data.fdml"), true)
+
+    inside(ds.model) { case Function(domain, range) =>
+      domain shouldBe a [latis.time.Time]
+      range shouldBe a [Tuple]
+
+      inside(range) { case Tuple(s1, s2, s3) =>
+        s1 shouldBe a [Scalar]
+        s2 shouldBe a [Scalar]
+        s3 shouldBe a [Scalar]
+      }
+    }
 
     StreamUtils.unsafeHead(ds.samples) match {
       case Sample(DomainData(Number(t)), RangeData(Integer(b), Real(c), Text(d))) =>

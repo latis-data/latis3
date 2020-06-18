@@ -56,7 +56,7 @@ object FdmlReader {
     }
 
   private def makeScalar(scalar: FScalar): Either[LatisException, Scalar] =
-    scalar.attributes.get("clss") match {
+    scalar.attributes.get("class") match {
       case None       => Scalar(scalar.metadata).asRight
       case Some(clss) => Either.catchNonFatal {
         ReflectionUtils.callMethodOnCompanionObject(
