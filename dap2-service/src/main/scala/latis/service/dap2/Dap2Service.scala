@@ -14,12 +14,13 @@ import latis.dataset.Dataset
 import latis.input.DatasetResolver
 import latis.ops
 import latis.ops.UnaryOperation
-import latis.output.CsvEncoder
 import latis.ops.parser.ast
+import latis.output.CsvEncoder
 import latis.output.Encoder
 import latis.output.TextEncoder
 import latis.server.ServiceInterface
 import latis.service.dap2.error._
+import latis.util.Identifier
 import latis.util.dap2.parser.ConstraintParser
 import latis.util.dap2.parser.ast.ConstraintExpression
 
@@ -57,6 +58,14 @@ class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
         cexprs.exprs.traverse {
           case ast.Projection(vs)      => Right(ops.Projection(vs:_*))
           case ast.Selection(n, op, v) => Right(ops.Selection(n, ast.prettyOp(op), v))
+          case ast.Operation("rename", oldName :: newName :: Nil) => for {
+              oldName <- Identifier.fromString(oldName).toRight(
+                InvalidOperation(s"Invalid variable name $oldName")
+              )
+              newName <- Identifier.fromString(newName).toRight(
+                InvalidOperation(s"Invalid variable name $newName")
+              )
+            } yield ops.Rename(oldName.asString, newName.asString)
           // TODO: Here we may need to dynamically construct an
           // instance of an operation based on the query string and
           // server/interface configuration.
@@ -82,5 +91,6 @@ class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
       case ParseFailure(msg)             => BadRequest(msg)
       case UnknownExtension(msg)         => NotFound(msg)
       case UnknownOperation(msg)         => BadRequest(msg)
+      case InvalidOperation(msg)         => BadRequest(msg)
     }
 }
