@@ -33,15 +33,13 @@ object FdmlParser {
 
   /** Parses FDML from XML. */
   def parseXml(xml: Elem): Either[LatisException, Fdml] = for {
-    _          <- isFdml(xml)
-    metadata   <- parseMetadata(xml).asRight
-    source     <- parseSource(xml)
-    adapter    <- parseAdapter(xml)
-    function   <- findRootFunction(xml)
-    model      <- parseFunction(function)
-    exprs      <- parseProcessingInstructions(xml)
-    operations <- parseExpressions(exprs)
-  } yield Fdml(metadata, source, adapter, model, operations)
+    _    <- isFdml(xml)
+    fdml <- if (isGranuleAppendFdml(xml)) {
+      parseGranuleAppendFdml(xml)
+    } else {
+      parseDatasetFdml(xml)
+    }
+  } yield fdml
 
   // Assuming that this is an FDML file if the root element is
   // <dataset>.
@@ -50,10 +48,35 @@ object FdmlParser {
       LatisException("Expecting dataset element").asLeft
     } else ().asRight
 
+  // Assuming that this in a granule append FDML file if the "source"
+  // element has a "granules" element.
+  private def isGranuleAppendFdml(xml: Elem): Boolean =
+    (xml \ "source" \ "granules").nonEmpty
+
+  private def parseDatasetFdml(
+    xml: Elem
+  ): Either[LatisException, DatasetFdml] = for {
+    metadata   <- parseMetadata(xml).asRight
+    source     <- parseUriSource(xml)
+    adapter    <- parseAdapter(xml)
+    function   <- findRootFunction(xml)
+    model      <- parseFunction(function)
+    exprs      <- parseProcessingInstructions(xml)
+    operations <- parseExpressions(exprs)
+  } yield DatasetFdml(metadata, source, adapter, model, operations)
+
+  private def parseGranuleAppendFdml(
+    xml: Elem
+  ): Either[LatisException, GranuleAppendFdml] = for {
+    metadata <- parseMetadata(xml).asRight
+    source   <- parseGranuleSource(xml)
+    template <- parseTemplate(xml)
+  } yield GranuleAppendFdml(metadata, source, template)
+
   private def parseMetadata(xml: Elem): Metadata =
     Metadata(xml.attributes.asAttrMap)
 
-  private def parseSource(xml: Elem): Either[LatisException, FSource] =
+  private def parseUriSource(xml: Elem): Either[LatisException, UriSource] =
     (xml \ "source").toList match {
       case elem :: Nil => for {
         attrs  <- elem.attributes.asAttrMap.asRight
@@ -63,7 +86,20 @@ object FdmlParser {
         uri    <- Either.catchOnly[URISyntaxException] {
           new URI(uriStr)
         }.leftMap(LatisException("Source URI is malformed", _))
-      } yield FSource(uri)
+      } yield UriSource(uri)
+      case _ :: _ => LatisException("Expecting a single source").asLeft
+      case _      => LatisException("Expecting source element").asLeft
+    }
+
+  private def parseGranuleSource(
+    xml: Elem
+  ): Either[LatisException, GranuleSource] =
+    (xml \ "source").toList match {
+      case elem :: Nil => (elem \ "granules").toList match {
+        case (elem: Elem) :: Nil => parseDatasetFdml(elem).map(GranuleSource(_))
+        case _ :: _ => LatisException("Expecting a single granules element").asLeft
+        case _      => LatisException("Expecting a granules element").asLeft
+      }
       case _ :: _ => LatisException("Expecting a single source").asLeft
       case _      => LatisException("Expecting source element").asLeft
     }
@@ -78,6 +114,17 @@ object FdmlParser {
       } yield FAdapter(clss, attrs)
       case _ :: _ => LatisException("Expecting a single adapter").asLeft
       case _      => LatisException("Expecting adapter element").asLeft
+    }
+
+  private def parseTemplate(xml: Elem): Either[LatisException, FTemplate] =
+    (xml \ "template").toList match {
+      case (elem: Elem) :: Nil => for {
+        adapter  <- parseAdapter(elem)
+        function <- findRootFunction(elem)
+        model    <- parseFunction(function)
+      } yield FTemplate(adapter, model)
+      case _ :: _ => LatisException("Expecting a single template").asLeft
+      case _      => LatisException("Expecting a template element").asLeft
     }
 
   private def findRootFunction(xml: Elem): Either[LatisException, Node] =

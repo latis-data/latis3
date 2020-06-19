@@ -8,13 +8,24 @@ import latis.model.ValueType
 import latis.ops.parser.ast.CExpr
 
 /** Abstract representation of an FDML file. */
-final case class Fdml(
+sealed trait Fdml
+
+/** FDML file defining a dataset from a URI and adapter. */
+final case class DatasetFdml(
   metadata: Metadata,
-  source: FSource,
+  source: UriSource,
   adapter: FAdapter,
   model: FFunction,
   operations: List[CExpr] = List.empty
-)
+) extends Fdml
+
+/** FDML file defining a dataset from granules. */
+final case class GranuleAppendFdml(
+  metadata: Metadata,
+  source: GranuleSource,
+  template: FTemplate,
+  operations: List[CExpr] = List.empty
+) extends Fdml
 
 /**
  * Abstract representation of an adapter.
@@ -44,7 +55,18 @@ final case class FAdapter(
 }
 
 /** Abstract representation of a dataset source. */
-final case class FSource(uri: URI)
+sealed trait FSource
+
+final case class UriSource(uri: URI) extends FSource
+
+final case class GranuleSource(fdml: DatasetFdml) extends FSource
+
+/** Abstract representation of a dataset template. */
+final case class FTemplate(
+  adapter: FAdapter,
+  model: FFunction,
+  operations: List[CExpr] = List.empty
+)
 
 // Not using the FDM definition in latis.model because it can't
 // enforce useful invariants (scalars have an ID and a type, tuples
