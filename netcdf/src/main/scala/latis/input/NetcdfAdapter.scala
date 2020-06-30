@@ -1,7 +1,6 @@
 package latis.input
 
 import java.net.URI
-import java.nio.file._
 
 import cats.effect.IO
 import fs2.Stream
