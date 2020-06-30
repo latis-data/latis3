@@ -9,6 +9,7 @@ import ucar.ma2.{Range => URange}
 import ucar.ma2.Section
 import ucar.nc2.{Variable => NcVariable}
 import ucar.nc2.dataset.NetcdfDataset
+import ucar.nc2.dataset.NetcdfDatasets
 
 import latis.data._
 import latis.model._
@@ -149,7 +150,7 @@ object NetcdfAdapter extends AdapterFactory {
     }
 
     Stream.bracket(IO {
-      NetcdfDataset.openDataset(path)
+      NetcdfDatasets.openDataset(path)
     })(nc => IO(nc.close()))
   }
 
