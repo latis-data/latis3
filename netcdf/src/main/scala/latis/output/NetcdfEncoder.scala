@@ -10,9 +10,9 @@ import ucar.ma2.{Array => NcArray}
 import ucar.ma2.{DataType => NcDataType}
 import ucar.nc2.Attribute
 import ucar.nc2.Dimension
-import ucar.nc2.NetcdfFileWriter
-import ucar.nc2.NetcdfFileWriter.Version.netcdf4
 import ucar.nc2.Variable
+import ucar.nc2.write.NetcdfFormatWriter
+import ucar.nc2.write.NetcdfFileFormat
 
 import latis.data.Data
 import latis.data.Data._
@@ -41,9 +41,6 @@ import latis.util.LatisException
  */
 class NetcdfEncoder(file: File) extends Encoder[IO, File] {
   import NetcdfEncoder._
-  private val path = file.getAbsolutePath
-  private val ncFileWriter: Resource[IO, NetcdfFileWriter] =
-    Resource.fromAutoCloseable(IO(NetcdfFileWriter.createNew(netcdf4, path)))
 
   /**
    * Encodes a [[latis.dataset.Dataset]] to netCDF4
@@ -52,17 +49,13 @@ class NetcdfEncoder(file: File) extends Encoder[IO, File] {
   override def encode(dataset: Dataset): Stream[IO, File] = {
     val uncurriedDataset = dataset.withOperation(Uncurry())
     Stream
-      .resource(ncFileWriter)
-      .flatMap { ncdf =>
-        Stream
-          .eval(uncurriedDataset.samples.compile.toVector)
-          .evalMap(datasetToNetcdf(ncdf, uncurriedDataset.model, uncurriedDataset.metadata, _))
-      }
+      .eval(uncurriedDataset.samples.compile.toVector)
+      .evalMap(datasetToNetcdf(file, uncurriedDataset.model, uncurriedDataset.metadata, _))
       .as(file)
   }
 
   private def datasetToNetcdf(
-    file: NetcdfFileWriter,
+    file: File,
     model: DataType,
     metadata: Metadata,
     samples: Vector[Sample]
@@ -79,24 +72,32 @@ class NetcdfEncoder(file: File) extends Encoder[IO, File] {
       val rArrs = accumulatorToNcArray(acc.drop(dScalars.length), rScalars, shape)
 
       for {
+        builder <- makeBuilder(file)
         // add dimensions
-        _ <- dScalars.zip(shape).traverse { case (s, dim) => addDimension(file, s.id, dim) }
+        _ <- dScalars.zip(shape).traverse { case (s, dim) => addDimension(builder, s.id, dim) }
         // add variables
-        dVars <- dScalars.traverse(s => addVariable(file, s.id, scalarToNetcdfDataType(s), s.id))
+        dVars <- dScalars.traverse(s => addVariable(builder, s.id, scalarToNetcdfDataType(s), s.id))
         rVars <- rScalars.traverse(
-          s => addVariable(file, s.id, scalarToNetcdfDataType(s), dimNames)
+          s => addVariable(builder, s.id, scalarToNetcdfDataType(s), dimNames)
         )
         // add metadata
-        _ <- metadata.properties.toList.traverse { case (k, v) => addGlobalAttribute(file, k, v) }
+        _ <- metadata.properties.toList.traverse { case (k, v) => addGlobalAttribute(builder, k, v) }
         _ <- (dVars ++ rVars).zip(scalars).traverse {
           case (variable, scalar) =>
             scalar.metadata.properties.toList.traverse {
               case (key, value) => addAttribute(variable, key, value)
             }
         }
-        _ <- create(file) // create file and write metadata
-        // write data
-        _ <- (dVars ++ rVars).zip(dArrs ++ rArrs).traverse { case (v, d) => write(file, v, d) }
+        _ <- makeWriter(builder).use { writer =>
+          // Need to get the variables (not the variable builders) in
+          // the correct order for zipping with the arrays.
+          val variables = {
+            val ncfile = writer.getOutputFile()
+            val ids = scalars.map(_.id)
+            ids.map(ncfile.findVariable(_))
+          }
+          variables.zip(dArrs ++ rArrs).traverse { case (v, d) => write(writer, v, d) }
+        }
       } yield ()
   }
 }
@@ -227,30 +228,60 @@ object NetcdfEncoder {
       case t => throw LatisException(s"Unsupported type: $t")
     }
 
-  private def addDimension(file: NetcdfFileWriter, name: String, length: Int): IO[Dimension] =
-    IO { file.addDimension(name, length) }
+  private def addDimension(
+    builder: NetcdfFormatWriter.Builder,
+    name: String,
+    length: Int
+  ): IO[Dimension] = IO {
+    builder.addDimension(name, length)
+  }
 
   private def addVariable(
-    file: NetcdfFileWriter,
+    builder: NetcdfFormatWriter.Builder,
     varName: String,
     ncType: NcDataType,
     dimName: String
-  ): IO[Variable] =
-    IO { file.addVariable(varName, ncType, dimName) }
+  ): IO[Variable.Builder[_]] = IO {
+    builder.addVariable(varName, ncType, dimName)
+  }
 
-  private def create(file: NetcdfFileWriter): IO[Unit] =
-    IO { file.create() }
-
-  private def write(file: NetcdfFileWriter, v: Variable, data: NcArray): IO[Unit] =
-    IO { file.write(v, data) }
+  private def write(
+    writer: NetcdfFormatWriter,
+    v: Variable,
+    data: NcArray
+  ): IO[Unit] = IO {
+    writer.write(v, data)
+  }
 
   private def addGlobalAttribute(
-    file: NetcdfFileWriter,
+    builder: NetcdfFormatWriter.Builder,
     key: String,
     value: String
-  ): IO[Attribute] =
-    IO { file.addGlobalAttribute(key, value) }
+  ): IO[Unit] = IO {
+    builder.addAttribute(new Attribute(key, value))
+  }.void
 
-  private def addAttribute(v: Variable, key: String, value: String): IO[Attribute] =
-    IO { v.addAttribute(new Attribute(key, value)) }
+  private def addAttribute(
+    v: Variable.Builder[_],
+    key: String,
+    value: String
+  ): IO[Unit] = IO {
+    v.addAttribute(new Attribute(key, value))
+  }.void
+
+  private def makeBuilder(file: File): IO[NetcdfFormatWriter.Builder] = IO {
+    NetcdfFormatWriter.createNewNetcdf4(
+      NetcdfFileFormat.NETCDF4,
+      file.getAbsolutePath(),
+      null
+    )
+  }
+
+  private def makeWriter(
+    builder: NetcdfFormatWriter.Builder
+  ): Resource[IO, NetcdfFormatWriter] = Resource.make {
+    IO(builder.build())
+  } { writer =>
+    IO(writer.close())
+  }
 }
