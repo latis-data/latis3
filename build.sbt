@@ -71,7 +71,6 @@ lazy val core = project
   .settings(
     name := "latis3-core",
     libraryDependencies ++= Seq(
-      "com.propensive"         %% "contextual"          % "1.2.1",
       "org.scala-lang"          % "scala-reflect"       % scalaVersion.value,
       "org.scala-lang.modules" %% "scala-xml"           % "1.3.0",
       "io.circe"               %% "circe-core"          % "0.13.0",
@@ -80,7 +79,8 @@ lazy val core = project
       "org.http4s"             %% "http4s-blaze-client" % http4sVersion,
       "org.tpolecat"           %% "atto-core"           % attoVersion,
       "junit"                   % "junit"               % junitVersion  % Test
-    )
+    ),
+    scalacOptions += "-language:experimental.macros"
   )
 
 lazy val `fdml-validator` = project

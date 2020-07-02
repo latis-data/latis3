@@ -1,7 +1,6 @@
 package latis.util
 
-import contextual._
-import latis.util.IdentifierInterpolator.checkValidIdentifier
+import scala.reflect.macros.blackbox.Context
 
 /**
  * Defines a LaTiS identifier, a name that may contain only:
@@ -16,29 +15,21 @@ object Identifier {
     if (checkValidIdentifier(id)) Some(new Identifier(id) {}) else None
   
   implicit class IdentifierStringContext(val sc: StringContext) extends AnyVal {
-    def id = Prefix(IdentifierInterpolator, sc)
-  }
-}
-
-/**
- * Defines a String interpolator that will raise a compile error if the String isn't a valid LaTiS identifier. 
- */
-object IdentifierInterpolator extends Interpolator {
-  
-  type Output = Identifier
-
-  def contextualize(interpolation: StaticInterpolation) = {
-    val lit@Literal(_, idString) = interpolation.parts.head
-    if(!checkValidIdentifier(idString))
-      interpolation.abort(lit, 0, "not a valid LaTiS identifier")
-
-    Nil
+    def id(): Identifier = macro literalMacro
   }
 
-  def evaluate(interpolation: RuntimeInterpolation): Identifier =
-    Identifier.fromString(interpolation.literals.head).get
-  
   /** Returns whether the String is a regex "word" that doesn't start with a digit. */
-  def checkValidIdentifier(str: String): Boolean = str.matches("^(?!\\d)\\w+")
-  
+  private def checkValidIdentifier(str: String): Boolean = str.matches("^(?!\\d)\\w+")
+
+  def literalMacro(c: Context)(): c.Expr[Identifier] = {
+    import c.universe._
+
+    val idExpr: Expr[String] = c.prefix.tree match {
+      case Apply(_, Apply(_, List(id @ Literal(Constant(s: String)))) :: Nil) =>
+        if (checkValidIdentifier(s)) c.Expr(id)
+        else c.abort(c.enclosingPosition, "not a valid LaTiS identifier")
+    }
+
+    reify(Identifier.fromString(idExpr.splice).get)
+  }
 }
