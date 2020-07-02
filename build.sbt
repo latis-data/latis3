@@ -39,21 +39,6 @@ lazy val compilerFlags = Seq(
   )
 )
 
-val artifactory = "https://web-artifacts.lasp.colorado.edu/artifactory/"
-lazy val publishSettings = Seq(
-  publishTo := {
-    if (isSnapshot.value) {
-      Some("snapshots" at artifactory + "sbt-snapshot")
-    } else {
-      Some("releases" at artifactory + "sbt-release")
-    }
-  },
-  credentials ++= Seq(
-    Path.userHome / ".artifactorycredentials"
-  ).filter(_.exists).map(Credentials(_)),
-  releaseVersionBump := sbtrelease.Version.Bump.Minor
-)
-
 lazy val dockerSettings = Seq(
   docker / imageNames := {
     Seq(ImageName(s"${organization.value}/latis3:${version.value}"))
@@ -83,7 +68,6 @@ lazy val dockerSettings = Seq(
 
 lazy val core = project
   .settings(commonSettings)
-  .settings(publishSettings)
   .settings(
     name := "latis3-core",
     libraryDependencies ++= Seq(
