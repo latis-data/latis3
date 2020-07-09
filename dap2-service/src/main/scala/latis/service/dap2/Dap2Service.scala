@@ -2,8 +2,6 @@ package latis.service.dap2
 
 import java.net.URLDecoder
 
-import scala.util.Try
-
 import cats.effect._
 import cats.implicits._
 import org.http4s.HttpRoutes
@@ -45,9 +43,9 @@ class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
     }
 
   private def getDataset(id: String): Either[Dap2Error, Dataset] =
-    Try(DatasetResolver.getDataset(id))
-      .toEither
-      .leftMap(_ => DatasetResolutionFailure(s"Failed to resolve dataset: $id"))
+    Either.catchNonFatal {
+      DatasetResolver.getDataset(id)
+    }.leftMap(_ => DatasetResolutionFailure(s"Failed to resolve dataset: $id"))
 
   private def getOperations(query: String): Either[Dap2Error, List[UnaryOperation]] = {
     val ce = URLDecoder.decode(query, "UTF-8")
