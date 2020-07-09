@@ -1,9 +1,15 @@
 package latis.service.dap2
 
 import java.net.URLDecoder
+import java.nio.file.Paths
+
+import scala.util.Properties
 
 import cats.effect._
 import cats.implicits._
+import fs2.Stream
+import fs2.io
+import fs2.text
 import org.http4s.HttpRoutes
 import org.http4s.Response
 import org.http4s.dsl.Http4sDsl
@@ -13,12 +19,11 @@ import latis.input.DatasetResolver
 import latis.ops
 import latis.ops.UnaryOperation
 import latis.ops.parser.ast
-import latis.output.CsvEncoder
-import latis.output.Encoder
-import latis.output.TextEncoder
+import latis.output._
 import latis.server.ServiceInterface
 import latis.service.dap2.error._
 import latis.util.Identifier
+import latis.util.StreamUtils
 import latis.util.dap2.parser.ConstraintParser
 import latis.util.dap2.parser.ast.ConstraintExpression
 
@@ -34,8 +39,7 @@ class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
           dataset  <- IO.fromEither(getDataset(id))
           ops      <- IO.fromEither(getOperations(req.queryString))
           result    = ops.foldLeft(dataset)((ds, op) => ds.withOperation(op))
-          encoder  <- IO.fromEither(getEncoder(ext))
-          response <- Ok(encoder.encode(result))
+          response <- Ok(encode(ext, result))
         } yield response).handleErrorWith {
           case err: Dap2Error => handleDap2Error(err)
           case _              => InternalServerError()
@@ -72,16 +76,26 @@ class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
       }
   }
 
-  private def getEncoder(ext: String): Either[Dap2Error, Encoder[IO, String]] =
-    ext match {
-      case ""    => getEncoder("html")
-      case "txt" => Right(new TextEncoder)
-      case "csv" => Right(CsvEncoder.withColumnName)
-      // TODO: Here we may need to dynamically construct an instance
-      // of an encoder based on the extension and server/interface
-      // configuration.
-      case _     => Left(UnknownExtension(s"Unknown extension: $ext"))
+  private def encode(ext: String, ds: Dataset): Stream[IO, Byte] = ext match {
+    case ""     => encode("html", ds)
+    case "bin"  => new BinaryEncoder().encode(ds).flatMap {
+      bits => Stream.emits(bits.toByteArray)
     }
+    case "csv"  => CsvEncoder.withColumnName.encode(ds).through(text.utf8Encode)
+    case "json" => new JsonEncoder().encode(ds).map(_.noSpaces).through(text.utf8Encode)
+    case "nc"   =>
+      implicit val cs = StreamUtils.contextShift
+      for {
+        tmpFile <- io.file.tempFileStream[IO](
+          StreamUtils.blocker,
+          Paths.get(Properties.tmpDir)
+        )
+        file    <- new NetcdfEncoder(tmpFile.toFile()).encode(ds)
+        bytes   <- io.file.readAll[IO](file.toPath(), StreamUtils.blocker, 4096)
+      } yield bytes
+    case "txt"  => new TextEncoder().encode(ds).through(text.utf8Encode)
+    case _      => Stream.raiseError[IO](UnknownExtension(s"Unknown extension: $ext"))
+  }
 
   private def handleDap2Error(err: Dap2Error): IO[Response[IO]] =
     err match {

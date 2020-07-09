@@ -123,6 +123,7 @@ lazy val `fdml-validator` = project
 
 lazy val `dap2-service` = project
   .dependsOn(core)
+  .dependsOn(netcdf)
   .dependsOn(`service-interface`)
   .settings(commonSettings)
   .settings(
@@ -149,6 +150,7 @@ lazy val python = project
 
 lazy val server = project
   .dependsOn(core)
+  .dependsOn(`dap2-service`)
   .dependsOn(`service-interface`)
   .enablePlugins(DockerPlugin)
   .settings(commonSettings)
