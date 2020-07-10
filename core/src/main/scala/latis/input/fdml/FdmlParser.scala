@@ -50,8 +50,13 @@ object FdmlParser {
       LatisException("Expecting dataset element").asLeft
     } else ().asRight
 
-  private def parseMetadata(xml: Elem): Metadata =
-    Metadata(xml.attributes.asAttrMap)
+  private def parseMetadata(xml: Elem): Metadata = {
+    val md = xml.attributes.asAttrMap.filter {
+      case ("xsi:noNamespaceSchemaLocation", _) => false
+      case _ => true
+    }
+    Metadata(md)
+  }
 
   private def parseSource(xml: Elem): Either[LatisException, FSource] =
     (xml \ "source").toList match {

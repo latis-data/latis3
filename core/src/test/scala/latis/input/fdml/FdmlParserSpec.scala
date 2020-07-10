@@ -21,6 +21,7 @@ final class FdmlParserSpec extends FlatSpec {
       inside(fdml.right.value) { case Fdml(metadata, source, adapter, model, operations) =>
         metadata.properties should contain ("id" -> "valid")
         metadata.properties should contain ("title" -> "Valid Dataset")
+        metadata.properties should not contain key ("xsi:noNamespaceSchemaLocation")
 
         inside(source) { case FSource(uri) =>
           uri.toString() should equal ("file:///fake/path")
