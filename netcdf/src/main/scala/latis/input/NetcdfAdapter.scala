@@ -1,9 +1,9 @@
 package latis.input
 
 import java.net.URI
-import java.nio.file._
 
 import cats.effect.IO
+import cats.implicits._
 import fs2.Stream
 import ucar.ma2.{Array => NcArray}
 import ucar.ma2.{Range => URange}
@@ -15,12 +15,14 @@ import latis.data._
 import latis.model._
 import latis.ops.Operation
 import latis.ops.Stride
+import latis.ops.Selection
+import latis.ops.parser.ast._
 import latis.util._
 
 /**
  * Defines an Adapter for NetCDF data sources.
  * This handles some operations by applying them to a
- * ucar.ma2.Section that us used when reading the data.
+ * ucar.ma2.Section that is used when reading the data.
  */
 case class NetcdfAdapter(
   model: DataType,
@@ -32,7 +34,14 @@ case class NetcdfAdapter(
    */
   override def canHandleOperation(op: Operation): Boolean = op match {
     case Stride(stride) if (stride.length == model.arity) => true
-    //TODO: domain selections, take, drop, ...
+    case Selection(v, _, _) => model.getVariable(v) match {
+      case None => false
+      case Some(m) => m("cadence") match {
+        case None => false
+        case _ => true
+      }
+    }
+    //TODO: take, drop, ...
     case _ => false
   }
 
@@ -47,7 +56,10 @@ case class NetcdfAdapter(
       val nc = NetcdfWrapper(ncDataset, model, config)
 
       // Applies ops to default section
-      val section: Section = nc.applyOperations(ops)
+      val section: Section = nc.applyOperations(ops) match {
+        case Right(s) => s
+        case Left(e) => throw e
+      }
 
       // Assumes all domain variables are 1D and define a Cartesian Product set.
       val domainSet: DomainSet = model match {
@@ -157,23 +169,84 @@ object NetcdfAdapter extends AdapterFactory {
   /**
    * Applies an Operation to a Section to create a new Section.
    */
-  def applyOperation(section: Section, op: Operation): Section = op match {
-    case Stride(stride) => applyStride(section, stride.toArray)
+  def applyOperation(
+    section: Section,
+    model:DataType,
+    op: Operation
+  ): Either[LatisException, Section] = op match {
+    case Stride(stride) => NetcdfAdapter.applyStride(section, stride.toArray)
+    case sel@Selection(_, _, _) =>
+      NetcdfAdapter.applySelection(section, model, sel)
   }
 
   //Note, must include stride even for 1-length dimensions
-  def applyStride(section: Section, stride: Array[Int]): Section = {
+  def applyStride(section: Section, stride: Array[Int]): Either[LatisException, Section] = {
     import collection.JavaConverters._
     if (section.getRank != stride.length) {
-      val msg = s"Invalid rank for stride: ${stride.mkString(",")}}"
-      throw LatisException(msg)
+      Left(LatisException(s"Invalid rank for stride: ${stride.mkString(",")}"))
+    } else {
+      val rs: Array[URange] = section.getRanges.asScala.zipWithIndex.toArray.map {
+        case (r, i) => new URange(r.first, r.last, r.stride * stride(i))
+      }
+      Right(new Section(rs: _*))
+    }
+  }
+
+  def applySelection(
+    section: Section,
+    model: DataType,
+    selection: Selection
+  ): Either[LatisException, Section] = {
+    val range = section.getRange(0)
+
+    def getNewRange(index: Double): Either[LatisException, URange] = selection.selectionOp match {
+      case Gt   => {
+        val lowerRange = index.ceil.toInt
+        if (index == lowerRange.toDouble) Right(new URange(lowerRange + 1, range.last))
+        else Right(new URange(lowerRange, range.last))
+      }
+      case Lt   => {
+        val upperRange = index.floor.toInt
+        if (index == upperRange.toDouble) Right(new URange(range.first, upperRange - 1))
+        else Right(new URange(range.first, upperRange))
+      }
+      case GtEq => Right(new URange(index.ceil.toInt, range.last))
+      case LtEq => Right(new URange(range.first, index.floor.toInt))
+      case _ => Left(LatisException(s"Unsupported selection operator $selection.selectionOp"))
     }
 
-    val rs: Array[URange] = section.getRanges.asScala.zipWithIndex.toArray.map {
-      case (r, i) => new URange(r.first, r.last, r.stride * stride(i))
+    def getIndex(
+      selectValue: Datum,
+      firstValue: Double,
+      cadence: Double
+    ): Either[LatisException, Double] = selectValue match {
+      case Number(d) => {
+        val index = (d - firstValue) / cadence
+        if (index >= 0) Right(index)
+        else Left(LatisException("Selection value is outside of data range"))
+      }
+      case _ => Left(LatisException("Domain variable is not the right type for selection"))
     }
 
-    new Section(rs: _*)
+    def getCadence(s: Scalar): Either[LatisException, Double] = s("cadence") match {
+      case Some(c) => Right(c.toDouble)
+      case _ => Left(LatisException(s"scalar $s does not have a cadence"))
+    }
+
+    def getFirstValue(s: Scalar): Either[LatisException, Double] = s("start") match {
+      case Some(c) => Right(c.toDouble)
+      case _ => Left(LatisException(s"scalar $s does not have a start value"))
+    }
+
+    for {
+      scalar <- selection.getScalar(model)
+      cadence <- getCadence(scalar)
+      firstValue <- getFirstValue(scalar)
+      selectValue <- selection.doubleValue
+      index <- getIndex(selectValue, firstValue, cadence)
+      newRange <- getNewRange(index)
+    } yield new Section(newRange)
+
   }
 }
 
@@ -228,8 +301,9 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
   /**
    * Applies the given operations to define the final section to read.
    */
-  def applyOperations(ops: Seq[Operation]): Section =
-    ops.foldLeft(defaultSection)(NetcdfAdapter.applyOperation)
+  def applyOperations(ops: Seq[Operation]): Either[LatisException, Section] =
+    ops.foldLeft(Right(defaultSection): Either[LatisException, Section])((s, o) =>
+      s.flatMap(NetcdfAdapter.applyOperation(_, model, o)))
 
   // Note, get is safe since the id comes from the model in the first place
   private def getNcVarName(id: String): String =

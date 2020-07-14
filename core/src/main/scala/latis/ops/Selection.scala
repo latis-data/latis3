@@ -1,7 +1,14 @@
 package latis.ops
 
+import atto.Atto._
+import atto.ParseResult
+import cats.implicits._
+
 import latis.data._
 import latis.model._
+import latis.util.LatisException
+import latis.ops.parser.parsers
+import latis.ops.parser.ast
 
 /**
  * Operation to keep only Samples that meet the given selection criterion.
@@ -12,15 +19,29 @@ case class Selection(vname: String, operator: String, value: String) extends Fil
   //TODO: support nested functions, all or none?
   //TODO: allow value to have units
 
+  val selectionOp = parsers.selectionOp parseOnly operator match {
+    case ParseResult.Done(_, o) => o
+  }
+
+  def getValue(model: DataType): Either[LatisException, Datum] = for {
+    scalar <- getScalar(model)
+    cdata <- scalar.convertValue(value).leftMap(e => LatisException(e))
+  } yield cdata
+
+  val doubleValue: Either[LatisException, Double] = try {
+    Right(value.toDouble)
+  } catch {
+    case _: NumberFormatException => Left(LatisException(s"$value could not be converted to a double"))
+  }
+
+  def getScalar(model: DataType): Either[LatisException, Scalar] = model.findVariable(vname) match {
+    case Some(s: Scalar) => Right(s)
+    case _ => Left(new LatisException(s"Selection variable not found: $vname"))
+  }
+
   def predicate(model: DataType): Sample => Boolean = {
     // Get the desired Scalar from the model
     //TODO: support aliases
-    val scalar: Scalar = model.findVariable(vname) match {
-      case Some(s: Scalar) => s
-      case _ =>
-        val msg = s"Selection variable not found: $vname"
-        throw new UnsupportedOperationException(msg)
-    }
 
     // Determine the Sample position of the selected variable
     val pos: SamplePosition = model.getPath(vname) match {
@@ -34,16 +55,10 @@ case class Selection(vname: String, operator: String, value: String) extends Fil
       case None => ??? //shouldn't happen due to earlier check
     }
 
-    // Convert selection value to appropriate type for comparison
-    val cdata: Datum = scalar.convertValue(value) match {
-      case Right(d) => d
-      case Left(e)  => throw e
-    }
+    val cdata = getValue(model).getOrElse(throw LatisException("error"))
+    val scalar = getScalar(model).getOrElse(throw LatisException("error"))
+    val ordering = scalar.ordering
 
-    // Get the Ordering from the Scalar
-    val ordering: PartialOrdering[Datum] = scalar.ordering
-
-    // Define predicate function
     (sample: Sample) =>
       sample.getValue(pos) match {
         case Some(d: Datum) =>
@@ -85,4 +100,10 @@ object Selection {
     val ss = expression.split("\\s+") //split on whitespace
     Selection(ss(0), ss(1), ss(2))
   }
+
+  def makeSelection(expression: String): Either[LatisException, Selection] =
+    parsers.selection parseOnly expression match {
+      case ParseResult.Done(_, ast.Selection(vname, op, value)) => Right(Selection(vname, ast.prettyOp(op), value))
+      case _ => Left(LatisException(s"Failed to parse expression $expression"))
+    }
 }
