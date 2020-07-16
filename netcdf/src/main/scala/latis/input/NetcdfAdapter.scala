@@ -33,14 +33,9 @@ case class NetcdfAdapter(
    * Specifies which operations that this adapter will handle.
    */
   override def canHandleOperation(op: Operation): Boolean = op match {
-    case Stride(stride) if (stride.length == model.arity) => true
-    case Selection(v, _, _) => model.getVariable(v) match {
-      case None => false
-      case Some(m) => m("cadence") match {
-        case None => false
-        case _ => true
-      }
-    }
+    case Stride(stride) if stride.length == model.arity => true
+    case Selection(v, _, _) => model.getVariable(v).flatMap(_("cadence")).nonEmpty &&
+      model.getVariable(v).flatMap(_("start")).nonEmpty
     //TODO: take, drop, ...
     case _ => false
   }
@@ -56,10 +51,7 @@ case class NetcdfAdapter(
       val nc = NetcdfWrapper(ncDataset, model, config)
 
       // Applies ops to default section
-      val section: Section = nc.applyOperations(ops) match {
-        case Right(s) => s
-        case Left(e) => throw e
-      }
+      val section: Section = nc.applyOperations(ops).fold(throw _, identity)
 
       // Assumes all domain variables are 1D and define a Cartesian Product set.
       val domainSet: DomainSet = model match {
@@ -175,8 +167,7 @@ object NetcdfAdapter extends AdapterFactory {
     op: Operation
   ): Either[LatisException, Section] = op match {
     case Stride(stride) => NetcdfAdapter.applyStride(section, stride.toArray)
-    case sel@Selection(_, _, _) =>
-      NetcdfAdapter.applySelection(section, model, sel)
+    case sel: Selection => NetcdfAdapter.applySelection(section, model, sel)
   }
 
   //Note, must include stride even for 1-length dimensions
@@ -192,29 +183,43 @@ object NetcdfAdapter extends AdapterFactory {
     }
   }
 
+  /**
+   * Applies the given selection operation to the given section and returns a new
+   * section.
+   * @param section section to be replaced
+   * @param model model containing a scalar with cadence and start metadata
+   * @param selection selection operation to be applied
+   * @return a new section
+   */
   def applySelection(
     section: Section,
     model: DataType,
     selection: Selection
   ): Either[LatisException, Section] = {
-    val range = section.getRange(0)
+    val range = section.getRange(0)  // range of domain data
 
-    def getNewRange(index: Double): Either[LatisException, URange] = selection.selectionOp match {
-      case Gt   => {
+    /**
+     * Creates a new range to replace the range in the given selection.
+     */
+    def getNewRange(index: Double): Either[LatisException, URange] = selection.getSelectionOp match {
+      case Right(Gt)   =>
         val lowerRange = index.ceil.toInt
         if (index == lowerRange.toDouble) Right(new URange(lowerRange + 1, range.last))
         else Right(new URange(lowerRange, range.last))
-      }
-      case Lt   => {
+      case Right(Lt)   =>
         val upperRange = index.floor.toInt
         if (index == upperRange.toDouble) Right(new URange(range.first, upperRange - 1))
         else Right(new URange(range.first, upperRange))
-      }
-      case GtEq => Right(new URange(index.ceil.toInt, range.last))
-      case LtEq => Right(new URange(range.first, index.floor.toInt))
+      case Right(GtEq) => Right(new URange(index.ceil.toInt, range.last))
+      case Right(LtEq) => Right(new URange(range.first, index.floor.toInt))
       case _ => Left(LatisException(s"Unsupported selection operator $selection.selectionOp"))
     }
 
+    /**
+     * Gets the index where the select value would be given the starting value and
+     * cadence of a dataset. The index is returned as a double since it is not
+     * guaranteed to be an integer.
+     */
     def getIndex(
       selectValue: Datum,
       firstValue: Double,
@@ -228,21 +233,28 @@ object NetcdfAdapter extends AdapterFactory {
       case _ => Left(LatisException("Domain variable is not the right type for selection"))
     }
 
-    def getCadence(s: Scalar): Either[LatisException, Double] = s("cadence") match {
-      case Some(c) => Right(c.toDouble)
-      case _ => Left(LatisException(s"scalar $s does not have a cadence"))
-    }
+    // Gets the cadence metadata as a double
+    def getCadence(s: Scalar): Either[LatisException, Double] =
+      getMetadataAsDouble(s, "cadence")
 
-    def getFirstValue(s: Scalar): Either[LatisException, Double] = s("start") match {
-      case Some(c) => Right(c.toDouble)
-      case _ => Left(LatisException(s"scalar $s does not have a start value"))
-    }
+    // Gets the first domain value in the dataset as a double
+    def getFirstValue(s: Scalar): Either[LatisException, Double] =
+      getMetadataAsDouble(s, "start")
+
+    // Helper function to get a double from string metadata
+    def getMetadataAsDouble(s: Scalar, key: String): Either[LatisException, Double] =
+      s(key) match {
+        case Some(v) => Either.catchOnly[NumberFormatException] {
+          v.toDouble
+        }.leftMap(_ => LatisException(s"$v could not be converted to a double"))
+        case _ => Left(LatisException(s"scalar $s does not have $key metadata"))
+      }
 
     for {
       scalar <- selection.getScalar(model)
       cadence <- getCadence(scalar)
       firstValue <- getFirstValue(scalar)
-      selectValue <- selection.doubleValue
+      selectValue <- selection.getDoubleValue
       index <- getIndex(selectValue, firstValue, cadence)
       newRange <- getNewRange(index)
     } yield new Section(newRange)
@@ -302,8 +314,7 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
    * Applies the given operations to define the final section to read.
    */
   def applyOperations(ops: Seq[Operation]): Either[LatisException, Section] =
-    ops.foldLeft(Right(defaultSection): Either[LatisException, Section])((s, o) =>
-      s.flatMap(NetcdfAdapter.applyOperation(_, model, o)))
+    ops.toList.foldM(defaultSection)(NetcdfAdapter.applyOperation(_, model, _))
 
   // Note, get is safe since the id comes from the model in the first place
   private def getNcVarName(id: String): String =

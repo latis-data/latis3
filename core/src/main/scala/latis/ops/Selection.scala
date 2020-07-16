@@ -19,24 +19,26 @@ case class Selection(vname: String, operator: String, value: String) extends Fil
   //TODO: support nested functions, all or none?
   //TODO: allow value to have units
 
-  val selectionOp = parsers.selectionOp parseOnly operator match {
-    case ParseResult.Done(_, o) => o
+  def getSelectionOp: Either[LatisException, ast.SelectionOp] =
+    parsers.selectionOp.parseOnly(operator) match {
+    case ParseResult.Done(_, o) => Right(o)
+    case _ => Left(LatisException(s"failed to parse operator $operator"))
   }
 
   def getValue(model: DataType): Either[LatisException, Datum] = for {
     scalar <- getScalar(model)
-    cdata <- scalar.convertValue(value).leftMap(e => LatisException(e))
+    cdata <- scalar.convertValue(value).leftMap(LatisException(_))
   } yield cdata
 
-  val doubleValue: Either[LatisException, Double] = try {
-    Right(value.toDouble)
-  } catch {
-    case _: NumberFormatException => Left(LatisException(s"$value could not be converted to a double"))
-  }
+  def getDoubleValue: Either[LatisException, Double] =
+    Either.catchOnly[NumberFormatException] {
+      value.toDouble
+    }.leftMap(_ => LatisException(s"$value could not be converted to a double"))
+
 
   def getScalar(model: DataType): Either[LatisException, Scalar] = model.findVariable(vname) match {
     case Some(s: Scalar) => Right(s)
-    case _ => Left(new LatisException(s"Selection variable not found: $vname"))
+    case _ => Left(LatisException(s"Selection variable not found: $vname"))
   }
 
   def predicate(model: DataType): Sample => Boolean = {
@@ -55,8 +57,8 @@ case class Selection(vname: String, operator: String, value: String) extends Fil
       case None => ??? //shouldn't happen due to earlier check
     }
 
-    val cdata = getValue(model).getOrElse(throw LatisException("error"))
-    val scalar = getScalar(model).getOrElse(throw LatisException("error"))
+    val cdata = getValue(model).fold(throw _, identity)
+    val scalar = getScalar(model).fold(throw _, identity)
     val ordering = scalar.ordering
 
     (sample: Sample) =>
@@ -102,7 +104,7 @@ object Selection {
   }
 
   def makeSelection(expression: String): Either[LatisException, Selection] =
-    parsers.selection parseOnly expression match {
+    parsers.selection.parseOnly(expression) match {
       case ParseResult.Done(_, ast.Selection(vname, op, value)) => Right(Selection(vname, ast.prettyOp(op), value))
       case _ => Left(LatisException(s"Failed to parse expression $expression"))
     }
