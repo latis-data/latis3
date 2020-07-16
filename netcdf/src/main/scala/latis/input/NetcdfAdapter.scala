@@ -4,6 +4,7 @@ import java.net.URI
 
 import cats.effect.IO
 import cats.implicits._
+import cats.Semigroupal
 import fs2.Stream
 import ucar.ma2.{Array => NcArray}
 import ucar.ma2.{Range => URange}
@@ -34,8 +35,10 @@ case class NetcdfAdapter(
    */
   override def canHandleOperation(op: Operation): Boolean = op match {
     case Stride(stride) if stride.length == model.arity => true
-    case Selection(v, _, _) => model.getVariable(v).flatMap(_("cadence")).nonEmpty &&
-      model.getVariable(v).flatMap(_("start")).nonEmpty
+    case Selection(v, _, _) => Semigroupal[Option].product(
+      model.getVariable(v).flatMap(_("cadence")),
+      model.getVariable(v).flatMap(_("start"))
+    ).nonEmpty
     //TODO: take, drop, ...
     case _ => false
   }
