@@ -1,6 +1,6 @@
 package latis.ops
 
-import latis.data.SampledFunction
+import latis.data.Data
 import latis.dataset._
 import latis.model.DataType
 
@@ -18,7 +18,7 @@ case class PartiallyAppliedBinaryOperation(
   override def applyToModel(model: DataType): DataType =
     binOp.applyToModel(dataset.model, model)
 
-  override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
+  override def applyToData(data: Data, model: DataType): Data = {
     val data0 = dataset match {
       case ad: AdaptedDataset => ad.tap().data.asFunction
       case td: TappedDataset  => td.data.asFunction

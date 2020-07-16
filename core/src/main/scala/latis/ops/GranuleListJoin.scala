@@ -30,7 +30,7 @@ case class GranuleListJoin(
    * to generate a SampledFunction for each and wrap them all
    * in a CompositeSampledFunction.
    */
-  override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
+  override def applyToData(data: Data, model: DataType): Data = {
 
     // Get the position of the "uri" value within a Sample
     val pos: SamplePosition = model.getPath("uri") match {
@@ -53,7 +53,7 @@ case class GranuleListJoin(
     // and combine into a CompositeSampledFunction.
     // Note the unsafeForce so we can get the Seq out of IO.
     //TODO: do we need a CompositeDataset?
-    CompositeSampledFunction(data.unsafeForce.sampleSeq.map(f))
+    CompositeSampledFunction(data.asFunction.unsafeForce.sampleSeq.map(f))
   }
 
 }

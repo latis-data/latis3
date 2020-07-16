@@ -58,8 +58,8 @@ case class CompositeSampledFunction(sampledFunctions: Seq[SampledFunction])
    * but unary is just partially applied binary
    */
 
-  override def applyOperation(op: UnaryOperation, model: DataType): SampledFunction =
-    CompositeSampledFunction(sampledFunctions.map(_.applyOperation(op, model)))
+  override def applyOperation(op: UnaryOperation, model: DataType): Data =
+    CompositeSampledFunction(sampledFunctions.map(_.applyOperation(op, model).asFunction)) //TODO: consider ConstantFunction
 
   //TODO: optimize other operations by delegating to granules; e.g. select, project
 }

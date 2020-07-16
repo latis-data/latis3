@@ -22,8 +22,8 @@ case class GroupByBin(
   /**
    * Extends the default by constructing a SetFunction with the domainSet.
    */
-  override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
-    val range = super.applyToData(data, model).unsafeForce.sampleSeq.map(_.range).toIndexedSeq
+  override def applyToData(data: Data, model: DataType): Data = {
+    val range = super.applyToData(data, model).asFunction.unsafeForce.sampleSeq.map(_.range).toIndexedSeq
     SetFunction(domainSet, range)
   }
 

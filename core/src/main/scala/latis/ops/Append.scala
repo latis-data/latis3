@@ -13,10 +13,7 @@ case class Append() extends BinaryOperation {
 
   def applyToModel(model1: DataType, model2: DataType): DataType = model1
 
-  def applyToData(
-    data1: SampledFunction,
-    data2: SampledFunction
-  ): SampledFunction =
-    SampledFunction(data1.samples ++ data2.samples)
+  def applyToData(data1: Data, data2: Data): SampledFunction =
+    SampledFunction(data1.asFunction.samples ++ data2.asFunction.samples)
 
 }

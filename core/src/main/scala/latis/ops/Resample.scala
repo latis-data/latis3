@@ -28,13 +28,13 @@ case class Resample(dset: DomainSet) extends UnaryOperation {
   /**
    * Apply the DomainSet to the given SampledFunction.
    */
-  def applyToData(sf: SampledFunction, model: DataType): SampledFunction = sf match {
-    case ConstantFunction(data) =>
+  def applyToData(data: Data, model: DataType): Data = data match {
+    case sf: SampledFunction =>
+      sf(dset).toTry.get //throw the exception if Left
+    case data =>
       // Duplicate const for every domain value
       val range: IndexedSeq[RangeData] = Vector.fill(dset.length)(RangeData(data))
       SetFunction(dset, range)
-    case sf: SampledFunction =>
-      sf(dset).toTry.get //throw the exception if Left
   }
 
 }

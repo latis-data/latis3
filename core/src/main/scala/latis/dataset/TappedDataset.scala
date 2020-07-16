@@ -50,20 +50,20 @@ class TappedDataset(
   /**
    * Applies the operations and returns a Stream of Samples.
    */
-  def samples: Stream[IO, Sample] = applyOperations().samples
+  def samples: Stream[IO, Sample] = applyOperations().asFunction.samples
 
   /**
    * Applies the Operations to the Data and returns a SampledFunction.
    */
-  private def applyOperations(): SampledFunction = {
+  private def applyOperations(): Data = {
     //TODO: compile/optimize the operations
 
-    // Defines a function to apply an Operation to a SampledFunction.
+    // Defines a function to apply an Operation to Data.
     // The model (DataType) needs to ride along to provide context.
-    val f: ((DataType, SampledFunction), UnaryOperation) => (DataType, SampledFunction) =
-      (modat: (DataType, SampledFunction), op: UnaryOperation) =>
+    val f: ((DataType, Data), UnaryOperation) => (DataType, Data) =
+      (modat: (DataType, Data), op: UnaryOperation) =>
         modat match {
-          case (model: DataType, data: SampledFunction) =>
+          case (model: DataType, data: Data) =>
             val mod2 = op.applyToModel(model)
             // Enables a smart SampledFunction to apply the Operation.
             // Note that it will return a superclass if it can't.
@@ -72,7 +72,7 @@ class TappedDataset(
         }
 
     // Apply the operations to the data
-    operations.foldLeft((_model, data.asFunction))(f)._2
+    operations.foldLeft((_model, data))(f)._2
   }
 
   /**
@@ -83,7 +83,7 @@ class TappedDataset(
   def unsafeForce(): MemoizedDataset = new MemoizedDataset(
     metadata,  //from super with ops applied
     model,     //from super with ops applied
-    applyOperations().unsafeForce
+    applyOperations().asFunction.unsafeForce
   )
 
 }

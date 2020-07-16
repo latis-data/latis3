@@ -14,6 +14,7 @@ import latis.util.StreamUtils
  * The Data trait is the root of all data values that go into a Sample.
  */
 sealed trait Data extends Any {
+  //TODO: implicit ConstantFunction?
   def asFunction: SampledFunction = this match {
     case sf: SampledFunction => sf
     case d => ConstantFunction(d)
@@ -73,7 +74,7 @@ trait SampledFunction extends Data {
     }
 
   //def canHandleOperation(op: UnaryOperation): Boolean
-  def applyOperation(op: UnaryOperation, model: DataType): SampledFunction = //TODO: Either
+  def applyOperation(op: UnaryOperation, model: DataType): Data = //TODO: Either
     op.applyToData(this, model) //default when special SF can't apply op
 
   def unsafeForce: MemoizedFunction = this match { //TODO: Either

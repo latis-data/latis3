@@ -3,6 +3,7 @@ package latis.ops
 import cats.effect.IO
 import fs2.Pipe
 
+import latis.data.Data
 import latis.data.Sample
 import latis.data.SampledFunction
 import latis.model.DataType
@@ -27,9 +28,9 @@ trait StreamOperation extends UnaryOperation {
   //TODO: simply compose pipes? but need to be able to build Op of original type
 
   /**
-   * Applies this operation to SampledFunction data.
+   * Applies this operation to Samples.
    */
-  override def applyToData(data: SampledFunction, model: DataType): SampledFunction =
-    SampledFunction(data.samples.through(pipe(model)))
+  override def applyToData(data: Data, model: DataType): Data =
+    SampledFunction(data.asFunction.samples.through(pipe(model)))
 
 }
