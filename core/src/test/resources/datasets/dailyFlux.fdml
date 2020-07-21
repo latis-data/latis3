@@ -3,7 +3,7 @@
 <dataset id="dailyFlux"
          title="Test Flux Dataset"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="src/test/resourced/columnar-adapter.xsd">
+         xsi:noNamespaceSchemaLocation="src/test/resources/columnar-adapter.xsd">
 
   <source uri="data/dailyFlux.txt"/>
 
