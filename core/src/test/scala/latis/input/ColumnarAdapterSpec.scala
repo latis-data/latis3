@@ -2,10 +2,13 @@ package latis.input
 
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
-
 import latis.data._
+import latis.dataset.Dataset
 import latis.metadata.Metadata
 import latis.model._
+import latis.ops._
+import latis.output.TextWriter
+import latis.util.StreamUtils
 
 class ColumnarAdapterSpec extends FlatSpec {
 
@@ -39,4 +42,19 @@ class ColumnarAdapterSpec extends FlatSpec {
 
     sample should be(None)
   }
+  
+  "The Daily Flux dataset" should "be read from an FDML file" in {
+    val ds = Dataset.fromName("dailyFlux")
+      .withOperation(TimeTupleToTime())
+    
+    TextWriter().write(ds)
+    
+//    StreamUtils.unsafeHead(ds.samples) match {
+//      case Sample(DomainData(Number(t)),RangeData(Real(f))) =>
+//        t should be (1)
+//        f should be (0.841470985)
+//    }
+    
+  }
+  
 }
