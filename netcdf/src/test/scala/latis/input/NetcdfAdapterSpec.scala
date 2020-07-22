@@ -2,7 +2,7 @@ package latis.input
 
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
-import ucar.ma2.Range
+import ucar.ma2.{Range => URange}
 import ucar.ma2.Section
 
 import latis.metadata.Metadata
@@ -32,6 +32,12 @@ class NetcdfAdapterSpec extends FlatSpec {
     NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time < 9")) should be(
       Right(expectedSection)
     )
+    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time < 9001")) should be(
+      Right(new Section("0:2"))
+    )
+    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time < 0")) should be(
+      Right(new Section(URange.EMPTY))
+    )
   }
 
   "A NetcdfAdapter selection operation" should "support GT selection" in {
@@ -41,6 +47,12 @@ class NetcdfAdapterSpec extends FlatSpec {
     )
     NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time > 7")) should be(
       Right(expectedSection)
+    )
+    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time > 0")) should be(
+      Right(new Section("0:2"))
+    )
+    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time > 9000")) should be(
+      Right(new Section(URange.EMPTY))
     )
   }
 
@@ -52,6 +64,12 @@ class NetcdfAdapterSpec extends FlatSpec {
     NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time <= 8")) should be(
       Right(expectedSection)
     )
+    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time <= 9001")) should be(
+      Right(new Section("0:2"))
+    )
+    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time <= 0")) should be(
+      Right(new Section(URange.EMPTY))
+    )
   }
 
   "A NetcdfAdapter selection operation" should "support GE selection" in {
@@ -62,11 +80,11 @@ class NetcdfAdapterSpec extends FlatSpec {
     NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time >= 8")) should be(
       Right(expectedSection)
     )
-  }
-
-  "A NetcdfAdapter selection operation" should "handle invalid selections gracefully" in {
-    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time < 6")) should be(
-      Left(LatisException("Selection value is outside of data range"))
+    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time >= 0")) should be(
+      Right(new Section("0:2"))
+    )
+    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time >= 9001")) should be(
+      Right(new Section(URange.EMPTY))
     )
   }
 

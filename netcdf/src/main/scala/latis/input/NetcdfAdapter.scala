@@ -2,6 +2,9 @@ package latis.input
 
 import java.net.URI
 
+import scala.math.min
+import scala.math.max
+
 import cats.effect.IO
 import cats.implicits._
 import cats.Semigroupal
@@ -24,6 +27,9 @@ import latis.util._
  * Defines an Adapter for NetCDF data sources.
  * This handles some operations by applying them to a
  * ucar.ma2.Section that is used when reading the data.
+ *
+ * Selection operation is supported for datasets with "cadence" and "start" metadata
+ * and domain values that can be converted to double.
  */
 case class NetcdfAdapter(
   model: DataType,
@@ -188,7 +194,9 @@ object NetcdfAdapter extends AdapterFactory {
 
   /**
    * Applies the given selection operation to the given section and returns a new
-   * section.
+   * section. Indecies for the range in the returned section are extrapolated from
+   * cadence and start metadata without touching the actual data. If no data falls
+   * within the selection, a section with an empty range is returned.
    * @param section section to be replaced
    * @param model model containing a scalar with cadence and start metadata
    * @param selection selection operation to be applied
@@ -206,15 +214,27 @@ object NetcdfAdapter extends AdapterFactory {
      */
     def getNewRange(index: Double): Either[LatisException, URange] = selection.getSelectionOp match {
       case Right(Gt)   =>
-        val lowerRange = index.ceil.toInt
-        if (index == lowerRange.toDouble) Right(new URange(lowerRange + 1, range.last))
+        val indexCeil = index.ceil.toInt
+        val adjustedLow = if (index == indexCeil.toDouble) indexCeil + 1
+        else indexCeil
+        val lowerRange = max(range.first, adjustedLow)
+        if (lowerRange > range.last) Right(URange.EMPTY)
         else Right(new URange(lowerRange, range.last))
       case Right(Lt)   =>
-        val upperRange = index.floor.toInt
-        if (index == upperRange.toDouble) Right(new URange(range.first, upperRange - 1))
+        val indexFloor = index.floor.toInt
+        val adjustedHigh = if (index == indexFloor.toDouble) indexFloor - 1
+        else indexFloor
+        val upperRange = min(range.last, adjustedHigh)
+        if (range.first > upperRange) Right(URange.EMPTY)
         else Right(new URange(range.first, upperRange))
-      case Right(GtEq) => Right(new URange(index.ceil.toInt, range.last))
-      case Right(LtEq) => Right(new URange(range.first, index.floor.toInt))
+      case Right(GtEq) =>
+        val lowerRange = max(index.ceil.toInt, range.first)
+        if (lowerRange > range.last) Right(URange.EMPTY)
+        else Right(new URange(lowerRange, range.last))
+      case Right(LtEq) =>
+        val upperRange = min(index.floor.toInt, range.last)
+        if (range.first > upperRange) Right(URange.EMPTY)
+        else Right(new URange(range.first, upperRange))
       case _ => Left(LatisException(s"Unsupported selection operator $selection.selectionOp"))
     }
 
@@ -228,11 +248,7 @@ object NetcdfAdapter extends AdapterFactory {
       firstValue: Double,
       cadence: Double
     ): Either[LatisException, Double] = selectValue match {
-      case Number(d) => {
-        val index = (d - firstValue) / cadence
-        if (index >= 0) Right(index)
-        else Left(LatisException("Selection value is outside of data range"))
-      }
+      case Number(d) => Right((d - firstValue) / cadence)
       case _ => Left(LatisException("Domain variable is not the right type for selection"))
     }
 
