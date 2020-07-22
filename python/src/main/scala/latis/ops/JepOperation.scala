@@ -15,7 +15,7 @@ trait JepOperation extends UnaryOperation {
    * Sets the path to the JEP library file if it hasn't already been set.
    * The file name is based off the operating system.
    */
-  def setJepPath: Unit = try {
+  def setJepPath(): Unit = try {
     val path = LatisConfig.get("latis.python.jep.path").getOrElse {
       val msg = "Path to the JEP native library file not found. " +
         "Please set an absolute path to it under 'latis.python.jep.path' in your config file."
