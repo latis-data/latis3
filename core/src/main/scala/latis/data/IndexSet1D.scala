@@ -58,7 +58,7 @@ case class IndexSet1D(start: Int, increment: Int, count: Int)
       case DomainData(Index(x)) =>
         val i = (x - start) / increment
         // Must be integral for a match to an existing element
-        if (i == Math.floor(i)) i.toInt
+        if (i == Math.floor(i.toDouble)) i.toInt
         else -1
       case _ =>
         val msg = s"Invalid value for one-dimensional domain IndexSet: $data"
