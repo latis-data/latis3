@@ -20,7 +20,7 @@ class NetcdfAdapterSpec extends FlatSpec {
   }
 
   "A range with a stride" should "make a consistent last value" in {
-    val range = new Range(1, 4, 2) // 1:3:2
+    val range = new URange(1, 4, 2) // 1:3:2
     range.last should be(3)
   }
 
