@@ -166,7 +166,12 @@ lazy val server = project
       "com.github.pureconfig" %% "pureconfig"             % pureconfigVersion,
       "com.github.pureconfig" %% "pureconfig-cats-effect" % pureconfigVersion,
       "ch.qos.logback"         % "logback-classic"        % "1.2.3" % Runtime
-    )
+    ),
+    // Required to suppress spurious warnings with 2.13.3
+    scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, 13)) => Seq("-Xlint:-byname-implicit")
+      case _             => Nil
+    })
   )
 
 lazy val `service-interface` = project
