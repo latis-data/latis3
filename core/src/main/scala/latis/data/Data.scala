@@ -226,6 +226,7 @@ object Data {
    * and RangeData contain no TupleData.
    */
   def flatten(ds: Seq[Data]): List[Data] = ds.toList match {
+    case Nil => Nil
     case d :: Nil => d match {
       case TupleData(ds @ _*) => ds.toList
       case d: Data => List(d) //Datum or SF
