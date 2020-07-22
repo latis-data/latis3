@@ -1,5 +1,6 @@
 package latis.server
 
+import cats.effect.Blocker
 import cats.effect.ExitCode
 import cats.effect.IO
 import cats.effect.IOApp
@@ -19,11 +20,11 @@ object Latis3Server extends IOApp {
   private val latisConfigSource: ConfigSource =
     ConfigSource.default.at("latis")
 
-  private val getServerConf: IO[ServerConf] =
-    latisConfigSource.loadF[IO, ServerConf]
+  private def getServerConf(blocker: Blocker): IO[ServerConf] =
+    latisConfigSource.loadF[IO, ServerConf](blocker)
 
-  private val getServiceConf: IO[ServiceConf] =
-    latisConfigSource.loadF[IO, ServiceConf]
+  private def getServiceConf(blocker: Blocker): IO[ServiceConf] =
+    latisConfigSource.loadF[IO, ServiceConf](blocker)
 
   private def constructRoutes(
     services: List[(ServiceSpec, ServiceInterface)]
@@ -48,11 +49,13 @@ object Latis3Server extends IOApp {
     }
 
   def run(args: List[String]): IO[ExitCode] =
-    for {
-      serverConf  <- getServerConf
-      serviceConf <- getServiceConf
-      services    <- loader.loadServices(serviceConf)
-      routes       = constructRoutes(services)
-      _           <- startServer(routes, serverConf)
-    } yield ExitCode.Success
+    Blocker[IO].use { blocker =>
+      for {
+        serverConf  <- getServerConf(blocker)
+        serviceConf <- getServiceConf(blocker)
+        services    <- loader.loadServices(serviceConf)
+        routes       = constructRoutes(services)
+        _           <- startServer(routes, serverConf)
+      } yield ExitCode.Success
+    }
 }
