@@ -81,6 +81,8 @@ case class Substitution(dataset: Dataset) extends MapOperation {
             val slice: List[Datum] = vals.slice(i, i + domainVariableIDs.length).map {
               case d: Datum => d
               // Note, there should be no TupleData in a Sample
+              case _: TupleData =>
+                throw LatisException("Substitution includes TupleData")
               case sf: SampledFunction =>
                 throw LatisException("Substitution includes Function")
             }
