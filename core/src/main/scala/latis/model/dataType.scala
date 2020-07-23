@@ -5,6 +5,8 @@ import latis.metadata._
 import latis.util.DefaultDatumOrdering
 import latis.util.LatisException
 
+import scala.collection.mutable.ArrayBuffer
+
 /**
  * Define the algebraic data type for the LaTiS implementation of the
  * Functional Data Model.
@@ -46,6 +48,33 @@ sealed trait DataType extends MetadataLike with Serializable {
     //TODO: support aliases
 
   /**
+   * Find all Variables within this Variable by the given name.
+   * TODO: support aliases
+   * TODO: consider nested tuple id's like B.x (use this.id.split('.').last?)
+   */
+  def findAllVariables(variableName: String): Seq[DataType] = {
+    variableName.split('.') match {
+      case Array(n) => {
+        val vbuf = ArrayBuffer[DataType]()
+        if (this.id == variableName) vbuf += this //TODO: use hasName to cover aliases?
+        this match {
+          case _: Scalar =>
+          case Tuple(es @ _*) =>
+            val matchingVars = es.flatMap(_.findAllVariables(variableName))
+            vbuf ++= matchingVars
+          case Function(d, r) => 
+            vbuf ++= d.findAllVariables(variableName) 
+            vbuf ++= r.findAllVariables(variableName)
+        }
+        vbuf.toSeq
+      }
+      case Array(n1, n2 @ _*) => {
+        findAllVariables(n1).flatMap(_.findAllVariables(n2.mkString(".")))
+      }
+    }
+  }
+
+  /**
    * Return the function arity of this DataType.
    * For Function, this is the number of top level types (non-flattened)
    * in the domain.
@@ -80,14 +109,19 @@ sealed trait DataType extends MetadataLike with Serializable {
     // while the recursion results build up the final type.
     def go(dt: DataType, acc: Seq[DataType]): Seq[DataType] = dt match {
       case s: Scalar      => acc :+ s
-      case Tuple(es @ _*) => es.flatMap(e => acc ++ go(e, Seq()))
+      case t @ Tuple(es @ _*) => 
+        es.flatMap(e => e match {
+          case _: Scalar if t.id != "" =>
+            acc ++ go(e.rename(s"${t.id}.${e.id}"), Seq()) //prepend Tuple ID to Scalar ID with "."
+          case _ => acc ++ go(e, Seq()) 
+        })
       case Function(d, r) => acc :+ Function(d.flatten, r.flatten)
     }
 
     val types = go(this, Seq())
     types.length match {
       case 1 => types.head
-      case _ => Tuple(types)
+      case _ => Tuple(/*Metadata("time"), */types) //TODO: this Tuple needs an ID that's preserved from before the flatten...
     }
   }
 
@@ -95,6 +129,7 @@ sealed trait DataType extends MetadataLike with Serializable {
    * Return the path within this DataType to a given variable ID
    * as a sequence of SamplePositions.
    * Note that length of the path reflects the number of nested Functions.
+   * TODO: Tuples are improperly handled. There's no option to return a path to a Tuple with a matching ID.
    */
   def getPath(id: String): Option[SamplePath] = {
 
@@ -126,6 +161,40 @@ sealed trait DataType extends MetadataLike with Serializable {
 
     go(this.flatten, id, List.empty)
   }
+
+//  /**
+//   * Just like getPath except nested Tuples are not flattened.
+//   */
+//  def getPathWithoutFlattening(id: String): Option[SamplePath] = {
+//
+//    // Recursive function to try paths until it finds a match
+//    def go(dt: DataType, id: String, currentPath: SamplePath): Option[SamplePath] =
+//      if (id == dt.id) Some(currentPath) //found it  //TODO: use hasName to cover aliases?
+//      else
+//        dt match { //recurse
+//          case _: Scalar => None //dead end
+//          case Function(dtype, rtype) =>
+//            val ds = dtype match {
+//              case s: Scalar      => Seq(s)
+//              case Tuple(vs @ _*) => vs
+//            }
+//            val rs = rtype match {
+//              case Tuple(vs @ _*) => vs
+//              case _              => Seq(rtype)
+//            }
+//
+//            val d = ds.indices.iterator.map { i => // lazy Iterator allows us to short-circuit
+//              go(ds(i), id, currentPath :+ DomainPosition(i))
+//            }
+//            val r = rs.indices.iterator.map { i => // lazy Iterator allows us to short-circuit
+//              go(rs(i), id, currentPath :+ RangePosition(i))
+//            }
+//
+//            (d ++ r).collectFirst { case Some(p) => p } //short-circuit here, take first Some
+//        }
+//
+//    go(this, id, List.empty)
+//  }
 
   //TODO: beef up
   //TODO: use missingValue in metadata, scalar.parseValue(s)

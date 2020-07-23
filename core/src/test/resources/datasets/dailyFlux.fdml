@@ -14,10 +14,12 @@
            />
 
   <function>
-    <tuple id="time">
+    <tuple>
         <scalar id="year" units="yyyy" type="int"/>
-        <scalar id="month" units="MM" type="int"/>
-        <scalar id="day" units="dd" type="int"/>
+        <tuple id="time2">
+            <scalar id="month" units="MM" type="int"/>
+            <scalar id="day" units="dd" type="int"/>
+        </tuple>
     </tuple>
     <scalar id="ra" type="int"/>
   </function>
