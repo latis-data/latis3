@@ -86,6 +86,8 @@
         <xs:attribute name="validRange" type="xs:string"/>
         <xs:attribute name="cadence" type="xs:string"/>
         <xs:attribute name="resolution" type="xs:string"/>
+        <xs:attribute name="start" type="xs:string"/>
+        <xs:attribute name="end" type="xs:string"/>
     </xs:attributeGroup>
 
 </xs:schema>
