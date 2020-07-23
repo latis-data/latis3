@@ -31,7 +31,24 @@ case class TimeTupleToTime(name: String = "time") extends UnaryOperation {
     
     val x = model.flatten
     
-    val z = x.findAllVariables("time")
+    val timeTuple = x.findAllVariables("time")
+    
+    timeTuple(0) match {
+      case Tuple(es @ _*) =>
+        //extract text values and join with space
+        //TODO: join with delimiter, problem when we use regex
+        val namez = es.map(e => e match { case _: Scalar => e.id}).toSeq.mkString(" ")
+        //build up format string
+        val format = es.map(e => e("units") match {
+          case Some(units) => units
+          case None => throw new RuntimeException("A time Tuple must have units defined for each element.")
+        }).mkString(" ")
+        
+        //make the Time Scalar
+        val metadata = Metadata("id" -> "time", "units" -> format, "type" -> "string")
+        val time = Scalar(metadata)
+        Some(time)
+    }
     
     data
   }
