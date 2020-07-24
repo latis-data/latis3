@@ -28,27 +28,43 @@ case class TimeTupleToTime(name: String = "time") extends UnaryOperation {
 //      case Some(List(RangePosition(n))) => n
 //      case _ => throw new LatisException(s"Cannot find variable: $name")
 //    }
+
+    val model2 = Function(
+      Tuple(/*Metadata("time"),*/
+        Scalar(Metadata("year") + ("type" -> "string") + ("units" -> "yyyy MM dd")),
+        Tuple(/*Metadata("time2"),*/
+          Scalar(Metadata("month") + ("type"    -> "int")),
+          Scalar(Metadata("day") + ("type" -> "double")),
+          Tuple(Metadata("time3"),
+            Scalar(Metadata("hour") + ("type" -> "string")),
+            Scalar(Metadata("second") + ("type" -> "string")),
+          )
+        )
+      ),
+      Scalar(Metadata("flux") + ("type" -> "string"))
+    )
     
-    val x = model.flatten
+    //val x = model.flatten
+    val x = model2.flatten
     
     val timeTuple = x.findAllVariables("time")
     
-    timeTuple(0) match {
-      case Tuple(es @ _*) =>
-        //extract text values and join with space
-        //TODO: join with delimiter, problem when we use regex
-        val namez = es.map(e => e match { case _: Scalar => e.id}).toSeq.mkString(" ")
-        //build up format string
-        val format = es.map(e => e("units") match {
-          case Some(units) => units
-          case None => throw new RuntimeException("A time Tuple must have units defined for each element.")
-        }).mkString(" ")
-        
-        //make the Time Scalar
-        val metadata = Metadata("id" -> "time", "units" -> format, "type" -> "string")
-        val time = Scalar(metadata)
-        Some(time)
-    }
+//    timeTuple(0) match {
+//      case Tuple(es @ _*) =>
+//        //extract text values and join with space
+//        //TODO: join with delimiter, problem when we use regex
+//        val namez = es.map(e => e match { case _: Scalar => e.id}).toSeq.mkString(" ")
+//        //build up format string
+//        val format = es.map(e => e("units") match {
+//          case Some(units) => units
+//          case None => throw new RuntimeException("A time Tuple must have units defined for each element.")
+//        }).mkString(" ")
+//        
+//        //make the Time Scalar
+//        val metadata = Metadata("id" -> "time", "units" -> format, "type" -> "string")
+//        val time = Scalar(metadata)
+//        Some(time)
+//    }
     
     data
   }

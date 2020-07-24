@@ -105,21 +105,28 @@ sealed trait DataType extends MetadataLike with Serializable {
    */
   def flatten: DataType = {
     var tupIds = ""
+    var outermostId = true
     // Recursive helper function that uses an accumulator (acc)
     // to accumulate types while in the context of a Tuple
     // while the recursion results build up the final type.
     def go(dt: DataType, acc: Seq[DataType]): Seq[DataType] = dt match {
       case s: Scalar if tupIds.isEmpty => acc :+ s
-      case s: Scalar                   => acc :+ s.rename(s"$tupIds.${s.id}") //prepend Tuple ID(s) with "."
+      case s: Scalar                   => acc :+ s.rename(dropLeadingDot(s"$tupIds.${s.id}")) //prepend Tuple ID(s) with "."
       case Function(d, r)              => acc :+ Function(d.flatten, r.flatten)
-      case t @ Tuple(es @ _*)          => if (tupIds.isEmpty) tupIds = t.id else tupIds += s".${t.id}"
+      case t @ Tuple(es @ _*)          => if (tupIds.isEmpty && t.id.isEmpty) outermostId = false; tupIds += s".${t.id}"
         es.flatMap(e => acc ++ go(e, Seq()))
     }
+    
+    def dropLeadingDot(id: String): String = id.replaceFirst("^\\.", "")
 
     val types = go(this, Seq())
     types.length match {
       case 1 => types.head
-      case _ => Tuple(Metadata(tupIds.split('.').head), types) //flattened Tuple keeps the ID of the first named Tuple
+      case _ => outermostId match {
+        //flattened Tuple keeps the ID of the outermost Tuple
+        case false => Tuple(types)
+        case true  => Tuple(Metadata(dropLeadingDot(tupIds).split('.').head), types)
+      }
     }
   }
 
