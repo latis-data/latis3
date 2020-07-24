@@ -5,7 +5,6 @@ import latis.metadata.Metadata
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import latis.model._
-import latis.time
 import latis.time.Time
 
 
