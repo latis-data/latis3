@@ -1,5 +1,7 @@
 package latis.server
 
+import scala.concurrent.ExecutionContext
+
 import cats.effect.Blocker
 import cats.effect.ExitCode
 import cats.effect.IO
@@ -38,7 +40,7 @@ object Latis3Server extends IOApp {
   private def startServer(routes: HttpRoutes[IO], conf: ServerConf): IO[Unit] =
     conf match {
       case ServerConf(port, mapping) =>
-        BlazeServerBuilder[IO]
+        BlazeServerBuilder[IO](ExecutionContext.global)
           .bindHttp(port, "0.0.0.0")
           .withHttpApp {
             Router(mapping -> routes).orNotFound
