@@ -16,10 +16,8 @@
   <function>
     <tuple id="time">
         <scalar id="year" units="yyyy" type="int"/>
-        <tuple id="time2">
-            <scalar id="month" units="MM" type="int"/>
-            <scalar id="day" units="dd" type="int"/>
-        </tuple>
+        <scalar id="month" units="MM" type="int"/>
+        <scalar id="day" units="dd" type="int"/>
     </tuple>
     <scalar id="ra" type="int"/>
   </function>
