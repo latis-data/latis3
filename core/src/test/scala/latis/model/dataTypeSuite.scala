@@ -132,5 +132,30 @@ class TupleFlattenSuite extends FunSuite {
     assert(flattened.toString == expectedTuple.toString)
     assert(flattened.id == expectedTuple.id)
   }
+
+  test("Flattening doubly nested tuple where middle and innermost tuples lack IDs") {
+    val nestedTuple = Tuple(Metadata("tup1"),
+      Scalar(Metadata("a") + ("type" -> "int")),
+      Tuple(
+        Scalar(Metadata("b") + ("type" -> "int")),
+        Scalar(Metadata("c") + ("type" -> "int")),
+        Tuple(
+          Scalar(Metadata("d") + ("type" -> "int"))
+        )
+      )
+    )
+
+    val flattened = nestedTuple.flatten
+
+    val expectedTuple = Tuple(Metadata("tup1"),
+      Scalar(Metadata("tup1.a") + ("type" -> "int")),
+      Scalar(Metadata("tup1..b") + ("type" -> "int")),
+      Scalar(Metadata("tup1..c") + ("type" -> "int")),
+      Scalar(Metadata("tup1...d") + ("type" -> "int"))
+    )
+
+    assert(flattened.toString == expectedTuple.toString)
+    assert(flattened.id == expectedTuple.id)
+  }
   
 }
