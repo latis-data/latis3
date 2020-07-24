@@ -168,40 +168,6 @@ sealed trait DataType extends MetadataLike with Serializable {
     go(this.flatten, id, List.empty)
   }
 
-//  /**
-//   * Just like getPath except nested Tuples are not flattened.
-//   */
-//  def getPathWithoutFlattening(id: String): Option[SamplePath] = {
-//
-//    // Recursive function to try paths until it finds a match
-//    def go(dt: DataType, id: String, currentPath: SamplePath): Option[SamplePath] =
-//      if (id == dt.id) Some(currentPath) //found it  //TODO: use hasName to cover aliases?
-//      else
-//        dt match { //recurse
-//          case _: Scalar => None //dead end
-//          case Function(dtype, rtype) =>
-//            val ds = dtype match {
-//              case s: Scalar      => Seq(s)
-//              case Tuple(vs @ _*) => vs
-//            }
-//            val rs = rtype match {
-//              case Tuple(vs @ _*) => vs
-//              case _              => Seq(rtype)
-//            }
-//
-//            val d = ds.indices.iterator.map { i => // lazy Iterator allows us to short-circuit
-//              go(ds(i), id, currentPath :+ DomainPosition(i))
-//            }
-//            val r = rs.indices.iterator.map { i => // lazy Iterator allows us to short-circuit
-//              go(rs(i), id, currentPath :+ RangePosition(i))
-//            }
-//
-//            (d ++ r).collectFirst { case Some(p) => p } //short-circuit here, take first Some
-//        }
-//
-//    go(this, id, List.empty)
-//  }
-
   //TODO: beef up
   //TODO: use missingValue in metadata, scalar.parseValue(s)
   def fillValue: Data = Data.fromSeq(getFillValue(this, Seq.empty))
