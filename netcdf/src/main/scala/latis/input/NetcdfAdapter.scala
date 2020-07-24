@@ -2,24 +2,23 @@ package latis.input
 
 import java.net.URI
 
-import scala.math.min
 import scala.math.max
+import scala.math.min
 
 import cats.effect.IO
 import cats.implicits._
-import cats.Semigroupal
 import fs2.Stream
+import ucar.ma2.Section
 import ucar.ma2.{Array => NcArray}
 import ucar.ma2.{Range => URange}
-import ucar.ma2.Section
-import ucar.nc2.{Variable => NcVariable}
 import ucar.nc2.dataset.NetcdfDataset
+import ucar.nc2.{Variable => NcVariable}
 
 import latis.data._
 import latis.model._
 import latis.ops.Operation
-import latis.ops.Stride
 import latis.ops.Selection
+import latis.ops.Stride
 import latis.ops.parser.ast._
 import latis.util._
 
@@ -41,12 +40,11 @@ case class NetcdfAdapter(
    */
   override def canHandleOperation(op: Operation): Boolean = op match {
     case Stride(stride) if stride.length == model.arity => true
-    case s@Selection(v, _, _) => Semigroupal[Option].product(
-      model.getVariable(v).flatMap(_("cadence")),
-      model.getVariable(v).flatMap(_("start"))
-    ).nonEmpty && (s.getSelectionOp match {
-      case Right(Gt) | Right(Lt) | Right(GtEq) | Right(LtEq) | Right(Eq) | Right(EqEq) => true
-      case _ => false
+    case s@Selection(v, _, _) => model.getVariable(v).exists(
+      v => v("cadence").nonEmpty && v("start").nonEmpty) &&
+      (s.getSelectionOp match {
+        case Right(Gt) | Right(Lt) | Right(GtEq) | Right(LtEq) | Right(Eq) | Right(EqEq) => true
+        case _ => false
     })
     //TODO: take, drop, ...
     case _ => false

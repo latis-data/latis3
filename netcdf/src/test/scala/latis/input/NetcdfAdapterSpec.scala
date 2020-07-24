@@ -2,13 +2,12 @@ package latis.input
 
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
-import ucar.ma2.{Range => URange}
 import ucar.ma2.Section
+import ucar.ma2.{Range => URange}
 
 import latis.metadata.Metadata
 import latis.model._
 import latis.ops.Selection
-import latis.util.LatisException
 
 class NetcdfAdapterSpec extends FlatSpec {
 
