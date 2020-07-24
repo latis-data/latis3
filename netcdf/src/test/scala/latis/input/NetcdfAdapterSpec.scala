@@ -24,7 +24,7 @@ class NetcdfAdapterSpec extends FlatSpec {
     range.last should be(3)
   }
 
-  "A NetcdfAdapter selection operation" should "support LT selection" in {
+  "A NetcdfAdapter selection operation" should "support < selection" in {
     val expectedSection = new Section("0:1")
     NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time < 8.5")) should be(
       Right(expectedSection)
@@ -40,7 +40,7 @@ class NetcdfAdapterSpec extends FlatSpec {
     )
   }
 
-  "A NetcdfAdapter selection operation" should "support GT selection" in {
+  "A NetcdfAdapter selection operation" should "support > selection" in {
     val expectedSection = new Section("1:2")
     NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time > 7.5")) should be(
       Right(expectedSection)
@@ -56,7 +56,7 @@ class NetcdfAdapterSpec extends FlatSpec {
     )
   }
 
-  "A NetcdfAdapter selection operation" should "support LE selection" in {
+  "A NetcdfAdapter selection operation" should "support <= selection" in {
     val expectedSection = new Section("0:1")
     NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time <= 8.5")) should be(
       Right(expectedSection)
@@ -72,7 +72,7 @@ class NetcdfAdapterSpec extends FlatSpec {
     )
   }
 
-  "A NetcdfAdapter selection operation" should "support GE selection" in {
+  "A NetcdfAdapter selection operation" should "support >= selection" in {
     val expectedSection = new Section("1:2")
     NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time >= 7.5")) should be(
       Right(expectedSection)
@@ -84,6 +84,27 @@ class NetcdfAdapterSpec extends FlatSpec {
       Right(new Section("0:2"))
     )
     NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time >= 9001")) should be(
+      Right(new Section(URange.EMPTY))
+    )
+  }
+
+  "A NetcdfAdapter selection operation" should "support = and == selections" in {
+    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time = 8")) should be(
+      Right(new Section("1"))
+    )
+    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time == 8")) should be(
+      Right(new Section("1"))
+    )
+    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time = 8.01")) should be(
+      Right(new Section(URange.EMPTY))
+    )
+    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time == 8.01")) should be(
+      Right(new Section(URange.EMPTY))
+    )
+    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time = 0")) should be(
+      Right(new Section(URange.EMPTY))
+    )
+    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time == 0")) should be(
       Right(new Section(URange.EMPTY))
     )
   }

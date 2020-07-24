@@ -41,10 +41,13 @@ case class NetcdfAdapter(
    */
   override def canHandleOperation(op: Operation): Boolean = op match {
     case Stride(stride) if stride.length == model.arity => true
-    case Selection(v, _, _) => Semigroupal[Option].product(
+    case s@Selection(v, _, _) => Semigroupal[Option].product(
       model.getVariable(v).flatMap(_("cadence")),
       model.getVariable(v).flatMap(_("start"))
-    ).nonEmpty
+    ).nonEmpty && (s.getSelectionOp match {
+      case Right(Gt) | Right(Lt) | Right(GtEq) | Right(LtEq) | Right(Eq) | Right(EqEq) => true
+      case _ => false
+    })
     //TODO: take, drop, ...
     case _ => false
   }
@@ -235,6 +238,13 @@ object NetcdfAdapter extends AdapterFactory {
         val upperRange = min(index.floor.toInt, range.last)
         if (range.first > upperRange) Right(URange.EMPTY)
         else Right(new URange(range.first, upperRange))
+      case Right(Eq) | Right(EqEq) =>
+        val intIndex = index.toInt
+        if (index == intIndex.toDouble &&
+          intIndex <= range.last &&
+          intIndex >= range.first)
+          Right(new URange(intIndex, intIndex))
+        else Right(URange.EMPTY)
       case _ => Left(LatisException(s"Unsupported selection operator $selection.selectionOp"))
     }
 
