@@ -24,28 +24,12 @@ case class TimeTupleToTime(name: String = "time") extends UnaryOperation {
 
   override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
 //    val samples = data.unsafeForce.sampleSeq
-//    val timePos: Int = model.getPath/*WithoutFlattening*/(name) match {
-//      case Some(List(RangePosition(n))) => n
-//      case _ => throw new LatisException(s"Cannot find variable: $name")
-//    }
-
-    val model2 = Function(
-      Tuple(/*Metadata("time"),*/
-        Scalar(Metadata("year") + ("type" -> "string") + ("units" -> "yyyy MM dd")),
-        Tuple(/*Metadata("time2"),*/
-          Scalar(Metadata("month") + ("type"    -> "int")),
-          Scalar(Metadata("day") + ("type" -> "double")),
-          Tuple(Metadata("time3"),
-            Scalar(Metadata("hour") + ("type" -> "string")),
-            Scalar(Metadata("second") + ("type" -> "string")),
-          )
-        )
-      ),
-      Scalar(Metadata("flux") + ("type" -> "string"))
-    )
+    val timePos: Int = model.getPath/*WithoutFlattening*/(name) match {
+      case Some(List(RangePosition(n))) => n
+      case _ => throw new LatisException(s"Cannot find variable: $name")
+    }
     
-    //val x = model.flatten
-    val x = model2.flatten
+    val x = model.flatten
     
     val timeTuple = x.findAllVariables("time")
     
