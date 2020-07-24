@@ -104,26 +104,22 @@ sealed trait DataType extends MetadataLike with Serializable {
    * This form is consistent with Samples which don't preserve nested Functions.
    */
   def flatten: DataType = {
-    var tupName = ""
+    var tupIds = ""
     // Recursive helper function that uses an accumulator (acc)
     // to accumulate types while in the context of a Tuple
     // while the recursion results build up the final type.
     def go(dt: DataType, acc: Seq[DataType]): Seq[DataType] = dt match {
-      case s: Scalar      => acc :+ s
-      case t @ Tuple(es @ _*) =>
-        if (tupName == "") tupName = t.id //else tupName = s"$tupName.${t.id}" //TODO: reconsider use of var
-        es.flatMap(e => e match {
-          case _: Scalar if t.id != "" =>
-            acc ++ go(e.rename(s"${t.id}.${e.id}"), Seq()) //prepend Tuple ID to Scalar ID with "."
-          case _ => acc ++ go(e, Seq()) 
-        })
-      case Function(d, r) => acc :+ Function(d.flatten, r.flatten)
+      case s: Scalar if tupIds.isEmpty => acc :+ s
+      case s: Scalar                   => acc :+ s.rename(s"$tupIds.${s.id}") //prepend Tuple ID(s) with "."
+      case Function(d, r)              => acc :+ Function(d.flatten, r.flatten)
+      case t @ Tuple(es @ _*)          => if (tupIds.isEmpty) tupIds = t.id else tupIds += s".${t.id}"
+        es.flatMap(e => acc ++ go(e, Seq()))
     }
 
     val types = go(this, Seq())
     types.length match {
       case 1 => types.head
-      case _ => Tuple(Metadata(tupName), types) //TODO: this Tuple needs an ID that's preserved from before the flatten...
+      case _ => Tuple(Metadata(tupIds.split('.').head), types) //flattened Tuple keeps the ID of the first named Tuple
     }
   }
 
@@ -141,6 +137,7 @@ sealed trait DataType extends MetadataLike with Serializable {
       else
         dt match { //recurse
           case _: Scalar => None //dead end
+          case _: Tuple => ??? //TODO! stop here...?
           case Function(dtype, rtype) =>
             val ds = dtype match {
               case s: Scalar      => Seq(s)

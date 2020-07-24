@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<dataset id="dailyFlux2"
+         title="Test Flux Dataset 2"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+  <source uri="data/dailyFlux.txt"/>
+
+  <adapter class="latis.input.ColumnarAdapter"
+           skipLines="1"
+           delimiter=","
+           columns="0,1,2;3"
+           />
+
+  <function>
+    <tuple>
+        <scalar id="time" units="yyyy MM dd" type="string"/>
+    </tuple>
+    <scalar id="ra" type="int"/>
+  </function>
+
+</dataset>
