@@ -3,7 +3,7 @@
 <dataset id="dailyFlux"
          title="Test Flux Dataset"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="src/test/resources/columnar-adapter.xsd">
+         xsi:noNamespaceSchemaLocation="http://latis-data.io/schemas/1.0/fdml-with-columnar-adapter.xsd">
 
   <source uri="data/dailyFlux.txt"/>
 
@@ -14,7 +14,7 @@
            />
 
   <function>
-    <tuple>
+    <tuple id="time">
         <scalar id="year" units="yyyy" type="int"/>
         <tuple id="time2">
             <scalar id="month" units="MM" type="int"/>
