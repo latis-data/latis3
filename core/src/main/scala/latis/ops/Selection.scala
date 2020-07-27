@@ -72,7 +72,7 @@ case class Selection(vname: String, operator: String, value: String) extends Fil
               val msg = s"Selection failed to compare values: $d, $cdata"
               throw new UnsupportedOperationException(msg)
             }
-        case Some(d: SampledFunction) =>
+        case Some(_: SampledFunction) =>
           // Bug: Should not find SF at this position
           throw LatisException("Should not find SampledFunction at this position")
         case Some(_: TupleData) =>
