@@ -74,12 +74,12 @@ case class Selection(vname: String, operator: String, value: String) extends Fil
             }
         case Some(d: SampledFunction) =>
           // Bug: Should not find SF at this position
-          ???
+          throw LatisException("Should not find SampledFunction at this position")
         case Some(_: TupleData) =>
           throw LatisException("Should not find TupleData at this position")
         case None =>
           // Bug: There should be a Datum at this position
-          ???
+          throw LatisException("Should find Datum at this position")
       }
   }
 
