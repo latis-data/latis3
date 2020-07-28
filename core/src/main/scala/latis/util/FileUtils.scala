@@ -5,7 +5,7 @@ import java.net.URI
 import java.net.URL
 import java.nio.file._
 
-import scala.collection.JavaConverters.asScalaIteratorConverter
+import scala.jdk.CollectionConverters._
 import scala.util.Properties
 import scala.util.Try
 

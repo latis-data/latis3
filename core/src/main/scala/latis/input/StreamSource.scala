@@ -3,7 +3,7 @@ package latis.input
 import java.net.URI
 import java.util.ServiceLoader
 
-import scala.collection.JavaConverters.iterableAsScalaIterableConverter
+import scala.jdk.CollectionConverters._
 
 import cats.effect.IO
 import fs2.Stream

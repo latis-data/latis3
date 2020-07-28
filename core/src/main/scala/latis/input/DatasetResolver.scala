@@ -2,7 +2,7 @@ package latis.input
 
 import java.util.ServiceLoader
 
-import scala.collection.JavaConverters.iterableAsScalaIterableConverter
+import scala.jdk.CollectionConverters._
 import scala.util.Properties
 import scala.util.Try
 

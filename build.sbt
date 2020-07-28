@@ -103,6 +103,7 @@ lazy val core = project
     name := "latis3-core",
     libraryDependencies ++= Seq(
       "org.scala-lang"          % "scala-reflect"       % scalaVersion.value,
+      "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.6",
       "org.scala-lang.modules" %% "scala-xml"           % "1.3.0",
       "io.circe"               %% "circe-core"          % "0.13.0",
       "org.scodec"             %% "scodec-core"         % "1.11.7",
@@ -192,6 +193,7 @@ lazy val netcdf = project
   .settings(
     name := "latis3-netcdf",
     libraryDependencies ++= Seq(
+      "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.6",
       "edu.ucar"            % "cdm-core"         % netcdfVersion,
       "edu.ucar"            % "httpservices"     % netcdfVersion,
       "edu.ucar"            % "netcdf4"          % netcdfVersion,

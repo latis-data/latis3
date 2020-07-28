@@ -182,7 +182,7 @@ object NetcdfAdapter extends AdapterFactory {
 
   //Note, must include stride even for 1-length dimensions
   def applyStride(section: Section, stride: Array[Int]): Either[LatisException, Section] = {
-    import collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     if (section.getRank != stride.length) {
       Left(LatisException(s"Invalid rank for stride: ${stride.mkString(",")}"))
     } else {

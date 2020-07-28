@@ -2,6 +2,8 @@ package latis.output
 
 import java.io.File
 
+import scala.collection.compat._
+
 import cats.effect.IO
 import cats.effect.Resource
 import cats.implicits._
@@ -114,7 +116,7 @@ object NetcdfEncoder {
         // (columns) in the accumulator.
         case Sample(d, r) =>
           val vals: Array[Data] = (d ++ r).toArray
-          (vals, ss, acc).zipped.toList.foreach {
+          vals.lazyZip(ss).lazyZip(acc).foreach {
             case (v, s, a) =>
               s.valueType match {
                 case ByteValueType =>
