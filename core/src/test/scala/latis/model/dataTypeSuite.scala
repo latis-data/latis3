@@ -206,7 +206,6 @@ class TupleFlattenSuite extends FunSuite {
         assert(d.id == expectedTuple1.id)
         assert(r.id == expectedTuple2.id)
     }
-    
   }
   
 }
