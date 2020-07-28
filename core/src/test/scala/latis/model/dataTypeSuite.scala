@@ -15,7 +15,7 @@ class TupleFlattenSuite extends FunSuite {
         )
       )
     )
-    
+
     val flattened = nestedTuple.flatten
 
     val expectedTuple = Tuple(Metadata("tup1"),
@@ -24,11 +24,11 @@ class TupleFlattenSuite extends FunSuite {
       Scalar(Metadata("tup1.tup2.c") + ("type" -> "int")),
       Scalar(Metadata("tup1.tup2.tup3.d") + ("type" -> "int"))
     )
-    
+
     println(flattened.toString)
     println(expectedTuple.toString)
     println(s"${flattened.id}, ${expectedTuple.id}")
-    
+
     assert(flattened.toString == expectedTuple.toString)
     assert(flattened.id == expectedTuple.id)
   }
@@ -156,6 +156,57 @@ class TupleFlattenSuite extends FunSuite {
 
     assert(flattened.toString == expectedTuple.toString)
     assert(flattened.id == expectedTuple.id)
+  }
+  
+  test("Flattening function with two nested tuples") {
+    val nestedTuple1 = Tuple(Metadata("tup1"),
+      Scalar(Metadata("a") + ("type" -> "int")),
+      Tuple(Metadata("tup2"),
+        Scalar(Metadata("b") + ("type" -> "int")),
+        Scalar(Metadata("c") + ("type" -> "int")),
+        Tuple(Metadata("tup3"),
+          Scalar(Metadata("d") + ("type" -> "int"))
+        )
+      )
+    )
+
+    val nestedTuple2 = Tuple(
+      Scalar(Metadata("a") + ("type" -> "int")),
+      Tuple(
+        Scalar(Metadata("b") + ("type" -> "int")),
+        Scalar(Metadata("c") + ("type" -> "int")),
+        Tuple(Metadata("tup3"),
+          Scalar(Metadata("d") + ("type" -> "int"))
+        )
+      )
+    )
+
+    val expectedTuple1 = Tuple(Metadata("tup1"),
+      Scalar(Metadata("tup1.a") + ("type" -> "int")),
+      Scalar(Metadata("tup1.tup2.b") + ("type" -> "int")),
+      Scalar(Metadata("tup1.tup2.c") + ("type" -> "int")),
+      Scalar(Metadata("tup1.tup2.tup3.d") + ("type" -> "int"))
+    )
+
+    val expectedTuple2 = Tuple(
+      Scalar(Metadata(".a") + ("type" -> "int")),
+      Scalar(Metadata("..b") + ("type" -> "int")),
+      Scalar(Metadata("..c") + ("type" -> "int")),
+      Scalar(Metadata("..tup3.d") + ("type" -> "int"))
+    )
+    
+    val func = Function(nestedTuple1, nestedTuple2)
+    
+    val flattened = func.flatten
+    
+    flattened match {
+      case Function(d, r) =>
+        assert(d.toString == expectedTuple1.toString)
+        assert(r.toString == expectedTuple2.toString)
+        assert(d.id == expectedTuple1.id)
+        assert(r.id == expectedTuple2.id)
+    }
+    
   }
   
 }
