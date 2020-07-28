@@ -50,7 +50,6 @@ sealed trait DataType extends MetadataLike with Serializable {
   /**
    * Find all Variables within this Variable by the given name.
    * TODO: support aliases
-   * TODO: consider nested tuple id's like B.x (use this.id.split('.').last?)
    */
   def findAllVariables(variableName: String): Seq[DataType] = {
     variableName.split('.') match {
