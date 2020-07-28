@@ -138,7 +138,7 @@ sealed trait DataType extends MetadataLike with Serializable {
       else
         dt match { //recurse
           case _: Scalar => None //dead end
-          case t: Tuple => go(t, id, currentPath) //TODO: this might be (very) wrong. I think it is.
+          //case t: Tuple => ??? //TODO: handle Tuples here?
           case Function(dtype, rtype) =>
             val ds = dtype match {
               case s: Scalar      => Seq(s)
