@@ -3,12 +3,8 @@ package latis.input
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import latis.data._
-import latis.dataset.Dataset
 import latis.metadata.Metadata
 import latis.model._
-import latis.ops._
-import latis.output.TextWriter
-import latis.util.StreamUtils
 
 class ColumnarAdapterSpec extends FlatSpec {
 
@@ -42,5 +38,4 @@ class ColumnarAdapterSpec extends FlatSpec {
 
     sample should be(None)
   }
-  
 }
