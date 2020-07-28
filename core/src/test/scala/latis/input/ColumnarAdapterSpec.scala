@@ -2,6 +2,7 @@ package latis.input
 
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
+
 import latis.data._
 import latis.metadata.Metadata
 import latis.model._
