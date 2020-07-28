@@ -59,5 +59,5 @@ case class Projection(vnames: String*) extends MapOperation {
 object Projection {
 
   def apply(exp: String): Projection =
-    Projection(exp.split(","): _*)
+    Projection(exp.split(",").toIndexedSeq: _*)
 }
