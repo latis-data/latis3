@@ -120,7 +120,7 @@ sealed trait DataType extends MetadataLike with Serializable {
     val types = go(this, Seq())
     types.length match {
       case 1 => types.head
-      case _ => Tuple(Metadata(tupIds.split('.').head), types) //
+      case _ => Tuple(Metadata(tupIds.split('.').head), types)
     }
   }
 
