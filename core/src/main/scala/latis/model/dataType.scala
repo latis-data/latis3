@@ -101,6 +101,7 @@ sealed trait DataType extends MetadataLike with Serializable {
    * Return this DataType with all nested Tuples flattened to a single Tuple.
    * A Scalar will remain a Scalar.
    * This form is consistent with Samples which don't preserve nested Functions.
+   * Flattened Tuples retain the ID of the outermost Tuple.
    */
   def flatten: DataType = {
     var tupIds = ""
@@ -119,7 +120,7 @@ sealed trait DataType extends MetadataLike with Serializable {
     val types = go(this, Seq())
     types.length match {
       case 1 => types.head
-      case _ => Tuple(Metadata(tupIds.split('.').head), types)
+      case _ => Tuple(Metadata(tupIds.split('.').head), types) //
     }
   }
 
