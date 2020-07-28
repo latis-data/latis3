@@ -37,13 +37,13 @@ object StreamUtils {
    * Unsafely turn an fs2.Stream into a Seq.
    */
   def unsafeStreamToSeq[T](stream: Stream[IO, T]): Seq[T] =
-    stream.compile.toVector.unsafeRunSync
+    stream.compile.toVector.unsafeRunSync()
 
   /**
    * Returns the first sample of the given stream
    * by running it unsafely.
    */
   def unsafeHead[T](stream: Stream[IO, T]): T =
-    stream.head.compile.toVector.unsafeRunSync.head
+    stream.head.compile.toVector.unsafeRunSync().head
 
 }

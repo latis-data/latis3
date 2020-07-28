@@ -53,7 +53,7 @@ class TextEncoder extends Encoder[IO, String] {
     def go(dt: DataType): String = dt match {
       //TODO: error if ds is empty
       case s: Scalar =>
-        ds.pop match {
+        ds.pop() match {
           case d: Datum => s.formatValue(d)
           case _ => ??? //bug, inconsistent data
         }
@@ -63,7 +63,7 @@ class TextEncoder extends Encoder[IO, String] {
 
       // Nested Function
       case f: Function =>
-        ds.pop match {
+        ds.pop() match {
           case sf: MemoizedFunction => encodeFunction(f, sf)
           case _ => ??? //Oops, model and data not consistent
         }

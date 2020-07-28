@@ -37,7 +37,7 @@ object CacheManager {
   /**
    * Remove all entries from the cache.
    */
-  def clear(): Unit = cache.clear
+  def clear(): Unit = cache.clear()
 
   /**
    * Remove a single dataset from the cache.

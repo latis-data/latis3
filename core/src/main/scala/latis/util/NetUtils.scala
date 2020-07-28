@@ -50,7 +50,7 @@ object NetUtils {
       .compile
       .string
       .attempt
-      .unsafeRunSync
+      .unsafeRunSync()
       .leftMap {
         LatisException(s"Failed to read URI: $uri", _)
       }
