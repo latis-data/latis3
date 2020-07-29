@@ -17,7 +17,12 @@ import latis.util.LatisException
 case class TimeTupleToTime(name: String = "time") extends UnaryOperation {
   
   override def applyToModel(model: DataType): DataType = {
-    val timeTuple = model.findAllVariables(name)(0)
+    //val timePos: Int = model.getPath(name) match {
+    //  case Some(List(RangePosition(n))) => n
+    //  case _ => throw new LatisException(s"Cannot find variable: $name")
+    //}
+    
+    val timeTuple = model.findAllVariables(name).head
     
     val time: Scalar = timeTuple match {
       case Tuple(es @ _*) =>
@@ -32,11 +37,25 @@ case class TimeTupleToTime(name: String = "time") extends UnaryOperation {
         Scalar(metadata)
     }
     
-    model //TODO: replace time Tuple with time Scalar in model
+    //TODO: don't assume Time Tuple is the domain; use model.getPath(name) instead
+    model match {
+      case Function(_, r) => Function(time, r)
+    }
   }
 
   override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
-    data
+    val samples = data.unsafeForce.sampleSeq //TODO: don't unsafeForce
+
+    val convertedSamples = samples.map {
+      case Sample(dd, rd) =>
+        //extract text values and join with space
+        //TODO: join with delimiter, problem when we use regex?
+        //TODO: don't assume Time Tuple is the domain; use model.getPath(name) instead
+        val time = dd.map { case d: Datum => d.asString }.mkString(" ")
+        Sample(Seq(Data.StringValue(time)), rd)
+    }
+    
+    SampledFunction(convertedSamples)
   }
 
 }
