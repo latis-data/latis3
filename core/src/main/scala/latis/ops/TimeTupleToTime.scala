@@ -34,7 +34,7 @@ case class TimeTupleToTime(name: String = "time") extends UnaryOperation {
 
         //make the Time Scalar
         val metadata = Metadata("id" -> "time", "units" -> format, "type" -> "string")
-        Scalar(metadata)
+        Time(metadata)
     }
     
     //TODO: don't assume Time Tuple is the domain; use model.getPath(name) instead
