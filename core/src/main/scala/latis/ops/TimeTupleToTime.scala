@@ -27,10 +27,9 @@ case class TimeTupleToTime(name: String = "time") extends UnaryOperation {
     val time: Scalar = timeTuple match {
       case Tuple(es @ _*) =>
         //build up format string
-        val format: String = es.map(e => e("units") match {
-          case Some(units) => units
-          case None => throw new RuntimeException("A time Tuple must have units defined for each element.")
-        }).mkString(" ")
+        val format: String = es.map(e => e("units").getOrElse(
+          throw new RuntimeException("A time Tuple must have units defined for each element.")
+        )).mkString(" ")
 
         //make the Time Scalar
         val metadata = Metadata("id" -> "time", "units" -> format, "type" -> "string")
