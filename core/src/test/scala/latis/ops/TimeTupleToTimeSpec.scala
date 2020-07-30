@@ -5,6 +5,7 @@ import latis.dataset.MemoizedDataset
 import latis.metadata.Metadata
 import latis.model._
 import latis.output.TextWriter
+import latis.time.Time
 import latis.util.StreamUtils
 
 import org.scalatest.FlatSpec
@@ -37,6 +38,13 @@ class TimeTupleToTimeSpec extends FlatSpec {
   "The mock dataset's time tuple" should "be converted to a time scalar" in {
     val ds = mockDataset
 
+    ds.model match {
+      case Function(Tuple(es @ _*), _: Scalar) =>
+        es(0)("units").get should be ("yyyy")
+        es(1)("units").get should be ("MM")
+        es(2)("units").get should be ("dd")
+    }
+
     StreamUtils.unsafeHead(ds.samples) match {
       case Sample(DomainData(Number(y), Number(m), Number(d)), RangeData(Number(f))) =>
         y should be (1945)
@@ -47,12 +55,18 @@ class TimeTupleToTimeSpec extends FlatSpec {
     
     val ds2 = ds.withOperation(TimeTupleToTime())
 
+    //TextWriter().write(ds2)
+
+    ds2.model match {
+      case Function(t: Time, _: Scalar) =>
+        t.units should be ("yyyy MM dd")
+    }
+
     StreamUtils.unsafeHead(ds2.samples) match {
       case Sample(DomainData(Text(time)), RangeData(Number(f))) =>
         time should be ("1945 1 1")
         f should be (10)
     }
-
-    //TextWriter().write(ds)
   }
+  
 }
