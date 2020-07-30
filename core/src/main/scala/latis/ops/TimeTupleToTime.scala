@@ -30,7 +30,7 @@ case class TimeTupleToTime(name: String = "time") extends UnaryOperation {
       case Tuple(es @ _*) =>
         //build up format string
         val format: String = es.toList.traverse(_("units"))
-          .fold(throw new RuntimeException("A time Tuple must have units defined for each element."))(_.mkString(" "))
+          .fold(throw new LatisException("A time Tuple must have units defined for each element."))(_.mkString(" "))
 
         //make the Time Scalar
         val metadata = Metadata("id" -> "time", "units" -> format, "type" -> "string")
