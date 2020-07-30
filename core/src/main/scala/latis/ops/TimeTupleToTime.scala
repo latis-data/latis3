@@ -9,6 +9,8 @@ import latis.units.UnitConverter
 import latis.util.LatisConfig
 import latis.util.LatisException
 
+import cats.implicits._
+
 /**
  * Defines an Operation that converts a time tuple to a time scalar
  *
@@ -27,9 +29,8 @@ case class TimeTupleToTime(name: String = "time") extends UnaryOperation {
     val time: Scalar = timeTuple match {
       case Tuple(es @ _*) =>
         //build up format string
-        val format: String = es.map(e => e("units").getOrElse(
-          throw new RuntimeException("A time Tuple must have units defined for each element.")
-        )).mkString(" ")
+        val format: String = es.toList.traverse(_("units"))
+          .fold(throw new RuntimeException("A time Tuple must have units defined for each element."))(_.mkString(" "))
 
         //make the Time Scalar
         val metadata = Metadata("id" -> "time", "units" -> format, "type" -> "string")
