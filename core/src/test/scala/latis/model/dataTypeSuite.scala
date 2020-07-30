@@ -53,7 +53,7 @@ class TupleFlattenSuite extends FunSuite {
       Scalar(Metadata(".tup2.c") + ("type" -> "int")),
       Scalar(Metadata(".tup2.tup3.d") + ("type" -> "int"))
     )
-    
+
     assert(flattened.toString == expectedTuple.toString)
     assert(flattened.id == expectedTuple.id)
   }
@@ -78,7 +78,7 @@ class TupleFlattenSuite extends FunSuite {
       Scalar(Metadata("tup1..c") + ("type" -> "int")),
       Scalar(Metadata("tup1..tup3.d") + ("type" -> "int"))
     )
-    
+
     assert(flattened.toString == expectedTuple.toString)
     assert(flattened.id == expectedTuple.id)
   }
@@ -103,7 +103,7 @@ class TupleFlattenSuite extends FunSuite {
       Scalar(Metadata("tup1.tup2.c") + ("type" -> "int")),
       Scalar(Metadata("tup1.tup2..d") + ("type" -> "int"))
     )
-    
+
     assert(flattened.toString == expectedTuple.toString)
     assert(flattened.id == expectedTuple.id)
   }
@@ -152,6 +152,31 @@ class TupleFlattenSuite extends FunSuite {
       Scalar(Metadata("tup1..b") + ("type" -> "int")),
       Scalar(Metadata("tup1..c") + ("type" -> "int")),
       Scalar(Metadata("tup1...d") + ("type" -> "int"))
+    )
+
+    assert(flattened.toString == expectedTuple.toString)
+    assert(flattened.id == expectedTuple.id)
+  }
+
+  test("Flattening doubly nested tuple where all tuples lack IDs") {
+    val nestedTuple = Tuple(
+      Scalar(Metadata("a") + ("type" -> "int")),
+      Tuple(
+        Scalar(Metadata("b") + ("type" -> "int")),
+        Scalar(Metadata("c") + ("type" -> "int")),
+        Tuple(
+          Scalar(Metadata("d") + ("type" -> "int"))
+        )
+      )
+    )
+
+    val flattened = nestedTuple.flatten
+
+    val expectedTuple = Tuple(
+      Scalar(Metadata(".a") + ("type" -> "int")),
+      Scalar(Metadata("..b") + ("type" -> "int")),
+      Scalar(Metadata("..c") + ("type" -> "int")),
+      Scalar(Metadata("...d") + ("type" -> "int"))
     )
 
     assert(flattened.toString == expectedTuple.toString)
