@@ -132,6 +132,9 @@ sealed trait DataType extends MetadataLike with Serializable {
    * as a sequence of SamplePositions.
    * Note that length of the path reflects the number of nested Functions.
    * TODO: Tuples are improperly handled. There's no option to return a path to a Tuple with a matching ID.
+   * TODO: Consider how to handle Scalars with Tuples IDs prepended. 
+   *       Should the whole ID be searched (e.g. "myTuple.myScalar") or should we match IDs within that dot nesting
+   *       (e.g. using id.split('.'))?
    */
   def getPath(id: String): Option[SamplePath] = {
 
