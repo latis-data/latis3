@@ -132,6 +132,7 @@ sealed trait DataType extends MetadataLike with Serializable {
    * as a sequence of SamplePositions.
    * Note that length of the path reflects the number of nested Functions.
    * TODO: Tuples are improperly handled. There's no option to return a path to a Tuple with a matching ID.
+   *       The solution is to return a path to the first Scalar in the Tuple.
    * TODO: Consider how to handle Scalars with Tuples IDs prepended. 
    *       Should the whole ID be searched (e.g. "myTuple.myScalar") or should we match IDs within that dot nesting
    *       (e.g. using id.split('.'))?
@@ -140,11 +141,10 @@ sealed trait DataType extends MetadataLike with Serializable {
 
     // Recursive function to try paths until it finds a match
     def go(dt: DataType, id: String, currentPath: SamplePath): Option[SamplePath] =
-      if (id == dt.id) Some(currentPath) //found it  //TODO: use hasName to cover aliases?
+      if (dt.id.split('.').contains(id)) Some(currentPath) //found it  //TODO: use hasName to cover aliases?
       else
         dt match { //recurse
           case _: Scalar => None //dead end
-          //case t: Tuple => ??? //TODO: handle Tuples here?
           case Function(dtype, rtype) =>
             val ds = dtype match {
               case s: Scalar      => Seq(s)
