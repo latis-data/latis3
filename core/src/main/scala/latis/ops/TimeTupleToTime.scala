@@ -25,7 +25,7 @@ case class TimeTupleToTime(name: String = "time") extends UnaryOperation {
 //      case _ => throw new LatisException(s"Cannot find path to variable: $name")
 //    }
 //    val timeLen: Int = model.findAllVariables(name).head match {
-//      case Tuple(es @ _*) => es.length
+//      case t: Tuple => t.elements.length //TODO: is this correct if an element is a nested Tuple? 
 //      case _ => throw new LatisException(s"Cannot find variable: $name")
 //    }
     
@@ -52,12 +52,12 @@ case class TimeTupleToTime(name: String = "time") extends UnaryOperation {
     val samples = data.unsafeForce.sampleSeq //TODO: don't unsafeForce
 
 //    val timePos: Int = model.getPath(name) match {
-//      case Some(List(DomainPosition(n))) => n
+//      case Some(List(DomainPosition(n))) => n 
 //      //TODO: what if it's RangePosition instead?
 //      case _ => throw new LatisException(s"Cannot find path to variable: $name")
 //    }
 //    val timeLen: Int = model.findAllVariables(name).head match {
-//      case Tuple(es @ _*) => es.length
+//      case t: Tuple => t.elements.length //TODO: is this correct if an element is a nested Tuple?
 //      case _ => throw new LatisException(s"Cannot find variable: $name")
 //    }
 
