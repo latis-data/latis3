@@ -69,7 +69,7 @@ case class TimeTupleToTime(name: String = "time") extends UnaryOperation {
         //extract text values and join with space
         //TODO: join with delimiter, problem when we use regex?
         timePos match {
-          //TODO: reduce code duplication; all that changes is dd vs rd and replacing Samples domain or range
+          //TODO: reduce code duplication? Only difference is dd vs rd (types don't match) and replacing domain vs range
           case DomainPosition(n) =>
             val time: Datum = {
               val timeData = dd.slice(n, n+timeLen)
@@ -79,7 +79,7 @@ case class TimeTupleToTime(name: String = "time") extends UnaryOperation {
             }
             val domain = dd.slice(0, n) ++ Seq(time) ++ dd.slice(n+timeLen, dd.length)
             Sample(domain, rd)
-          case RangePosition(n)  =>
+          case RangePosition(n) =>
             val time: Datum = {
               val timeData = rd.slice(n, n+timeLen)
               Data.StringValue(
@@ -89,7 +89,6 @@ case class TimeTupleToTime(name: String = "time") extends UnaryOperation {
             val range = rd.slice(0, n) ++ Seq(time) ++ rd.slice(n+timeLen, dd.length)
             Sample(dd, range)
         }
-        
     }
     
     SampledFunction(convertedSamples)
