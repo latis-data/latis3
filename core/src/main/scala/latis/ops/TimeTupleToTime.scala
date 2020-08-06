@@ -1,58 +1,44 @@
 package latis.ops
 
+import cats.implicits._
 import latis.data._
 import latis.metadata.Metadata
 import latis.model._
 import latis.time.Time
-import latis.time.TimeScale
-import latis.units.UnitConverter
-import latis.util.LatisConfig
 import latis.util.LatisException
 
-import cats.implicits._
-
 /**
- * Defines an Operation that converts a time tuple to a time scalar
+ * Defines an Operation that converts a time Tuple to a time Scalar
  *
  * @param name the name of the Tuple variable that stores time values
  */
-case class TimeTupleToTime(name: String = "time") extends UnaryOperation {
-  
+case class TimeTupleToTime(name: String = "time") extends MapOperation {
+
   override def applyToModel(model: DataType): DataType = {
-    val timeTuple = model.findAllVariables(name).head
-    
-//    val timeLen: Int = timeTuple match {
-//      case t: Tuple => t.elements.length //TODO: is this correct if an element is a nested Tuple? 
-//      case _ => throw new LatisException(s"Cannot find variable: $name")
-//    }
-//    val timePos: Int = model.getPath(name) match {
-//      case Some(List(DomainPosition(n))) => n
-//      //TODO: what if it's RangePosition instead?
-//      case _ => throw new LatisException(s"Cannot find path to variable: $name")
-//    }
-    
+    val timeTuple = model.findAllVariables(name) match {
+      case Nil               => throw new LatisException(s"Cannot find variable: $name")
+      case vs: Seq[DataType] => vs.head
+    }
+
     val time: Scalar = timeTuple match {
       case Tuple(es @ _*) =>
         //build up format string
         val format: String = es.toList.traverse(_("units"))
           .fold(throw new LatisException("A time Tuple must have units defined for each element."))(_.mkString(" "))
-
-        //make the Time Scalar
+        //make the time Scalar
         val metadata = Metadata("id" -> "time", "units" -> format, "type" -> "string")
         Time(metadata)
     }
-    
-    //TODO: don't assume Time Tuple is the domain; use model.getPath(name) instead
-    //      JK. Recurse through the model, then if it's the time Tuple, replace it with time Scalar.
+
+    //TODO: don't assume time Tuple is the domain.
+    //      Recurse through the model, then if it's the time Tuple, replace it with time Scalar.
     //      Maybe define .map on DataType?
     model match {
       case Function(_, r) => Function(time, r)
     }
   }
 
-  override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
-    val samples = data.unsafeForce.sampleSeq //TODO: don't unsafeForce; extend MapOperation instead of UnaryOperation
-    
+  override def mapFunction(model: DataType): Sample => Sample = {
     val timePos: SamplePosition = model.getPath(name) match {
       case Some(List(sp)) => sp
       case _ => throw new LatisException(s"Cannot find path to variable: $name")
@@ -64,7 +50,7 @@ case class TimeTupleToTime(name: String = "time") extends UnaryOperation {
       case _ => throw new LatisException(s"Cannot find variable: $name")
     }
 
-    val convertedSamples = samples.map {
+    (sample: Sample) => sample match {
       case Sample(dd, rd) =>
         //extract text values and join with space
         //TODO: join with delimiter, problem when we use regex?
@@ -90,8 +76,6 @@ case class TimeTupleToTime(name: String = "time") extends UnaryOperation {
             Sample(dd, range)
         }
     }
-    
-    SampledFunction(convertedSamples)
   }
 
 }
