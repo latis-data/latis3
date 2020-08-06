@@ -1,5 +1,7 @@
 package latis.model
 
+import latis.data.DomainPosition
+import latis.data.RangePosition
 import latis.metadata.Metadata
 import org.scalatest.FunSuite
 
@@ -231,6 +233,97 @@ class TupleFlattenSuite extends FunSuite {
         assert(d.id == expectedTuple1.id)
         assert(r.id == expectedTuple2.id)
     }
+  }
+  
+}
+
+class GetPathSuite extends FunSuite {
+  test("getPath to Tuple in domain") {
+    val func = {
+      val d = Tuple(Metadata("tup"),
+        Scalar(Metadata("a") + ("type" -> "int")),
+        Scalar(Metadata("b") + ("type" -> "int")),
+        Scalar(Metadata("c") + ("type" -> "int"))
+      )
+      val r = Scalar(Metadata("d") + ("type" -> "int"))
+      Function(d, r)
+    }
+
+    assert(func.getPath("tup") == Some(List(DomainPosition(0))))
+  }
+
+  test("getPath to nested Tuple in domain") {
+    val func = {
+      val d = Tuple(
+        Scalar(Metadata("a") + ("type" -> "int")),
+        Scalar(Metadata("b") + ("type" -> "int")),
+        Tuple(Metadata("tup"),
+          Scalar(Metadata("c") + ("type" -> "int")),
+          Scalar(Metadata("d") + ("type" -> "int")),
+          Scalar(Metadata("e") + ("type" -> "int"))
+        )
+      )
+      val r = Scalar(Metadata("f") + ("type" -> "int"))
+      Function(d, r)
+    }
+
+    assert(func.getPath("tup") == Some(List(DomainPosition(2))))
+  }
+
+  test("getPath to Tuple in range") {
+    val func = {
+      val d = Scalar(Metadata("a") + ("type" -> "int"))
+      val r = Tuple(Metadata("tup"),
+        Scalar(Metadata("b") + ("type" -> "int")),
+        Scalar(Metadata("c") + ("type" -> "int")),
+        Scalar(Metadata("d") + ("type" -> "int"))
+      )
+      Function(d, r)
+    }
+
+    assert(func.getPath("tup") == Some(List(RangePosition(0))))
+  }
+
+  test("getPath to nested Tuple in range") {
+    val func = {
+      val d = Scalar(Metadata("a") + ("type" -> "int"))
+      val r = Tuple(
+        Scalar(Metadata("b") + ("type" -> "int")),
+        Scalar(Metadata("c") + ("type" -> "int")),
+        Tuple(Metadata("tup"),
+          Scalar(Metadata("d") + ("type" -> "int")),
+          Scalar(Metadata("e") + ("type" -> "int")),
+          Scalar(Metadata("f") + ("type" -> "int"))
+        )
+      )
+      Function(d, r)
+    }
+
+    assert(func.getPath("tup") == Some(List(RangePosition(2))))
+  }
+
+  test("getPath to Scalar in nested Tuple") {
+    val func = {
+      val d = Scalar(Metadata("a") + ("type" -> "int"))
+      val r = Tuple(
+        Scalar(Metadata("b") + ("type" -> "int")),
+        Scalar(Metadata("c") + ("type" -> "int")),
+        Tuple(Metadata("tup"),
+          Scalar(Metadata("d") + ("type" -> "int")),
+          Scalar(Metadata("e") + ("type" -> "int")),
+          Scalar(Metadata("f") + ("type" -> "int"))
+        )
+      )
+      Function(d, r)
+    }
+
+    assert(func.getPath("e") == Some(List(RangePosition(3))))
+  }
+  
+  test("getPath to nonexistent variable") {
+    val func = Function(Scalar(Metadata("a") + ("type" -> "int")), Scalar(Metadata("b") + ("type" -> "int")))
+    
+    assert(func.getPath("tup") == None)
   }
   
 }
