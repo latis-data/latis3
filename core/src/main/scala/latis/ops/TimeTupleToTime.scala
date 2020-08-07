@@ -15,11 +15,11 @@ import latis.util.LatisException
 case class TimeTupleToTime(name: String = "time") extends MapOperation {
 
   //TODO: Maybe define .map on DataType?
-  private def replaceTimeTuple(dt: DataType, replacement: DataType, id: String): DataType = dt match {
+  private def replaceTimeTuple(dt: DataType, replacement: DataType): DataType = dt match {
     case s: Scalar => s
-    case t: Tuple if t.id == id => replacement
-    case t @ Tuple(es @ _*) => Tuple(t.metadata, es.map(e => replaceTimeTuple(e, replacement, id)))
-    case f @ Function(d, r) => Function(f.metadata, replaceTimeTuple(d, replacement, id), replaceTimeTuple(r, replacement, id)) 
+    case t: Tuple if t.id == name => replacement
+    case t @ Tuple(es @ _*) => Tuple(t.metadata, es.map(e => replaceTimeTuple(e, replacement)))
+    case f @ Function(d, r) => Function(f.metadata, replaceTimeTuple(d, replacement), replaceTimeTuple(r, replacement)) 
   }
 
   override def applyToModel(model: DataType): DataType = {
@@ -38,7 +38,8 @@ case class TimeTupleToTime(name: String = "time") extends MapOperation {
         Time(metadata)
     }
     
-    replaceTimeTuple(model, time, name)
+    val z = replaceTimeTuple(model, time)
+    z
   }
 
   override def mapFunction(model: DataType): Sample => Sample = {
