@@ -14,6 +14,14 @@ import latis.util.LatisException
  */
 case class TimeTupleToTime(name: String = "time") extends MapOperation {
 
+  //TODO: Maybe define .map on DataType?
+  private def replaceTimeTuple(dt: DataType, replacement: DataType, id: String): DataType = dt match {
+    case s: Scalar => s
+    case t: Tuple if t.id == id => replacement
+    case t @ Tuple(es @ _*) => Tuple(t.metadata, es.map(e => replaceTimeTuple(e, replacement, id)))
+    case f @ Function(d, r) => Function(f.metadata, replaceTimeTuple(d, replacement, id), replaceTimeTuple(r, replacement, id)) 
+  }
+
   override def applyToModel(model: DataType): DataType = {
     val timeTuple = model.findAllVariables(name) match {
       case Nil               => throw new LatisException(s"Cannot find variable: $name")
@@ -29,13 +37,8 @@ case class TimeTupleToTime(name: String = "time") extends MapOperation {
         val metadata = Metadata("id" -> "time", "units" -> format, "type" -> "string")
         Time(metadata)
     }
-
-    //TODO: don't assume time Tuple is the domain.
-    //      Recurse through the model, then if it's the time Tuple, replace it with time Scalar.
-    //      Maybe define .map on DataType?
-    model match {
-      case Function(_, r) => Function(time, r)
-    }
+    
+    replaceTimeTuple(model, time, name)
   }
 
   override def mapFunction(model: DataType): Sample => Sample = {
