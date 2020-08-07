@@ -38,8 +38,7 @@ case class TimeTupleToTime(name: String = "time") extends MapOperation {
         Time(metadata)
     }
     
-    val z = replaceTimeTuple(model, time)
-    z
+    replaceTimeTuple(model, time)
   }
 
   override def mapFunction(model: DataType): Sample => Sample = {
