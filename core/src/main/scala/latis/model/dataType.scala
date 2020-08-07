@@ -13,11 +13,11 @@ import scala.collection.mutable.ArrayBuffer
  */
 sealed trait DataType extends MetadataLike with Serializable {
 
-  // Apply f to Scalars only, for now
+  /** Recursively apply f to this DataType. */
   def map(f: DataType => DataType): DataType = this match {
     case s: Scalar => f(s)
-    case Tuple(es @ _*) => Tuple(es.map(f))
-    case Function(d, r) => Function(d.map(f), r.map(f))
+    case t @ Tuple(es @ _*) => f(Tuple(t.metadata, es.map(f)))
+    case func @ Function(d, r) => f(Function(func.metadata, d.map(f), r.map(f)))
   }
 
   /**

@@ -8,19 +8,11 @@ import latis.time.Time
 import latis.util.LatisException
 
 /**
- * Defines an Operation that converts a time Tuple to a time Scalar
+ * Defines an Operation that converts a Tuple of time values to a single time Scalar.
  *
- * @param name the name of the Tuple variable that stores time values
+ * @param name the name of the Tuple that stores the time values
  */
 case class TimeTupleToTime(name: String = "time") extends MapOperation {
-
-  //TODO: Maybe define .map on DataType?
-  private def replaceTimeTuple(dt: DataType, replacement: DataType): DataType = dt match {
-    case s: Scalar => s
-    case t: Tuple if t.id == name => replacement
-    case t @ Tuple(es @ _*) => Tuple(t.metadata, es.map(e => replaceTimeTuple(e, replacement)))
-    case f @ Function(d, r) => Function(f.metadata, replaceTimeTuple(d, replacement), replaceTimeTuple(r, replacement)) 
-  }
 
   override def applyToModel(model: DataType): DataType = {
     val timeTuple = model.findAllVariables(name) match {
@@ -38,7 +30,10 @@ case class TimeTupleToTime(name: String = "time") extends MapOperation {
         Time(metadata)
     }
     
-    replaceTimeTuple(model, time)
+    model.map {
+      case t: Tuple if t.id == name => time //TODO: support aliases with hasName
+      case v => v
+    }
   }
 
   override def mapFunction(model: DataType): Sample => Sample = {
