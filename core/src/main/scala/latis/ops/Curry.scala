@@ -11,7 +11,7 @@ import latis.util.LatisException
  * Curry a Dataset by taking the first variable of a multi-dimensional domain
  * and making it the new domain with the rest represented as a nested Function.
  *
- * e.g. curry(a): (a, b) -> c  =>  a -> b -> c
+ * e.g. curry(1): (a, b) -> c  =>  a -> b -> c
  *
  * The effect is the restructuring of Samples such that the primary (outer)
  * Function has one Sample per curried variable value.
@@ -26,28 +26,38 @@ case class Curry(arity: Int = 1) extends GroupOperation {
 
   def groupByFunction(model: DataType): Sample => Option[DomainData] = {
     if (model.arity < arity) {
-      val msg = "Curry can only reduce arity"
+      val msg = "Curry can only reduce arity. Use Uncurry to increase arity."
       throw LatisException(msg)
     }
     (sample: Sample) => Some(sample.domain.take(arity))
   }
 
+  // takes the model for the dataset and returns the domain of the curried dataset
   def domainType(model: DataType): DataType = model match {
-      // Ignore nested tuples
-    case Function(d, _) => Tuple(d.getScalars.take(arity))
+    // Ignore nested tuples
+    case Function(d, _) =>
+      d.getScalars.take(arity) match {
+        case s1 :: Nil => s1
+        case ss => Tuple(ss)
+      }
     //case Function(Tuple(es @ _*), _) => Tuple(es.take(arity))
   }
 
   def aggregation: Aggregation = {
     val mapOp = new MapOperation {
-      override def mapFunction(model: DataType): Sample => Sample =
-        (sample: Sample) => sample match {
+      override def mapFunction(model: DataType): Sample => Sample = {
           case Sample(d, r) => Sample(d.drop(arity), r)
         }
 
+      // takes the model for the dataset and returns the range of the curried dataset
       override def applyToModel(model: DataType): DataType = model match {
-          // Ignore nested tuples
-        case Function(d, range) => Function(Tuple(d.getScalars.drop(arity)), range)
+        // Ignore nested tuples
+        case Function(d, range) =>
+          d.getScalars.drop(arity) match {
+            case Nil => range  // this happens when the arity is not changed
+            case s1 :: Nil => Function(s1, range)
+            case ss => Function(Tuple(ss), range)
+          }
         //case Function(Tuple(es @ _*), range) => Function(Tuple(es.drop(arity)), range)
           //TODO: beef up edge cases
       }
