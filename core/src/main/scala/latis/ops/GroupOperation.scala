@@ -114,5 +114,6 @@ trait GroupOperation extends StreamOperation { self =>
   override def applyToModel(model: DataType): DataType = {
     val range = aggregation.applyToModel(model)
     Function(domainType(model), range)
+    // TODO: preserve metadata from the original function
   }
 }

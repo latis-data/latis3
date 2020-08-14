@@ -7,25 +7,23 @@ import latis.model._
  * Pivot the samples of a nested Function such that each outer sample becomes
  * a single sample with a range that is a Tuple of the range values
  * corresponding to the given domain values.
- *   a -> b -> c  =>  a -> (c_b0, c_b1, ...)
- * The given identifiers are used for the model.
+ *   a -> b -> (c, d, ...)  =>  a -> (b0_c, b0_d, ..., b1_c, b1_d, ...)
+ * The given identifiers (vids) are used as range prefixes in the model. For example,
+ * given vids ("Fe", "Mg"), and a dataset
+ *   time -> line -> (flux, error)
+ * The new dataset would then be
+ *   time -> (Fe_flux, Fe_error, Mg_flux, Mg_error)
  * Current limitations/assumptions:
  * - One layer of nesting
- * - nested function is Scalar -> Scalar, no Tuples
- * - given values exist in every nested Function (unless we have interpolation)
- * Note that it is not generally useful to pivot an outer Function into
- * a single Tuple, but no reason to exclude it.
- *   a -> b -> c  =>  b -> (c_a0, c_a1, ...)
+ * - given values exist in every nested Function
+ * - values and vids should have the same number of elements
+ * - Nested tuples in the range will be flattened to a single tuple
+ *
+ * @param values strings of data values to match on the variable being pivoted.
+ *               The strings are parsed into Datum using the model.
+ * @param vids prefix for each pivot value to prepend to the range id
  */
-case class Pivot(values: Seq[Datum], vids: Seq[String]) extends MapOperation {
-  /*
-   * TODO: pivot on given variable
-   * consider transpose
-   */
-  //TODO: auto name new variables foo._1, foo._2, ...
-  //TODO: allow values to be nD DomainData
-  //TODO: allow mutiple range values in nested function, interleave
-
+case class Pivot(values: Seq[String], vids: Seq[String]) extends MapOperation {
   /*
    * TODO: Support general pivot with no specified values
    * unique domain values becomes a new range Tuple
@@ -33,37 +31,52 @@ case class Pivot(values: Seq[Datum], vids: Seq[String]) extends MapOperation {
    *   violates ability to get model lazily
    * assume Cartesian: each outer sample contains complete set of inner Function samples
    */
+  /*
+   * TODO: consider the returned range having nested tuples where each inner-tuple
+   *  corresponds to a pivoted value, and the vids are used to name the tuples
+   *  instead of renaming the scalars. ex:
+   * time -> line -> (flux, error)
+   * becomes
+   * time -> (Fe: (flux, error), Mg: (flux, error))
+   * However, if the range is a single variable, this results in singleton tuples
+   */
 
   /**
    * Create function for the MapOperation to apply to the Dataset data (SampledFunction).
    */
-  def mapFunction(model: DataType): Sample => Sample =
-    //Note, model not needed for pivot
-    (sample: Sample) => sample match {
-      case Sample(domain, RangeData(mf: MemoizedFunction)) =>
-        // Eval nested Function at each requested value.
-        val range = values.map { v =>
-          mf(DomainData(v)) match {
-            case Right(r) => r.head //assumes only one variable in the range
-            case Left(le) => throw le
-          }
-        }
-        Sample(domain, RangeData(range))
-        //TODO: deal with errors?
-        //TODO: use Fill interpolation? or nearest-neighbor so users don't need to know exact values
-        //TODO: requires same value type?
-    }
+  def mapFunction(model: DataType): Sample => Sample = {
+    case Sample(domain, RangeData(mf: MemoizedFunction)) =>
+      val scalar = model match {
+        case Function(_, Function(s: Scalar, _)) => s
+      }
+      // Eval nested Function at each requested value.
+      val range = values.flatMap { value =>
+        val rangeValues = for {
+          v <- scalar.parseValue(value)
+          r <- mf(DomainData(v))
+        } yield r
+        rangeValues.fold(throw _, identity)
+      }
+      Sample(domain, RangeData(range))
+    //TODO: deal with errors?
+    //TODO: use Fill interpolation? or nearest-neighbor so users don't need to know exact values
+  }
 
   /**
    * Define new model. The nested Function is replaced with a Tuple
-   * containing one Scalar for each of the requested samples.
+   * containing Scalars for each of the requested samples.
    */
-  override def applyToModel(model: DataType): DataType =
-    model match {
-      case Function(domain, Function(_, r)) =>
-        val range = Tuple(vids.map(id => r.rename(id))) //preserve existing metadata, e.g. units
-        Function(domain, range)
-      case _ => ??? //invalid data type
-    }
+  override def applyToModel(model: DataType): DataType = model match {
+    case Function(domain, Function(_, r)) =>
+      val ranges = for {
+        vid <- vids
+        s <- r.getScalars
+      } yield s.rename(vid ++ "_" ++ s.id)
+      ranges match {
+        case s1 :: Nil => Function(domain, s1)
+        case ss => Function(domain, Tuple(ss))
+      }
+    case _ => ??? //invalid data type
+  }
 
 }
