@@ -34,6 +34,6 @@ class GroupByVariableSpec extends FlatSpec {
   //TextWriter().write(ds)
 
   "GroupByVariable" should "unProject the grouped variables" in {
-    ds.model.toString should be (".y -> x -> a")
+    ds.model.toString should be ("y -> x -> a")
   }
 }
