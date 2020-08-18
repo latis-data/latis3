@@ -5,29 +5,6 @@ import latis.data.RangePosition
 import latis.metadata.Metadata
 import org.scalatest.FunSuite
 
-class FillIdsSuite extends FunSuite {
-  test("Generate IDs for unnamed Function with doubly nested anonymous tuples") {
-    val nestedTuple = Tuple(
-      Scalar(Metadata("a") + ("type" -> "int")),
-      Tuple(
-        Scalar(Metadata("b") + ("type" -> "int")),
-        Scalar(Metadata("c") + ("type" -> "int")),
-        Tuple(
-          Scalar(Metadata("d") + ("type" -> "int"))
-        )
-      )
-    )
-
-    val testFunc = Function(
-      Scalar(Metadata("") + ("type" -> "int")), //TODO: invalid test because Scalars should always have IDs?
-      nestedTuple
-    )
-
-    val named = testFunc.fillIds
-    println(named)
-  }
-}
-
 class GetPathSuite extends FunSuite {
   test("getPath to Tuple in domain") {
     val func = {
