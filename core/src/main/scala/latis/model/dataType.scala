@@ -99,6 +99,32 @@ sealed trait DataType extends MetadataLike with Serializable {
   }
 
   /**
+   * Recursively generate IDs of the form "_#" for unnamed elements of this DataType.
+   * TODO: Make specific to just Tuples? Scalars should always be named & benefit of generated Function IDs is unclear.
+   */
+  def fillIds: DataType = {
+    var num = 0
+    def go(dt: DataType): DataType = dt match {
+      case s: Scalar =>
+        if (s.id.isEmpty) {
+          num += 1
+          s.rename(s"_$num")
+        } else s
+      case t @ Tuple(es @ _*) =>
+        if (t.id.isEmpty) {
+          num += 1
+          Tuple(t.rename(s"_$num").metadata, es.map(go))
+        } else Tuple(t.metadata, es.map(go))
+      case f @ Function(d, r) =>
+        if (f.id.isEmpty) {
+          num += 1
+          Function(f.rename(s"_$num").metadata, go(d), go(r))
+        } else Function(f.metadata, go(d), go(r))
+    }
+    go(this)
+  }
+
+  /**
    * Return this DataType with all nested Tuples flattened to a single Tuple.
    * A Scalar will remain a Scalar.
    * This form is consistent with Samples which don't preserve nested Functions.
@@ -111,10 +137,10 @@ sealed trait DataType extends MetadataLike with Serializable {
     // while the recursion results build up the final type.
     def go(dt: DataType, acc: Seq[DataType]): Seq[DataType] = dt match {
       case s: Scalar if tupIds.isEmpty => acc :+ s
-      //prepend Tuple ID(s) with "." and drop leading "." when needed
-      case s: Scalar                   => acc :+ s.rename(s"$tupIds.${s.id}".replaceFirst("^\\.", ""))
+      //prepend Tuple ID(s) with dot(s) and drop leading dot(s)
+      case s: Scalar                   => acc :+ s.rename(s"$tupIds.${s.id}".replaceFirst("^\\.+", ""))
       case Function(d, r)              => acc :+ Function(d.flatten, r.flatten)
-      case t @ Tuple(es @ _*)          => if (tupIds.isEmpty && !t.id.isEmpty) tupIds += t.id else tupIds += s".${t.id}"
+      case t @ Tuple(es @ _*)          => if (tupIds.isEmpty && !t.id.isEmpty) tupIds = t.id else tupIds += s".${t.id}"
         es.flatMap(e => acc ++ go(e, Seq()))
     }
 
@@ -137,6 +163,7 @@ sealed trait DataType extends MetadataLike with Serializable {
 
     // Recursive function to try paths until it finds a match
     def go(dt: DataType, id: String, currentPath: SamplePath): Option[SamplePath] =
+      //TODO: if id param contains a '.' match with dt.id instead of splitting and using contains?
       if (dt.id.split('.').contains(id)) Some(currentPath) //found it  //TODO: use hasName to cover aliases?
       else
         dt match { //recurse
