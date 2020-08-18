@@ -2,8 +2,16 @@ package latis.util
 
 import java.util.UUID
 
+import cats.implicits._
+
 import latis.data.CartesianFunction1D
 import latis.data.CartesianFunction2D
+import latis.data.CartesianFunction3D
+import latis.data.DomainData
+import latis.data.MemoizedFunction
+import latis.data.RangeData
+import latis.data.Sample
+import latis.data.SampledFunction
 import latis.dataset.MemoizedDataset
 import latis.metadata.Metadata
 import latis.model.DataType
@@ -11,6 +19,7 @@ import latis.model.Function
 import latis.model.Scalar
 import latis.model.Tuple
 import latis.model.ValueType
+import latis.util.DataUtils.anySeqToDatumSeq
 
 /**
  * Provides convenient methods for constructing Datasets for testing.
@@ -37,6 +46,18 @@ object DatasetGenerator {
     val md    = Metadata(makeDatasetID())
     val model = makeModel(Seq(xs.head, ys.head), rs.map(_.head.head))
     val data  = CartesianFunction2D.fromValues(xs, ys, rs: _*).toTry.get
+    new MemoizedDataset(md, model, data)
+  }
+
+  def generate3DDataset(
+    xs: Seq[Any],
+    ys: Seq[Any],
+    zs: Seq[Any],
+    rs: Seq[Seq[Seq[Any]]]*
+  ): MemoizedDataset = {
+    val md    = Metadata(makeDatasetID())
+    val model = makeModel(Seq(xs.head, ys.head, zs.head), rs.map(_.head.head.head))
+    val data  = CartesianFunction3D.fromValues(xs, ys, zs, rs: _*).toTry.get
     new MemoizedDataset(md, model, data)
   }
 
@@ -85,5 +106,4 @@ object DatasetGenerator {
       case _ => Tuple(scalars)
     }
   }
-
 }
