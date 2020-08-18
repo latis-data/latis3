@@ -6,6 +6,8 @@ import latis.metadata.Metadata
 import org.scalatest.FunSuite
 
 class GetPathSuite extends FunSuite {
+  //TODO: test searching for a Scalar with a namespace (e.g. "myTup.a")
+  
   test("getPath to Tuple in domain") {
     val func = {
       val d = Tuple(Metadata("tup"),
