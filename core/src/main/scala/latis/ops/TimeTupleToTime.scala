@@ -31,7 +31,7 @@ case class TimeTupleToTime(name: String = "time") extends MapOperation {
     }
     
     model.map {
-      case t: Tuple if t.id == name => time //TODO: support aliases with hasName
+      case t: Tuple if t.id == name => time //TODO: support aliases with hasName?
       case v => v
     }
   }
