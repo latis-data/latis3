@@ -137,8 +137,11 @@ sealed trait DataType extends MetadataLike with Serializable {
 
     // Recursive function to try paths until it finds a match
     def go(dt: DataType, id: String, currentPath: SamplePath): Option[SamplePath] =
-      //TODO: if id param contains a '.' match with dt.id instead of splitting and using contains?
-      if (dt.id.split('.').contains(id)) Some(currentPath) //found it  //TODO: use hasName to cover aliases?
+      //TODO: use hasName to cover aliases?
+      //searching fully qualified ID with namespace
+      if (id.contains('.') && dt.id == id)    Some(currentPath) //found it
+      //searching variable ID without namespace
+      else if (dt.id.split('.').contains(id)) Some(currentPath) //found it
       else
         dt match { //recurse
           case _: Scalar => None //dead end

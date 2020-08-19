@@ -6,8 +6,6 @@ import latis.metadata.Metadata
 import org.scalatest.FunSuite
 
 class GetPathSuite extends FunSuite {
-  //TODO: test searching for a Scalar with a namespace (e.g. "myTup.a")
-  
   test("getPath to Tuple in domain") {
     val func = {
       val d = Tuple(Metadata("tup"),
@@ -88,6 +86,24 @@ class GetPathSuite extends FunSuite {
     }
 
     assert(func.getPath("e") == Some(List(RangePosition(3))))
+  }
+
+  test("getPath to Scalar in nested Tuple, searching fully qualified ID") {
+    val func = {
+      val d = Scalar(Metadata("a") + ("type" -> "int"))
+      val r = Tuple(
+        Scalar(Metadata("b") + ("type" -> "int")),
+        Scalar(Metadata("c") + ("type" -> "int")),
+        Tuple(Metadata("tup"),
+          Scalar(Metadata("d") + ("type" -> "int")),
+          Scalar(Metadata("e") + ("type" -> "int")),
+          Scalar(Metadata("f") + ("type" -> "int"))
+        )
+      )
+      Function(d, r)
+    }
+
+    assert(func.getPath("tup.e") == Some(List(RangePosition(3))))
   }
   
   test("getPath to nonexistent variable") {
