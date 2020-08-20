@@ -60,22 +60,21 @@ lazy val dockerSettings = Seq(
     Seq(ImageName(s"${organization.value}/latis3:${version.value}"))
   },
   docker / dockerfile := {
-    val classpath = Seq(
-      (Runtime / managedClasspath).value,
-      (Runtime / internalDependencyAsJars).value
-    ).flatten
     val mainclass = (Compile / packageBin / mainClass).value.getOrElse {
       sys.error("Expected exactly one main class")
     }
-    val cp = classpath.files.map { x =>
+    val depClasspath = (Runtime / managedClasspath).value
+    val intClasspath = (Runtime / internalDependencyAsJars).value
+    val cp = (depClasspath ++ intClasspath).files.map { x =>
       s"/app/${x.getName}"
     }.mkString(":")
 
     new Dockerfile {
       from("openjdk:8-jre-alpine")
-      copy(classpath.files, "/app/")
       expose(8080)
       entryPoint("java", "-cp", cp, mainclass)
+      copy(depClasspath.files, "/app/")
+      copy(intClasspath.files, "/app/")
     }
   }
 )
