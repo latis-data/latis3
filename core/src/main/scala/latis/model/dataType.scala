@@ -60,8 +60,7 @@ sealed trait DataType extends MetadataLike with Serializable {
         this match {
           case _: Scalar =>
           case Tuple(es @ _*) =>
-            val matchingVars = es.flatMap(_.findAllVariables(variableName))
-            vbuf ++= matchingVars
+            vbuf ++= es.flatMap(_.findAllVariables(variableName))
           case Function(d, r) => 
             vbuf ++= d.findAllVariables(variableName) 
             vbuf ++= r.findAllVariables(variableName)
