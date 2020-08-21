@@ -54,7 +54,7 @@ sealed trait DataType extends MetadataLike with Serializable {
    */
   def findAllVariables(variableName: String): Seq[DataType] = {
     variableName.split('.') match {
-      case Array(n) => {
+      case Array(_) =>
         val vbuf = ArrayBuffer[DataType]()
         if (this.id == variableName) vbuf += this //TODO: use hasName to cover aliases?
         this match {
@@ -66,7 +66,6 @@ sealed trait DataType extends MetadataLike with Serializable {
             vbuf ++= r.findAllVariables(variableName)
         }
         vbuf.toSeq
-      }
       case Array(n1, n2 @ _*) => {
         findAllVariables(n1).flatMap(_.findAllVariables(n2.mkString(".")))
       }
