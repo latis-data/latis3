@@ -166,6 +166,7 @@ lazy val server = project
       "org.http4s"            %% "http4s-dsl"             % http4sVersion,
       "com.github.pureconfig" %% "pureconfig"             % pureconfigVersion,
       "com.github.pureconfig" %% "pureconfig-cats-effect" % pureconfigVersion,
+      "io.chrisdavenport"     %% "log4cats-slf4j"         % "1.1.1",
       "ch.qos.logback"         % "logback-classic"        % "1.2.3" % Runtime
     ),
     // Required to suppress spurious warnings with 2.13.3
