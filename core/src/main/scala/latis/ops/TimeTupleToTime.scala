@@ -28,6 +28,7 @@ case class TimeTupleToTime(name: String = "time") extends MapOperation {
         //make the time Scalar
         val metadata = Metadata("id" -> "time", "units" -> format, "type" -> "string")
         Time(metadata)
+      case _ => throw new LatisException(s"Variable '$name' must be a Tuple.")
     }
     
     model.map {
@@ -41,11 +42,14 @@ case class TimeTupleToTime(name: String = "time") extends MapOperation {
       case Some(List(sp)) => sp
       case _ => throw new LatisException(s"Cannot find path to variable: $name")
     }
-    val timeLen: Int = model.findAllVariables(name).head match {
-      case t: Tuple => t.flatten match {
-        case tf: Tuple => tf.elements.length //TODO: is this "dimensionality"? Should it be a first class citizen?
+    val timeLen: Int = model.findAllVariables(name) match {
+      case Nil               => throw new LatisException(s"Cannot find variable: $name")
+      case vs: Seq[DataType] => vs.head match {
+        case t: Tuple => t.flatten match {
+          case tf: Tuple => tf.elements.length //TODO: is this "dimensionality"? Should it be a first class citizen?
+        }
+        case _ => throw new LatisException(s"Variable '$name' must be a Tuple.")
       }
-      case _ => throw new LatisException(s"Cannot find variable: $name")
     }
 
     (sample: Sample) => sample match {
