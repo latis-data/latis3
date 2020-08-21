@@ -59,10 +59,10 @@ class TimeTupleToTimeSpec extends FlatSpec {
     new MemoizedDataset(metadata, model, data)
   }
 
-  "The mock dataset's time tuple" should "be converted to a time scalar" in {
+  "The TimeTupleToTime operation" should "convert a time tuple to a time scalar" in {
     val ds = mockDataset.withOperation(TimeTupleToTime())
 
-    //TextWriter().write(ds2)
+    //TextWriter().write(ds)
 
     ds.model match {
       case Function(t: Time, _: Scalar) =>
@@ -76,7 +76,7 @@ class TimeTupleToTimeSpec extends FlatSpec {
     }
   }
 
-  "The second mock dataset's (nested) time tuple" should "be converted to a time scalar" in {
+  it should "convert a nested time tuple to a time scalar" in {
     val ds = mockDataset2.withOperation(TimeTupleToTime())
 
     //TextWriter().write(ds)
