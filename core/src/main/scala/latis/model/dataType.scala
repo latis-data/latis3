@@ -108,11 +108,10 @@ sealed trait DataType extends MetadataLike with Serializable {
     // to accumulate types while in the context of a Tuple
     // while the recursion results build up the final type.
     def go(dt: DataType, acc: Seq[DataType]): Seq[DataType] = dt match {
-      case s: Scalar if tupIds.isEmpty => acc :+ s
       //prepend Tuple ID(s) with dot(s) and drop leading dot(s)
-      case s: Scalar                   => acc :+ s.rename(s"$tupIds.${s.id}".replaceFirst("^\\.+", ""))
-      case Function(d, r)              => acc :+ Function(d.flatten, r.flatten)
-      case t @ Tuple(es @ _*)          => if (tupIds.isEmpty && !t.id.isEmpty) tupIds = t.id else tupIds += s".${t.id}"
+      case s: Scalar          => acc :+ s.rename(s"$tupIds.${s.id}".replaceFirst("^\\.+", ""))
+      case Function(d, r)     => acc :+ Function(d.flatten, r.flatten)
+      case t @ Tuple(es @ _*) => if (tupIds.isEmpty && !t.id.isEmpty) tupIds = t.id else tupIds += s".${t.id}"
         es.flatMap(e => acc ++ go(e, Seq()))
     }
 
