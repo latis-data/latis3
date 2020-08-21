@@ -6,6 +6,8 @@ import cats.effect.Blocker
 import cats.effect.ExitCode
 import cats.effect.IO
 import cats.effect.IOApp
+import io.chrisdavenport.log4cats.Logger
+import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.http4s.HttpRoutes
 import org.http4s.implicits._
 import org.http4s.server.Router
@@ -37,28 +39,32 @@ object Latis3Server extends IOApp {
     Router(routes:_*)
   }
 
-  private def startServer(routes: HttpRoutes[IO], conf: ServerConf): IO[Unit] =
-    conf match {
-      case ServerConf(port, mapping) =>
-        BlazeServerBuilder[IO](ExecutionContext.global)
-          .bindHttp(port, "0.0.0.0")
-          .withHttpApp {
-            Router(mapping -> routes).orNotFound
-          }
-          .withoutBanner
-          .serve
-          .compile
-          .drain
-    }
+  private def startServer(
+    routes: HttpRoutes[IO],
+    conf: ServerConf,
+    logger: Logger[IO]
+  ): IO[Unit] = conf match {
+    case ServerConf(port, mapping) =>
+      BlazeServerBuilder[IO](ExecutionContext.global)
+        .bindHttp(port, "0.0.0.0")
+        .withHttpApp {
+          LatisServiceLogger(Router(mapping -> routes).orNotFound, logger)
+        }
+        .withoutBanner
+        .serve
+        .compile
+        .drain
+  }
 
   def run(args: List[String]): IO[ExitCode] =
     Blocker[IO].use { blocker =>
       for {
+        logger      <- Slf4jLogger.create[IO]
         serverConf  <- getServerConf(blocker)
         serviceConf <- getServiceConf(blocker)
         services    <- loader.loadServices(serviceConf)
         routes       = constructRoutes(services)
-        _           <- startServer(routes, serverConf)
+        _           <- startServer(routes, serverConf, logger)
       } yield ExitCode.Success
     }
 }
