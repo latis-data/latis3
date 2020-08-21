@@ -57,27 +57,22 @@ case class TimeTupleToTime(name: String = "time") extends MapOperation {
         //extract text values and join with space
         //TODO: join with delimiter, problem when we use regex?
         timePos match {
-          //TODO: reduce code duplication? Only difference is dd vs rd (types don't match) and replacing domain vs range
           case DomainPosition(n) =>
-            val time: Datum = {
-              val timeData = dd.slice(n, n+timeLen)
-              Data.StringValue(
-                timeData.map { case d: Datum => d.asString }.mkString(" ")
-              )
-            }
-            val domain = dd.slice(0, n) ++ Seq(time) ++ dd.slice(n+timeLen, dd.length)
+            val domain = dd.slice(0, n) ++ Seq(time(n, timeLen, dd)) ++ dd.slice(n+timeLen, dd.length)
             Sample(domain, rd)
           case RangePosition(n) =>
-            val time: Datum = {
-              val timeData = rd.slice(n, n+timeLen)
-              Data.StringValue(
-                timeData.map { case d: Datum => d.asString }.mkString(" ")
-              )
-            }
-            val range = rd.slice(0, n) ++ Seq(time) ++ rd.slice(n+timeLen, dd.length)
+            val range = rd.slice(0, n) ++ Seq(time(n, timeLen, rd)) ++ rd.slice(n+timeLen, rd.length)
             Sample(dd, range)
         }
     }
+  }
+
+  /** Helper function to slice a time Datum out of a time Tuple given its position and length. */
+  private def time(pos: Int, len: Int, data: Seq[Data]): Datum = {
+    val timeData = data.slice(pos, pos+len)
+    Data.StringValue(
+      timeData.map { case d: Datum => d.asString }.mkString(" ")
+    )
   }
 
 }
