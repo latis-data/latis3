@@ -112,7 +112,7 @@ sealed trait DataType extends MetadataLike with Serializable {
       case s: Scalar          => acc :+ s.rename(s"$tupIds.${s.id}".replaceFirst("^\\.+", ""))
       case Function(d, r)     => acc :+ Function(d.flatten, r.flatten)
       //build up a dot-separated String of Tuple IDs, including empty IDs that stand in for anonymous Tuples
-      case t @ Tuple(es @ _*) => if (tupIds.isEmpty && !t.id.isEmpty) tupIds = t.id else tupIds += s".${t.id}"
+      case t @ Tuple(es @ _*) => if (tupIds.isEmpty && t.id.nonEmpty) tupIds = t.id else tupIds += s".${t.id}"
         es.flatMap(e => acc ++ go(e, Seq()))
     }
 
