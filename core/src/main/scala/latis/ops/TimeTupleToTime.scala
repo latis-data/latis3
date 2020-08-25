@@ -14,28 +14,16 @@ import latis.util.LatisException
  */
 case class TimeTupleToTime(name: String = "time") extends MapOperation {
 
-  override def applyToModel(model: DataType): DataType = {
-    val timeTuple = model.findAllVariables(name) match {
-      case Nil               => throw new LatisException(s"Cannot find variable: $name")
-      case vs: Seq[DataType] => vs.head
-    }
-
-    val time: Scalar = timeTuple match {
-      case t @ Tuple(es @ _*) =>
+  override def applyToModel(model: DataType): DataType = model.map {
+      case t @ Tuple(es @ _*) if t.id == name => //TODO: support aliases with hasName?
         //build up format string
         val format: String = es.toList.traverse(_("units"))
           .fold(throw new LatisException("A time Tuple must have units defined for each element."))(_.mkString(" "))
         //make the time Scalar
         val metadata = t.metadata + ("units" -> format) + ("type" -> "string")
         Time(metadata)
-      case _ => throw new LatisException(s"Variable '$name' must be a Tuple.")
-    }
-    
-    model.map {
-      case t: Tuple if t.id == name => time //TODO: support aliases with hasName?
       case v => v
     }
-  }
 
   override def mapFunction(model: DataType): Sample => Sample = {
     val timePos: SamplePosition = model.getPath(name) match {
