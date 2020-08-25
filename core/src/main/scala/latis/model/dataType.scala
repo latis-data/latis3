@@ -99,7 +99,7 @@ sealed trait DataType extends MetadataLike with Serializable {
   /**
    * Return this DataType with all nested Tuples flattened to a single Tuple.
    * A Scalar will remain a Scalar.
-   * This form is consistent with Samples which don't preserve nested Functions.
+   * This form is consistent with Samples which don't preserve nested Tuples.
    * Flattened Tuples retain the ID of the outermost Tuple.
    */
   def flatten: DataType = {
