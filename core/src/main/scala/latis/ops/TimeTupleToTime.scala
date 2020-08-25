@@ -21,12 +21,12 @@ case class TimeTupleToTime(name: String = "time") extends MapOperation {
     }
 
     val time: Scalar = timeTuple match {
-      case Tuple(es @ _*) =>
+      case t @ Tuple(es @ _*) =>
         //build up format string
         val format: String = es.toList.traverse(_("units"))
           .fold(throw new LatisException("A time Tuple must have units defined for each element."))(_.mkString(" "))
         //make the time Scalar
-        val metadata = Metadata("id" -> "time", "units" -> format, "type" -> "string")
+        val metadata = t.metadata + ("units" -> format) + ("type" -> "string")
         Time(metadata)
       case _ => throw new LatisException(s"Variable '$name' must be a Tuple.")
     }
