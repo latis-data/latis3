@@ -17,6 +17,8 @@ class GetPathSuite extends FunSuite {
       Function(d, r)
     }
 
+    val func2 = ModelParser.parse("(a, b, c) -> d")
+
     assert(func.getPath("tup") == Some(List(DomainPosition(0))))
   }
 

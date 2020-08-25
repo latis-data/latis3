@@ -17,9 +17,9 @@ class TimeTupleToTimeSpec extends FlatSpec {
     val metadata: Metadata = Metadata("MockDataset" + ("title" -> "Mock Dataset"))
     val model: DataType = Function(
       Tuple(Metadata("time"),
-        Scalar(Metadata("year")  + ("type" -> "int") + ("units" -> "yyyy")),
-        Scalar(Metadata("month") + ("type" -> "int") + ("units" -> "MM")),
-        Scalar(Metadata("day")   + ("type" -> "int") + ("units" -> "dd")),
+        Scalar(Metadata("year")  + ("type" -> "string") + ("units" -> "yyyy")),
+        Scalar(Metadata("month") + ("type" -> "string") + ("units" -> "MM")),
+        Scalar(Metadata("day")   + ("type" -> "string") + ("units" -> "dd")),
       ),
       Scalar(Metadata("flux") + ("type" -> "int"))
     )
@@ -41,8 +41,8 @@ class TimeTupleToTimeSpec extends FlatSpec {
       Tuple(
         Scalar(Metadata("a") + ("type" -> "int")),
         Tuple(Metadata("time"),
-          Scalar(Metadata("year")  + ("type" -> "int") + ("units" -> "yyyy")),
-          Scalar(Metadata("month") + ("type" -> "int") + ("units" -> "MM"))
+          Scalar(Metadata("year")  + ("type" -> "string") + ("units" -> "yyyy")),
+          Scalar(Metadata("month") + ("type" -> "string") + ("units" -> "MM"))
         )
       ),
       Scalar(Metadata("flux") + ("type" -> "int"))
