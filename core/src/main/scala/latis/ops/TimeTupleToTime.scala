@@ -47,21 +47,30 @@ case class TimeTupleToTime(name: String = "time") extends MapOperation {
         //TODO: join with delimiter, problem when we use regex?
         timePos match {
           case DomainPosition(n) =>
-            val domain = dd.slice(0, n) ++ Seq(time(n, timeLen, dd)) ++ dd.slice(n+timeLen, dd.length)
+            val domain = DomainData.fromData(convertTimeTuple(dd, n, timeLen)) match {
+              case Right(d) => d
+              case Left(ex) => throw ex
+            }
             Sample(domain, rd)
           case RangePosition(n) =>
-            val range = rd.slice(0, n) ++ Seq(time(n, timeLen, rd)) ++ rd.slice(n+timeLen, rd.length)
+            val range = convertTimeTuple(rd, n, timeLen)
             Sample(dd, range)
         }
     }
   }
 
-  /** Helper function to slice a time Datum out of a time Tuple given its position and length. */
-  private def time(pos: Int, len: Int, data: Seq[Data]): Datum = {
-    val timeData = data.slice(pos, pos+len)
-    Data.StringValue(
-      timeData.map { case d: Datum => d.asString }.mkString(" ")
-    )
+  /**
+   * Helper function to slice a time Scalar out of a time Tuple
+   * given its position within a list of Data and its length.
+   */
+  private def convertTimeTuple(data: Seq[Data], pos: Int, len: Int): Seq[Data] = {
+    val timeDatum = {
+      val timeData = data.slice(pos, pos+len)
+      Data.StringValue(
+        timeData.map { case d: Datum => d.asString }.mkString(" ")
+      )
+    }
+    data.slice(0, pos) ++ Seq(timeDatum) ++ data.slice(pos+len, data.length)
   }
 
 }
