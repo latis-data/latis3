@@ -1,5 +1,8 @@
 package latis.ops
 
+import scala.util.Try
+import scala.util.Success
+
 import latis.data.DomainData
 import latis.data.Sample
 import latis.model.DataType
@@ -66,4 +69,16 @@ case class Curry(arity: Int = 1) extends GroupOperation {
     DefaultAggregation().compose(mapOp)
   }
 
+}
+
+object Curry {
+
+  def fromArgs(args: List[String]): Option[UnaryOperation] = args match {
+    case arity :: Nil => Try(arity.toInt) match {
+      case Success(a) => Some(Curry(a))
+      case _ => None
+    }
+    case Nil => Some(Curry())
+    case _ => None
+  }
 }

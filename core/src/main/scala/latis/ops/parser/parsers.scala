@@ -3,7 +3,8 @@ package latis.ops.parser
 import atto.Atto._
 import atto.Parser
 
-import ast._
+import latis.data.Data
+import latis.ops.parser.ast._
 
 object parsers {
 
@@ -45,9 +46,20 @@ object parsers {
 
   def operation: Parser[CExpr] = for {
     name <- identifier
-    argP  = time | number | stringLit | variable
-    args <- parens(sepBy(argP.token, char(',').token))
-  } yield Operation(name, args)
+    argsP <- parens(args)
+  } yield Operation(name, argsP)
+
+  def args: Parser[List[String]] = sepBy(arg.token, char(',').token)
+
+  def arg: Parser[String] =
+    scalarArg | listArg
+
+  def scalarArg: Parser[String] =
+    time | number | stringLit | variable
+
+  def listArg: Parser[String] = for {
+    l <- parens(sepBy(arg.token, char(',').token))
+  } yield "(" + l.mkString(",") + ")"
 
   def variable: Parser[String] =
     sepBy1(identifier, char('.')).map(_.toList.mkString("."))
@@ -115,4 +127,38 @@ object parsers {
       t <- timeP | ok("")
     } yield List(y, m, d).mkString("-") + t
   }
+
+  def booleanValue: Parser[Data] = for {
+    n <- string("true") | string("True") | string("false") | string("False")
+  } yield Data.BooleanValue(n.toBoolean)
+
+  def floatValue: Parser[Data] = for {
+    n <- decimal
+    _ <- char('f') | char('F')
+  } yield Data.FloatValue(n.toFloat)
+
+  def doubleValue: Parser[Data] = for {
+    n <- scientific | decimal
+  } yield Data.DoubleValue(n.toDouble)
+
+  def intValue: Parser[Data] = for {
+    n <- integer
+  } yield Data.IntValue(n.toInt)
+
+  def longValue: Parser[Data] = for {
+    n <- integer
+    _ <- char('l') | char('L')
+  } yield Data.LongValue(n.toLong)
+
+  def numberValue: Parser[Data] =
+    floatValue | doubleValue | longValue | intValue
+
+  def stringValue: Parser[Data] = for {
+    s <- variable.token
+  // TODO: this will stop once it encounters a character that is not allowed as
+  //   a variable. Do we want to make StringValues from any string?
+  } yield Data.StringValue(s)
+
+  def data: Parser[Data] =
+    numberValue | booleanValue | stringValue
 }

@@ -21,3 +21,11 @@ case class Rename(origName: String, newName: String) extends UnaryOperation {
    */
   def applyToData(data: SampledFunction, model: DataType): SampledFunction = data
 }
+
+object Rename {
+
+  def fromArgs(args: List[String]): Option[UnaryOperation] = args match {
+    case oldName :: newName :: Nil => Some(Rename(oldName, newName))
+    case _ => None
+  }
+}

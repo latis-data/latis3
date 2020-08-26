@@ -19,3 +19,15 @@ trait UnaryOperation extends Operation {
   def applyToData(data: SampledFunction, model: DataType): SampledFunction
 
 }
+
+object UnaryOperation {
+
+  def makeOperation(name: String, args: List[String]): Option[UnaryOperation] = name match {
+    case "project" => Projection.fromArgs(args)
+    case "rename" => Rename.fromArgs(args)
+    case "curry" => Curry.fromArgs(args)
+    case "pivot" => Pivot.fromArgs(args)
+    case "evaluation" => Evaluation.fromArgs(args)
+    case _ => None
+  }
+}

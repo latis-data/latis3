@@ -1,7 +1,10 @@
 package latis.ops
 
+import atto.Atto._
+
 import latis.data._
 import latis.model._
+import latis.ops.parser.parsers.scalarArg
 
 /**
  * Pivot the samples of a nested Function such that each outer sample becomes
@@ -79,4 +82,20 @@ case class Pivot(values: Seq[String], vids: Seq[String]) extends MapOperation {
     case _ => ??? //invalid data type
   }
 
+}
+
+object Pivot {
+
+  def fromArgs(args: List[String]): Option[UnaryOperation] = {
+    // define a parser that doesn't allow nested lists
+    val argParser = parens(sepBy(scalarArg.token, char(',').token))
+
+    args match {
+      case valuesStr :: vidsStr :: Nil => for {
+        values <- argParser.parseOnly(valuesStr).option
+        vids   <- argParser.parseOnly(vidsStr).option
+      } yield Pivot(values, vids)
+      case _ => None
+    }
+  }
 }

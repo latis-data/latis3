@@ -1,11 +1,15 @@
 package latis.ops
 
+import atto.Atto._
+import cats.implicits._
+
 import latis.data._
 import latis.model._
+import latis.ops.parser.parsers.data
 
 /**
  * Defines an operation that evaluates a Dataset at a given value
- * returning a new Dataset encapsulatng the range value as a
+ * returning a new Dataset encapsulating the range value as a
  * ConstantFunction.
  */
 case class Evaluation(data: Data) extends UnaryOperation {
@@ -28,4 +32,12 @@ case class Evaluation(data: Data) extends UnaryOperation {
       } yield ConstantFunction(d)
       ecf.toTry.get //throw the exception if Left
   }
+}
+
+object Evaluation {
+
+  def fromArgs(args: List[String]): Option[UnaryOperation] = for {
+    ds <- args.traverse(data.parseOnly(_).option)
+    d = Data.fromSeq(ds)
+  } yield Evaluation(d)
 }
