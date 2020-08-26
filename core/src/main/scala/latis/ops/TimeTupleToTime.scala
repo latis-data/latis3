@@ -31,15 +31,15 @@ case class TimeTupleToTime(name: String = "time") extends MapOperation {
       case None => throw new LatisException(s"Cannot find path to variable: $name")
       case _ => throw new LatisException(s"Variable '$name' must not be in a nested Function.")
     }
-    val timeLen: Int = model.findAllVariables(name) match {
-      case Nil               => throw new LatisException(s"Cannot find variable: $name")
-      case vs: Seq[DataType] => vs.head match {
-        case t: Tuple => t.flatten match {
-          case tf: Tuple => tf.elements.length //TODO: is this "dimensionality"? Should it be a first class citizen?
+    val timeLen: Int = model.findVariable(name)
+      .getOrElse {
+        throw new LatisException(s"Cannot find variable: $name")
+      } match {
+          case t: Tuple => t.flatten match {
+            case tf: Tuple => tf.elements.length //TODO: is this "dimensionality"? Should it be a first class citizen?
+          }
+          case _ => throw new LatisException(s"Variable '$name' must be a Tuple.")
         }
-        case _ => throw new LatisException(s"Variable '$name' must be a Tuple.")
-      }
-    }
 
     (sample: Sample) => sample match {
       case Sample(dd, rd) =>
