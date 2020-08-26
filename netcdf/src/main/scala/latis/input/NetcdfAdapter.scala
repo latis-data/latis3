@@ -56,55 +56,69 @@ case class NetcdfAdapter(
    * The data will be read into memory as a SetFunction.
    */
   def getData(uri: URI, ops: Seq[Operation]): SampledFunction = {
+    import scala.jdk.CollectionConverters._
     val ncStream: Stream[IO, NetcdfDataset] = NetcdfAdapter.open(uri)
     ncStream.map { ncDataset =>
       val nc = NetcdfWrapper(ncDataset, model, config)
 
-      // Applies ops to default section
-      val section: Section = nc.applyOperations(ops).fold(throw _, identity)
+      // Applies ops to section(s), then zips all scalars with their corresponding
+      // section. If there is only one section, then that section is duplicated
+      val (domainSections, rangeSections) = model match {
+        case Function(domain, range) =>
+          nc.applyOperations(ops).fold(throw _, identity) match {
+            case sec :: Nil =>
+              // if there is only one section, then each domain variable uses one
+              // ma2.Range and the range variables use the entire section each
+              (domain.getScalars.zip(sec.getRanges.asScala.map(new Section(_))),
+              range.getScalars.map(s => (s, sec)))
+            case sections =>
+              // if there are many sections, then there should be one for each variable
+              if (sections.length != model.getScalars.length)
+              throw LatisException("The number of sections defined in the adapter " +
+                "must be either 1 or match the number of scalars")
+              else (domain.getScalars.zip(sections),
+                range.getScalars.zip(sections.drop(domain.getScalars.length)))
+          }
+      }
 
       // Assumes all domain variables are 1D and define a Cartesian Product set.
-      val domainSet: DomainSet = model match {
-        case Function(domain, _) =>
-          val dsets: List[DomainSet] = domain.getScalars.zipWithIndex.map {
-            case (scalar, index) =>
-              val sec   = new Section(section.getRange(index))
-              nc.readVariable(scalar.id, sec).map { ncArr =>
-                val ds: IndexedSeq[DomainData] =
-                  (0 until ncArr.getSize.toInt).map { i =>
-                    Data.fromValue(ncArr.getObject(i)) match {
-                      case Right(d: Datum) => DomainData(d)
-                      case Left(le) => throw le //TODO: error or drop?
-                    }
-                  }
-                SeqSet1D(scalar, ds)
-              }.getOrElse {
-                // Variable not found, use index
-                val r = section.getRange(index)
-                IndexSet1D(r.first, r.stride, r.length)
+      val domainSet: DomainSet = {
+        val dsets: List[DomainSet] = domainSections.map { case (scalar, sec) =>
+          nc.readVariable(scalar.id, sec).map { ncArr =>
+            val ds: IndexedSeq[DomainData] =
+              (0 until ncArr.getSize.toInt).map { i =>
+                Data.fromValue(ncArr.getObject(i)) match {
+                  case Right(d: Datum) => DomainData(d)
+                  case Left(le) => throw le //TODO: error or drop?
+                }
               }
+            SeqSet1D(scalar, ds)
+          }.getOrElse {
+            // Variable not found, use index
+            val r = sec.getRange(0)
+            IndexSet1D(r.first, r.stride, r.length)
           }
-          if (dsets.length == 1) dsets.head
-          else ProductSet(dsets)
+        }
+        if (dsets.length == 1) dsets.head
+        else ProductSet(dsets)
       }
 
       // Note, all range variables must have the same shape
       // consistent with the domain set
-      val rangeData: IndexedSeq[RangeData] = model match {
-        case Function(_, range) =>
-          // Read the NcArray for each range variable
-          val arrs: List[NcArray] = range.getScalars.flatMap { scalar =>
-          //TODO: beware of silent failure if var not found
+      val rangeData: IndexedSeq[RangeData] = {
+        val arrs: List[NcArray] = rangeSections.flatMap {
+          case (scalar, section) =>
+            //TODO: beware of silent failure if var not found
             nc.readVariable(scalar.id, section)
-          }
-          (0 until arrs.head.getSize.toInt).map { i =>
-            RangeData(arrs.map { a =>
-              Data.fromValue(a.getObject(i)) match {
-                case Right(d) => d
-                case Left(le) => throw le //TODO: error or fill?
-              }
-            })
-          }
+        }
+        (0 until arrs.head.getSize.toInt).map { i =>
+          RangeData(arrs.map { a =>
+            Data.fromValue(a.getObject(i)) match {
+              case Right(d) => d
+              case Left(le) => throw le //TODO: error or fill?
+            }
+          })
+        }
       }
 
       SetFunction(domainSet, rangeData)
@@ -172,12 +186,13 @@ object NetcdfAdapter extends AdapterFactory {
    * Applies an Operation to a Section to create a new Section.
    */
   def applyOperation(
-    section: Section,
+    sections: List[Section],
     model:DataType,
     op: Operation
-  ): Either[LatisException, Section] = op match {
-    case Stride(stride) => NetcdfAdapter.applyStride(section, stride.toArray)
-    case sel: Selection => NetcdfAdapter.applySelection(section, model, sel)
+  ): Either[LatisException, List[Section]] = op match {
+    // TODO: revisit logic in each operation for multiple sections
+    case Stride(stride) => sections.traverse(NetcdfAdapter.applyStride(_, stride.toArray))
+    case sel: Selection => sections.traverse(NetcdfAdapter.applySelection(_, model, sel))
   }
 
   //Note, must include stride even for 1-length dimensions
@@ -197,7 +212,8 @@ object NetcdfAdapter extends AdapterFactory {
    * Applies the given selection operation to the given section and returns a new
    * section. Indecies for the range in the returned section are extrapolated from
    * cadence and start metadata without touching the actual data. If no data falls
-   * within the selection, a section with an empty range is returned.
+   * within the selection, a section with an empty range is returned. Assumes the
+   * data has a single domain variable (1D).
    * @param section section to be replaced
    * @param model model containing a scalar with cadence and start metadata
    * @param selection selection operation to be applied
@@ -320,8 +336,8 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
    * Gets the section as defined in the config or else
    * makes a section for the entire dataset.
    */
-  def defaultSection: Section = config.section match {
-    case Some(spec) => new Section(spec) //TODO: error handling
+  def defaultSection: List[Section] = config.section match {
+    case Some(spec) => spec.split(';').toList.map(new Section(_)) //TODO: error handling
     case None       =>
       // Complete Section
       // Note, we can't use ":" since it becomes a null Range in the Section
@@ -334,13 +350,13 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
       val spec = variableMap(id).getShape.map { n =>
         s"0:${n-1}"
       }.mkString(",")
-      new Section(spec)
+      List(new Section(spec))
   }
 
   /**
    * Applies the given operations to define the final section to read.
    */
-  def applyOperations(ops: Seq[Operation]): Either[LatisException, Section] =
+  def applyOperations(ops: Seq[Operation]): Either[LatisException, List[Section]] =
     ops.toList.foldM(defaultSection)(NetcdfAdapter.applyOperation(_, model, _))
 
   // Note, get is safe since the id comes from the model in the first place
