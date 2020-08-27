@@ -4,6 +4,7 @@ import java.net.URI
 
 import scala.math.max
 import scala.math.min
+import scala.jdk.CollectionConverters._
 
 import cats.effect.IO
 import cats.implicits._
@@ -56,7 +57,6 @@ case class NetcdfAdapter(
    * The data will be read into memory as a SetFunction.
    */
   def getData(uri: URI, ops: Seq[Operation]): SampledFunction = {
-    import scala.jdk.CollectionConverters._
     val ncStream: Stream[IO, NetcdfDataset] = NetcdfAdapter.open(uri)
     ncStream.map { ncDataset =>
       val nc = NetcdfWrapper(ncDataset, model, config)
@@ -70,7 +70,7 @@ case class NetcdfAdapter(
               // if there is only one section, then each domain variable uses one
               // ma2.Range and the range variables use the entire section each
               (domain.getScalars.zip(sec.getRanges.asScala.map(new Section(_))),
-              range.getScalars.map(s => (s, sec)))
+              range.getScalars.map((_, sec)))
             case sections =>
               // if there are many sections, then there should be one for each variable
               if (sections.length != model.getScalars.length)
@@ -95,6 +95,7 @@ case class NetcdfAdapter(
             SeqSet1D(scalar, ds)
           }.getOrElse {
             // Variable not found, use index
+            // TODO: this will likely not work if adapter has > 1 section
             val r = sec.getRange(0)
             IndexSet1D(r.first, r.stride, r.length)
           }
@@ -197,7 +198,6 @@ object NetcdfAdapter extends AdapterFactory {
 
   //Note, must include stride even for 1-length dimensions
   def applyStride(section: Section, stride: Array[Int]): Either[LatisException, Section] = {
-    import scala.jdk.CollectionConverters._
     if (section.getRank != stride.length) {
       Left(LatisException(s"Invalid rank for stride: ${stride.mkString(",")}"))
     } else {
