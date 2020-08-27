@@ -87,9 +87,6 @@ object FdmlReader {
       case ast.Selection(n, op, v) =>
         Right(ops.Selection(n, ast.prettyOp(op), v))
       case ast.Operation(name, args) =>
-        UnaryOperation.makeOperation(name, args) match {
-          case Some(o) => Right(o)
-          case None => Left(LatisException(s"Failed to construct operation $name"))
-        }
+        UnaryOperation.makeOperation(name, args)
     }
 }

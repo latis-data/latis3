@@ -12,28 +12,11 @@ class EvaluationSpec extends FlatSpec {
     DatasetGenerator.generate1DDataset(
       Vector(0, 1, 2),
       Vector(10, 20, 30)
-    ).withOperation(Evaluation(1)).unsafeForce().data match {
+    ).withOperation(Evaluation("1")).unsafeForce().data match {
       case ConstantFunction(Number(d)) =>
         d should be (20)
     }
   }
-
-  "Evaluation" should "evaluate a 2D dataset" in {
-    val d = TupleData(1, 4)
-    DatasetGenerator.generate2DDataset(
-      Vector(0, 1, 2),
-      Vector(3, 4),
-      Vector(
-        Vector(10, 20),
-        Vector(12, 22),
-        Vector(14, 24)
-      )
-    ).withOperation(Evaluation(d)).unsafeForce().data match {
-      case ConstantFunction(Number(d)) =>
-        d should be (22)
-    }
-  }
-
 
   "Evaluation" should "evaluate a nested dataset" in {
     val ds = DatasetGenerator.generate2DDataset(
@@ -45,7 +28,7 @@ class EvaluationSpec extends FlatSpec {
         Vector(14, 24, 34)
       )
     ).curry(1)
-     .eval(1)
+     .eval("1")
     ds.unsafeForce().data.sampleSeq.head match {
       case Sample(_, RangeData(mf: MemoizedFunction)) =>
         mf.sampleSeq.head match {

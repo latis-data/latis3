@@ -2,6 +2,7 @@ package latis.ops
 
 import latis.data.SampledFunction
 import latis.model.DataType
+import latis.util.LatisException
 
 /**
  * Defines an Operation that acts on a single Dataset.
@@ -22,12 +23,16 @@ trait UnaryOperation extends Operation {
 
 object UnaryOperation {
 
-  def makeOperation(name: String, args: List[String]): Option[UnaryOperation] = name match {
+  def makeOperation(
+    name: String,
+    args: List[String]
+  ): Either[LatisException, UnaryOperation] = name match {
     case "project" => Projection.fromArgs(args)
     case "rename" => Rename.fromArgs(args)
     case "curry" => Curry.fromArgs(args)
     case "pivot" => Pivot.fromArgs(args)
     case "evaluation" => Evaluation.fromArgs(args)
-    case _ => None
+    case "eval" => Evaluation.fromArgs(args)
+    case n => Left(LatisException(s"Unknown operator: $n"))
   }
 }

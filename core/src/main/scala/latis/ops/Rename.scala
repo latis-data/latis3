@@ -2,6 +2,7 @@ package latis.ops
 
 import latis.data.SampledFunction
 import latis.model._
+import latis.util.LatisException
 
 /**
  * Define an Operation that renames a specific variable within a Dataset.
@@ -24,8 +25,8 @@ case class Rename(origName: String, newName: String) extends UnaryOperation {
 
 object Rename {
 
-  def fromArgs(args: List[String]): Option[UnaryOperation] = args match {
-    case oldName :: newName :: Nil => Some(Rename(oldName, newName))
-    case _ => None
+  def fromArgs(args: List[String]): Either[LatisException, Rename] = args match {
+    case oldName :: newName :: Nil => Right(Rename(oldName, newName))
+    case _ => Left(LatisException("Rename requires exactly two arguments"))
   }
 }

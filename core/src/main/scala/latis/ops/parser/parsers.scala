@@ -3,7 +3,6 @@ package latis.ops.parser
 import atto.Atto._
 import atto.Parser
 
-import latis.data.Data
 import latis.ops.parser.ast._
 
 object parsers {
@@ -127,38 +126,4 @@ object parsers {
       t <- timeP | ok("")
     } yield List(y, m, d).mkString("-") + t
   }
-
-  def booleanValue: Parser[Data] = for {
-    n <- string("true") | string("True") | string("false") | string("False")
-  } yield Data.BooleanValue(n.toBoolean)
-
-  def floatValue: Parser[Data] = for {
-    n <- scientific | decimal
-    _ <- char('f') | char('F')
-  } yield Data.FloatValue(n.toFloat)
-
-  def doubleValue: Parser[Data] = for {
-    n <- scientific | decimal
-  } yield Data.DoubleValue(n.toDouble)
-
-  def intValue: Parser[Data] = for {
-    n <- integer
-  } yield Data.IntValue(n.toInt)
-
-  def longValue: Parser[Data] = for {
-    n <- integer
-    _ <- char('l') | char('L')
-  } yield Data.LongValue(n.toLong)
-
-  def numberValue: Parser[Data] =
-    floatValue | doubleValue | longValue | intValue
-
-  def stringValue: Parser[Data] = for {
-    s <- variable.token
-  // TODO: this will stop once it encounters a character that is not allowed as
-  //   a variable. Do we want to make StringValues from any string?
-  } yield Data.StringValue(s)
-
-  def data: Parser[Data] =
-    numberValue | booleanValue | stringValue
 }

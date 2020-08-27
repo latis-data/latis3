@@ -1,7 +1,6 @@
 package latis.ops
 
-import scala.util.Try
-import scala.util.Success
+import cats.implicits._
 
 import latis.data.DomainData
 import latis.data.Sample
@@ -73,12 +72,10 @@ case class Curry(arity: Int = 1) extends GroupOperation {
 
 object Curry {
 
-  def fromArgs(args: List[String]): Option[UnaryOperation] = args match {
-    case arity :: Nil => Try(arity.toInt) match {
-      case Success(a) => Some(Curry(a))
-      case _ => None
-    }
-    case Nil => Some(Curry())
-    case _ => None
+  def fromArgs(args: List[String]): Either[LatisException, Curry] = args match {
+    case arity :: Nil => Either.catchOnly[NumberFormatException](Curry(arity.toInt))
+      .leftMap(LatisException(_))
+    case Nil => Right(Curry())
+    case _ => Left(LatisException("Too many arguments to Curry"))
   }
 }

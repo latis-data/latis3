@@ -1,18 +1,15 @@
 package latis.ops
 
-import atto.Atto._
-import cats.implicits._
-
 import latis.data._
 import latis.model._
-import latis.ops.parser.parsers.data
+import latis.util.LatisException
 
 /**
  * Defines an operation that evaluates a Dataset at a given value
  * returning a new Dataset encapsulating the range value as a
  * ConstantFunction.
  */
-case class Evaluation(data: Data) extends UnaryOperation {
+case class Evaluation(data: String) extends UnaryOperation {
 
   def applyToModel(model: DataType): DataType = {
     //TODO: assert that data is of the right type based on the model domain
@@ -26,7 +23,8 @@ case class Evaluation(data: Data) extends UnaryOperation {
     case cf: ConstantFunction => cf
     case sf: SampledFunction =>
       val ecf = for {
-        dd <- DomainData.fromData(data)
+        v  <- model.getScalars.head.parseValue(data)
+        dd <- DomainData.fromData(v)
         rd <- sf(dd)
         d   = Data.fromSeq(rd)
       } yield ConstantFunction(d)
@@ -36,8 +34,8 @@ case class Evaluation(data: Data) extends UnaryOperation {
 
 object Evaluation {
 
-  def fromArgs(args: List[String]): Option[UnaryOperation] = for {
-    ds <- args.traverse(data.parseOnly(_).option)
-    d = Data.fromSeq(ds)
-  } yield Evaluation(d)
+  def fromArgs(args: List[String]): Either[LatisException, Evaluation] = args match {
+    case arg :: Nil => Right(Evaluation(arg))
+    case _ => Left(LatisException("Evaluation requires exactly one argument"))
+  }
 }
