@@ -133,7 +133,7 @@ object parsers {
   } yield Data.BooleanValue(n.toBoolean)
 
   def floatValue: Parser[Data] = for {
-    n <- decimal
+    n <- scientific | decimal
     _ <- char('f') | char('F')
   } yield Data.FloatValue(n.toFloat)
 
