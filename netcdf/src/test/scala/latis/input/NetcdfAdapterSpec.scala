@@ -11,6 +11,11 @@ import latis.ops.Selection
 
 class NetcdfAdapterSpec extends FlatSpec {
 
+  private val model = Function(
+    Scalar(Metadata("id" -> "time", "type" -> "int", "cadence" -> "1", "start" -> "7")),
+    Scalar(Metadata("id" -> "flux", "type" -> "double"))
+  )
+
   "A section" should "be strided" in {
     val section            = new Section("0:9:3, 1:4:2")
     val stride: Array[Int] = Array(2, 2)
@@ -107,9 +112,4 @@ class NetcdfAdapterSpec extends FlatSpec {
       Right(new Section(URange.EMPTY))
     )
   }
-
-  private val model = Function(
-    Scalar(Metadata("id" -> "time", "type" -> "int", "cadence" -> "1", "start" -> "7")),
-    Scalar(Metadata("id" -> "flux", "type" -> "double"))
-  )
 }
