@@ -5,17 +5,19 @@ import latis.metadata._
 import latis.util.DefaultDatumOrdering
 import latis.util.LatisException
 
+import scala.collection.mutable.ArrayBuffer
+
 /**
  * Define the algebraic data type for the LaTiS implementation of the
  * Functional Data Model.
  */
 sealed trait DataType extends MetadataLike with Serializable {
 
-  // Apply f to Scalars only, for now
+  /** Recursively apply f to this DataType. */
   def map(f: DataType => DataType): DataType = this match {
     case s: Scalar => f(s)
-    case Tuple(es @ _*) => Tuple(es.map(f))
-    case Function(d, r) => Function(d.map(f), r.map(f))
+    case t @ Tuple(es @ _*) => f(Tuple(t.metadata, es.map(f)))
+    case func @ Function(d, r) => f(Function(func.metadata, d.map(f), r.map(f)))
   }
 
   /**
@@ -42,8 +44,31 @@ sealed trait DataType extends MetadataLike with Serializable {
    * Find the DataType of a variable by its identifier or aliases.
    */
   def findVariable(variableName: String): Option[DataType] =
-    getVariable(variableName)
+    findAllVariables(variableName).headOption
     //TODO: support aliases
+
+  /**
+   * Find all Variables within this Variable by the given name.
+   */
+  def findAllVariables(variableName: String): Seq[DataType] = {
+    variableName.split('.') match {
+      case Array(_) =>
+        val vbuf = ArrayBuffer[DataType]()
+        if (this.id == variableName) vbuf += this //TODO: use hasName to cover aliases?
+        this match {
+          case _: Scalar =>
+          case Tuple(es @ _*) =>
+            vbuf ++= es.flatMap(_.findAllVariables(variableName))
+          case Function(d, r) => 
+            vbuf ++= d.findAllVariables(variableName) 
+            vbuf ++= r.findAllVariables(variableName)
+        }
+        vbuf.toSeq
+      case Array(n1, n2 @ _*) => {
+        findAllVariables(n1).flatMap(_.findAllVariables(n2.mkString(".")))
+      }
+    }
+  }
 
   /**
    * Return the function arity of this DataType.
@@ -72,22 +97,29 @@ sealed trait DataType extends MetadataLike with Serializable {
   /**
    * Return this DataType with all nested Tuples flattened to a single Tuple.
    * A Scalar will remain a Scalar.
-   * This form is consistent with Samples which don't preserve nested Functions.
+   * This form is consistent with Samples which don't preserve nested Tuples.
+   * Flattened Tuples retain the ID of the outermost Tuple.
    */
   def flatten: DataType = {
+    var tupIds = ""
     // Recursive helper function that uses an accumulator (acc)
     // to accumulate types while in the context of a Tuple
     // while the recursion results build up the final type.
     def go(dt: DataType, acc: Seq[DataType]): Seq[DataType] = dt match {
-      case s: Scalar      => acc :+ s
-      case Tuple(es @ _*) => es.flatMap(e => acc ++ go(e, Seq()))
-      case Function(d, r) => acc :+ Function(d.flatten, r.flatten)
+      //prepend Tuple ID(s) with dot(s) and drop leading dot(s)
+      case s: Scalar          => acc :+ s.rename(s"$tupIds.${s.id}".replaceFirst("^\\.+", ""))
+      case Function(d, r)     => acc :+ Function(d.flatten, r.flatten)
+      //build up a dot-separated String of Tuple IDs, including empty IDs that stand in for anonymous Tuples
+      case t @ Tuple(es @ _*) => if (tupIds.isEmpty && t.id.nonEmpty) tupIds = t.id else tupIds += s".${t.id}"
+        es.flatMap(e => acc ++ go(e, Seq()))
     }
 
     val types = go(this, Seq())
     types.length match {
       case 1 => types.head
-      case _ => Tuple(types)
+      case _ => 
+        if (tupIds.split('.').isEmpty) Tuple(types)
+        else Tuple(Metadata(tupIds.split('.').head), types)
     }
   }
 
@@ -95,12 +127,17 @@ sealed trait DataType extends MetadataLike with Serializable {
    * Return the path within this DataType to a given variable ID
    * as a sequence of SamplePositions.
    * Note that length of the path reflects the number of nested Functions.
+   * When searching a Tuple's ID, the path to the first Scalar in the Tuple is returned.
    */
   def getPath(id: String): Option[SamplePath] = {
 
     // Recursive function to try paths until it finds a match
     def go(dt: DataType, id: String, currentPath: SamplePath): Option[SamplePath] =
-      if (id == dt.id) Some(currentPath) //found it  //TODO: use hasName to cover aliases?
+      //TODO: use hasName to cover aliases?
+      //searching fully qualified ID with namespace
+      if (id.contains('.') && dt.id == id)    Some(currentPath) //found it
+      //searching variable ID without namespace
+      else if (dt.id.split('.').contains(id)) Some(currentPath) //found it
       else
         dt match { //recurse
           case _: Scalar => None //dead end
