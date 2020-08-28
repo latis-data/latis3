@@ -44,10 +44,7 @@ sealed trait DataType extends MetadataLike with Serializable {
    * Find the DataType of a variable by its identifier or aliases.
    */
   def findVariable(variableName: String): Option[DataType] =
-    findAllVariables(variableName) match {
-      case Seq()             => None
-      case vs: Seq[DataType] => Some(vs.head)
-    }
+    findAllVariables(variableName).headOption
     //TODO: support aliases
 
   /**
