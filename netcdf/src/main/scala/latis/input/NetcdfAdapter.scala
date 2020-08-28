@@ -12,6 +12,7 @@ import ucar.ma2.Section
 import ucar.ma2.{Array => NcArray}
 import ucar.ma2.{Range => URange}
 import ucar.nc2.dataset.NetcdfDataset
+import ucar.nc2.NetcdfFiles.makeValidPathName
 import ucar.nc2.{Variable => NcVariable}
 
 import latis.data._
@@ -345,7 +346,7 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
 
   // Note, get is safe since the id comes from the model in the first place
   private def getNcVarName(id: String): String =
-    model.findVariable(id).get.metadata.getProperty("origName").getOrElse(id)
+    makeValidPathName(model.findVariable(id).get.metadata.getProperty("origName").getOrElse(id))
 
   /**
    * Reads the section of the given variable into a NcArray.
