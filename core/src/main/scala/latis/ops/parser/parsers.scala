@@ -3,7 +3,7 @@ package latis.ops.parser
 import atto.Atto._
 import atto.Parser
 
-import ast._
+import latis.ops.parser.ast._
 
 object parsers {
 
@@ -45,9 +45,20 @@ object parsers {
 
   def operation: Parser[CExpr] = for {
     name <- identifier
-    argP  = time | number | stringLit | variable
-    args <- parens(sepBy(argP.token, char(',').token))
-  } yield Operation(name, args)
+    argsP <- parens(args)
+  } yield Operation(name, argsP)
+
+  def args: Parser[List[String]] = sepBy(arg.token, char(',').token)
+
+  def arg: Parser[String] =
+    scalarArg | listArg
+
+  def scalarArg: Parser[String] =
+    time | number | stringLit | variable
+
+  def listArg: Parser[String] = for {
+    l <- parens(sepBy(arg.token, char(',').token))
+  } yield "(" + l.mkString(",") + ")"
 
   def variable: Parser[String] =
     sepBy1(identifier, char('.')).map(_.toList.mkString("."))

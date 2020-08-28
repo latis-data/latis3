@@ -40,7 +40,7 @@ object FdmlParser {
     function   <- findRootFunction(xml)
     model      <- parseFunction(function)
     exprs      <- parseProcessingInstructions(xml)
-    operations <- parseExpressions(exprs)
+    operations <- exprs.traverse(parseExpression)
   } yield Fdml(metadata, source, adapter, model, operations)
 
   // Assuming that this is an FDML file if the root element is
@@ -154,11 +154,6 @@ object FdmlParser {
         LatisException(s"latis-operation must contain expression in $s").asLeft
     }.toList.sequence
   }
-
-  private def parseExpressions(
-    expressions: List[String]
-  ): Either[LatisException, List[CExpr]] =
-    expressions.traverse(parseExpression)
 
   private def parseExpression(
     expression: String

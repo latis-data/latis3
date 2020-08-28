@@ -21,7 +21,7 @@ package object dataset {
     def compose(df: Dataset): Dataset = dataset.withOperation(Composition(df))
     def contains(varName: String, values: String*): Dataset = dataset.withOperation(Contains(varName, values: _*))
     def rename(varName: String, newName: String): Dataset = dataset.withOperation(Rename(varName, newName))
-    def eval(value: Data): Dataset = dataset.withOperation(Evaluation(value))
+    def eval(value: String): Dataset = dataset.withOperation(Evaluation(value))
     def withReader(reader: DatasetReader): Dataset = dataset.withOperation(ReaderOperation(reader))
 
     def filter(predicate: Sample => Boolean): Dataset = dataset.withOperation(Filter(predicate))

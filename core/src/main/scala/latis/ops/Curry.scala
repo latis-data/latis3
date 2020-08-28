@@ -1,5 +1,7 @@
 package latis.ops
 
+import cats.implicits._
+
 import latis.data.DomainData
 import latis.data.Sample
 import latis.model.DataType
@@ -66,4 +68,14 @@ case class Curry(arity: Int = 1) extends GroupOperation {
     DefaultAggregation().compose(mapOp)
   }
 
+}
+
+object Curry {
+
+  def fromArgs(args: List[String]): Either[LatisException, Curry] = args match {
+    case arity :: Nil => Either.catchOnly[NumberFormatException](Curry(arity.toInt))
+      .leftMap(LatisException(_))
+    case Nil => Right(Curry())
+    case _ => Left(LatisException("Too many arguments to Curry"))
+  }
 }

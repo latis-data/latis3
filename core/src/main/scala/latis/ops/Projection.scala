@@ -60,4 +60,9 @@ object Projection {
 
   def apply(exp: String): Projection =
     Projection(exp.split(",").toIndexedSeq: _*)
+
+  def fromArgs(args: List[String]): Either[LatisException, Projection] = args match {
+    case Nil => Left(LatisException("Projection requires at least one argument"))
+    case _   => Right(Projection(args: _*))
+  }
 }

@@ -1,7 +1,11 @@
 package latis.ops
 
+import atto.Atto._
+
 import latis.data._
 import latis.model._
+import latis.ops.parser.parsers.scalarArg
+import latis.util.LatisException
 
 /**
  * Pivot the samples of a nested Function such that each outer sample becomes
@@ -79,4 +83,22 @@ case class Pivot(values: Seq[String], vids: Seq[String]) extends MapOperation {
     case _ => ??? //invalid data type
   }
 
+}
+
+object Pivot {
+
+  def fromArgs(args: List[String]): Either[LatisException, Pivot] = {
+    // define a parser that doesn't allow nested lists
+    val argParser = parens(sepBy(scalarArg.token, char(',').token))
+
+    args match {
+      case valuesStr :: vidsStr :: Nil => for {
+        values <- argParser.parseOnly(valuesStr).option
+          .toRight(LatisException(s"Failed to parse Pivot input 'values': $valuesStr"))
+        vids   <- argParser.parseOnly(vidsStr).option
+          .toRight(LatisException(s"Failed to parse Pivot input 'vids': $vidsStr"))
+      } yield Pivot(values, vids)
+      case _ => Left(LatisException("Pivot requires exactly two list arguments"))
+    }
+  }
 }
