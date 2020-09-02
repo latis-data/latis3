@@ -27,12 +27,13 @@ object UnaryOperation {
     name: String,
     args: List[String]
   ): Either[LatisException, UnaryOperation] = name match {
+    case "curry" => Curry.fromArgs(args)
+    case "eval" => Evaluation.fromArgs(args)
+    case "evaluation" => Evaluation.fromArgs(args)
+    case "pivot" => Pivot.fromArgs(args)
     case "project" => Projection.fromArgs(args)
     case "rename" => Rename.fromArgs(args)
-    case "curry" => Curry.fromArgs(args)
-    case "pivot" => Pivot.fromArgs(args)
-    case "evaluation" => Evaluation.fromArgs(args)
-    case "eval" => Evaluation.fromArgs(args)
+    case "timeTupleToTime" => TimeTupleToTime.fromArgs(args)
     case n => Left(LatisException(s"Unknown operator: $n"))
   }
 }
