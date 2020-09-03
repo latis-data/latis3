@@ -74,3 +74,12 @@ case class TimeTupleToTime(name: String = "time") extends MapOperation {
   }
 
 }
+
+object TimeTupleToTime {
+
+  def fromArgs(args: List[String]): Either[LatisException, TimeTupleToTime] = args match {
+    case Nil         => Right(TimeTupleToTime())
+    case name :: Nil => Right(TimeTupleToTime(name))
+    case _           => Left(LatisException("Too many arguments to TimeTupleToTime"))
+  }
+}
