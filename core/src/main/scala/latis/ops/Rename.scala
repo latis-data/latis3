@@ -12,7 +12,7 @@ case class Rename(origName: String, newName: String) extends UnaryOperation {
 
   def applyToModel(model: DataType): DataType =
     model.map {
-      case v if (v.id == origName) => v.rename(newName)
+      case v if (v.id == origName) => v.rename(newName).asInstanceOf[Scalar]
       //TODO: support aliases with hasName
       case v => v
     }
