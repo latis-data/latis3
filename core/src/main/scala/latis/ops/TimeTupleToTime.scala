@@ -14,7 +14,7 @@ import latis.util.LatisException
  */
 case class TimeTupleToTime(name: String = "time") extends MapOperation {
 
-  override def applyToModel(model: DataType): DataType = model.map {
+  override def applyToModel(model: DataType): DataType = model.fold {
       case t @ Tuple(es @ _*) if t.id == name => //TODO: support aliases with hasName?
         //build up format string
         val format: String = es.toList.traverse(_("units"))
