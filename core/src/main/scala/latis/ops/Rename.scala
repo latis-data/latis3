@@ -10,17 +10,21 @@ import latis.util.LatisException
  */
 case class Rename(origName: String, newName: String) extends UnaryOperation {
 
-  def applyToModel(model: DataType): DataType =
-    model.map {
-      case v if (v.id == origName) => v.rename(newName)
-      //TODO: support aliases with hasName
-      case v => v
+  def applyToModel(model: DataType): Either[LatisException, DataType] =
+  // TODO: support renaming tuples and functions
+    model.getVariable(origName) match {
+      case None => Left(LatisException(s"Variable '$origName' not found"))
+      case _ => Right(model.map { s =>
+        if (s.id == origName) s.rename(newName)
+        else s
+        //TODO: support aliases with hasName
+      })
     }
 
   /**
    * Provides a no-op implementation for Rename.
    */
-  def applyToData(data: SampledFunction, model: DataType): SampledFunction = data
+  def applyToData(data: SampledFunction, model: DataType): Either[LatisException, SampledFunction] = Right(data)
 }
 
 object Rename {

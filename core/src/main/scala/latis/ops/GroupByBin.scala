@@ -5,6 +5,7 @@ import scala.collection.mutable.ListBuffer
 
 import latis.data._
 import latis.model._
+import latis.util.LatisException
 
 /**
  * Defines a GroupOperation that uses the given domainSet
@@ -22,10 +23,13 @@ case class GroupByBin(
   /**
    * Extends the default by constructing a SetFunction with the domainSet.
    */
-  override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
-    val range = super.applyToData(data, model).unsafeForce.sampleSeq.map(_.range).toIndexedSeq
-    SetFunction(domainSet, range)
-  }
+  override def applyToData(
+    data: SampledFunction,
+    model: DataType
+  ): Either[LatisException, SampledFunction] = for {
+    data <- super.applyToData(data, model)
+    range = data.unsafeForce.sampleSeq.map(_.range).toIndexedSeq
+  } yield SetFunction(domainSet, range)
 
   /*
   TODO: NearestNeaighborAgg, need diff agg for each bin, with DomainData to be closest to

@@ -15,26 +15,26 @@ case class Resample(dset: DomainSet) extends UnaryOperation {
   /**
    * Resampling does not affect the model.
    */
-  def applyToModel(model: DataType): DataType = model match {
+  def applyToModel(model: DataType): Either[LatisException, DataType] = model match {
     case f: Function =>
       //TODO: assert that set types matches dataset domain types
       if (f.arity != dset.rank)
-        throw LatisException("Function domain and domain set must have same dimensions")
-      else f
+        Left(LatisException("Function domain and domain set must have same dimensions"))
+      else Right(f)
     //Data that is not a Function needs domain added to it
-    case d => Function(dset.model, d)
+    case d => Right(Function(dset.model, d))
   }
 
   /**
    * Apply the DomainSet to the given SampledFunction.
    */
-  def applyToData(sf: SampledFunction, model: DataType): SampledFunction = sf match {
+  def applyToData(sf: SampledFunction, model: DataType): Either[LatisException, SampledFunction] = sf match {
     case ConstantFunction(data) =>
       // Duplicate const for every domain value
       val range: IndexedSeq[RangeData] = Vector.fill(dset.length)(RangeData(data))
-      SetFunction(dset, range)
+      Right(SetFunction(dset, range))
     case sf: SampledFunction =>
-      sf(dset).toTry.get //throw the exception if Left
+      sf(dset)
   }
 
 }

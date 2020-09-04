@@ -12,12 +12,12 @@ trait UnaryOperation extends Operation {
   /**
    * Provides a new model resulting from this Operation.
    */
-  def applyToModel(model: DataType): DataType
+  def applyToModel(model: DataType): Either[LatisException, DataType]
 
   /**
    * Provides new Data resulting from this Operation.
    */
-  def applyToData(data: SampledFunction, model: DataType): SampledFunction
+  def applyToData(data: SampledFunction, model: DataType): Either[LatisException, SampledFunction]
 
 }
 

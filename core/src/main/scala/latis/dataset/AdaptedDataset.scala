@@ -3,6 +3,7 @@ package latis.dataset
 import java.net.URI
 
 import cats.effect.IO
+import cats.implicits._
 import fs2.Stream
 
 import latis.data.Sample
@@ -10,6 +11,7 @@ import latis.input.Adapter
 import latis.metadata.Metadata
 import latis.model.DataType
 import latis.ops.UnaryOperation
+import latis.util.LatisException
 
 /**
  * Defines a Dataset with data provided via an Adapter.
@@ -45,7 +47,7 @@ class AdaptedDataset(
    * resource.
    * Contrast to "unsafeForce".
    */
-  def tap(): TappedDataset = {
+  def tap(): Either[LatisException, TappedDataset] = {
     // Separate leading operation that the adapter can handle
     // from the rest. Note that we must preserve the order for safety.
     //TODO: "compile" the Operations to optimize the order of application
@@ -56,24 +58,25 @@ class AdaptedDataset(
 
     // Apply the adapter handled operations to the model
     // since the Adapter can't.
-    val model2 = adapterOps.foldLeft(_model)((mod, op) => op.applyToModel(mod))
+    val model2 = adapterOps.toList
+      .foldM(_model)((mod, op) => op.applyToModel(mod))
 
     // Delegate to the Adapter to get the (potentially lazy) data.
     val data = adapter.getData(uri, adapterOps)
 
     // Construct the new Dataset
-    new TappedDataset(_metadata, model2, data, otherOps)
+    model2.map(new TappedDataset(_metadata, _, data, otherOps))
   }
 
   /**
    * Returns a Stream of Samples from this Dataset.
    */
-  def samples: Stream[IO, Sample] = tap().samples
+  def samples: Stream[IO, Sample] = tap().fold(Stream.raiseError[IO](_), _.samples)
 
   /**
    * Transforms this TappedDataset into a MemoizedDataset.
    * Operations will be applied and the resulting samples
    * will be read into a MemoizedFunction.
    */
-  def unsafeForce(): MemoizedDataset = tap().unsafeForce()
+  def unsafeForce(): MemoizedDataset = tap().fold(throw _, identity).unsafeForce()
 }

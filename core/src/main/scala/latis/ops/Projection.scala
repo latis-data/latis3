@@ -14,10 +14,8 @@ case class Projection(vnames: String*) extends MapOperation {
   //TODO: support dot notation for nested tuples
   //TODO: Index place holders for non-projected domain variables
 
-  override def applyToModel(model: DataType): DataType =
-    applyToVariable(model).getOrElse {
-      throw LatisException("Nothing projected")
-    }
+  override def applyToModel(model: DataType): Either[LatisException, DataType] =
+    applyToVariable(model).toRight(LatisException("Nothing projected"))
 
   /** Recursive method to apply the projection. */
   private def applyToVariable(v: DataType): Option[DataType] = v match {

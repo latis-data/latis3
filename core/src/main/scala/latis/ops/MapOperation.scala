@@ -6,6 +6,7 @@ import fs2.Stream
 
 import latis.data._
 import latis.model._
+import latis.util.LatisException
 
 /**
  * Defines an Operation that maps a function of Sample => Sample
@@ -32,11 +33,11 @@ trait MapOperation extends StreamOperation { self =>
    * Note that the given Operation will be applied first.
    */
   def compose(mapOp: MapOperation): MapOperation = new MapOperation {
-    def applyToModel(model: DataType): DataType =
-      self.applyToModel(mapOp.applyToModel(model))
+    def applyToModel(model: DataType): Either[LatisException, DataType] =
+      mapOp.applyToModel(model).flatMap(self.applyToModel)
 
     def mapFunction(model: DataType): Sample => Sample = {
-      val tmpModel = mapOp.applyToModel(model)
+      val tmpModel = mapOp.applyToModel(model).fold(throw _, identity)
       mapOp.mapFunction(model).andThen(self.mapFunction(tmpModel))
     }
   }

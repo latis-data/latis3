@@ -1,13 +1,15 @@
 package latis.dataset
 
 import cats.effect.IO
+import cats.implicits._
 import fs2.Stream
 
-import latis.data._
 import latis.data.SampledFunction
+import latis.data._
 import latis.metadata.Metadata
 import latis.model.DataType
 import latis.ops.UnaryOperation
+import latis.util.LatisException
 
 /**
  * Defines a Dataset with data represented as a SampledFunction.
@@ -50,29 +52,28 @@ class TappedDataset(
   /**
    * Applies the operations and returns a Stream of Samples.
    */
-  def samples: Stream[IO, Sample] = applyOperations().samples
+  def samples: Stream[IO, Sample] =
+    applyOperations().fold(Stream.raiseError[IO](_), _.samples)
 
   /**
    * Applies the Operations to the Data and returns a SampledFunction.
    */
-  private def applyOperations(): SampledFunction = {
+  private def applyOperations(): Either[LatisException, SampledFunction] = {
     //TODO: compile/optimize the operations
 
     // Defines a function to apply an Operation to a SampledFunction.
     // The model (DataType) needs to ride along to provide context.
-    val f: ((DataType, SampledFunction), UnaryOperation) => (DataType, SampledFunction) =
-      (modat: (DataType, SampledFunction), op: UnaryOperation) =>
-        modat match {
-          case (model: DataType, data: SampledFunction) =>
-            val mod2 = op.applyToModel(model)
-            // Enables a smart SampledFunction to apply the Operation.
-            // Note that it will return a superclass if it can't.
-            val dat2 = data.asFunction.applyOperation(op, model)
-            (mod2, dat2)
-        }
+    val f: ((DataType, SampledFunction), UnaryOperation) => Either[LatisException, (DataType, SampledFunction)] = {
+      case ((model: DataType, data: SampledFunction), op: UnaryOperation) =>
+        val mod2 = op.applyToModel(model)
+        // Enables a smart SampledFunction to apply the Operation.
+        // Note that it will return a superclass if it can't.
+        val dat2 = data.asFunction.applyOperation(op, model)
+        mod2.product(dat2)
+    }
 
     // Apply the operations to the data
-    operations.foldLeft((_model, data.asFunction))(f)._2
+    operations.toList.foldM((_model, data.asFunction))(f).map(_._2)
   }
 
   /**
@@ -83,7 +84,7 @@ class TappedDataset(
   def unsafeForce(): MemoizedDataset = new MemoizedDataset(
     metadata,  //from super with ops applied
     model,     //from super with ops applied
-    applyOperations().unsafeForce
+    applyOperations().fold(throw _, identity).unsafeForce
   )
 
 }

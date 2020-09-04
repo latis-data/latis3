@@ -1,15 +1,14 @@
 package latis.ops
 
+import org.scalatest.FlatSpec
+import org.scalatest.Matchers._
+
 import latis.data._
 import latis.dataset.MemoizedDataset
 import latis.metadata.Metadata
 import latis.model._
-import latis.output.TextWriter
 import latis.time.Time
 import latis.util.StreamUtils
-
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
 
 class TimeTupleToTimeSpec extends FlatSpec {
   
@@ -25,11 +24,11 @@ class TimeTupleToTimeSpec extends FlatSpec {
     )
     val data: MemoizedFunction = SeqFunction(
       Seq(
-        Sample(DomainData(Data.IntValue(1945), Data.IntValue(1), Data.IntValue(1)), RangeData(10)),
-        Sample(DomainData(Data.IntValue(1945), Data.IntValue(1), Data.IntValue(2)), RangeData(20)),
-        Sample(DomainData(Data.IntValue(1945), Data.IntValue(1), Data.IntValue(3)), RangeData(30)),
-        Sample(DomainData(Data.IntValue(1945), Data.IntValue(1), Data.IntValue(4)), RangeData(40)),
-        Sample(DomainData(Data.IntValue(1945), Data.IntValue(1), Data.IntValue(5)), RangeData(50))
+        Sample(DomainData(1945, 1, 1), RangeData(10)),
+        Sample(DomainData(1945, 1, 2), RangeData(20)),
+        Sample(DomainData(1945, 1, 3), RangeData(30)),
+        Sample(DomainData(1945, 1, 4), RangeData(40)),
+        Sample(DomainData(1945, 1, 5), RangeData(50))
       )
     )
     new MemoizedDataset(metadata, model, data)
@@ -49,11 +48,32 @@ class TimeTupleToTimeSpec extends FlatSpec {
     )
     val data: MemoizedFunction = SeqFunction(
       Seq(
-        Sample(DomainData(Data.IntValue(1), Data.IntValue(1945), Data.IntValue(1)), RangeData(10)),
-        Sample(DomainData(Data.IntValue(2), Data.IntValue(1945), Data.IntValue(2)), RangeData(20)),
-        Sample(DomainData(Data.IntValue(3), Data.IntValue(1945), Data.IntValue(3)), RangeData(30)),
-        Sample(DomainData(Data.IntValue(4), Data.IntValue(1945), Data.IntValue(4)), RangeData(40)),
-        Sample(DomainData(Data.IntValue(5), Data.IntValue(1945), Data.IntValue(5)), RangeData(50))
+        Sample(DomainData(1, 1945, 1), RangeData(10)),
+        Sample(DomainData(2, 1945, 2), RangeData(20)),
+        Sample(DomainData(3, 1945, 3), RangeData(30)),
+        Sample(DomainData(4, 1945, 4), RangeData(40)),
+        Sample(DomainData(5, 1945, 5), RangeData(50))
+      )
+    )
+    new MemoizedDataset(metadata, model, data)
+  }
+
+  def mockDataset3: MemoizedDataset = {
+    val metadata: Metadata = Metadata("MockDataset3" + ("title" -> "Mock Dataset 3"))
+    val model: DataType = Function(
+      Scalar(Metadata("a") + ("type" -> "int")),
+      Tuple(Metadata("time"),
+        Scalar(Metadata("year")  + ("type" -> "string") + ("units" -> "yyyy")),
+        Scalar(Metadata("month") + ("type" -> "string") + ("units" -> "MM"))
+      )
+    )
+    val data: MemoizedFunction = SeqFunction(
+      Seq(
+        Sample(DomainData(10), RangeData(TupleData(1945, 1))),
+        Sample(DomainData(20), RangeData(TupleData(1945, 2))),
+        Sample(DomainData(30), RangeData(TupleData(1945, 3))),
+        Sample(DomainData(40), RangeData(TupleData(1945, 4))),
+        Sample(DomainData(50), RangeData(TupleData(1945, 5)))
       )
     )
     new MemoizedDataset(metadata, model, data)
@@ -61,8 +81,6 @@ class TimeTupleToTimeSpec extends FlatSpec {
 
   "The TimeTupleToTime operation" should "convert a time tuple to a time scalar" in {
     val ds = mockDataset.withOperation(TimeTupleToTime())
-
-    //TextWriter().write(ds)
 
     ds.model match {
       case Function(t: Time, _: Scalar) =>
@@ -79,8 +97,6 @@ class TimeTupleToTimeSpec extends FlatSpec {
   it should "convert a nested time tuple to a time scalar" in {
     val ds = mockDataset2.withOperation(TimeTupleToTime())
 
-    //TextWriter().write(ds)
-
     ds.model match {
       case Function(Tuple(es @ _*), _: Scalar) => es(1) match {
         case t: Time => t.units should be ("yyyy MM")
@@ -92,6 +108,20 @@ class TimeTupleToTimeSpec extends FlatSpec {
         a should be (1)
         time should be ("1945 1")
         f should be (10)
+    }
+  }
+
+  it should "convert a time tuple in the range to a time scalar" in {
+    val ds = mockDataset3.withOperation(TimeTupleToTime())
+
+    ds.model match {
+      case Function(_: Scalar, t: Time) => t.units should be ("yyyy MM")
+    }
+
+    StreamUtils.unsafeHead(ds.samples) match {
+      case Sample(DomainData(Number(a)), RangeData(Text(time))) =>
+        a should be (10)
+        time should be ("1945 1")
     }
   }
   

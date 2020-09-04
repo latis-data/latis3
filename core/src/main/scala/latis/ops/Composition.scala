@@ -1,5 +1,7 @@
 package latis.ops
 
+import cats.implicits._
+
 import latis.data.Data
 import latis.data.DomainData
 import latis.dataset.ComputationalDataset
@@ -11,15 +13,18 @@ import latis.util.LatisException
 
 case class Composition(dataset: Dataset) extends MapRangeOperation {
 
-  override def applyToModel(model: DataType): DataType = {
+  override def applyToModel(model: DataType): Either[LatisException, DataType] = {
     //TODO: make sure dataset range matches compFunction domain
     val domain = model match {
-      case Function(d, _) => d
+      case Function(d, _) => Right(d)
+      case _ => Left(LatisException("Model must be a function"))
     }
     val range = dataset.model match {
-      case Function(_, r) => r
+      case Function(_, r) => Right(r)
+      case _ => Left(LatisException("Composed dataset must be a function"))
+      // TODO: check this in a smart constructor
     }
-    Function(domain, range)
+    (domain, range).mapN(Function(_, _))
   }
 
   override def mapFunction(model: DataType): Data => Data = {

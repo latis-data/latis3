@@ -1,5 +1,7 @@
 package latis.ops
 
+import cats.implicits._
+
 import latis.data._
 import latis.model._
 import latis.util.LatisException
@@ -69,23 +71,23 @@ case class GroupByVariable(variableNames: String*) extends GroupOperation {
  */
 case class RemoveGroupedVariables(variableNames: Seq[String]) extends MapOperation {
 
-  override def applyToModel(model: DataType): DataType =
-    applyToVariable(model).get
+  override def applyToModel(model: DataType): Either[LatisException, DataType] =
+    applyToVariable(model).toRight(LatisException("variableNames filtered entire model."))
 
-  /** Recursive method to build new model buy dropping variableNames. */
+  /** Recursive method to build new model by dropping variableNames. */
   private def applyToVariable(v: DataType): Option[DataType] = v match {
     case s: Scalar =>
       if (variableNames.contains(s.id)) None else Some(s)
-    case Tuple(vars @ _*) =>
+    case t @ Tuple(vars @ _*) =>
       val vs = vars.flatMap(applyToVariable)
       vs.length match {
         case 0 => None // drop empty Tuple
         case 1 => Some(vs.head) // reduce Tuple of one
-        case _ => Some(Tuple(vs))
+        case _ => Some(Tuple(t.metadata, vs))
       }
-    case Function(d, r) =>
+    case f @ Function(d, r) =>
       (applyToVariable(d), applyToVariable(r)) match {
-        case (Some(d), Some(r)) => Some(Function(d, r))
+        case (Some(d), Some(r)) => Some(Function(f.metadata, d, r))
         case (None, Some(r)) => Some(r)
         //TODO: deal with empty range
         case _ => None

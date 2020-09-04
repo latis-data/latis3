@@ -3,6 +3,7 @@ package latis.ops
 import latis.data.SampledFunction
 import latis.dataset._
 import latis.model.DataType
+import latis.util.LatisException
 
 /**
  * Wraps a BinaryOperation with the initial Dataset
@@ -15,14 +16,14 @@ case class PartiallyAppliedBinaryOperation(
   //TODO: provide both left and right versions
   //TODO: capture 1st dataset in prov
 
-  override def applyToModel(model: DataType): DataType =
+  override def applyToModel(model: DataType): Either[LatisException, DataType] =
     binOp.applyToModel(dataset.model, model)
 
-  override def applyToData(data: SampledFunction, model: DataType): SampledFunction = {
+  override def applyToData(data: SampledFunction, model: DataType): Either[LatisException, SampledFunction] = {
     val data0 = dataset match {
-      case ad: AdaptedDataset => ad.tap().data.asFunction
-      case td: TappedDataset  => td.data.asFunction
+      case ad: AdaptedDataset => ad.tap().map(_.data.asFunction)
+      case td: TappedDataset  => Right(td.data.asFunction)
     }
-    binOp.applyToData(data0, data)
+    data0.flatMap(binOp.applyToData(_, data))
   }
 }

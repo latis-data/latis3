@@ -73,7 +73,10 @@ trait SampledFunction extends Data {
     }
 
   //def canHandleOperation(op: UnaryOperation): Boolean
-  def applyOperation(op: UnaryOperation, model: DataType): SampledFunction = //TODO: Either
+  def applyOperation(
+    op: UnaryOperation,
+    model: DataType
+  ): Either[LatisException, SampledFunction] =
     op.applyToData(this, model) //default when special SF can't apply op
 
   def unsafeForce: MemoizedFunction = this match { //TODO: Either
