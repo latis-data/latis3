@@ -4,6 +4,7 @@ import scala.collection.mutable.ArrayBuffer
 
 import cats.Applicative
 import cats.Monad
+import cats.Semigroupal
 import cats.implicits._
 
 import latis.data._
@@ -26,8 +27,8 @@ sealed trait DataType extends MetadataLike with Serializable {
 
   def traverse[F[_]: Applicative](f: Scalar => F[Scalar]): F[DataType] = this match {
     case s: Scalar => f(s).asInstanceOf[F[DataType]]
-    case t @ Tuple(es @ _*) =>
-      es.toList.traverse(_.traverse(f)).map(Tuple(t.metadata, _))
+    case t @ Tuple(es @ _*) => es.toList.traverse(_.traverse(f))
+      .map(Tuple(t.metadata, _))
     case func @ Function(d, r) =>
       Applicative[F].map2(d.traverse(f), r.traverse(f))(Function(func.metadata, _, _))
   }
@@ -46,12 +47,10 @@ sealed trait DataType extends MetadataLike with Serializable {
 
   def foldM[M[_]: Monad](f: DataType => M[DataType]): M[DataType] = this match {
     case s: Scalar => f(s)
-    case t @ Tuple(es @ _*) =>
-      val esFolded = es.toList.traverse(_.foldM(f))
-      esFolded.flatMap(es => f(Tuple(t.metadata, es)))
-    case func @ Function(d, r) =>
-      val dAndR = Applicative[M].map2(d.foldM(f), r.foldM(f))((_, _))
-      dAndR.flatMap{ case (d, r) => f(Function(func.metadata, d, r)) }
+    case t @ Tuple(es @ _*) => es.toList.traverse(_.foldM(f))
+      .flatMap(es => f(Tuple(t.metadata, es)))
+    case func @ Function(d, r) => Semigroupal[M].product(d.foldM(f), r.foldM(f))
+      .flatMap{ case (d, r) => f(Function(func.metadata, d, r)) }
   }
 
   /**
