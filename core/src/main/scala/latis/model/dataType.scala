@@ -1,11 +1,15 @@
 package latis.model
 
+import scala.collection.mutable.ArrayBuffer
+
+import cats.Applicative
+import cats.Monad
+import cats.implicits._
+
 import latis.data._
 import latis.metadata._
 import latis.util.DefaultDatumOrdering
 import latis.util.LatisException
-
-import scala.collection.mutable.ArrayBuffer
 
 /**
  * Define the algebraic data type for the LaTiS implementation of the
@@ -13,11 +17,41 @@ import scala.collection.mutable.ArrayBuffer
  */
 sealed trait DataType extends MetadataLike with Serializable {
 
-  /** Recursively apply f to this DataType. */
-  def map(f: DataType => DataType): DataType = this match {
+  /** Recursively apply f to every scalar in this DataType. */
+  def map(f: Scalar => Scalar): DataType = this match {
     case s: Scalar => f(s)
-    case t @ Tuple(es @ _*) => f(Tuple(t.metadata, es.map(f)))
-    case func @ Function(d, r) => f(Function(func.metadata, d.map(f), r.map(f)))
+    case t @ Tuple(es @ _*) => Tuple(t.metadata, es.map(_.map(f)))
+    case func @ Function(d, r) => Function(func.metadata, d.map(f), r.map(f))
+  }
+
+  def traverse[F[_]: Applicative](f: Scalar => F[Scalar]): F[DataType] = this match {
+    case s: Scalar => f(s).asInstanceOf[F[DataType]]
+    case t @ Tuple(es @ _*) =>
+      es.toList.traverse(_.traverse(f)).map(Tuple(t.metadata, _))
+    case func @ Function(d, r) =>
+      Applicative[F].map2(d.traverse(f), r.traverse(f))(Function(func.metadata, _, _))
+  }
+
+  def fold(f: DataType => DataType): DataType = this match {
+    case s: Scalar => f(s)
+    case t @ Tuple(es @ _*) => f(Tuple(t.metadata, es.map(_.fold(f))))
+    case func @ Function(d, r) => f(Function(func.metadata, d.fold(f), r.fold(f)))
+  }
+
+  def fold[B](fs: Scalar => B)(ft: Seq[B] => B)(ff: (B, B) => B): B = this match {
+    case s: Scalar => fs(s)
+    case Tuple(es @ _*) => ft(es.map(_.fold(fs)(ft)(ff)))
+    case Function(d, r) => ff(d.fold(fs)(ft)(ff), r.fold(fs)(ft)(ff))
+  }
+
+  def foldM[M[_]: Monad](f: DataType => M[DataType]): M[DataType] = this match {
+    case s: Scalar => f(s)
+    case t @ Tuple(es @ _*) =>
+      val esFolded = es.toList.traverse(_.foldM(f))
+      esFolded.flatMap(es => f(Tuple(t.metadata, es)))
+    case func @ Function(d, r) =>
+      val dAndR = Applicative[M].map2(d.foldM(f), r.foldM(f))((_, _))
+      dAndR.flatMap{ case (d, r) => f(Function(func.metadata, d, r)) }
   }
 
   /**
