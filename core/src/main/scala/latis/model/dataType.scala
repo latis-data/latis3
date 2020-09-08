@@ -25,6 +25,7 @@ sealed trait DataType extends MetadataLike with Serializable {
     case func @ Function(d, r) => Function(func.metadata, d.map(f), r.map(f))
   }
 
+  /** Recursively apply f to every scalar in this DataType. */
   def traverse[F[_]: Applicative](f: Scalar => F[Scalar]): F[DataType] = this match {
     case s: Scalar => f(s).asInstanceOf[F[DataType]]
     case t @ Tuple(es @ _*) => es.toList.traverse(_.traverse(f))
@@ -33,18 +34,25 @@ sealed trait DataType extends MetadataLike with Serializable {
       Applicative[F].map2(d.traverse(f), r.traverse(f))(Function(func.metadata, _, _))
   }
 
+  /** Recursively apply f to every element in this DataType depth-first. */
   def fold(f: DataType => DataType): DataType = this match {
     case s: Scalar => f(s)
     case t @ Tuple(es @ _*) => f(Tuple(t.metadata, es.map(_.fold(f))))
     case func @ Function(d, r) => f(Function(func.metadata, d.fold(f), r.fold(f)))
   }
 
+  /**
+   * Depth-first recursively apply fs to every scalar in this DataType, then ft
+   * to the resulting elements of a Tuple and ff to the resulting domain and
+   * range of a Function.
+   */
   def fold[B](fs: Scalar => B)(ft: Seq[B] => B)(ff: (B, B) => B): B = this match {
     case s: Scalar => fs(s)
     case Tuple(es @ _*) => ft(es.map(_.fold(fs)(ft)(ff)))
     case Function(d, r) => ff(d.fold(fs)(ft)(ff), r.fold(fs)(ft)(ff))
   }
 
+  /** Recursively apply f to every element in this DataType depth-first. */
   def foldM[M[_]: Monad](f: DataType => M[DataType]): M[DataType] = this match {
     case s: Scalar => f(s)
     case t @ Tuple(es @ _*) => es.toList.traverse(_.foldM(f))
