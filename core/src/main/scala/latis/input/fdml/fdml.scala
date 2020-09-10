@@ -8,13 +8,25 @@ import latis.model.ValueType
 import latis.ops.parser.ast.CExpr
 
 /** Abstract representation of an FDML file. */
-final case class Fdml(
+sealed trait Fdml
+
+/** FDML file defining a dataset from a URI and adapter. */
+final case class DatasetFdml(
   metadata: Metadata,
-  source: FSource,
-  adapter: FAdapter,
+  source: UriSource,
+  adapter: SingleAdapter,
   model: FFunction,
   operations: List[CExpr] = List.empty
-)
+) extends Fdml
+
+/** FDML file defining a dataset from granules. */
+final case class GranuleAppendFdml(
+  metadata: Metadata,
+  source: FdmlSource,
+  adapter: NestedAdapter,
+  model: FFunction,
+  operations: List[CExpr] = List.empty
+) extends Fdml
 
 /**
  * Abstract representation of an adapter.
@@ -28,11 +40,10 @@ final case class Fdml(
  * @param clss fully qualified name of class implementing adapter
  * @param attributes additional metadata
  */
-final case class FAdapter(
+sealed abstract class FAdapter(
   clss: String,
   attributes: Map[String, String]
 ) {
-
   /**
    * Returns an [[AdapterConfig]] for this adapter.
    *
@@ -43,8 +54,30 @@ final case class FAdapter(
     AdapterConfig((("class" -> clss) :: attributes.toList): _*)
 }
 
+/** A single, normal adapter. */
+final case class SingleAdapter(
+  clss: String,
+  attributes: Map[String, String]
+) extends FAdapter(clss, attributes)
+
+/**
+ * A nested adapter, where the outer adapter specifies how to join the
+ * output of the inner adapter.
+ */
+final case class NestedAdapter(
+  clss: String,
+  attributes: Map[String, String],
+  nested: SingleAdapter
+) extends FAdapter(clss, attributes)
+
 /** Abstract representation of a dataset source. */
-final case class FSource(uri: URI)
+sealed trait FSource
+
+/** A source from a URI. */
+final case class UriSource(uri: URI) extends FSource
+
+/** A source from a granule list dataset. */
+final case class FdmlSource(fdml: DatasetFdml) extends FSource
 
 // Not using the FDM definition in latis.model because it can't
 // enforce useful invariants (scalars have an ID and a type, tuples

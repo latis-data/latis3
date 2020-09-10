@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<dataset id="granuleAppend">
+
+  <source>
+    <dataset>
+      <adapter class="granule-class"/>
+      <source uri="file:///source"/>
+      <function>
+        <scalar id="time"
+                units="days since 2000-01-01"
+                type="int"
+                class="latis.time.Time"/>
+        <scalar id="uri" type="string"/>
+      </function>
+    </dataset>
+  </source>
+
+  <adapter class="outer-class">
+    <adapter class="inner-class"/>
+  </adapter>
+
+  <function>
+    <scalar id="time"
+            units="days since 2000-01-01"
+            type="int"
+            class="latis.time.Time"/>
+    <scalar id="a" type="int"/>
+  </function>
+</dataset>

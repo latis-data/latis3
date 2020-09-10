@@ -8,7 +8,7 @@ import latis.model.DoubleValueType
 class FdmlSpec extends FlatSpec {
 
   "An FAdapter" should "create a valid AdapterConfig" in {
-    val config = FAdapter("class", Map("key" -> "value")).config.properties
+    val config = SingleAdapter("class", Map("key" -> "value")).config.properties
 
     config should contain ("class" -> "class")
     config should contain ("key" -> "value")

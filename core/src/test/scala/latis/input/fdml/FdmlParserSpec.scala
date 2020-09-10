@@ -18,16 +18,16 @@ final class FdmlParserSpec extends FlatSpec {
 
   "An FDML parser" should "parse a valid FDML file" in
     withFdmlFile("fdml-parser/valid.fdml") { fdml =>
-      inside(fdml.right.value) { case Fdml(metadata, source, adapter, model, operations) =>
+      inside(fdml.right.value) { case DatasetFdml(metadata, source, adapter, model, operations) =>
         metadata.properties should contain ("id" -> "valid")
         metadata.properties should contain ("title" -> "Valid Dataset")
         metadata.properties should not contain key ("xsi:noNamespaceSchemaLocation")
 
-        inside(source) { case FSource(uri) =>
+        inside(source) { case UriSource(uri) =>
           uri.toString() should equal ("file:///fake/path")
         }
 
-        inside(adapter) { case FAdapter(clss, attrs) =>
+        inside(adapter) { case SingleAdapter(clss, attrs) =>
           clss should equal ("latis.input.TextAdapter")
           attrs should contain ("skipLines" -> "1")
         }
@@ -185,6 +185,63 @@ final class FdmlParserSpec extends FlatSpec {
   it should "require that operations have valid expressions" in
     withFdmlFile("fdml-parser/operation-with-bad-expression.fdml") { fdml =>
       fdml.left.value.getMessage should startWith ("Failed to parse expression")
+    }
+
+  it should "parse valid granule append FDML" in
+    withFdmlFile("fdml-parser/granule-append.fdml") {
+      case Left(err)   => fail(err.message)
+      case Right(fdml) =>
+        inside(fdml) { case GranuleAppendFdml(metadata, source, adapter, model, ops) =>
+          metadata.properties should contain ("id" -> "granuleAppend")
+
+          inside(source) { case FdmlSource(granuleFdml) =>
+            inside(granuleFdml) { case DatasetFdml(metadata, source, adapter, model, _) =>
+              inside(source) { case UriSource(uri) =>
+                uri.toString() should equal ("file:///source")
+              }
+
+              inside(adapter) { case SingleAdapter(clss, _) =>
+                clss should equal ("granule-class")
+              }
+
+              inside(model) { case FFunction(domain, range, _) =>
+                inside(domain) { case FScalar(id, ty, attrs) =>
+                  id should equal ("time")
+                  ty should equal (IntValueType)
+                  attrs should contain ("units" -> "days since 2000-01-01")
+                  attrs should contain ("class" -> "latis.time.Time")
+                }
+
+                inside(range) { case FScalar(id, ty, _) =>
+                  id should equal ("uri")
+                  ty should equal (StringValueType)
+                }
+              }
+            }
+          }
+
+          inside(adapter) { case NestedAdapter(clss, _, nested) =>
+            clss should equal ("outer-class")
+
+            inside(nested) { case SingleAdapter(clss, _) =>
+              clss should equal ("inner-class")
+            }
+          }
+
+          inside(model) { case FFunction(domain, range, _) =>
+            inside(domain) { case FScalar(id, ty, attrs) =>
+              id should equal ("time")
+              ty should equal (IntValueType)
+              attrs should contain ("units" -> "days since 2000-01-01")
+              attrs should contain ("class" -> "latis.time.Time")
+            }
+
+            inside(range) { case FScalar(id, ty, _) =>
+              id should equal ("a")
+              ty should equal (IntValueType)
+            }
+          }
+        }
     }
 
   private def withFdmlFile(uriStr: String)(f: Either[LatisException, Fdml] => Any): Any =

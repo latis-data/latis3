@@ -6,7 +6,9 @@ import cats.syntax.all._
 
 import latis.dataset.AdaptedDataset
 import latis.dataset.Dataset
+import latis.dataset.TappedDataset
 import latis.input.Adapter
+import latis.input.GranuleListAppendAdapter
 import latis.metadata.Metadata
 import latis.model._
 import latis.ops
@@ -25,7 +27,14 @@ object FdmlReader {
   } yield dataset).fold(throw _, identity)
 
   /** Creates a dataset from FDML. */
-  def read(fdml: Fdml): Either[LatisException, Dataset] = for {
+  def read(fdml: Fdml): Either[LatisException, Dataset] = fdml match {
+    case fdml: DatasetFdml       => readDatasetFdml(fdml)
+    case fdml: GranuleAppendFdml => readGranuleAppendFdml(fdml)
+  }
+
+  private def readDatasetFdml(
+    fdml: DatasetFdml
+  ): Either[LatisException, Dataset] = for {
     model      <- makeFunction(fdml.model)
     adapter    <- makeAdapter(fdml.adapter, model)
     operations <- fdml.operations.traverse(makeOperation)
@@ -34,6 +43,35 @@ object FdmlReader {
     model,
     adapter,
     fdml.source.uri,
+    operations
+  )
+
+  private def readGranuleAppendFdml(
+    fdml: GranuleAppendFdml
+  ): Either[LatisException, Dataset] = for {
+    granules   <- readDatasetFdml(fdml.source.fdml)
+    model      <- makeFunction(fdml.model)
+    operations <- fdml.operations.traverse(makeOperation)
+    template   <- makeDatasetTemplate(fdml.adapter.nested, model, operations)
+    adapter     = new GranuleListAppendAdapter(granules, template)
+  } yield new TappedDataset(
+    fdml.metadata,
+    model,
+    adapter.getData(operations),
+    operations
+  )
+
+  private def makeDatasetTemplate(
+    adapter: FAdapter,
+    model: Function,
+    operations: List[UnaryOperation]
+  ): Either[LatisException, URI => Dataset] = for {
+    adapter <- makeAdapter(adapter, model)
+  } yield uri => new AdaptedDataset(
+    Metadata(),
+    model,
+    adapter,
+    uri,
     operations
   )
 

@@ -33,15 +33,13 @@ object FdmlParser {
 
   /** Parses FDML from XML. */
   def parseXml(xml: Elem): Either[LatisException, Fdml] = for {
-    _          <- isFdml(xml)
-    metadata   <- parseMetadata(xml).asRight
-    source     <- parseSource(xml)
-    adapter    <- parseAdapter(xml)
-    function   <- findRootFunction(xml)
-    model      <- parseFunction(function)
-    exprs      <- parseProcessingInstructions(xml)
-    operations <- exprs.traverse(parseExpression)
-  } yield Fdml(metadata, source, adapter, model, operations)
+    _    <- isFdml(xml)
+    fdml <- if (isGranuleAppendFdml(xml)) {
+      parseGranuleAppendFdml(xml)
+    } else {
+      parseDatasetFdml(xml)
+    }
+  } yield fdml
 
   // Assuming that this is an FDML file if the root element is
   // <dataset>.
@@ -49,6 +47,35 @@ object FdmlParser {
     if (xml.label != "dataset") {
       LatisException("Expecting dataset element").asLeft
     } else ().asRight
+
+  // Assuming that this in a granule append FDML file if the "source"
+  // element has a "dataset" element.
+  private def isGranuleAppendFdml(xml: Elem): Boolean =
+    (xml \ "source" \ "dataset").nonEmpty
+
+  private def parseDatasetFdml(
+    xml: Elem
+  ): Either[LatisException, DatasetFdml] = for {
+    metadata   <- parseMetadata(xml).asRight
+    source     <- parseUriSource(xml)
+    adapter    <- parseSingleAdapter(xml)
+    function   <- findRootFunction(xml)
+    model      <- parseFunction(function)
+    exprs      <- parseProcessingInstructions(xml)
+    operations <- exprs.traverse(parseExpression)
+  } yield DatasetFdml(metadata, source, adapter, model, operations)
+
+  private def parseGranuleAppendFdml(
+    xml: Elem
+  ): Either[LatisException, GranuleAppendFdml] = for {
+    metadata   <- parseMetadata(xml).asRight
+    source     <- parseFdmlSource(xml)
+    adapter    <- parseNestedAdapter(xml)
+    function   <- findRootFunction(xml)
+    model      <- parseFunction(function)
+    exprs      <- parseProcessingInstructions(xml)
+    operations <- exprs.traverse(parseExpression)
+  } yield GranuleAppendFdml(metadata, source, adapter, model, operations)
 
   private def parseMetadata(xml: Elem): Metadata = {
     val md = xml.attributes.asAttrMap.filter {
@@ -58,7 +85,7 @@ object FdmlParser {
     Metadata(md)
   }
 
-  private def parseSource(xml: Elem): Either[LatisException, FSource] =
+  private def parseUriSource(xml: Elem): Either[LatisException, UriSource] =
     (xml \ "source").toList match {
       case elem :: Nil => for {
         attrs  <- elem.attributes.asAttrMap.asRight
@@ -68,21 +95,49 @@ object FdmlParser {
         uri    <- Either.catchOnly[URISyntaxException] {
           new URI(uriStr)
         }.leftMap(LatisException("Source URI is malformed", _))
-      } yield FSource(uri)
+      } yield UriSource(uri)
       case _ :: _ => LatisException("Expecting a single source").asLeft
       case _      => LatisException("Expecting source element").asLeft
     }
 
-  private def parseAdapter(xml: Elem): Either[LatisException, FAdapter] =
+  private def parseFdmlSource(
+    xml: Elem
+  ): Either[LatisException, FdmlSource] =
+    (xml \ "source").toList match {
+      case elem :: Nil => (elem \ "dataset").toList match {
+        case (elem: Elem) :: Nil => parseDatasetFdml(elem).map(FdmlSource(_))
+        case _ :: _ => LatisException("Expecting a single dataset element").asLeft
+        case _      => LatisException("Expecting a dataset element").asLeft
+      }
+      case _ :: _ => LatisException("Expecting a single source").asLeft
+      case _      => LatisException("Expecting source element").asLeft
+    }
+
+  private def parseSingleAdapter(
+    xml: Elem
+  ): Either[LatisException, SingleAdapter] =
     (xml \ "adapter").toList match {
       case elem :: Nil => for {
         attrs <- elem.attributes.asAttrMap.asRight
         clss  <- attrs.get("class").toRight {
           LatisException("Expecting adapter with class attribute")
         }
-      } yield FAdapter(clss, attrs)
+      } yield SingleAdapter(clss, attrs)
       case _ :: _ => LatisException("Expecting a single adapter").asLeft
       case _      => LatisException("Expecting adapter element").asLeft
+    }
+
+  private def parseNestedAdapter(
+    xml: Elem
+  ): Either[LatisException, NestedAdapter] =
+    (xml \ "adapter").toList match {
+      case (outer: Elem) :: Nil =>
+        for {
+          outerAdapter <- parseSingleAdapter(xml)
+          innerAdapter <- parseSingleAdapter(outer)
+        } yield NestedAdapter(outerAdapter.clss, outerAdapter.attributes, innerAdapter)
+      case _ :: _ => LatisException("Expecting a single nested adapter element").asLeft
+      case _      => LatisException("Expecting a nested adapter element").asLeft
     }
 
   private def findRootFunction(xml: Elem): Either[LatisException, Node] =
