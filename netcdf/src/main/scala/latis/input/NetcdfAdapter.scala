@@ -362,7 +362,7 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
 
   // Note, get is safe since the id comes from the model in the first place
   private def getNcVarName(id: String): String =
-    makeValidPathName(model.findVariable(id).get.metadata.getProperty("origName").getOrElse(id))
+    makeValidPathName(model.findVariable(id).get.metadata.getProperty("sourceId").getOrElse(id))
 
   /**
    * Reads the section of the given variable into a NcArray.
