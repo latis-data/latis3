@@ -11,6 +11,7 @@ import latis.data._
 import latis.model.DataType
 import latis.model.Function
 import latis.util.CartesianDomainOrdering
+import latis.util.LatisException
 import latis.util.LatisOrdering
 import latis.util.StreamUtils
 
@@ -111,9 +112,7 @@ trait GroupOperation extends StreamOperation { self =>
    * The original model becomes the range which is then modified by the
    * Aggregation.
    */
-  override def applyToModel(model: DataType): DataType = {
-    val range = aggregation.applyToModel(model)
-    Function(domainType(model), range)
+  override def applyToModel(model: DataType): Either[LatisException, DataType] =
+    aggregation.applyToModel(model).map(Function(domainType(model), _))
     // TODO: preserve metadata from the original function
-  }
 }

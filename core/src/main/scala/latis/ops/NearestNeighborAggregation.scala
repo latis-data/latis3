@@ -2,6 +2,7 @@ package latis.ops
 
 import latis.data._
 import latis.model._
+import latis.util.LatisException
 
 /**
  * Defines an Aggregation that reduces the Samples of a Dataset to a ConstantFunction
@@ -22,8 +23,8 @@ case class NearestNeighborAggregation(domain: DomainData) extends Aggregation {
       }
   }
 
-  def applyToModel(model:DataType): DataType = model match {
-    case Function(_, r)=> r
-    case _ => ??? //TODO: error, model must be a Function
+  def applyToModel(model:DataType): Either[LatisException, DataType] = model match {
+    case Function(_, r) => Right(r)
+    case _ => Left(LatisException("Model must be a Function"))
   }
 }

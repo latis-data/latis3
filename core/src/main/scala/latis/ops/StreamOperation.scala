@@ -6,6 +6,7 @@ import fs2.Pipe
 import latis.data.Sample
 import latis.data.SampledFunction
 import latis.model.DataType
+import latis.util.LatisException
 
 /**
  * Defines an Operation that can be applied one Sample at a time.
@@ -29,7 +30,7 @@ trait StreamOperation extends UnaryOperation {
   /**
    * Applies this operation to SampledFunction data.
    */
-  override def applyToData(data: SampledFunction, model: DataType): SampledFunction =
-    SampledFunction(data.samples.through(pipe(model)))
+  def applyToData(data: SampledFunction, model: DataType): Either[LatisException, SampledFunction] =
+    Right(SampledFunction(data.samples.through(pipe(model))))
 
 }

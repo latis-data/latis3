@@ -1,6 +1,7 @@
 package latis.data
 
 import cats.effect.IO
+import cats.implicits._
 import fs2.Stream
 
 import latis.model.DataType
@@ -58,14 +59,14 @@ case class CompositeSampledFunction(sampledFunctions: Seq[SampledFunction])
    * but unary is just partially applied binary
    */
 
-  override def applyOperation(op: UnaryOperation, model: DataType): SampledFunction =
-    CompositeSampledFunction(sampledFunctions.map(_.applyOperation(op, model)))
+  override def applyOperation(op: UnaryOperation, model: DataType): Either[LatisException, SampledFunction] =
+    sampledFunctions.toList.traverse(_.applyOperation(op, model)).map(CompositeSampledFunction(_))
 
   //TODO: optimize other operations by delegating to granules; e.g. select, project
 }
 
 object CompositeSampledFunction {
 
-  def apply(sf1: SampledFunction, sfs: SampledFunction*) =
+  def apply(sf1: SampledFunction, sfs: SampledFunction*): CompositeSampledFunction =
     new CompositeSampledFunction(sf1 +: sfs)
 }

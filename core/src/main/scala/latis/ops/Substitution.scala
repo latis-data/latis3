@@ -16,15 +16,9 @@ case class Substitution(dataset: Dataset) extends MapOperation {
   //TODO: preserve nested tuples?
 
   def mapFunction(model: DataType): Sample => Sample = {
-    // Get the subDataset domain and range types
-    val (subDomain, subRange) = dataset.model match {
-      case Function(d, r) => (d, r)
-      case _ => throw LatisException("A substitution Dataset must not be a ConstantFunction.")
-    }
-
     // Get the paths to the substitution variables in the target Dataset
     //TODO: error if not consecutive
-    val paths = subDomain.getScalars.traverse { s =>
+    val paths = modelScalars._1.toList.traverse { s =>
       model.getPath(s.id)
     }.getOrElse {
       val msg = s"Failed to find substitution domain in target Dataset"
@@ -36,7 +30,7 @@ case class Substitution(dataset: Dataset) extends MapOperation {
     // evaluate the substitution Dataset.
     def substitute(sample: Sample, path: SamplePath): Sample = path match {
       case Nil => ??? //empty path is not valid
-      case (pos :: Nil) =>
+      case pos :: Nil =>
         val f: Data => Either[LatisException, Data] = (data: Data) =>
           dataset match {
             case ComputationalDataset(_, _, f) => f(data)
@@ -64,7 +58,7 @@ case class Substitution(dataset: Dataset) extends MapOperation {
                     case _ =>
                       throw LatisException("Domain substitution includes Function")
                   }
-                  case sf: SampledFunction =>
+                  case _: SampledFunction =>
                     throw LatisException("Domain substitution includes Function")
                 }
               case Left(le) => throw le
@@ -83,7 +77,7 @@ case class Substitution(dataset: Dataset) extends MapOperation {
               // Note, there should be no TupleData in a Sample
               case _: TupleData =>
                 throw LatisException("Substitution includes TupleData")
-              case sf: SampledFunction =>
+              case _: SampledFunction =>
                 throw LatisException("Substitution includes Function")
             }
             // Evaluate the substitution Dataset with the values to be replaced
@@ -99,7 +93,7 @@ case class Substitution(dataset: Dataset) extends MapOperation {
             Sample(sample.domain, range)
         }
       // Tail not empty, recurse
-      case (pos :: tail) =>
+      case pos :: tail =>
         // Get the nested function from the first part of the path and recurse
         sample.getValue(pos) match {
           case Some(innerSF: MemoizedFunction) =>
@@ -113,13 +107,10 @@ case class Substitution(dataset: Dataset) extends MapOperation {
     (sample: Sample) => substitute(sample, paths.head)
   }
 
-  def applyToModel(model: DataType): DataType = {
+  def applyToModel(model: DataType): Either[LatisException, DataType] = {
     // Get the subDataset range Scalars.
     // Note, avoids nested tuples
-    val subScalars = dataset.model match {
-      case Function(_, r) => r.getScalars
-      case _ => throw LatisException("A substitution Dataset must not be a ConstantFunction.")
-    }
+    val subScalars = modelScalars._2
 
     // Traverse the original model and replace the types matching the
     // substitution Dataset's domain with the types from its range.
@@ -144,14 +135,21 @@ case class Substitution(dataset: Dataset) extends MapOperation {
       case Function(d, r) => Function(go(d), go(r))
     }
 
-    go(model)
+    Right(go(model))
   }
 
   /**
    * Extracts the variable IDs from the domain of the Substitution Dataset.
    */
-  private val domainVariableIDs: Seq[String] = dataset.model match {
-    case Function(d, _) => d.getScalars.map(_.id)
-    case _ => throw LatisException("A substitution Dataset must not be a ConstantFunction.")
+  private val modelScalars: (Seq[Scalar], Seq[Scalar]) = dataset.model match {
+    case Function(d, r) => (d.getScalars, r.getScalars)
+    case _ => throw LatisException("A substitution Dataset must be a Function.")
   }
+  //TODO: factor out this exception into a smart constructor
+
+  /**
+   * Extracts the variable IDs from the domain of the Substitution Dataset.
+   */
+  private val domainVariableIDs: Seq[String] = modelScalars._1.map(_.id)
+
 }

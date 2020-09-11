@@ -70,17 +70,17 @@ case class Pivot(values: Seq[String], vids: Seq[String]) extends MapOperation {
    * Define new model. The nested Function is replaced with a Tuple
    * containing Scalars for each of the requested samples.
    */
-  override def applyToModel(model: DataType): DataType = model match {
+  override def applyToModel(model: DataType): Either[LatisException, DataType] = model match {
     case Function(domain, Function(_, r)) =>
       val ranges = for {
         vid <- vids
         s <- r.getScalars
       } yield s.rename(vid ++ "_" ++ s.id)
-      ranges match {
+      Right(ranges match {
         case s1 :: Nil => Function(domain, s1)
         case ss => Function(domain, Tuple(ss))
-      }
-    case _ => ??? //invalid data type
+      })
+    case _ => Left(LatisException("Invalid DataType"))
   }
 
 }

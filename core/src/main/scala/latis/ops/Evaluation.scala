@@ -10,26 +10,29 @@ import latis.util.LatisException
  * ConstantFunction.
  */
 case class Evaluation(data: String) extends UnaryOperation {
+  //TODO: assert that data is of the right type based on the model domain
 
-  def applyToModel(model: DataType): DataType = {
-    //TODO: assert that data is of the right type based on the model domain
-    model match {
+  def applyToModel(model: DataType): Either[LatisException, DataType] =
+    Right(model match {
       case Function(_, r) => r
       case _ => model
-    }
-  }
+    })
 
-  def applyToData(sf: SampledFunction, model: DataType): SampledFunction = sf match {
-    case cf: ConstantFunction => cf
-    case sf: SampledFunction =>
-      val ecf = for {
+  def applyToData(
+    sf: SampledFunction,
+    model: DataType
+  ): Either[LatisException, SampledFunction] =
+    model.arity match {
+      case 0 => Right(sf)
+      case 1 => for {
         v  <- model.getScalars.head.parseValue(data)
+        // TODO: Allow parsing multiple values for higher arity datasets.
         dd <- DomainData.fromData(v)
         rd <- sf(dd)
         d   = Data.fromSeq(rd)
       } yield ConstantFunction(d)
-      ecf.toTry.get //throw the exception if Left
-  }
+      case _ => Left(LatisException("Can't evaluate a multi-dimensional dataset"))
+    }
 }
 
 object Evaluation {

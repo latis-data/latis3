@@ -6,6 +6,7 @@ import fs2.Stream
 
 import latis.data._
 import latis.model._
+import latis.util.LatisException
 
 /**
  * A Filter is a unary Operation that applies a boolean
@@ -21,7 +22,7 @@ trait Filter extends UnaryOperation with StreamOperation { self =>
   /**
    * Provides a no-op implementation for Filters.
    */
-  def applyToModel(model: DataType): DataType = model
+  def applyToModel(model: DataType): Either[LatisException, DataType] = Right(model)
 
   /**
    * Defines a function that specifies whether a Sample
@@ -39,12 +40,10 @@ trait Filter extends UnaryOperation with StreamOperation { self =>
    * Composes this operation with the given MappingOperation.
    * Note that the given operation will be applied first.
    */
-  def compose(mapOp: MapOperation): Filter = new Filter {
-    def predicate(model: DataType): Sample => Boolean =
-      mapOp.mapFunction(model).andThen {
-        self.predicate(mapOp.applyToModel(model))
-      }
-  }
+  def compose(mapOp: MapOperation): Filter = (model: DataType) =>
+    mapOp.mapFunction(model).andThen {
+      self.predicate(mapOp.applyToModel(model).fold(throw _, identity))
+    }
 
 }
 

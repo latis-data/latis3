@@ -6,6 +6,7 @@ import fs2.Stream
 
 import latis.data._
 import latis.model._
+import latis.util.LatisException
 
 /**
  * Defines an Operation that combines all the Samples of a Dataset
@@ -31,15 +32,14 @@ trait Aggregation extends StreamOperation { self =>
 
   def compose(mapOp: MapOperation): Aggregation = new Aggregation {
 
-    def applyToModel(model: DataType): DataType = {
-      self.applyToModel(mapOp.applyToModel(model))
-    }
+    def applyToModel(model: DataType): Either[LatisException, DataType] =
+      mapOp.applyToModel(model).flatMap(self.applyToModel)
 
-    override def aggregateFunction(model: DataType): Iterable[Sample] => Data = {
+    def aggregateFunction(model: DataType): Iterable[Sample] => Data = {
       val tmpModel = mapOp.applyToModel(model)
       (samples: Iterable[Sample]) => {
         val tmpSamples = samples.map(mapOp.mapFunction(model))
-        self.aggregateFunction(tmpModel)(tmpSamples)
+        self.aggregateFunction(tmpModel.fold(throw _, identity))(tmpSamples)
       }
     }
   }

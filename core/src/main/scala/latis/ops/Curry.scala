@@ -52,14 +52,15 @@ case class Curry(arity: Int = 1) extends GroupOperation {
         }
 
       // takes the model for the dataset and returns the range of the curried dataset
-      override def applyToModel(model: DataType): DataType = model match {
+      override def applyToModel(model: DataType): Either[LatisException, DataType] = model match {
         // Ignore nested tuples
         case Function(d, range) =>
-          d.getScalars.drop(arity) match {
+          (d.getScalars.drop(arity) match {
             case Nil => range  // this happens when the arity is not changed
             case s1 :: Nil => Function(s1, range)
             case ss => Function(Tuple(ss), range)
-          }
+          }).asRight
+        case _ => Left(LatisException("Model must be a function"))
         //case Function(Tuple(es @ _*), range) => Function(Tuple(es.drop(arity)), range)
           //TODO: beef up edge cases
       }

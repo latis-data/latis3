@@ -4,6 +4,7 @@ import scala.collection.mutable.ArrayBuffer
 
 import latis.data._
 import latis.model._
+import latis.util.LatisException
 
 /**
  * Given a Dataset with potentially nested Functions, undo the nesting.
@@ -16,7 +17,7 @@ case class Uncurry() extends FlatMapOperation {
   //TODO: assume no Functions in Tuples, for now
   //TODO: neglect function and tuple IDs, for now
 
-  override def applyToModel(model: DataType): DataType = {
+  override def applyToModel(model: DataType): Either[LatisException, DataType] = {
 
     // Define buffers to accumulate domain and range types.
     val ds = ArrayBuffer[DataType]()
@@ -43,12 +44,12 @@ case class Uncurry() extends FlatMapOperation {
       case 1 => rs.head
       case _ => Tuple(rs.toSeq)
     }
-    ds.length match {
+    Right(ds.length match {
       case 0 => rtype
       case 1 => Function(ds.head, rtype)
       case _ => Function(Tuple(ds.toSeq), rtype)
       //TODO: flatten domain, Traversable builder not working
-    }
+    })
   }
 
   /**

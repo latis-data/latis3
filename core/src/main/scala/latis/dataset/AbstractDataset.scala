@@ -39,6 +39,6 @@ abstract class AbstractDataset(
    * original model returning the new model.
    */
   def model: DataType =
-    operations.foldLeft(_model)((mod, op) => op.applyToModel(mod))
+    operations.foldLeft(_model)((mod, op) => op.applyToModel(mod).fold(throw _, identity))
 
 }

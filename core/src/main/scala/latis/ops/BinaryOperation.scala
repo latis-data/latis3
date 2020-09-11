@@ -2,6 +2,7 @@ package latis.ops
 
 import latis.data.SampledFunction
 import latis.model.DataType
+import latis.util.LatisException
 
 /**
  * Defines an Operation that combines two Datasets into one.
@@ -17,7 +18,7 @@ trait BinaryOperation extends Operation {
   /**
    * Combines the models of two Datasets.
    */
-  def applyToModel(model1: DataType, model2: DataType): DataType
+  def applyToModel(model1: DataType, model2: DataType): Either[LatisException, DataType]
 
   /**
    * Combines the Data of two Datasets.
@@ -25,6 +26,6 @@ trait BinaryOperation extends Operation {
   def applyToData(
     data1: SampledFunction,
     data2: SampledFunction
-  ): SampledFunction
+  ): Either[LatisException, SampledFunction]
 
 }
