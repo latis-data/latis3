@@ -1,7 +1,7 @@
 package latis.data
 
 import cats.effect.IO
-import cats.implicits._
+import cats.syntax.all._
 import cats.kernel.Monoid
 import fs2.Stream
 

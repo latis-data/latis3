@@ -2,7 +2,7 @@ package latis.model
 
 import atto._
 import Atto._
-import cats.implicits._
+import cats.syntax.all._
 
 import latis.metadata.Metadata
 import latis.util.LatisException

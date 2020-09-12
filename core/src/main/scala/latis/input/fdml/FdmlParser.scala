@@ -8,7 +8,7 @@ import scala.xml._
 
 import atto.Atto._
 import atto._
-import cats.implicits._
+import cats.syntax.all._
 
 import latis.metadata.Metadata
 import latis.model.ValueType

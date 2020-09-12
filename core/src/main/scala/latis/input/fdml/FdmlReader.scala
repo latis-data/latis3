@@ -2,7 +2,7 @@ package latis.input.fdml
 
 import java.net.URI
 
-import cats.implicits._
+import cats.syntax.all._
 
 import latis.dataset.AdaptedDataset
 import latis.dataset.Dataset

@@ -7,7 +7,7 @@ import scala.math.min
 import scala.jdk.CollectionConverters._
 
 import cats.effect.IO
-import cats.implicits._
+import cats.syntax.all._
 import fs2.Stream
 import ucar.ma2.Section
 import ucar.ma2.{Array => NcArray}

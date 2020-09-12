@@ -88,7 +88,7 @@ class TextAdapter(model: DataType, config: TextAdapter.Config = new TextAdapter.
     // from the parsed domain and range values.
     if (rtypes.length != rvals.length) None //invalid record
     else {
-      import cats.implicits._
+      import cats.syntax.all._
       val eds = dtypes.zip(dvals).toList.map(p => p._1.parseValue(p._2)).sequence
       val ers = rtypes.zip(rvals).map(p => p._1.parseValue(p._2)).sequence
       val esample = for {

@@ -6,7 +6,7 @@ import cats.Applicative
 import cats.effect.Blocker
 import cats.effect.ContextShift
 import cats.effect.Sync
-import cats.implicits._
+import cats.syntax.all._
 import fs2.Pipe
 
 import latis.util.StreamUtils

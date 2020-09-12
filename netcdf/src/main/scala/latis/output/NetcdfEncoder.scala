@@ -6,7 +6,7 @@ import scala.collection.compat._
 
 import cats.effect.IO
 import cats.effect.Resource
-import cats.implicits._
+import cats.syntax.all._
 import fs2.Stream
 import ucar.ma2.{Array => NcArray}
 import ucar.ma2.{DataType => NcDataType}

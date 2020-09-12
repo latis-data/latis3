@@ -8,7 +8,7 @@ import scala.reflect.runtime.{ universe => ru }
 
 import cats.effect.ContextShift
 import cats.effect.IO
-import cats.implicits._
+import cats.syntax.all._
 import coursier._
 import coursier.cache.FileCache
 import coursier.interop.cats._

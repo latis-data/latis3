@@ -2,7 +2,7 @@ package latis.ops
 
 import java.net.URI
 
-import cats.implicits._
+import cats.syntax.all._
 
 import latis.data._
 import latis.input._

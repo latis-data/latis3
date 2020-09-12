@@ -1,6 +1,6 @@
 package latis.model
 
-import cats.implicits._
+import cats.syntax.all._
 import scala.util.Try
 
 import latis.data.Data._

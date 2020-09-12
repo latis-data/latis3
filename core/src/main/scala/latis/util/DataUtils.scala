@@ -1,6 +1,6 @@
 package latis.util
 
-import cats.implicits._
+import cats.syntax.all._
 import latis.data.Datum
 import latis.model.ValueType
 

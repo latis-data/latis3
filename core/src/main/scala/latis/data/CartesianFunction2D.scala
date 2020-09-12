@@ -3,7 +3,7 @@ package latis.data
 import scala.collection.Searching.Found
 import scala.collection.Searching.SearchResult
 
-import cats.implicits._
+import cats.syntax.all._
 
 import latis.util.DataUtils._
 import latis.util.DefaultDomainOrdering

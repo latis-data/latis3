@@ -1,6 +1,6 @@
 package latis.ops
 
-import cats.implicits._
+import cats.syntax.all._
 
 import latis.data.Data
 import latis.data.DomainData

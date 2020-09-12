@@ -1,6 +1,6 @@
 package latis.ops
 
-import cats.implicits._
+import cats.syntax.all._
 
 import latis.data._
 import latis.dataset.ComputationalDataset

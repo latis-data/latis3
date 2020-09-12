@@ -6,7 +6,7 @@ import java.nio.file.Paths
 import scala.util.Properties
 
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import fs2.Stream
 import fs2.io
 import fs2.text

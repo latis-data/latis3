@@ -4,7 +4,7 @@ import java.net.URI
 import java.nio.file.Path
 import java.nio.file.Paths
 
-import cats.implicits._
+import cats.syntax.all._
 import fs2.text
 
 import latis.input.StreamSource

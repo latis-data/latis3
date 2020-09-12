@@ -3,7 +3,7 @@ package latis.data
 import scala.collection.Searching._
 import scala.util.Try
 
-import cats.implicits._
+import cats.syntax.all._
 
 import latis.util.CartesianDomainOrdering
 import latis.util.DefaultDatumOrdering

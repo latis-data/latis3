@@ -2,7 +2,7 @@ package latis.ops
 
 import atto.Atto._
 import atto.ParseResult
-import cats.implicits._
+import cats.syntax.all._
 
 import latis.data._
 import latis.model._

@@ -1,7 +1,7 @@
 package latis.util.dap2.parser
 
 import atto._, Atto._
-import cats.implicits._
+import cats.syntax.all._
 
 import latis.ops.parser.ast.CExpr
 import latis.ops.parser.parsers._
