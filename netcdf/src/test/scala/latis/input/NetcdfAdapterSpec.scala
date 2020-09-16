@@ -11,105 +11,131 @@ import latis.ops.Selection
 
 class NetcdfAdapterSpec extends FlatSpec {
 
-  private val model = Function(
+  private val simple1dModel = Function(
     Scalar(Metadata("id" -> "time", "type" -> "int", "cadence" -> "1", "start" -> "7")),
     Scalar(Metadata("id" -> "flux", "type" -> "double"))
   )
+  private val simple1dSections = makeSections("0:9; 0:9")
 
-  "A section" should "be strided" in {
-    val section            = new Section("0:9:3, 1:4:2")
-    val stride: Array[Int] = Array(2, 2)
-    val s                  = NetcdfAdapter.applyStride(section: Section, stride: Array[Int])
-    s.toString should be("Right(0:6:6,1:1:4)")
+  private val simple2dModel = Function(
+    Tuple(
+      Scalar(Metadata("id" -> "time", "type" -> "int", "cadence" -> "1", "start" -> "7")),
+      Scalar(Metadata("id" -> "wavelength", "type" -> "double", "cadence" -> "0.1", "start" -> "5.0")),
+    ),
+    Scalar(Metadata("id" -> "flux", "type" -> "double"))
+  )
+  private val simple2dSections = makeSections("0:9; 0:4; 0:9, 0:4")
+
+  private val sdoDiodesModel = Function(
+    Tuple(
+      Scalar(Metadata("id" -> "time", "type" -> "int", "cadence" -> "1", "start" -> "7")),
+      Scalar(Metadata("id" -> "wavelength", "type" -> "double")),
+    ),
+    Tuple(
+      Scalar(Metadata("id" -> "flux", "type" -> "double")),
+      Scalar(Metadata("id" -> "error", "type" -> "double")),
+    )
+  )
+  private val sdoDiodesSections = makeSections("0, 0:3760; 0:5; 0, 0:3760, 0:5; 0, 0:3760, 0:5")
+
+  private val timeModel = Function(
+    latis.time.Time(Metadata(
+      "id" -> "time",
+      "class" -> "latis.time.Time",
+      "units" -> "yyyyMMdd",
+      "type" -> "string",
+      "cadence" -> "86400000", // ms in a day
+      "start" -> s"${86400000L * 365}"
+    )),
+    Scalar(Metadata("id" -> "flux", "type" -> "double"))
+  )
+  private val timeSections = makeSections("0:31; 0:31")
+
+  private def makeSections(s: String): List[Section] =
+    s.split(';').toList.map(new Section(_))
+
+  //-- Tests -----------------------------------------------------------------//
+
+  "A Stride operation" should "apply a stride to a 1D model" in {
+    val stride: Array[Int] = Array(2)
+    NetcdfAdapter.applyStride(simple1dSections, simple1dModel, stride: Array[Int]) should be(
+      Right(makeSections("0:8:2; 0:8:2"))
+    )
   }
 
-  "A range with a stride" should "make a consistent last value" in {
-    val range = new URange(1, 4, 2) // 1:3:2
-    range.last should be(3)
+  it should "apply a stride to a 2D model" in {
+    val stride: Array[Int] = Array(2, 3)
+    NetcdfAdapter.applyStride(simple2dSections, simple2dModel, stride: Array[Int]) should be(
+      // 0:9; 0:4; 0:9, 0:4
+      Right(makeSections("0:8:2; 0:3:3; 0:8:2, 0:3:3"))
+    )
   }
 
   "A NetcdfAdapter selection operation" should "support < selection" in {
-    val expectedSection = new Section("0:1")
-    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time < 8.5")) should be(
-      Right(expectedSection)
-    )
-    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time < 9")) should be(
-      Right(expectedSection)
-    )
-    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time < 9001")) should be(
-      Right(new Section("0:2"))
-    )
-    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time < 0")) should be(
-      Right(new Section(URange.EMPTY))
+    simpleSelectTest("time < 8.5", new URange(0, 1))
+    simpleSelectTest("time < 9", new URange(0, 1))
+    simpleSelectTest("time < 9001", new URange(0, 9))
+    simpleSelectTest("time < 0", URange.EMPTY)
+  }
+
+  it should "support > selection" in {
+    simpleSelectTest("time > 7.5", new URange(1, 9))
+    simpleSelectTest("time > 7", new URange(1, 9))
+    simpleSelectTest("time > 0", new URange(0, 9))
+    simpleSelectTest("time > 9000", URange.EMPTY)
+  }
+
+  it should "support <= selection" in {
+    simpleSelectTest("time <= 8.5", new URange(0, 1))
+    simpleSelectTest("time <= 8", new URange(0, 1))
+    simpleSelectTest("time <= 9001", new URange(0, 9))
+    simpleSelectTest("time <= 0", URange.EMPTY)
+  }
+
+  it should "support >= selection" in {
+    simpleSelectTest("time >= 7.5", new URange(1, 9))
+    simpleSelectTest("time >= 8", new URange(1, 9))
+    simpleSelectTest("time >= 0", new URange(0, 9))
+    simpleSelectTest("time >= 9001", URange.EMPTY)
+  }
+
+  it should "support = and == selections" in {
+    simpleSelectTest("time = 8", new URange(1, 1))
+    simpleSelectTest("time == 8", new URange(1, 1))
+    simpleSelectTest("time = 8.01", URange.EMPTY)
+    simpleSelectTest("time == 8.01", URange.EMPTY)
+    simpleSelectTest("time = 0", URange.EMPTY)
+    simpleSelectTest("time == 0", URange.EMPTY)
+  }
+
+  it should "apply selections on a 1D model" in {
+    // simple1dSections = 0:9; 0:9
+    simpleSelectTest("time > 10", new URange(4, 9))
+  }
+
+  it should "apply selections on a 2D model" in {
+    // simple2dSections = 0:9; 0:4; 0:9, 0:4
+    NetcdfAdapter.applySelection(simple2dSections, simple2dModel, Selection("wavelength == 5.2")) should be(
+      Right(makeSections("0:9; 2:2; 0:9, 2:2"))
     )
   }
 
-  "A NetcdfAdapter selection operation" should "support > selection" in {
-    val expectedSection = new Section("1:2")
-    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time > 7.5")) should be(
-      Right(expectedSection)
-    )
-    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time > 7")) should be(
-      Right(expectedSection)
-    )
-    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time > 0")) should be(
-      Right(new Section("0:2"))
-    )
-    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time > 9000")) should be(
-      Right(new Section(URange.EMPTY))
+  it should "apply selections on a model like SDO EVE diodes l3" in {
+    // sdoDiodesSections = 0, 0:3760; 0:5; 0, 0:3760, 0:5; 0, 0:3760, 0:5
+    NetcdfAdapter.applySelection(sdoDiodesSections, sdoDiodesModel, Selection("time <= 100")) should be(
+      Right(makeSections("0, 0:93; 0:5; 0, 0:93, 0:5; 0, 0:93, 0:5"))
     )
   }
 
-  "A NetcdfAdapter selection operation" should "support <= selection" in {
-    val expectedSection = new Section("0:1")
-    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time <= 8.5")) should be(
-      Right(expectedSection)
-    )
-    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time <= 8")) should be(
-      Right(expectedSection)
-    )
-    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time <= 9001")) should be(
-      Right(new Section("0:2"))
-    )
-    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time <= 0")) should be(
-      Right(new Section(URange.EMPTY))
-    )
+  it should "support selections that use formatted time strings" in {
+    NetcdfAdapter.applySelection(timeSections, timeModel, Selection("time > 19710102"))
+      .flatMap(
+        NetcdfAdapter.applySelection(_, timeModel, Selection("time <= 19710115T123000.000"))
+      ) should be(Right(makeSections("2:14; 2:14")))
   }
 
-  "A NetcdfAdapter selection operation" should "support >= selection" in {
-    val expectedSection = new Section("1:2")
-    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time >= 7.5")) should be(
-      Right(expectedSection)
+  def simpleSelectTest(selection: String, expectedRange: URange): Unit =
+    NetcdfAdapter.applySelection(simple1dSections, simple1dModel, Selection(selection)) should be(
+      Right(List.fill(2)(new Section(expectedRange)))
     )
-    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time >= 8")) should be(
-      Right(expectedSection)
-    )
-    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time >= 0")) should be(
-      Right(new Section("0:2"))
-    )
-    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time >= 9001")) should be(
-      Right(new Section(URange.EMPTY))
-    )
-  }
-
-  "A NetcdfAdapter selection operation" should "support = and == selections" in {
-    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time = 8")) should be(
-      Right(new Section("1"))
-    )
-    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time == 8")) should be(
-      Right(new Section("1"))
-    )
-    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time = 8.01")) should be(
-      Right(new Section(URange.EMPTY))
-    )
-    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time == 8.01")) should be(
-      Right(new Section(URange.EMPTY))
-    )
-    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time = 0")) should be(
-      Right(new Section(URange.EMPTY))
-    )
-    NetcdfAdapter.applySelection(new Section("0:2"), model, Selection("time == 0")) should be(
-      Right(new Section(URange.EMPTY))
-    )
-  }
 }
