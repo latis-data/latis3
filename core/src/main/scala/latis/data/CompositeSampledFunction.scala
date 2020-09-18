@@ -59,8 +59,9 @@ case class CompositeSampledFunction(sampledFunctions: Seq[SampledFunction])
    * but unary is just partially applied binary
    */
 
-  override def applyOperation(op: UnaryOperation, model: DataType): Either[LatisException, SampledFunction] =
-    sampledFunctions.toList.traverse(_.applyOperation(op, model)).map(CompositeSampledFunction(_))
+  override def applyOperation(op: UnaryOperation, model: DataType): Either[LatisException, Data] =
+    sampledFunctions.toList.traverse(_.applyOperation(op, model))
+      .map(ds => new CompositeSampledFunction(ds.map(_.asFunction)))
 
   //TODO: optimize other operations by delegating to granules; e.g. select, project
 }

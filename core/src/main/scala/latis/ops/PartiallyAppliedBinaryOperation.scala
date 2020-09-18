@@ -1,6 +1,8 @@
 package latis.ops
 
-import latis.data.SampledFunction
+import cats.syntax.all._
+
+import latis.data.Data
 import latis.dataset._
 import latis.model.DataType
 import latis.util.LatisException
@@ -19,11 +21,10 @@ case class PartiallyAppliedBinaryOperation(
   override def applyToModel(model: DataType): Either[LatisException, DataType] =
     binOp.applyToModel(dataset.model, model)
 
-  override def applyToData(data: SampledFunction, model: DataType): Either[LatisException, SampledFunction] = {
-    val data0 = dataset match {
-      case ad: AdaptedDataset => ad.tap().map(_.data.asFunction)
-      case td: TappedDataset  => Right(td.data.asFunction)
-    }
-    data0.flatMap(binOp.applyToData(_, data))
+  override def applyToData(data: Data, model: DataType): Either[LatisException, Data] = {
+    (dataset match {
+      case ad: AdaptedDataset => ad.tap().map(_.data)
+      case td: TappedDataset  => td.data.asRight
+    }).flatMap(binOp.applyToData(_, data))
   }
 }

@@ -1,6 +1,6 @@
 package latis.ops
 
-import latis.data.SampledFunction
+import latis.data.Data
 import latis.model.DataType
 import latis.util.LatisException
 
@@ -17,7 +17,7 @@ trait UnaryOperation extends Operation {
   /**
    * Provides new Data resulting from this Operation.
    */
-  def applyToData(data: SampledFunction, model: DataType): Either[LatisException, SampledFunction]
+  def applyToData(data: Data, model: DataType): Either[LatisException, Data]
 
 }
 

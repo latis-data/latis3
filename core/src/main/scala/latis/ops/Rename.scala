@@ -1,6 +1,8 @@
 package latis.ops
 
-import latis.data.SampledFunction
+import cats.syntax.all._
+
+import latis.data.Data
 import latis.model._
 import latis.util.LatisException
 
@@ -24,7 +26,8 @@ case class Rename(origName: String, newName: String) extends UnaryOperation {
   /**
    * Provides a no-op implementation for Rename.
    */
-  def applyToData(data: SampledFunction, model: DataType): Either[LatisException, SampledFunction] = Right(data)
+  def applyToData(data: Data, model: DataType): Either[LatisException, Data] =
+    data.asRight
 }
 
 object Rename {

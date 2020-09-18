@@ -2,7 +2,7 @@ package latis.input
 
 import java.net.URI
 
-import latis.data.SampledFunction
+import latis.data.Data
 import latis.ops.Operation
 
 /**
@@ -14,5 +14,5 @@ trait Adapter {
 
   def canHandleOperation(op: Operation): Boolean = false
 
-  def getData(baseUri: URI, ops: Seq[Operation] = Seq.empty): SampledFunction
+  def getData(baseUri: URI, ops: Seq[Operation] = Seq.empty): Data
 }

@@ -1,6 +1,7 @@
 package latis.ops
 
 import atto.Atto._
+import cats.syntax.all._
 
 import latis.data._
 import latis.model._
@@ -46,7 +47,7 @@ case class Pivot(values: Seq[String], vids: Seq[String]) extends MapOperation {
    */
 
   /**
-   * Create function for the MapOperation to apply to the Dataset data (SampledFunction).
+   * Create function for the MapOperation to apply to the Dataset Data.
    */
   def mapFunction(model: DataType): Sample => Sample = {
     case Sample(domain, RangeData(mf: MemoizedFunction)) =>
@@ -76,10 +77,10 @@ case class Pivot(values: Seq[String], vids: Seq[String]) extends MapOperation {
         vid <- vids
         s <- r.getScalars
       } yield s.rename(vid ++ "_" ++ s.id)
-      Right(ranges match {
+      (ranges match {
         case s1 :: Nil => Function(domain, s1)
         case ss => Function(domain, Tuple(ss))
-      })
+      }).asRight
     case _ => Left(LatisException("Invalid DataType"))
   }
 

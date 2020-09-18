@@ -23,13 +23,11 @@ case class GroupByBin(
   /**
    * Extends the default by constructing a SetFunction with the domainSet.
    */
-  override def applyToData(
-    data: SampledFunction,
-    model: DataType
-  ): Either[LatisException, SampledFunction] = for {
-    data <- super.applyToData(data, model)
-    range = data.unsafeForce.sampleSeq.map(_.range).toIndexedSeq
-  } yield SetFunction(domainSet, range)
+  override def applyToData(data: Data, model: DataType): Either[LatisException, Data] =
+    for {
+      data <- super.applyToData(data, model)
+      range = data.asFunction.unsafeForce.sampleSeq.map(_.range).toIndexedSeq
+    } yield SetFunction(domainSet, range)
 
   /*
   TODO: NearestNeaighborAgg, need diff agg for each bin, with DomainData to be closest to
