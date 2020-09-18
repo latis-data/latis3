@@ -53,27 +53,25 @@ class TappedDataset(
    * Applies the operations and returns a Stream of Samples.
    */
   def samples: Stream[IO, Sample] =
-    applyOperations().fold(Stream.raiseError[IO](_), _.samples)
+    applyOperations().fold(Stream.raiseError[IO](_), _.asFunction.samples)
 
   /**
-   * Applies the Operations to the Data and returns a SampledFunction.
+   * Applies the Operations to generate the new Data.
    */
-  private def applyOperations(): Either[LatisException, SampledFunction] = {
+  private def applyOperations(): Either[LatisException, Data] = {
     //TODO: compile/optimize the operations
 
-    // Defines a function to apply an Operation to a SampledFunction.
+    // Defines a function to apply an Operation to Data.
     // The model (DataType) needs to ride along to provide context.
-    val f: ((DataType, SampledFunction), UnaryOperation) => Either[LatisException, (DataType, SampledFunction)] = {
-      case ((model: DataType, data: SampledFunction), op: UnaryOperation) =>
-        val mod2 = op.applyToModel(model)
-        // Enables a smart SampledFunction to apply the Operation.
-        // Note that it will return a superclass if it can't.
-        val dat2 = data.asFunction.applyOperation(op, model)
-        mod2.product(dat2)
+    val f: ((DataType, Data), UnaryOperation) => Either[LatisException, (DataType, Data)] = {
+      case ((model: DataType, data: Data), op: UnaryOperation) => for {
+        mod2 <- op.applyToModel(model)
+        dat2 <- data.applyOperation(op, model)
+      } yield (mod2, dat2)
     }
 
     // Apply the operations to the data
-    operations.toList.foldM((_model, data.asFunction))(f).map(_._2)
+    operations.toList.foldM((_model, data))(f).map(_._2)
   }
 
   /**
@@ -84,7 +82,7 @@ class TappedDataset(
   def unsafeForce(): MemoizedDataset = new MemoizedDataset(
     metadata,  //from super with ops applied
     model,     //from super with ops applied
-    applyOperations().fold(throw _, identity).unsafeForce
+    applyOperations().fold(throw _, identity).asFunction.unsafeForce
   )
 
 }

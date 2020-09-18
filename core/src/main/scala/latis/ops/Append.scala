@@ -1,6 +1,9 @@
 package latis.ops
 
-import latis.data._
+import cats.syntax.all._
+
+import latis.data.Data
+import latis.data.StreamFunction
 import latis.model.DataType
 import latis.util.LatisException
 
@@ -16,12 +19,9 @@ case class Append() extends BinaryOperation {
     model1: DataType,
     model2: DataType
   ): Either[LatisException, DataType] =
-    Right(model1)
+    model1.asRight
 
-  def applyToData(
-    data1: SampledFunction,
-    data2: SampledFunction
-  ): Either[LatisException, SampledFunction] =
-    Right(SampledFunction(data1.samples ++ data2.samples))
+  def applyToData(data1: Data, data2: Data): Either[LatisException, Data] =
+    StreamFunction(data1.asFunction.samples ++ data2.asFunction.samples).asRight
 
 }

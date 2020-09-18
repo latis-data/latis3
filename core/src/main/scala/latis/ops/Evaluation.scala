@@ -1,5 +1,7 @@
 package latis.ops
 
+import cats.syntax.all._
+
 import latis.data._
 import latis.model._
 import latis.util.LatisException
@@ -9,29 +11,26 @@ import latis.util.LatisException
  * returning a new Dataset encapsulating the range value as a
  * ConstantFunction.
  */
-case class Evaluation(data: String) extends UnaryOperation {
+case class Evaluation(value: String) extends UnaryOperation {
   //TODO: assert that data is of the right type based on the model domain
+  //TODO: Allow parsing multiple values for higher arity datasets.
 
   def applyToModel(model: DataType): Either[LatisException, DataType] =
-    Right(model match {
+    (model match {
       case Function(_, r) => r
       case _ => model
-    })
+    }).asRight
 
-  def applyToData(
-    sf: SampledFunction,
-    model: DataType
-  ): Either[LatisException, SampledFunction] =
+
+  def applyToData(data: Data, model: DataType): Either[LatisException, Data] =
     model.arity match {
-      case 0 => Right(sf)
+      case 0 => data.asRight
       case 1 => for {
-        v  <- model.getScalars.head.parseValue(data)
-        // TODO: Allow parsing multiple values for higher arity datasets.
+        v  <- model.getScalars.head.parseValue(value)
         dd <- DomainData.fromData(v)
-        rd <- sf(dd)
-        d   = Data.fromSeq(rd)
-      } yield ConstantFunction(d)
-      case _ => Left(LatisException("Can't evaluate a multi-dimensional dataset"))
+        rd <- data.asFunction(dd)
+      } yield Data.fromSeq(rd)
+      case _ => LatisException("Can't evaluate a multi-dimensional dataset").asLeft
     }
 }
 

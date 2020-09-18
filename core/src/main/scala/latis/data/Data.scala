@@ -18,6 +18,13 @@ sealed trait Data extends Any {
     case sf: SampledFunction => sf
     case d => ConstantFunction(d)
   }
+
+  // Allows smart Data (e.g. RddFunction) to apply operations
+  def applyOperation(
+    op: UnaryOperation,
+    model: DataType
+  ): Either[LatisException, Data] =
+    op.applyToData(this, model) //default when special SF can't apply op
 }
 
 /*
@@ -72,12 +79,6 @@ trait SampledFunction extends Data {
       SetFunction(domainSet, range)
     }
 
-  //def canHandleOperation(op: UnaryOperation): Boolean
-  def applyOperation(
-    op: UnaryOperation,
-    model: DataType
-  ): Either[LatisException, SampledFunction] =
-    op.applyToData(this, model) //default when special SF can't apply op
 
   def unsafeForce: MemoizedFunction = this match { //TODO: Either
       //TODO: optional to: FunctionFactory arg?

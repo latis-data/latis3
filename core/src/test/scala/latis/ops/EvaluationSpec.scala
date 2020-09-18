@@ -30,12 +30,9 @@ class EvaluationSpec extends FlatSpec {
     ).curry(1)
      .eval("1")
     ds.unsafeForce().data.sampleSeq.head match {
-      case Sample(_, RangeData(mf: MemoizedFunction)) =>
-        mf.sampleSeq.head match {
-          case Sample(DomainData(Number(x)), RangeData(Number(a))) =>
-            x should be (100)
-            a should be (12)
-        }
+      case Sample(DomainData(Number(x)), RangeData(Number(a))) =>
+        x should be (100)
+        a should be (12)
     }
   }
 

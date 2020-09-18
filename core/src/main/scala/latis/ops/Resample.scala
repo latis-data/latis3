@@ -1,5 +1,7 @@
 package latis.ops
 
+import cats.syntax.all._
+
 import latis.data._
 import latis.model._
 import latis.util.LatisException
@@ -26,15 +28,15 @@ case class Resample(dset: DomainSet) extends UnaryOperation {
   }
 
   /**
-   * Apply the DomainSet to the given SampledFunction.
+   * Apply the DomainSet to the given Data.
    */
-  def applyToData(sf: SampledFunction, model: DataType): Either[LatisException, SampledFunction] = sf match {
-    case ConstantFunction(data) =>
-      // Duplicate const for every domain value
-      val range: IndexedSeq[RangeData] = Vector.fill(dset.length)(RangeData(data))
-      Right(SetFunction(dset, range))
-    case sf: SampledFunction =>
-      sf(dset)
-  }
+  def applyToData(sf: Data, model: DataType): Either[LatisException, Data] =
+    sf match {
+      case sf: SampledFunction => sf(dset)
+      case data =>
+        // Duplicate const for every domain value
+        val range: IndexedSeq[RangeData] = Vector.fill(dset.length)(RangeData(data))
+        SetFunction(dset, range).asRight
+    }
 
 }

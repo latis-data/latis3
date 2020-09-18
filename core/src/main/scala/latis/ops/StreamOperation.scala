@@ -1,10 +1,12 @@
 package latis.ops
 
 import cats.effect.IO
+import cats.syntax.all._
 import fs2.Pipe
 
+import latis.data.Data
 import latis.data.Sample
-import latis.data.SampledFunction
+import latis.data.StreamFunction
 import latis.model.DataType
 import latis.util.LatisException
 
@@ -28,9 +30,9 @@ trait StreamOperation extends UnaryOperation {
   //TODO: simply compose pipes? but need to be able to build Op of original type
 
   /**
-   * Applies this operation to SampledFunction data.
+   * Applies this operation to Data.
    */
-  def applyToData(data: SampledFunction, model: DataType): Either[LatisException, SampledFunction] =
-    Right(SampledFunction(data.samples.through(pipe(model))))
+  def applyToData(data: Data, model: DataType): Either[LatisException, Data] =
+    StreamFunction(data.asFunction.samples.through(pipe(model))).asRight
 
 }
