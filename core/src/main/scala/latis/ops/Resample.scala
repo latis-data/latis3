@@ -32,7 +32,7 @@ case class Resample(dset: DomainSet) extends UnaryOperation {
    */
   def applyToData(sf: Data, model: DataType): Either[LatisException, Data] =
     sf match {
-      case sf: SampledFunction => sf(dset)
+      case sf: SampledFunction => sf.resample(dset)
       case data =>
         // Duplicate const for every domain value
         val range: IndexedSeq[RangeData] = Vector.fill(dset.length)(RangeData(data))

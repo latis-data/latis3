@@ -18,7 +18,7 @@ case class StreamFunction(samples: Stream[IO, Sample]) extends SampledFunction {
 
   def ordering: Option[PartialOrdering[DomainData]] = None //TODO: allow ord arg
 
-  def apply(data: DomainData): Either[LatisException, RangeData] = {
+  def eval(data: DomainData): Either[LatisException, RangeData] = {
     //TODO: can't do it once? make Evaluation "rewind" the dataset
     val ord: PartialOrdering[DomainData] = ordering.getOrElse(DefaultDomainOrdering)
     //TODO: avoid unsafe run
@@ -30,6 +30,6 @@ case class StreamFunction(samples: Stream[IO, Sample]) extends SampledFunction {
     }
   }
 
-  override def apply(domainSet: DomainSet): Either[LatisException, SampledFunction] =
+  override def resample(domainSet: DomainSet): Either[LatisException, SampledFunction] =
     Left(LatisException("Can't resample a StreamFunction, for now"))
 }

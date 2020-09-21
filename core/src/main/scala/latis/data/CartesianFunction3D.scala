@@ -26,7 +26,7 @@ class CartesianFunction3D(
 ) extends CartesianFunction {
   //TODO: require smart constructor to provide validation?
 
-  override def apply(data: DomainData): Either[LatisException, RangeData] = data match {
+  override def eval(data: DomainData): Either[LatisException, RangeData] = data match {
     case DomainData(x: Datum, y: Datum, z: Datum) =>
       for {
         sr1   <- searchDomain(0, xs, x)

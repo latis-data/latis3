@@ -23,7 +23,7 @@ case class SortedMapFunction(
 
   def sampleSeq: Seq[Sample] = sortedMap.toSeq
 
-  override def apply(value: DomainData): Either[LatisException, RangeData] =
+  override def eval(value: DomainData): Either[LatisException, RangeData] =
     sortedMap.get(value) match {
       case Some(r) => Right(r)
       case None =>

@@ -28,12 +28,11 @@ case class Composition(dataset: Dataset) extends MapRangeOperation {
   }
 
   override def mapFunction(model: DataType): Data => Data = {
-    //TODO: change SF.apply to use Data?
     val f: Data => Either[LatisException, Data] = (data: Data) =>
       dataset match {
         case ComputationalDataset(_, _, f) => f(data)
         case mds: MemoizedDataset => DomainData.fromData(data).flatMap { dd =>
-          mds.data.asFunction.apply(dd).map(Data.fromSeq(_))
+          mds.data.eval(dd).map(Data.fromSeq(_))
         }
     }
     (input: Data) =>

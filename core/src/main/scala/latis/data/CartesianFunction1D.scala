@@ -39,7 +39,7 @@ class CartesianFunction1D(
         Left(LatisException(msg))
     }
 
-  override def apply(data: DomainData): Either[LatisException, RangeData] = data match {
+  override def eval(data: DomainData): Either[LatisException, RangeData] = data match {
     case DomainData(x: Datum) =>
       for {
         sr    <- searchDomain(0, xs, x)

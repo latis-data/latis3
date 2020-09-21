@@ -1,22 +1,22 @@
 package latis.ops
 
+import cats.syntax.all._
+
 import latis.data._
 import latis.model._
 import latis.util.LatisException
 
 /**
  * Defines an Operation that combines all the Samples
- * of a Dataset into a MemoizedFunction in the range of
- * a ConstantFunction.
+ * of a Dataset into a MemoizedFunction in the range
+ * of a single zero-arity Sample.
  */
 case class DefaultAggregation() extends Aggregation {
 
   /**
-   * Does not change the model for DefaultAggragtion.
-   * The input Data is lifted into the range of a
-   * ConstantFunction so the type does not change.
+   * Does not change the model for DefaultAggregation.
    */
-  def applyToModel(model: DataType): Either[LatisException, DataType] = Right(model)
+  def applyToModel(model: DataType): Either[LatisException, DataType] = model.asRight
 
   /**
    * Defines a function that puts the given Samples into
@@ -27,6 +27,7 @@ case class DefaultAggregation() extends Aggregation {
       (samples: Iterable[Sample]) => SeqFunction(samples.toIndexedSeq)
     case _ =>
       // Not a function implies a single range value
+      //TODO: error is samples is empty? NullData?
       (samples: Iterable[Sample]) => Data.fromSeq(samples.head.range)
   }
 }

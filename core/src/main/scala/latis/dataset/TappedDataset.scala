@@ -33,11 +33,6 @@ class TappedDataset(
   def data: Data = _data
 
   /**
-   * Returns this Dataset's data as a SampledFunction.
-   */
-  def function: SampledFunction = _data.asFunction
-
-  /**
    * Returns a copy of this Dataset with the given Operation
    * appended to its sequence of operations.
    */
@@ -53,7 +48,7 @@ class TappedDataset(
    * Applies the operations and returns a Stream of Samples.
    */
   def samples: Stream[IO, Sample] =
-    applyOperations().fold(Stream.raiseError[IO](_), _.asFunction.samples)
+    applyOperations().fold(Stream.raiseError[IO](_), _.samples)
 
   /**
    * Applies the Operations to generate the new Data.
@@ -82,7 +77,7 @@ class TappedDataset(
   def unsafeForce(): MemoizedDataset = new MemoizedDataset(
     metadata,  //from super with ops applied
     model,     //from super with ops applied
-    applyOperations().fold(throw _, identity).asFunction.unsafeForce
+    applyOperations().fold(throw _, identity).asInstanceOf[SampledFunction].unsafeForce
   )
 
 }

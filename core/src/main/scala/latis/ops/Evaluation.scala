@@ -8,8 +8,7 @@ import latis.util.LatisException
 
 /**
  * Defines an operation that evaluates a Dataset at a given value
- * returning a new Dataset encapsulating the range value as a
- * ConstantFunction.
+ * returning a new Dataset encapsulating the range value.
  */
 case class Evaluation(value: String) extends UnaryOperation {
   //TODO: assert that data is of the right type based on the model domain
@@ -28,7 +27,7 @@ case class Evaluation(value: String) extends UnaryOperation {
       case 1 => for {
         v  <- model.getScalars.head.parseValue(value)
         dd <- DomainData.fromData(v)
-        rd <- data.asFunction(dd)
+        rd <- data.eval(dd)
       } yield Data.fromSeq(rd)
       case _ => LatisException("Can't evaluate a multi-dimensional dataset").asLeft
     }

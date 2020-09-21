@@ -12,8 +12,7 @@ import latis.util.LatisException
  */
 case class Append() extends BinaryOperation {
   //TODO: assert that models are the same
-  //TODO: deal with ConstantFunctions, add index domain
-  //TODO: consider CompositeSampledFunction
+  //TODO: deal with non-Function Data: add index domain? error?
 
   def applyToModel(
     model1: DataType,
@@ -22,6 +21,6 @@ case class Append() extends BinaryOperation {
     model1.asRight
 
   def applyToData(data1: Data, data2: Data): Either[LatisException, Data] =
-    StreamFunction(data1.asFunction.samples ++ data2.asFunction.samples).asRight
+    StreamFunction(data1.samples ++ data2.samples).asRight
 
 }
