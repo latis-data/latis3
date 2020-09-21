@@ -37,15 +37,14 @@ class TextEncoder extends Encoder[IO, String] {
   /**
    * Given a Sample and its data model, creates a Stream of Strings.
    */
-  def encodeSample(model: DataType, sample: Sample): String = {
-    // Deal with ConstantFunction
-    if (sample.domain.isEmpty) encodeData(model, sample.range)
-    else (model, sample) match {
+  def encodeSample(model: DataType, sample: Sample): String =
+    (model, sample) match {
       case (Function(domain, range), Sample(ds, rs)) =>
         " " * functionIndent +
           s"${encodeData(domain, ds)} -> ${encodeData(range, rs)}"
+      case (_, Sample(_, rs)) =>
+        encodeData(model, rs)
     }
-  }
 
   def encodeData(model: DataType, data: Seq[Data]): String = {
     val ds = scala.collection.mutable.Stack(data: _*)
@@ -73,7 +72,6 @@ class TextEncoder extends Encoder[IO, String] {
   }
 
   // Nested function
-  //TODO: don't decorate Function in range of ConstantFunction
   def encodeFunction(ftype: Function, function: MemoizedFunction): String = {
     val head: String = "{" + lineSeparator
     functionIndent += 2

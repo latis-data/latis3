@@ -5,8 +5,9 @@ import latis.model._
 import latis.util.LatisException
 
 /**
- * Defines an Aggregation that reduces the Samples of a Dataset to a ConstantFunction
- * with the range of the single Sample whose domain is closest to the given domain.
+ * Defines an Aggregation that reduces the Samples of a Dataset
+ * to a single zero-arity Sample with the range of the single Sample
+ * whose domain is closest to the given domain.
  */
 case class NearestNeighborAggregation(domain: DomainData) extends Aggregation {
 

@@ -12,8 +12,8 @@ class EvaluationSpec extends FlatSpec {
     DatasetGenerator.generate1DDataset(
       Vector(0, 1, 2),
       Vector(10, 20, 30)
-    ).withOperation(Evaluation("1")).unsafeForce().data match {
-      case ConstantFunction(Number(d)) =>
+    ).withOperation(Evaluation("1")).samples.head.map {
+      case Sample(_, RangeData(Number(d))) =>
         d should be (20)
     }
   }

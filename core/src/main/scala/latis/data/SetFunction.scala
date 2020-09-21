@@ -21,7 +21,7 @@ case class SetFunction(domainSet: DomainSet, rangeValues: Seq[RangeData]) extend
     case (r, d) => Sample(r, d)
   }
 
-  override def apply(data: DomainData): Either[LatisException, RangeData] = {
+  override def eval(data: DomainData): Either[LatisException, RangeData] = {
     //TODO: support interpolation
     val index = domainSet.indexOf(data)
     if (index >= 0 && index < rangeValues.length) Right(rangeValues(index))

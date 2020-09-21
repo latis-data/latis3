@@ -14,7 +14,7 @@ case class ArrayFunction2D(array: Array[Array[RangeData]]) extends MemoizedFunct
    */
   def ordering: Option[PartialOrdering[DomainData]] = Some(DefaultDomainOrdering)
 
-  override def apply(data: DomainData): Either[LatisException, RangeData] = data match {
+  override def eval(data: DomainData): Either[LatisException, RangeData] = data match {
     case RangeData(Index(i), Index(j)) =>
       array.lift(i).flatMap(_.lift(j)).toRight {
         val msg = s"No sample found matching $data"

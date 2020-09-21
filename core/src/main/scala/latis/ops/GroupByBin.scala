@@ -26,7 +26,7 @@ case class GroupByBin(
   override def applyToData(data: Data, model: DataType): Either[LatisException, Data] =
     for {
       data <- super.applyToData(data, model)
-      range = data.asFunction.unsafeForce.sampleSeq.map(_.range).toIndexedSeq
+      range = data.asInstanceOf[SampledFunction].unsafeForce.sampleSeq.map(_.range).toIndexedSeq
     } yield SetFunction(domainSet, range)
 
   /*

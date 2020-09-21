@@ -35,7 +35,7 @@ case class Substitution(dataset: Dataset) extends MapOperation {
           dataset match {
             case ComputationalDataset(_, _, f) => f(data)
             case mds: MemoizedDataset => DomainData.fromData(data).flatMap { dd =>
-              mds.data.asFunction.apply(dd).map(Data.fromSeq(_))
+              mds.data.eval(dd).map(Data.fromSeq(_))
             }
             case _ =>
               val msg = "Substitution not enabled for non-memoized Datasets."

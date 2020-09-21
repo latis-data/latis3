@@ -55,10 +55,10 @@ case class GranuleListJoin(
       } yield granuleAdapter.getData(uri) //TODO: delegate ops?
 
     // Create Data for each granule URI and combine into one.
-    val samples = data.asFunction.samples
+    val samples = data.samples
       .map(f)
       .flatMap(Stream.fromEither[IO](_))
-      .flatMap(_.asFunction.samples)
+      .flatMap(_.samples)
     StreamFunction(samples).asRight
   }
 

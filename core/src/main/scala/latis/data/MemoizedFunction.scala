@@ -43,7 +43,7 @@ trait MemoizedFunction extends SampledFunction {
    * if it doesn't have one) only for equivalence. This implementation
    * can't ensure a Cartesian topology to safely use a binary search.
    */
-  override def apply(data: DomainData): Either[LatisException, RangeData] = {
+  override def eval(data: DomainData): Either[LatisException, RangeData] = {
     val eq: Equiv[DomainData] = ordering.getOrElse(DefaultDomainOrdering)
     val osample: Option[Sample] = sampleSeq.find {
       case Sample(d, _) => eq.equiv(d, data)

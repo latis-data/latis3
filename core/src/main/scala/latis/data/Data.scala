@@ -14,10 +14,16 @@ import latis.util.StreamUtils
  * The Data trait is the root of all data values that go into a Sample.
  */
 sealed trait Data extends Any {
-  def asFunction: SampledFunction = this match {
-    case sf: SampledFunction => sf
-    case d => ConstantFunction(d)
-  }
+
+  /**
+   * Returns this Data object as a Stream of Samples.
+   */
+  def samples: Stream[IO, Sample]
+
+  /**
+   * Evaluate this Data object at the given DomainData.
+   */
+  def eval(data: DomainData): Either[LatisException, RangeData]
 
   // Allows smart Data (e.g. RddFunction) to apply operations
   def applyOperation(
@@ -27,37 +33,19 @@ sealed trait Data extends Any {
     op.applyToData(this, model) //default when special SF can't apply op
 }
 
-/*
-TODO: TupleData
-  Op.applyToData: Data => Data instead of SF
-  relationship to RangeData, DomainData:
-    DD, RD are not Data, just parts of a Sample
-    should sample just have 2 Data
-      but DD prevents function in domain
-      also nice for them to always be a List so no special logic
-    at some point we need a concrete impl
+//==== TupleData ===============================================================
 
-TODO: can TupleData be nested?
-  yes, with SF
-  but not with other tuples, merely a type construct?
-    could always flatten
-    note many forms of SF that provide a stream of samples
-    TD could simply provide a seq of Datum or SF
-  Maybe it should, maps well to model
-  DD/RD don't which simplifies Sample manipulation
-  maybe the nested tuple data provides opportunities
-    e.g. location tuple as an element of a larger tuple
-  harmonize Tuple and TupleData APIs
-  would we want to subclass TD?
-    e.g. complex?
-    or do all via the type?
-TODO: make TD play nice with DD,RD
-  prevent TD in DD
-
- */
 class TupleData private (val elements: Seq[Data]) extends Data {
-  //def length: Int = elements.length, arity?
+  def samples: Stream[IO, Sample] = Stream.emit {
+    Sample(DomainData(), RangeData(elements))
+  }
+
+  def eval(data: DomainData): Either[LatisException, RangeData] = {
+    if (data.isEmpty) RangeData(elements).asRight
+    else LatisException("TupleData evaluation requires a zero-arity argument.").asLeft
+  }
 }
+
 object TupleData {
   //TODO: prevent tuple of 0 or 1?
   //Note, flatten prevents nested TupleData
@@ -70,12 +58,10 @@ object TupleData {
 //==== SampledFunction =========================================================
 
 trait SampledFunction extends Data {
-  def samples: Stream[IO, Sample]
   def ordering: Option[PartialOrdering[DomainData]]
-  def apply(data: DomainData): Either[LatisException, RangeData] //TODO: eval?
 
-  def apply(domainSet: DomainSet): Either[LatisException, SampledFunction] = //TODO: resample?
-    domainSet.elements.toVector.traverse(apply).map { range =>
+  def resample(domainSet: DomainSet): Either[LatisException, SampledFunction] =
+    domainSet.elements.toVector.traverse(eval).map { range =>
       SetFunction(domainSet, range)
     }
 
@@ -126,6 +112,16 @@ object SampledFunction {
 
 trait Datum extends Any with Data {
   def value: Any
+
+  def samples: Stream[IO, Sample] = Stream.emit {
+    Sample(DomainData(), RangeData(this))
+  }
+
+  def eval(data: DomainData): Either[LatisException, RangeData] = {
+    if (data.isEmpty) RangeData(this).asRight
+    else LatisException("Datum evaluation requires a zero-arity argument.").asLeft
+  }
+
   def asString: String = value.toString
 }
 

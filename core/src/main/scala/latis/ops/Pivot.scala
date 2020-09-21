@@ -58,7 +58,7 @@ case class Pivot(values: Seq[String], vids: Seq[String]) extends MapOperation {
       val range = values.flatMap { value =>
         val rangeValues = for {
           v <- scalar.parseValue(value)
-          r <- mf(DomainData(v))
+          r <- mf.eval(DomainData(v))
         } yield r
         rangeValues.fold(throw _, identity)
       }

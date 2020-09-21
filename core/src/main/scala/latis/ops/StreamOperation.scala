@@ -33,6 +33,6 @@ trait StreamOperation extends UnaryOperation {
    * Applies this operation to Data.
    */
   def applyToData(data: Data, model: DataType): Either[LatisException, Data] =
-    StreamFunction(data.asFunction.samples.through(pipe(model))).asRight
+    StreamFunction(data.samples.through(pipe(model))).asRight
 
 }
