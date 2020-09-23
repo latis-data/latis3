@@ -128,6 +128,7 @@ object NetcdfAdapter extends AdapterFactory {
   case class Config(properties: (String, String)*) extends ConfigLike {
     //Note: ucar.ma2.Section is not serializable, use string representation instead
     val section: Option[String] = get("section")
+      .map(_.replaceAll("""\s*""",""))  // trim whitespace
   }
 
   /**
@@ -387,6 +388,24 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
     pairs.toMap
   }
 
+  private def idToSectionString(id: String): String = variableMap.get(id) match {
+    case Some(v) => v.getShape.map(n => s"0:${n - 1}").mkString(",")
+    case _ => ""
+  }
+
+  private def makeSectionFromIdAndString(id: String, sec: String): Section = {
+    val rangeStrings = sec.split(',')
+    if (rangeStrings.contains(":")) {
+      val secString = idToSectionString(id).split(',').zip(rangeStrings).map {
+        case (r, ":") => r
+        case (_, r) => r
+      }.mkString(",")
+      new Section(secString)
+    } else {
+      new Section(sec)
+    }
+  }
+
   /**
    * Gets the sections as defined in the config or else makes a section for each
    * variable in the dataset. If only one section is specified in the config,
@@ -397,7 +416,10 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
     val ids = model.getScalars.map(_.id)
     config.section match {
       case Some(spec) =>
-        spec.split(';').toList.map(new Section(_)) match {
+        val sectionsNotNull = ids.zip(spec.split(';')).map {
+          case (id, str) => makeSectionFromIdAndString(id, str)
+        }
+        sectionsNotNull match {
           //TODO: error handling. Throws ucar.ma2.InvalidRangeException and
           // java.lang.IllegalArgumentException
           case sec :: Nil =>  // Only one section.
@@ -418,12 +440,7 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
         // Makes a section for each variable in the model. Gets the shape of
         // each variable to select the full range of every dimension. If no
         // variable is found, use an empty section (no ranges).
-        ids.map { id =>
-          variableMap.get(id) match {
-            case Some(v) => v.getShape.map(n => s"0:${n-1}").mkString(",")
-            case _ => ""
-          }
-        }.map(new Section(_))
+        ids.map(id => new Section(idToSectionString(id)))
     }
   }
 
