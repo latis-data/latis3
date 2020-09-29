@@ -1,7 +1,5 @@
 package latis.ops
 
-import scala.math.BigDecimal
-
 import atto.Atto._
 import atto.ParseResult
 import cats.syntax.all._
@@ -31,14 +29,6 @@ case class Selection(vname: String, operator: String, value: String) extends Fil
     scalar <- getScalar(model)
     cdata <- scalar.convertValue(value).leftMap(LatisException(_))
   } yield cdata
-
-  /** Returns value as a BigDecimal. If value is a formatted string, return ms since 1970. */
-  def getBigDecimalValue(model: DataType): Either[LatisException, BigDecimal] =
-    getScalar(model).flatMap {
-      case scalar: latis.time.Time if scalar.isFormatted =>
-        scalar.timeFormat.get.parse(value).map(BigDecimal(_))
-      case _ => Either.catchOnly[NumberFormatException](BigDecimal(value))
-    }.leftMap(_ => LatisException(s"$value could not be converted to a BigDecimal"))
 
   def getScalar(model: DataType): Either[LatisException, Scalar] = model.findVariable(vname) match {
     case Some(s: Scalar) => Right(s)

@@ -289,6 +289,23 @@ object NetcdfAdapter extends AdapterFactory {
         case Right(op) => Left(LatisException(s"Unsupported selection operator $op"))
       }
 
+    /** Gets a scalar's metadata and converts it to a double. */
+    def getMetadataAsDouble(s: Scalar, key: String): Either[LatisException, Double] =
+      s(key) match {
+        case Some(v) => Either.catchOnly[NumberFormatException](v.toDouble)
+          .leftMap(_ => LatisException(s"$v could not be converted to a double"))
+        case _ => Left(LatisException(s"scalar $s does not have $key metadata"))
+      }
+
+    /** Returns value as a BigDecimal. If value is a formatted string, return ms since 1970. */
+    def getBigDecimalValue(s: Scalar, value: String): Either[LatisException, BigDecimal] = {
+      s match {
+        case scalar: latis.time.Time if scalar.isFormatted =>
+          scalar.timeFormat.get.parse(value).map(BigDecimal(_))
+        case _ => Either.catchOnly[NumberFormatException](BigDecimal(value))
+      }
+    }.leftMap(_ => LatisException(s"$value could not be converted to a BigDecimal"))
+
     /**
      * Gets the index where the select value would be given the starting value and
      * cadence of a dataset. The index is returned as a double since it is not
@@ -300,14 +317,6 @@ object NetcdfAdapter extends AdapterFactory {
       cadence: Double
     ): Either[LatisException, Double] =
       Right(((selectValue - firstValue) / cadence).toDouble)
-
-    /** Gets a scalar's metadata and converts it to a double. */
-    def getMetadataAsDouble(s: Scalar, key: String): Either[LatisException, Double] =
-      s(key) match {
-        case Some(v) => Either.catchOnly[NumberFormatException](v.toDouble)
-          .leftMap(_ => LatisException(s"$v could not be converted to a double"))
-        case _ => Left(LatisException(s"scalar $s does not have $key metadata"))
-      }
 
     /** Gets the zero-indexed position of a domain scalar in a top-level function. */
     def getScalarPos(id: String): Either[LatisException, Int] =
@@ -342,7 +351,7 @@ object NetcdfAdapter extends AdapterFactory {
       scalar <- selection.getScalar(model)
       cadence <- getMetadataAsDouble(scalar, "cadence")
       firstValue <- getMetadataAsDouble(scalar, "start")
-      selectValue <- selection.getBigDecimalValue(model)
+      selectValue <- getBigDecimalValue(scalar, selection.value)
       index <- getIndex(selectValue, firstValue, cadence)
       pos <- getScalarPos(scalar.id)
       // find the URange to apply the selection to
