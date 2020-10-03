@@ -13,7 +13,7 @@ val fs2Version        = "2.4.4"
 val http4sVersion     = "0.21.7"
 val junitVersion      = "4.13"
 val netcdfVersion     = "5.3.3"
-val pureconfigVersion = "0.13.0"
+val pureconfigVersion = "0.14.0"
 
 lazy val commonSettings = compilerFlags ++ Seq(
   libraryDependencies ++= Seq(
