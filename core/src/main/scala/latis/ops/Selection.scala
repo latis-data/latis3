@@ -6,9 +6,9 @@ import cats.syntax.all._
 
 import latis.data._
 import latis.model._
-import latis.util.LatisException
-import latis.ops.parser.parsers
 import latis.ops.parser.ast
+import latis.ops.parser.parsers
+import latis.util.LatisException
 
 /**
  * Operation to keep only Samples that meet the given selection criterion.
@@ -29,12 +29,6 @@ case class Selection(vname: String, operator: String, value: String) extends Fil
     scalar <- getScalar(model)
     cdata <- scalar.convertValue(value).leftMap(LatisException(_))
   } yield cdata
-
-  def getDoubleValue: Either[LatisException, Double] =
-    Either.catchOnly[NumberFormatException] {
-      value.toDouble
-    }.leftMap(_ => LatisException(s"$value could not be converted to a double"))
-
 
   def getScalar(model: DataType): Either[LatisException, Scalar] = model.findVariable(vname) match {
     case Some(s: Scalar) => Right(s)
