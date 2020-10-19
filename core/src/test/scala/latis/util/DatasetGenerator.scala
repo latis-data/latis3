@@ -264,7 +264,7 @@ class RangeGenerator(model: DataType) extends Iterator[RangeData] {
 
 object modelParser {
   def model: Parser[modelAst.Model] =
-    parens(function) |function | tuple | scalar
+    parens(function) | function | tuple | scalar
 
   /** Doesn't support nested functions in the domain. */
   def function: Parser[modelAst.Model] = for {
