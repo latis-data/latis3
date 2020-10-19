@@ -381,9 +381,10 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
    * Note, this will access the file but not read data arrays.
    */
   private lazy val variableMap: Map[String, NcVariable] = {
-    def getNcVarName(id: String): Option[NcVariable] = {
-      val validId = makeValidPathName(model.findVariable(id)
-        .flatMap(_.metadata.getProperty("sourceId"))
+    def getNcVar(id: String): Option[NcVariable] = {
+      val validId = makeValidPathName(
+        model.findVariable(id)
+        .flatMap(_("sourceId"))
         .getOrElse(id)
       )
       Option(ncDataset.findVariable(validId))
@@ -392,7 +393,7 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
     //TODO: fail faster by not making this lazy?
     val ids = model.getScalars.map(_.id)
     val pairs = ids.flatMap { id =>
-      getNcVarName(id).map((id, _))
+      getNcVar(id).map((id, _))
       //Note, domain variables not found will be replaced by index
       //TODO: what about range vars?
       //val msg = s"NetCDF variable not found: $vname"
