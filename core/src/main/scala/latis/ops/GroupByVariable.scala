@@ -43,11 +43,10 @@ case class GroupByVariable(variableNames: String*) extends GroupOperation {
         case Some(scalar: Scalar) => scalar
         case Some(_) => throw LatisException(s"Group-by variable must be a Scalar: $vname")
         //TODO: support grouping by a tuple, e.g. location?
-        case None => {
+        case None =>
           //TODO: validate variables eagerly
           val msg = s"Invalid variable name: $vname"
           throw LatisException(msg)
-        }
       }
     }
     Tuple(scalars).flatten
@@ -77,7 +76,11 @@ case class RemoveGroupedVariables(variableNames: Seq[String]) extends MapOperati
   /** Recursive method to build new model by dropping variableNames. */
   private def applyToVariable(v: DataType): Option[DataType] = v match {
     case s: Scalar =>
-      if (variableNames.contains(s.id)) None else Some(s)
+      val sId = s.id match {
+        case Some(id) => id.asString
+        case None => ""
+      }
+      if (variableNames.contains(sId)) None else Some(s)
     case t @ Tuple(vars @ _*) =>
       val vs = vars.flatMap(applyToVariable)
       vs.length match {
@@ -96,7 +99,12 @@ case class RemoveGroupedVariables(variableNames: Seq[String]) extends MapOperati
 
   override def mapFunction(model: DataType): Sample => Sample = {
     // Determine the list of variables to keep
-    val vnames = model.getScalars.map(_.id).filterNot(variableNames.contains)
+    val vnames: List[String] = model.getScalars.map{
+      s => s.id match {
+        case Some(id) => id.asString
+        case None => ""
+      }
+    }.filterNot(variableNames.contains)
 
     // Get the paths of the variables to be removed from each Sample.
     // Sort to maintain the original order of variables.

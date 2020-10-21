@@ -4,8 +4,9 @@ import latis.data._
 import latis.metadata._
 import latis.util.DefaultDatumOrdering
 import latis.util.LatisException
-
 import scala.collection.mutable.ArrayBuffer
+
+import latis.util.Identifier
 
 /**
  * Define the algebraic data type for the LaTiS implementation of the
@@ -36,12 +37,13 @@ sealed trait DataType extends MetadataLike with Serializable {
   /**
    * Get the DataType of a variable by its identifier.
    */
-  def getVariable(id: String): Option[DataType] =
-    getScalars.find(_.id == id)
+  def getVariable(id: Identifier): Option[DataType] =
+    getScalars.find(_.id == Some(id))
     //TODO: support finding any variable type
 
   /**
    * Find the DataType of a variable by its identifier or aliases.
+   * TODO: can't take an Identifier here without losing support for findAllVariable's dot-separated notation.
    */
   def findVariable(variableName: String): Option[DataType] =
     findAllVariables(variableName).headOption
@@ -49,12 +51,17 @@ sealed trait DataType extends MetadataLike with Serializable {
 
   /**
    * Find all Variables within this Variable by the given name.
+   * TODO: can't take an Identifier here without losing support for the dot-separated notation.
    */
   def findAllVariables(variableName: String): Seq[DataType] = {
     variableName.split('.') match {
       case Array(_) =>
         val vbuf = ArrayBuffer[DataType]()
-        if (this.id == variableName) vbuf += this //TODO: use hasName to cover aliases?
+        val namesMatch = this.id match {
+          case Some(id) => id.asString == variableName
+          case None => false
+        }
+        if (namesMatch) vbuf += this //TODO: use hasName to cover aliases?
         this match {
           case _: Scalar =>
           case Tuple(es @ _*) =>
@@ -64,9 +71,8 @@ sealed trait DataType extends MetadataLike with Serializable {
             vbuf ++= r.findAllVariables(variableName)
         }
         vbuf.toSeq
-      case Array(n1, n2 @ _*) => {
+      case Array(n1, n2 @ _*) =>
         findAllVariables(n1).flatMap(_.findAllVariables(n2.mkString(".")))
-      }
     }
   }
 
@@ -86,7 +92,8 @@ sealed trait DataType extends MetadataLike with Serializable {
     case _ => 0
   }
 
-  // Used by Rename Operation
+  // Used by Rename Operation and this.flatten
+  //TODO: refactor to take Identifier instead of String?
   def rename(name: String): DataType = this match {
     //TODO: add old name to alias?
     case _: Scalar      => Scalar(metadata + ("id"   -> name))
@@ -107,10 +114,21 @@ sealed trait DataType extends MetadataLike with Serializable {
     // while the recursion results build up the final type.
     def go(dt: DataType, acc: Seq[DataType]): Seq[DataType] = dt match {
       //prepend Tuple ID(s) with dot(s) and drop leading dot(s)
-      case s: Scalar          => acc :+ s.rename(s"$tupIds.${s.id}".replaceFirst("^\\.+", ""))
+      case s: Scalar          =>
+        val sId = s.id match {
+          case Some(id) => id.asString
+          case None => ""
+        }
+        //TODO: can't refactor rename() to take Identifier if we don't restructure dot-separated namespacing here
+        acc :+ s.rename(s"$tupIds.$sId".replaceFirst("^\\.+", ""))
       case Function(d, r)     => acc :+ Function(d.flatten, r.flatten)
       //build up a dot-separated String of Tuple IDs, including empty IDs that stand in for anonymous Tuples
-      case t @ Tuple(es @ _*) => if (tupIds.isEmpty && t.id.nonEmpty) tupIds = t.id else tupIds += s".${t.id}"
+      case t @ Tuple(es @ _*) =>
+        val tId = t.id match {
+          case Some(id) => id.asString
+          case None => ""
+        }
+        if (tupIds.isEmpty && tId.nonEmpty) tupIds = tId else tupIds += s".$tId"
         es.flatMap(e => acc ++ go(e, Seq()))
     }
 
@@ -119,7 +137,13 @@ sealed trait DataType extends MetadataLike with Serializable {
       case 1 => types.head
       case _ => 
         if (tupIds.split('.').isEmpty) Tuple(types)
-        else Tuple(Metadata(tupIds.split('.').head), types)
+        else {
+          val tupId = tupIds.split('.').head
+          val id: Identifier = Identifier.fromString(tupId).getOrElse {
+            throw LatisException(s"Found invalid Identifier: $tupId")
+          }
+          Tuple(Metadata(id), types)
+        }
     }
   }
 
@@ -132,12 +156,16 @@ sealed trait DataType extends MetadataLike with Serializable {
   def getPath(id: String): Option[SamplePath] = {
 
     // Recursive function to try paths until it finds a match
-    def go(dt: DataType, id: String, currentPath: SamplePath): Option[SamplePath] =
+    def go(dt: DataType, id: String, currentPath: SamplePath): Option[SamplePath] = {
       //TODO: use hasName to cover aliases?
       //searching fully qualified ID with namespace
-      if (id.contains('.') && dt.id == id)    Some(currentPath) //found it
+      val dtId: String = dt.id match {
+        case Some(id) => id.asString
+        case None => ""
+      }
+      if (id.contains('.') && dtId == id)    Some(currentPath) //found it
       //searching variable ID without namespace
-      else if (dt.id.split('.').contains(id)) Some(currentPath) //found it
+      else if (dtId.split('.').contains(id)) Some(currentPath) //found it
       else
         dt match { //recurse
           case _: Scalar => None //dead end
@@ -160,6 +188,7 @@ sealed trait DataType extends MetadataLike with Serializable {
 
             (d ++ r).collectFirst { case Some(p) => p } //short-circuit here, take first Some
         }
+    }
 
     go(this.flatten, id, List.empty)
   }
@@ -234,7 +263,10 @@ class Scalar(val metadata: Metadata) extends DataType {
       case s => throw LatisException(s"Invalid order: $s") //TODO: validate sooner
     }
 
-  override def toString: String = id
+  override def toString: String = id match {
+    case Some(id) => id.asString
+    case None => "" //TODO: do we want a different default here?
+  }
 }
 
 object Scalar {
@@ -248,7 +280,7 @@ object Scalar {
   /**
    * Construct a Scalar with the given identifier.
    */
-  def apply(id: String): Scalar = Scalar(Metadata(id))
+  def apply(id: Identifier): Scalar = Scalar(Metadata(id))
 }
 
 //-- Tuple ------------------------------------------------------------------//

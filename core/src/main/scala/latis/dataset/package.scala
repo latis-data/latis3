@@ -8,6 +8,7 @@ package object dataset {
 
   /**
    * Defines the DSL for the functional algebra
+   * TODO: Should we convert Strings to Identifiers here?
    */
   implicit class DatasetOps(dataset: Dataset) {
     def select(exp: String): Dataset = dataset.withOperation(Selection(exp))

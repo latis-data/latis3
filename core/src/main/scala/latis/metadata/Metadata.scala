@@ -1,5 +1,6 @@
 package latis.metadata
 
+import latis.util.Identifier
 import latis.util.PropertiesLike
 
 /**
@@ -17,7 +18,7 @@ object Metadata {
   /**
    * Construct Metadata with the given identifier.
    */
-  def apply(id: String): Metadata = Metadata("id" -> id)
+  def apply(id: Identifier): Metadata = Metadata("id" -> id.asString)
 
   /**
    * Construct Metadata from a comma separated list of name-value pairs.

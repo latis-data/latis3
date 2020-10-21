@@ -19,7 +19,11 @@ case class Substitution(dataset: Dataset) extends MapOperation {
     // Get the paths to the substitution variables in the target Dataset
     //TODO: error if not consecutive
     val paths = modelScalars._1.toList.traverse { s =>
-      model.getPath(s.id)
+      val sId = s.id match {
+        case Some(id) => id.asString
+        case None => ""
+      }
+      model.getPath(sId)
     }.getOrElse {
       val msg = s"Failed to find substitution domain in target Dataset"
       throw LatisException(msg)
@@ -150,6 +154,11 @@ case class Substitution(dataset: Dataset) extends MapOperation {
   /**
    * Extracts the variable IDs from the domain of the Substitution Dataset.
    */
-  private val domainVariableIDs: Seq[String] = modelScalars._1.map(_.id)
+  private val domainVariableIDs: Seq[String] = modelScalars._1.map {
+    _.id match {
+      case Some(id) => id.asString
+      case None => ""
+    }
+  }
 
 }

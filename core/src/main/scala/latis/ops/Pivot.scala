@@ -76,7 +76,11 @@ case class Pivot(values: Seq[String], vids: Seq[String]) extends MapOperation {
       val ranges = for {
         vid <- vids
         s <- r.getScalars
-      } yield s.rename(vid ++ "_" ++ s.id)
+        sId = s.id match {
+          case Some(id) => id.asString
+          case None => ""
+        }
+      } yield s.rename(vid ++ "_" ++ sId)
       (ranges match {
         case s1 :: Nil => Function(domain, s1)
         case ss => Function(domain, Tuple(ss))
