@@ -13,6 +13,7 @@ object CacheManager {
 
   /**
    * Singleton instance of the CacheManager.
+   * TODO: Is it appropriate to change this from Map[String, Dataset]?
    */
   private lazy val cache = mutable.Map[String, Dataset]()
 
@@ -21,11 +22,17 @@ object CacheManager {
    * This will also ensure that the Dataset is memoized
    * via a potentially unsafe read.
    */
-  def cacheDataset(dataset: MemoizedDataset): Unit =
-    cache += dataset.id -> dataset
+  def cacheDataset(dataset: MemoizedDataset): Unit = {
+    val dsId = dataset.id match {
+      case Some(id) => id.asString
+      case None => ""
+    }
+    cache += dsId -> dataset
+  }
 
   /**
    * Optionally get the Dataset with the given id.
+   * TODO: Is it appropriate to use Identifier here?
    */
   def getDataset(id: String): Option[Dataset] = cache.get(id)
 

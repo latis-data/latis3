@@ -4,6 +4,7 @@ import cats.syntax.all._
 
 import latis.data.Data
 import latis.model._
+import latis.util.Identifier
 import latis.util.LatisException
 
 /**
@@ -12,16 +13,22 @@ import latis.util.LatisException
  */
 case class Rename(origName: String, newName: String) extends UnaryOperation {
 
-  def applyToModel(model: DataType): Either[LatisException, DataType] =
-  // TODO: support renaming tuples and functions
-    model.getVariable(origName) match {
-      case None => Left(LatisException(s"Variable '$origName' not found"))
-      case _ => Right(model.map { s =>
-        if (s.id == origName) s.rename(newName)
-        else s
-        //TODO: support aliases with hasName
-      })
+  def applyToModel(model: DataType): Either[LatisException, DataType] = {
+    // TODO: support renaming tuples and functions
+    Identifier.fromString(origName) match {
+      case None => Left(LatisException(s"'$origName' is not a valid Identifier"))
+      case Some(origId) => model.getVariable(origId) match {
+        case None => Left(LatisException(s"Variable '$origName' not found"))
+        case _ => Right(model.map { s =>
+          if (s.id == Some(origId)) s.rename(newName) //TODO: not validating newName as an Identifier, yet
+          else s
+          //TODO: support aliases with hasName
+        })
+      }
+
     }
+
+  }
 
   /**
    * Provides a no-op implementation for Rename.
