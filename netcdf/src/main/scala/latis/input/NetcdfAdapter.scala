@@ -43,11 +43,12 @@ case class NetcdfAdapter(
    */
   override def canHandleOperation(op: Operation): Boolean = op match {
     case Stride(stride) if stride.length == model.arity => true
-    case s@Selection(v, _, _) => model.getVariable(v).exists(
-      v => v("cadence").nonEmpty && v("start").nonEmpty) &&
-      (s.getSelectionOp match {
-        case Right(Gt) | Right(Lt) | Right(GtEq) | Right(LtEq) | Right(Eq) | Right(EqEq) => true
-        case _ => false
+    case s@Selection(v, _, _) => Identifier.fromString(v).exists(
+      vId => model.getVariable(vId).exists(
+        v => v("cadence").nonEmpty && v("start").nonEmpty)) &&
+        (s.getSelectionOp match {
+          case Right(Gt) | Right(Lt) | Right(GtEq) | Right(LtEq) | Right(Eq) | Right(EqEq) => true
+          case _ => false
     })
     //TODO: take, drop, ...
     case _ => false

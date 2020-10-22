@@ -116,19 +116,13 @@ sealed trait DataType extends MetadataLike with Serializable {
     def go(dt: DataType, acc: Seq[DataType]): Seq[DataType] = dt match {
       //prepend Tuple ID(s) with dot(s) and drop leading dot(s)
       case s: Scalar          =>
-        val sId = s.id match {
-          case Some(id) => id.asString
-          case None => ""
-        }
+        val sId = s.id.fold("")(_.asString)
         //TODO: can't refactor rename() to take Identifier if we don't restructure dot-separated namespacing here
         acc :+ s.rename(s"$tupIds.$sId".replaceFirst("^\\.+", ""))
       case Function(d, r)     => acc :+ Function(d.flatten, r.flatten)
       //build up a dot-separated String of Tuple IDs, including empty IDs that stand in for anonymous Tuples
       case t @ Tuple(es @ _*) =>
-        val tId = t.id match {
-          case Some(id) => id.asString
-          case None => ""
-        }
+        val tId = t.id.fold("")(_.asString)
         if (tupIds.isEmpty && tId.nonEmpty) tupIds = tId else tupIds += s".$tId"
         es.flatMap(e => acc ++ go(e, Seq()))
     }
@@ -160,10 +154,7 @@ sealed trait DataType extends MetadataLike with Serializable {
     def go(dt: DataType, id: String, currentPath: SamplePath): Option[SamplePath] = {
       //TODO: use hasName to cover aliases?
       //searching fully qualified ID with namespace
-      val dtId: String = dt.id match {
-        case Some(id) => id.asString
-        case None => ""
-      }
+      val dtId = dt.id.fold("")(_.asString)
       if (id.contains('.') && dtId == id)    Some(currentPath) //found it
       //searching variable ID without namespace
       else if (dtId.split('.').contains(id)) Some(currentPath) //found it

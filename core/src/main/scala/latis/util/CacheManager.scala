@@ -23,10 +23,7 @@ object CacheManager {
    * via a potentially unsafe read.
    */
   def cacheDataset(dataset: MemoizedDataset): Unit = {
-    val dsId = dataset.id match {
-      case Some(id) => id.asString
-      case None => ""
-    }
+    val dsId = dataset.id.fold("")(_.asString)
     cache += dsId -> dataset
   }
 
