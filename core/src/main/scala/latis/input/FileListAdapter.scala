@@ -23,6 +23,7 @@ import latis.util.LatisException
 import latis.util.NetUtils
 import latis.util.StreamUtils
 import FileListAdapter.FileInfo
+import latis.util.Identifier
 import latis.util.Identifier.IdentifierStringContext
 
 /**
@@ -148,11 +149,12 @@ class FileListAdapter(
     }
 
     range match {
-      case (u: Scalar) :: Nil if u.id.contains(id"uri") =>
-        u.parseValue(uri.toString()).map(RangeData(_))
+      //TODO: using id"foo" here yields macro implementation not found error. Why?
+      case (u: Scalar) :: Nil if u.id.fold("")(_.asString) == "uri" =>
+        u.parseValue(uri.toString).map(RangeData(_))
       case (u: Scalar) :: (s: Scalar) :: Nil
-          if u.id.contains(id"uri") && s.id.contains(id"size") => for {
-            uriDatum  <- u.parseValue(uri.toString())
+          if u.id.fold("")(_.asString) == "uri" && s.id.fold("")(_.asString) == "size" => for {
+            uriDatum  <- u.parseValue(uri.toString)
             sizeLong  <- size.toRight {
               // This shouldn't happen. If we have the size scalar in
               // the model, we should have gotten the size in
