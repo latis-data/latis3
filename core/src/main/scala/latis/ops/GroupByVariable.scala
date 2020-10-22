@@ -99,8 +99,8 @@ case class RemoveGroupedVariables(variableNames: Seq[String]) extends MapOperati
 
   override def mapFunction(model: DataType): Sample => Sample = {
     // Determine the list of variables to keep
-    val vnames: List[String] = model.getScalars.map{
-      s => s.id match {
+    val vnames: List[String] = model.getScalars.map { s =>
+      s.id match {
         case Some(id) => id.asString
         case None => ""
       }
