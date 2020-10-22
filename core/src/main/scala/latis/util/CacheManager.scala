@@ -10,6 +10,7 @@ import latis.dataset.{Dataset, MemoizedDataset}
 object CacheManager {
   //TODO: concurrency issues, serialize methods? Use scalacache!
   //TODO: validate: remove expired datasets? need md term for expiration
+  //TODO: replace String IDs with Identifiers?
 
   /**
    * Singleton instance of the CacheManager.
@@ -31,7 +32,6 @@ object CacheManager {
 
   /**
    * Optionally get the Dataset with the given id.
-   * TODO: Is it appropriate to use Identifier here?
    */
   def getDataset(id: String): Option[Dataset] = cache.get(id)
 
