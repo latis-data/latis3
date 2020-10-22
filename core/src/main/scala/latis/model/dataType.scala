@@ -57,11 +57,7 @@ sealed trait DataType extends MetadataLike with Serializable {
     variableName.split('.') match {
       case Array(_) =>
         val vbuf = ArrayBuffer[DataType]()
-        val namesMatch = this.id match {
-          case Some(id) => id.asString == variableName
-          case None => false
-        }
-        if (namesMatch) vbuf += this //TODO: use hasName to cover aliases?
+        if (this.id.exists(_.asString == variableName)) vbuf += this //TODO: use hasName to cover aliases?
         this match {
           case _: Scalar =>
           case Tuple(es @ _*) =>
