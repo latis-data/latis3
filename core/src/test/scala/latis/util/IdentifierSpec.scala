@@ -22,7 +22,6 @@ class IdentifierSpec extends FlatSpec {
     id"abcABC_123"
     id"_123"
     id"__"
-    id"myString.another._1" //TODO: remove this once namespacing is finalized and dots are disallowed
     
   }
   

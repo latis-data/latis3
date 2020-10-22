@@ -7,7 +7,6 @@ import scala.reflect.macros.blackbox.Context
  *   - letters
  *   - numbers
  *   - underscores
- *   - dots (TODO: remove support for dots)
  * so long as the identifier does not start with a number.
  */
 sealed abstract case class Identifier(asString: String)
@@ -19,8 +18,8 @@ object Identifier {
     def id(): Identifier = macro literalMacro
   }
 
-  /** Returns whether the String is a regex "word" that doesn't start with a digit (may also contain dots). */
-  private def checkValidIdentifier(str: String): Boolean = str.matches("^(?!\\d)(\\w|\\.)+") //TODO: revert to "^(?!\\d)\\w+"
+  /** Returns whether the String is a regex "word" that doesn't start with a digit. */
+  private def checkValidIdentifier(str: String): Boolean = str.matches("^(?!\\d)\\w+")
 
   def literalMacro(c: Context)(): c.Expr[Identifier] = {
     import c.universe._
