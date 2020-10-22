@@ -74,7 +74,8 @@ case class NetcdfAdapter(
       // Assumes all domain variables are 1D and define a Cartesian Product set.
       val domainSet: DomainSet = {
         val dsets: List[DomainSet] = domainSections.map { case (scalar, sec) =>
-          nc.readVariable(scalar.id, sec).map { ncArr =>
+          val scalarId = scalar.id.fold("")(_.asString)
+          nc.readVariable(scalarId, sec).map { ncArr =>
             val ds: IndexedSeq[DomainData] =
               (0 until ncArr.getSize.toInt).map { i =>
                 Data.fromValue(ncArr.getObject(i)).fold(throw _, DomainData(_))
@@ -97,7 +98,8 @@ case class NetcdfAdapter(
         val arrs: List[NcArray] = rangeSections.flatMap {
           case (scalar, section) =>
             //TODO: beware of silent failure if var not found
-            nc.readVariable(scalar.id, section)
+            val scalarId = scalar.id.fold("")(_.asString)
+            nc.readVariable(scalarId, section)
         }
         (0 until arrs.head.getSize.toInt).map { i =>
           RangeData(arrs.map { ncArr =>
@@ -354,7 +356,7 @@ object NetcdfAdapter extends AdapterFactory {
       firstValue <- getMetadataAsDouble(scalar, "start")
       selectValue <- getBigDecimalValue(scalar, selection.value)
       index <- getIndex(selectValue, firstValue, cadence)
-      pos <- getScalarPos(scalar.id)
+      pos <- getScalarPos(scalar.id.fold("")(_.asString))
       // find the URange to apply the selection to
       oldRange <- getOldRange(sections(pos))
       // apply the selection to get a new URange
@@ -383,7 +385,7 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
    */
   private lazy val variableMap: Map[String, NcVariable] = {
     //TODO: fail faster by not making this lazy?
-    val ids = model.getScalars.map(_.id)
+    val ids: List[String] = model.getScalars.map(_.id.fold("")(_.asString))
     val pairs = ids.flatMap { id =>
       val vname = getNcVarName(id)
       ncDataset.findVariable(vname) match {
@@ -427,7 +429,7 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
     config.section match {
       case Some(spec) =>
         val sectionsNotNull = ids.zip(spec.split(';')).map {
-          case (id, str) => makeSectionFromIdAndString(id, str)
+          case (id, str) => makeSectionFromIdAndString(id.fold("")(_.asString), str)
         }
         sectionsNotNull match {
           //TODO: error handling. Throws ucar.ma2.InvalidRangeException and
@@ -450,7 +452,7 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
         // Makes a section for each variable in the model. Gets the shape of
         // each variable to select the full range of every dimension. If no
         // variable is found, use an empty section (no ranges).
-        ids.map(id => new Section(idToSectionString(id)))
+        ids.map(id => new Section(idToSectionString(id.fold("")(_.asString))))
     }
   }
 
