@@ -255,10 +255,7 @@ class Scalar(val metadata: Metadata) extends DataType {
       case s => throw LatisException(s"Invalid order: $s") //TODO: validate sooner
     }
 
-  override def toString: String = id match {
-    case Some(id) => id.asString
-    case None => "" //TODO: do we want a different default here?
-  }
+  override def toString: String = id.fold("")(_.asString) //TODO: do we want a different default than ""?
 }
 
 object Scalar {
