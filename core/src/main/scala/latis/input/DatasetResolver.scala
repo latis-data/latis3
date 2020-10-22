@@ -9,7 +9,6 @@ import scala.util.Try
 import latis.dataset.Dataset
 import latis.util.CacheManager
 import latis.util.FileUtils
-import latis.util.Identifier
 import latis.util.LatisConfig
 
 /**
