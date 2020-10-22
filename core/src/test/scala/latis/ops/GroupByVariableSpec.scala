@@ -8,6 +8,7 @@ import latis.dataset._
 import latis.metadata.Metadata
 import latis.model._
 import latis.output.TextWriter
+import latis.util.Identifier.IdentifierStringContext
 
 class GroupByVariableSpec extends FlatSpec {
 
@@ -27,7 +28,7 @@ class GroupByVariableSpec extends FlatSpec {
     Sample(DomainData(1, 11), RangeData(4)),
   ))
 
-  val ds = new MemoizedDataset(Metadata("test"), model, data)
+  val ds = new MemoizedDataset(Metadata(id"test"), model, data)
       .withOperation(GroupByVariable("y"))
       .unsafeForce()
 

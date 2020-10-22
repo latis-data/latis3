@@ -9,6 +9,7 @@ import latis.metadata.Metadata
 import latis.model._
 import latis.ops.GranuleListJoin
 import latis.ops.Selection
+import latis.util.Identifier.IdentifierStringContext
 import latis.util.StreamUtils
 
 class TestGranuleListJoin {
@@ -18,7 +19,7 @@ class TestGranuleListJoin {
   def test() = {
     //granule list dataset: i -> uri
     val gl: Dataset = {
-      val md = Metadata("test_dataset")
+      val md = Metadata(id"test_dataset")
       val model = Function(
         Scalar(Metadata("id" -> "i", "type" -> "int")),
         Scalar(Metadata("id" -> "uri", "type" -> "string"))

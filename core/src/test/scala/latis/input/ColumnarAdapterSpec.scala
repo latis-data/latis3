@@ -6,6 +6,7 @@ import org.scalatest.Matchers._
 import latis.data._
 import latis.metadata.Metadata
 import latis.model._
+import latis.util.Identifier.IdentifierStringContext
 
 class ColumnarAdapterSpec extends FlatSpec {
 
@@ -15,12 +16,12 @@ class ColumnarAdapterSpec extends FlatSpec {
   )
   private val model = Function(
     Tuple(
-      Scalar(Metadata("time") + ("type" -> "string") + ("units" -> "yyyy MM dd"))
+      Scalar(Metadata(id"time") + ("type" -> "string") + ("units" -> "yyyy MM dd"))
     ),
     Tuple(
-      Scalar(Metadata("myInt") + ("type"    -> "int")),
-      Scalar(Metadata("myDouble") + ("type" -> "double")),
-      Scalar(Metadata("myString") + ("type" -> "string"))
+      Scalar(Metadata(id"myInt") + ("type"    -> "int")),
+      Scalar(Metadata(id"myDouble") + ("type" -> "double")),
+      Scalar(Metadata(id"myString") + ("type" -> "string"))
     )
   )
   private val colAdapter = new ColumnarAdapter(model, config)
