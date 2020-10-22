@@ -76,10 +76,7 @@ case class RemoveGroupedVariables(variableNames: Seq[String]) extends MapOperati
   /** Recursive method to build new model by dropping variableNames. */
   private def applyToVariable(v: DataType): Option[DataType] = v match {
     case s: Scalar =>
-      val sId = s.id match {
-        case Some(id) => id.asString
-        case None => ""
-      }
+      val sId = s.id.fold("")(_.asString)
       if (variableNames.contains(sId)) None else Some(s)
     case t @ Tuple(vars @ _*) =>
       val vs = vars.flatMap(applyToVariable)
@@ -99,12 +96,9 @@ case class RemoveGroupedVariables(variableNames: Seq[String]) extends MapOperati
 
   override def mapFunction(model: DataType): Sample => Sample = {
     // Determine the list of variables to keep
-    val vnames: List[String] = model.getScalars.map { s =>
-      s.id match {
-        case Some(id) => id.asString
-        case None => ""
-      }
-    }.filterNot(variableNames.contains)
+    val vnames: List[String] = model.getScalars.map(
+      _.id.fold("")(_.asString)
+    ).filterNot(variableNames.contains)
 
     // Get the paths of the variables to be removed from each Sample.
     // Sort to maintain the original order of variables.
