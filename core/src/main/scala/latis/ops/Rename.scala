@@ -20,7 +20,7 @@ case class Rename(origName: String, newName: String) extends UnaryOperation {
       case Some(origId) => model.getVariable(origId) match {
         case None => Left(LatisException(s"Variable '$origName' not found"))
         case _ => Right(model.map { s =>
-          if (s.id == Some(origId)) s.rename(newName) //TODO: not validating newName as an Identifier, yet
+          if (s.id.contains(origId)) s.rename(newName) //TODO: not validating newName as an Identifier, yet
           else s
           //TODO: support aliases with hasName
         })
