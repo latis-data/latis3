@@ -38,7 +38,7 @@ sealed trait DataType extends MetadataLike with Serializable {
    * Get the DataType of a variable by its identifier.
    */
   def getVariable(id: Identifier): Option[DataType] =
-    getScalars.find(_.id == Some(id))
+    getScalars.find(_.id.contains(id))
     //TODO: support finding any variable type
 
   /**
@@ -94,6 +94,7 @@ sealed trait DataType extends MetadataLike with Serializable {
 
   // Used by Rename Operation and this.flatten
   //TODO: refactor to take Identifier instead of String?
+  //      That would break this.flatten if we didn't restructure its dot-separated namespacing.
   def rename(name: String): DataType = this match {
     //TODO: add old name to alias?
     case _: Scalar      => Scalar(metadata + ("id"   -> name))
