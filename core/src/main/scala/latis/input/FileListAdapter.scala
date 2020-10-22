@@ -23,6 +23,7 @@ import latis.util.LatisException
 import latis.util.NetUtils
 import latis.util.StreamUtils
 import FileListAdapter.FileInfo
+import latis.util.Identifier.IdentifierStringContext
 
 /**
  * An adapter for creating datasets from directory listings.
@@ -147,10 +148,10 @@ class FileListAdapter(
     }
 
     range match {
-      case (u: Scalar) :: Nil if u.id == "uri" =>
+      case (u: Scalar) :: Nil if u.id.contains(id"uri") =>
         u.parseValue(uri.toString()).map(RangeData(_))
       case (u: Scalar) :: (s: Scalar) :: Nil
-          if u.id == "uri" && s.id == "size"   => for {
+          if u.id.contains(id"uri") && s.id.contains(id"size") => for {
             uriDatum  <- u.parseValue(uri.toString())
             sizeLong  <- size.toRight {
               // This shouldn't happen. If we have the size scalar in
