@@ -15,6 +15,7 @@ import latis.dataset.MemoizedDataset
 import latis.metadata.Metadata
 import latis.model._
 import latis.output.NetcdfEncoder
+import latis.util.Identifier.IdentifierStringContext
 
 class NetcdfWrapperSpec extends FlatSpec {
 
@@ -28,15 +29,15 @@ class NetcdfWrapperSpec extends FlatSpec {
       Sample(DomainData(3, "2"), RangeData(3.2, 0.6))
     )
 
-    val md = Metadata("mock2d")
+    val md = Metadata(id"mock2d")
     val model = Function(
       Tuple(
-        Scalar(Metadata("_1") + ("type" -> "int")),
-        Scalar(Metadata("_2") + ("type" -> "string"))
+        Scalar(Metadata(id"_1") + ("type" -> "int")),
+        Scalar(Metadata(id"_2") + ("type" -> "string"))
       ),
       Tuple(
-        Scalar(Metadata("a") + ("type" -> "double")),
-        Scalar(Metadata("b") + ("type" -> "double"))
+        Scalar(Metadata(id"a") + ("type" -> "double")),
+        Scalar(Metadata(id"b") + ("type" -> "double"))
       )
     )
     val data = SampledFunction(samples)

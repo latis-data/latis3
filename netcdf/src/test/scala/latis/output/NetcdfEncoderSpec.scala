@@ -13,6 +13,7 @@ import latis.data._
 import latis.dataset.MemoizedDataset
 import latis.metadata.Metadata
 import latis.model._
+import latis.util.Identifier.IdentifierStringContext
 
 class NetcdfEncoderSpec extends FlatSpec {
   import NetcdfEncoderSpec._
@@ -104,7 +105,7 @@ class NetcdfEncoderSpec extends FlatSpec {
 
   it should "include global metadata in the file" in {
     val enc              = NetcdfEncoder(File.createTempFile("netcdf_test", ".nc", null))
-    val expectedMetadata = Metadata("dataset_with_metadata") + ("globalFoo" -> "globalBar") + ("history" -> "Uncurry()")
+    val expectedMetadata = Metadata(id"dataset_with_metadata") + ("globalFoo" -> "globalBar") + ("history" -> "Uncurry()")
 
     val file   = enc.encode(dataset_with_metadata).compile.toList.unsafeRunSync().head
     val ncFile = NetcdfFile.open(file.getAbsolutePath)
@@ -120,8 +121,8 @@ class NetcdfEncoderSpec extends FlatSpec {
 
   it should "include variable metadata in the file" in {
     val enc                  = NetcdfEncoder(File.createTempFile("netcdf_test", ".nc", null))
-    val expectedTimeMetadata = Metadata("time") + ("type" -> "int") + ("scalarFoo" -> "scalarBar")
-    val expectedFluxMetadata = Metadata("flux") + ("type" -> "double") + ("Foo" -> "Bar")
+    val expectedTimeMetadata = Metadata(id"time") + ("type" -> "int") + ("scalarFoo" -> "scalarBar")
+    val expectedFluxMetadata = Metadata(id"flux") + ("type" -> "double") + ("Foo" -> "Bar")
 
     val file   = enc.encode(dataset_with_metadata).compile.toList.unsafeRunSync().head
     val ncFile = NetcdfFile.open(file.getAbsolutePath)
@@ -150,10 +151,10 @@ object NetcdfEncoderSpec {
       Sample(DomainData(3), RangeData(5.1e-2))
     )
 
-    val md = Metadata("time_series_1D")
+    val md = Metadata(id"time_series_1D")
     val model = Function(
-      Scalar(Metadata("time") + ("type" -> "int")),
-      Scalar(Metadata("flux") + ("type" -> "double"))
+      Scalar(Metadata(id"time") + ("type" -> "int")),
+      Scalar(Metadata(id"flux") + ("type" -> "double"))
     )
     val data = SampledFunction(samples)
 
@@ -167,14 +168,14 @@ object NetcdfEncoderSpec {
       Sample(DomainData(3), RangeData(-1: Byte, 5.1e-2, 9001: Long, "baz"))
     )
 
-    val md = Metadata("time_series_1D_multi_range")
+    val md = Metadata(id"time_series_1D_multi_range")
     val model = Function(
-      Scalar(Metadata("time") + ("type" -> "int")),
+      Scalar(Metadata(id"time") + ("type" -> "int")),
       Tuple(
-        Scalar(Metadata("flag") + ("type" -> "byte")),
-        Scalar(Metadata("flux") + ("type" -> "double")),
-        Scalar(Metadata("long") + ("type" -> "long")),
-        Scalar(Metadata("str") + ("type"  -> "string"))
+        Scalar(Metadata(id"flag") + ("type" -> "byte")),
+        Scalar(Metadata(id"flux") + ("type" -> "double")),
+        Scalar(Metadata(id"long") + ("type" -> "long")),
+        Scalar(Metadata(id"str") + ("type"  -> "string"))
       )
     )
     val data = SampledFunction(samples)
@@ -219,14 +220,14 @@ object NetcdfEncoderSpec {
       )
     )
 
-    val md = Metadata("time_series_2D")
+    val md = Metadata(id"time_series_2D")
     val model = Function(
-      Scalar(Metadata("time") + ("type" -> "int")),
+      Scalar(Metadata(id"time") + ("type" -> "int")),
       Function(
-        Scalar(Metadata("wavelength") + ("type" -> "double")),
+        Scalar(Metadata(id"wavelength") + ("type" -> "double")),
         Tuple(
-          Scalar(Metadata("flag") + ("type" -> "byte")),
-          Scalar(Metadata("flux") + ("type" -> "double"))
+          Scalar(Metadata(id"flag") + ("type" -> "byte")),
+          Scalar(Metadata(id"flux") + ("type" -> "double"))
         )
       )
     )
@@ -247,14 +248,14 @@ object NetcdfEncoderSpec {
       Sample(DomainData(2, 538.5, 2.2), RangeData(2.1))
     )
 
-    val md = Metadata("time_series_3D")
+    val md = Metadata(id"time_series_3D")
     val model = Function(
       Tuple(
-        Scalar(Metadata("time") + ("type"       -> "int")),
-        Scalar(Metadata("wavelength") + ("type" -> "double")),
-        Scalar(Metadata("another") + ("type"    -> "double"))
+        Scalar(Metadata(id"time") + ("type"       -> "int")),
+        Scalar(Metadata(id"wavelength") + ("type" -> "double")),
+        Scalar(Metadata(id"another") + ("type"    -> "double"))
       ),
-      Scalar(Metadata("flux") + ("type" -> "double"))
+      Scalar(Metadata(id"flux") + ("type" -> "double"))
     )
     val data = SampledFunction(samples)
 
@@ -266,10 +267,10 @@ object NetcdfEncoderSpec {
       Sample(DomainData(1), RangeData(1.0))
     )
 
-    val md = Metadata("dataset_with_metadata") + ("globalFoo" -> "globalBar")
+    val md = Metadata(id"dataset_with_metadata") + ("globalFoo" -> "globalBar")
     val model = Function(
-      Scalar(Metadata("time") + ("type" -> "int") + ("scalarFoo" -> "scalarBar")),
-      Scalar(Metadata("flux") + ("type" -> "double") + ("Foo"    -> "Bar"))
+      Scalar(Metadata(id"time") + ("type" -> "int") + ("scalarFoo" -> "scalarBar")),
+      Scalar(Metadata(id"flux") + ("type" -> "double") + ("Foo"    -> "Bar"))
     )
     val data = SampledFunction(samples)
 
