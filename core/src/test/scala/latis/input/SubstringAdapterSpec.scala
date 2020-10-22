@@ -6,6 +6,7 @@ import org.scalatest.Matchers._
 import latis.data._
 import latis.metadata.Metadata
 import latis.model._
+import latis.util.Identifier.IdentifierStringContext
 
 class SubstringAdapterSpec extends FlatSpec {
 
@@ -14,12 +15,12 @@ class SubstringAdapterSpec extends FlatSpec {
   )
   private val model = Function(
     Tuple(
-      Scalar(Metadata("time") + ("type" -> "string") + ("units" -> "yyyy"))
+      Scalar(Metadata(id"time") + ("type" -> "string") + ("units" -> "yyyy"))
     ),
     Tuple(
-      Scalar(Metadata("myDouble") + ("type" -> "double")),
-      Scalar(Metadata("myString") + ("type" -> "string")),
-      Scalar(Metadata("myInt") + ("type"    -> "int"))
+      Scalar(Metadata(id"myDouble") + ("type" -> "double")),
+      Scalar(Metadata(id"myString") + ("type" -> "string")),
+      Scalar(Metadata(id"myInt") + ("type"    -> "int"))
     )
   )
   private val subStrAdapter = new SubstringAdapter(model, config)

@@ -8,12 +8,13 @@ import latis.data.Data._
 import latis.metadata.Metadata
 import latis.model._
 import latis.ops.Selection
+import latis.util.Identifier.IdentifierStringContext
 import latis.util.StreamUtils
 
 class DatasetSpec extends FlatSpec {
 
   val dataset = {
-    val metadata = Metadata("test")
+    val metadata = Metadata(id"test")
     
     val model = Function(
       Scalar(Metadata("id" -> "time", "type" -> "long")),

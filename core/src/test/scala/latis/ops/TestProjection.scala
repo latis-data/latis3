@@ -19,7 +19,7 @@ class TestProjection {
     )
     val proj = Projection("a", "b")
     proj.applyToModel(model) match {
-      case Tuple(a: Scalar, b: Scalar) =>
+      case Right(Tuple(a: Scalar, b: Scalar)) =>
         assertEquals("a", a.id)
         assertEquals("b", b.id)
     }

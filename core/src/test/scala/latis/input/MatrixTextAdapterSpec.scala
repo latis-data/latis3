@@ -14,10 +14,12 @@ import latis.util.NetUtils.resolveUri
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
+import latis.util.Identifier.IdentifierStringContext
+
 class MatrixTextAdapterSpec extends FlatSpec {
 
   val ds = {
-    val metadata = Metadata("matrixData")
+    val metadata = Metadata(id"matrixData")
     val model: DataType = Function(
       Tuple(
         Scalar(Metadata("id" -> "row", "type" -> "int")),

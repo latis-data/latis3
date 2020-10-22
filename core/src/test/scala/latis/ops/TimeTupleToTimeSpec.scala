@@ -8,19 +8,20 @@ import latis.dataset.MemoizedDataset
 import latis.metadata.Metadata
 import latis.model._
 import latis.time.Time
+import latis.util.Identifier.IdentifierStringContext
 import latis.util.StreamUtils
 
 class TimeTupleToTimeSpec extends FlatSpec {
   
   def mockDataset: MemoizedDataset = {
-    val metadata: Metadata = Metadata("MockDataset" + ("title" -> "Mock Dataset"))
+    val metadata: Metadata = Metadata(id"MockDataset") + ("title" -> "Mock Dataset")
     val model: DataType = Function(
-      Tuple(Metadata("time"),
-        Scalar(Metadata("year")  + ("type" -> "string") + ("units" -> "yyyy")),
-        Scalar(Metadata("month") + ("type" -> "string") + ("units" -> "MM")),
-        Scalar(Metadata("day")   + ("type" -> "string") + ("units" -> "dd")),
+      Tuple(Metadata(id"time"),
+        Scalar(Metadata(id"year")  + ("type" -> "string") + ("units" -> "yyyy")),
+        Scalar(Metadata(id"month") + ("type" -> "string") + ("units" -> "MM")),
+        Scalar(Metadata(id"day")   + ("type" -> "string") + ("units" -> "dd")),
       ),
-      Scalar(Metadata("flux") + ("type" -> "int"))
+      Scalar(Metadata(id"flux") + ("type" -> "int"))
     )
     val data: MemoizedFunction = SeqFunction(
       Seq(
@@ -35,16 +36,16 @@ class TimeTupleToTimeSpec extends FlatSpec {
   }
 
   def mockDataset2: MemoizedDataset = {
-    val metadata: Metadata = Metadata("MockDataset2" + ("title" -> "Mock Dataset 2"))
+    val metadata: Metadata = Metadata(id"MockDataset2") + ("title" -> "Mock Dataset 2")
     val model: DataType = Function(
       Tuple(
-        Scalar(Metadata("a") + ("type" -> "int")),
-        Tuple(Metadata("time"),
-          Scalar(Metadata("year")  + ("type" -> "string") + ("units" -> "yyyy")),
-          Scalar(Metadata("month") + ("type" -> "string") + ("units" -> "MM"))
+        Scalar(Metadata(id"a") + ("type" -> "int")),
+        Tuple(Metadata(id"time"),
+          Scalar(Metadata(id"year")  + ("type" -> "string") + ("units" -> "yyyy")),
+          Scalar(Metadata(id"month") + ("type" -> "string") + ("units" -> "MM"))
         )
       ),
-      Scalar(Metadata("flux") + ("type" -> "int"))
+      Scalar(Metadata(id"flux") + ("type" -> "int"))
     )
     val data: MemoizedFunction = SeqFunction(
       Seq(
@@ -59,12 +60,12 @@ class TimeTupleToTimeSpec extends FlatSpec {
   }
 
   def mockDataset3: MemoizedDataset = {
-    val metadata: Metadata = Metadata("MockDataset3" + ("title" -> "Mock Dataset 3"))
+    val metadata: Metadata = Metadata(id"MockDataset3") + ("title" -> "Mock Dataset 3")
     val model: DataType = Function(
-      Scalar(Metadata("a") + ("type" -> "int")),
-      Tuple(Metadata("time"),
-        Scalar(Metadata("year")  + ("type" -> "string") + ("units" -> "yyyy")),
-        Scalar(Metadata("month") + ("type" -> "string") + ("units" -> "MM"))
+      Scalar(Metadata(id"a") + ("type" -> "int")),
+      Tuple(Metadata(id"time"),
+        Scalar(Metadata(id"year")  + ("type" -> "string") + ("units" -> "yyyy")),
+        Scalar(Metadata(id"month") + ("type" -> "string") + ("units" -> "MM"))
       )
     )
     val data: MemoizedFunction = SeqFunction(

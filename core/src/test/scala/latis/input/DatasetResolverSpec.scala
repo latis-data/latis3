@@ -2,17 +2,19 @@ package latis.input
 
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
+
 import latis.metadata.Metadata
 import latis.data._
 import latis.model._
 import latis.dataset._
 import latis.output.TextWriter
 import latis.util.CacheManager
+import latis.util.Identifier.IdentifierStringContext
 
 class DatasetResolverSpec extends FlatSpec {
   
   val dataset = {
-    val md = Metadata("data")
+    val md = Metadata(id"data")
     // Note, there is an fdml dataset with the same name
     // but different structure.
         
