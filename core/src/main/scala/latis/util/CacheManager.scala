@@ -13,7 +13,6 @@ object CacheManager {
 
   /**
    * Singleton instance of the CacheManager.
-   * TODO: Is it appropriate to change this from Map[String, Dataset]?
    */
   private lazy val cache = mutable.Map[String, Dataset]()
 
