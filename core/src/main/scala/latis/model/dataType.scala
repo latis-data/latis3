@@ -43,21 +43,19 @@ sealed trait DataType extends MetadataLike with Serializable {
 
   /**
    * Find the DataType of a variable by its identifier or aliases.
-   * TODO: can't take an Identifier here without losing support for findAllVariable's dot-separated notation.
    */
-  def findVariable(variableName: String): Option[DataType] =
+  def findVariable(variableName: Identifier): Option[DataType] =
     findAllVariables(variableName).headOption
     //TODO: support aliases
 
   /**
    * Find all Variables within this Variable by the given name.
-   * TODO: can't take an Identifier here without losing support for the dot-separated notation.
    */
-  def findAllVariables(variableName: String): Seq[DataType] = {
-    variableName.split('.') match {
+  def findAllVariables(variableName: Identifier): Seq[DataType] = {
+    variableName.asString.split('.') match {
       case Array(_) =>
         val vbuf = ArrayBuffer[DataType]()
-        if (this.id.exists(_.asString == variableName)) vbuf += this //TODO: use hasName to cover aliases?
+        if (this.id.contains(variableName)) vbuf += this //TODO: use hasName to cover aliases?
         this match {
           case _: Scalar =>
           case Tuple(es @ _*) =>
@@ -68,7 +66,8 @@ sealed trait DataType extends MetadataLike with Serializable {
         }
         vbuf.toSeq
       case Array(n1, n2 @ _*) =>
-        findAllVariables(n1).flatMap(_.findAllVariables(n2.mkString(".")))
+        findAllVariables(Identifier.fromString(n1).get)
+          .flatMap(_.findAllVariables(Identifier.fromString(n2.mkString(".")).get))
     }
   }
 
@@ -88,14 +87,12 @@ sealed trait DataType extends MetadataLike with Serializable {
     case _ => 0
   }
 
-  // Used by Rename Operation and this.flatten
-  //TODO: refactor to take Identifier instead of String?
-  //      That would break this.flatten if we didn't restructure its dot-separated namespacing.
-  def rename(name: String): DataType = this match {
+  // Used by Rename Operation, Pivot Operation, and this.flatten
+  def rename(name: Identifier): DataType = this match {
     //TODO: add old name to alias?
-    case _: Scalar      => Scalar(metadata + ("id"   -> name))
-    case Tuple(es @ _*) => Tuple(metadata + ("id"    -> name), es)
-    case Function(d, r) => Function(metadata + ("id" -> name), d, r)
+    case _: Scalar      => Scalar(metadata + ("id"   -> name.asString))
+    case Tuple(es @ _*) => Tuple(metadata + ("id"    -> name.asString), es)
+    case Function(d, r) => Function(metadata + ("id" -> name.asString), d, r)
   }
 
   /**
@@ -111,11 +108,15 @@ sealed trait DataType extends MetadataLike with Serializable {
     // while the recursion results build up the final type.
     def go(dt: DataType, acc: Seq[DataType]): Seq[DataType] = dt match {
       //prepend Tuple ID(s) with dot(s) and drop leading dot(s)
-      case s: Scalar          =>
+      case s: Scalar =>
         val sId = s.id.fold("")(_.asString)
-        //TODO: can't refactor rename() to take Identifier if we don't restructure dot-separated namespacing here
-        acc :+ s.rename(s"$tupIds.$sId".replaceFirst("^\\.+", ""))
-      case Function(d, r)     => acc :+ Function(d.flatten, r.flatten)
+        val namespacedId = s"$tupIds.$sId".replaceFirst("^\\.+", "")
+        acc :+ s.rename(
+          Identifier.fromString(namespacedId).getOrElse {
+            throw LatisException(s"Found invalid Identifier: $namespacedId")
+          }
+        )
+      case Function(d, r) => acc :+ Function(d.flatten, r.flatten)
       //build up a dot-separated String of Tuple IDs, including empty IDs that stand in for anonymous Tuples
       case t @ Tuple(es @ _*) =>
         val tId = t.id.fold("")(_.asString)
@@ -130,7 +131,7 @@ sealed trait DataType extends MetadataLike with Serializable {
         if (tupIds.split('.').isEmpty) Tuple(types)
         else {
           val tupId = tupIds.split('.').head
-          val id: Identifier = Identifier.fromString(tupId).getOrElse {
+          val id = Identifier.fromString(tupId).getOrElse {
             throw LatisException(s"Found invalid Identifier: $tupId")
           }
           Tuple(Metadata(id), types)
@@ -144,7 +145,7 @@ sealed trait DataType extends MetadataLike with Serializable {
    * Note that length of the path reflects the number of nested Functions.
    * When searching a Tuple's ID, the path to the first Scalar in the Tuple is returned.
    */
-  def getPath(id: String): Option[SamplePath] = {
+  def getPath(id: Identifier): Option[SamplePath] = {
 
     // Recursive function to try paths until it finds a match
     def go(dt: DataType, id: String, currentPath: SamplePath): Option[SamplePath] = {
@@ -178,7 +179,7 @@ sealed trait DataType extends MetadataLike with Serializable {
         }
     }
 
-    go(this.flatten, id, List.empty)
+    go(this.flatten, id.asString, List.empty)
   }
 
   //TODO: beef up
