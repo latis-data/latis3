@@ -45,7 +45,7 @@ class DatasetSpec extends FlatSpec {
   }
   
   it should "apply an operation" in {
-    val select = Selection("time", ">", "1")
+    val select = Selection(id"time", ">", "1")
     val ds2 = dataset.withOperation(select)
     StreamUtils.unsafeHead(ds2.samples) match {
       case Sample(DomainData(lv: Data.LongValue), RangeData(dv: Data.DoubleValue)) =>
