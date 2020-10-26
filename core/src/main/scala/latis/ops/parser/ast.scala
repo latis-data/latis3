@@ -1,15 +1,17 @@
 package latis.ops.parser
 
+import latis.util.Identifier
+
 object ast {
 
   sealed trait CExpr
 
   final case class Projection(
-    names: List[String]
+    names: List[Identifier]
   ) extends CExpr
 
   final case class Selection(
-    name: String, op: SelectionOp, value: String
+    name: Identifier, op: SelectionOp, value: String
   ) extends CExpr
 
   final case class Operation(

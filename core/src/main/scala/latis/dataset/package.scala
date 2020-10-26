@@ -20,7 +20,7 @@ package object dataset {
     def groupByBin(set: DomainSet, agg: Aggregation = DefaultAggregation()): Dataset = dataset.withOperation(GroupByBin(set, agg))
     def substitute(df: Dataset): Dataset = dataset.withOperation(Substitution(df))
     def compose(df: Dataset): Dataset = dataset.withOperation(Composition(df))
-    def contains(varName: String, values: String*): Dataset = dataset.withOperation(Contains(varName, values: _*))
+    def contains(varName: Identifier, values: String*): Dataset = dataset.withOperation(Contains(varName, values: _*))
     def rename(varName: Identifier, newName: Identifier): Dataset = dataset.withOperation(Rename(varName, newName))
     def eval(value: String): Dataset = dataset.withOperation(Evaluation(value))
     def withReader(reader: DatasetReader): Dataset = dataset.withOperation(ReaderOperation(reader))

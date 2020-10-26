@@ -2,13 +2,14 @@ package latis.ops
 
 import latis.data._
 import latis.model._
+import latis.util.Identifier
 import latis.util.LatisException
 
 /**
  * Defines an Operation to keep only Samples with a variable
  * that matches one of the given values.
  */
-case class Contains(vname: String, values: String*) extends Filter {
+case class Contains(vname: Identifier, values: String*) extends Filter {
   //TODO: support nested functions, aliases,... (See Selection)
 
   def predicate(model: DataType): Sample => Boolean = {
