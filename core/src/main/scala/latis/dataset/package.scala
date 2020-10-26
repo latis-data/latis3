@@ -3,12 +3,12 @@ package latis
 import latis.data._
 import latis.input.DatasetReader
 import latis.ops._
+import latis.util.Identifier
 
 package object dataset {
 
   /**
    * Defines the DSL for the functional algebra
-   * TODO: Should we convert Strings to Identifiers here?
    */
   implicit class DatasetOps(dataset: Dataset) {
     def select(exp: String): Dataset = dataset.withOperation(Selection(exp))
@@ -16,12 +16,12 @@ package object dataset {
     def stride(s: Int, ss: Int*): Dataset = dataset.withOperation(Stride((s +: ss).toIndexedSeq))
     def uncurry(): Dataset = dataset.withOperation(Uncurry())
     def curry(n: Int): Dataset = dataset.withOperation(Curry(n))
-    def groupByVariable(vars: String*): Dataset = dataset.withOperation(GroupByVariable(vars: _*))
+    def groupByVariable(vars: Identifier*): Dataset = dataset.withOperation(GroupByVariable(vars: _*))
     def groupByBin(set: DomainSet, agg: Aggregation = DefaultAggregation()): Dataset = dataset.withOperation(GroupByBin(set, agg))
     def substitute(df: Dataset): Dataset = dataset.withOperation(Substitution(df))
     def compose(df: Dataset): Dataset = dataset.withOperation(Composition(df))
     def contains(varName: String, values: String*): Dataset = dataset.withOperation(Contains(varName, values: _*))
-    def rename(varName: String, newName: String): Dataset = dataset.withOperation(Rename(varName, newName))
+    def rename(varName: Identifier, newName: Identifier): Dataset = dataset.withOperation(Rename(varName, newName))
     def eval(value: String): Dataset = dataset.withOperation(Evaluation(value))
     def withReader(reader: DatasetReader): Dataset = dataset.withOperation(ReaderOperation(reader))
 
