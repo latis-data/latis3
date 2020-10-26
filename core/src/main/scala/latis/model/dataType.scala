@@ -113,7 +113,7 @@ sealed trait DataType extends MetadataLike with Serializable {
         val namespacedId = s"$tupIds.$sId".replaceFirst("^\\.+", "")
         acc :+ s.rename(
           Identifier.fromString(namespacedId).getOrElse {
-            throw LatisException(s"Found invalid Identifier: $namespacedId")
+            throw LatisException(s"Found invalid identifier: $namespacedId")
           }
         )
       case Function(d, r) => acc :+ Function(d.flatten, r.flatten)
@@ -132,7 +132,7 @@ sealed trait DataType extends MetadataLike with Serializable {
         else {
           val tupId = tupIds.split('.').head
           val id = Identifier.fromString(tupId).getOrElse {
-            throw LatisException(s"Found invalid Identifier: $tupId")
+            throw LatisException(s"Found invalid identifier: $tupId")
           }
           Tuple(Metadata(id), types)
         }
