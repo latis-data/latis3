@@ -107,7 +107,7 @@ class FileListAdapter(
 
     // Get the size if there is a variable named "size."
     model match {
-      case Function(_, rs) if rs.findVariable("size").isDefined =>
+      case Function(_, rs) if rs.findVariable(id"size").isDefined =>
         files.evalMap { p =>
           file.size[IO](StreamUtils.blocker, p).map(s => FileInfo(p, s.some))
         }
@@ -121,7 +121,7 @@ class FileListAdapter(
    */
   private def extractValues(path: Path): List[String] = {
     val groups: List[String] =
-      config.pattern.findFirstMatchIn(path.toString())
+      config.pattern.findFirstMatchIn(path.toString)
         .map(_.subgroups)
         .getOrElse(List.empty)
 
@@ -143,17 +143,16 @@ class FileListAdapter(
     size: Option[Long]
   ): Either[LatisException, RangeData] = {
     val uri: URI = {
-      val fileUri = path.toUri()
-      val baseUri = config.baseDir.map(_.toUri())
+      val fileUri = path.toUri
+      val baseUri = config.baseDir.map(_.toUri)
       baseUri.map(_.relativize(fileUri)).getOrElse(fileUri)
     }
 
     range match {
-      //TODO: using id"foo" here yields macro implementation not found error. Why?
-      case (u: Scalar) :: Nil if u.id.fold("")(_.asString) == "uri" =>
+      case (u: Scalar) :: Nil if u.id.contains(id"uri") =>
         u.parseValue(uri.toString).map(RangeData(_))
       case (u: Scalar) :: (s: Scalar) :: Nil
-          if u.id.fold("")(_.asString) == "uri" && s.id.fold("")(_.asString) == "size" => for {
+          if u.id.contains(id"uri") && s.id.contains(id"size") => for {
             uriDatum  <- u.parseValue(uri.toString)
             sizeLong  <- size.toRight {
               // This shouldn't happen. If we have the size scalar in
