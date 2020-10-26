@@ -6,6 +6,7 @@ import cats.syntax.all._
 import latis.data._
 import latis.model._
 import latis.ops.parser.parsers.scalarArg
+import latis.util.Identifier
 import latis.util.LatisException
 
 /**
@@ -76,7 +77,12 @@ case class Pivot(values: Seq[String], vids: Seq[String]) extends MapOperation {
       val ranges = for {
         vid <- vids
         s <- r.getScalars
-      } yield s.rename(vid ++ "_" ++ s.id.fold("")(_.asString))
+      } yield s.rename({
+          val sId = s.id.fold("")(_.asString)
+          Identifier.fromString(vid ++ "_" ++ sId).getOrElse {
+            throw LatisException(s"Could not rename Scalar with invalid identifier: $sId")
+          }
+        })
       (ranges match {
         case s1 :: Nil => Function(domain, s1)
         case ss => Function(domain, Tuple(ss))
