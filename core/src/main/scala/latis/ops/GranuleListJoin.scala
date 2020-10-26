@@ -9,6 +9,7 @@ import fs2.Stream
 import latis.data._
 import latis.input._
 import latis.model.DataType
+import latis.util.Identifier.IdentifierStringContext
 import latis.util.LatisException
 
 /**
@@ -38,7 +39,7 @@ case class GranuleListJoin(
   def applyToData(data: Data, model: DataType): Either[LatisException, Data] = {
 
     // Get the position of the "uri" value within a Sample
-    val pos: Either[LatisException, SamplePosition] = model.getPath("uri") match {
+    val pos: Either[LatisException, SamplePosition] = model.getPath(id"uri") match {
       case Some(path) if path.length == 1 => path.head.asRight
       case _ => LatisException("uri not found.").asLeft
     }

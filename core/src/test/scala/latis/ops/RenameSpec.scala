@@ -23,7 +23,7 @@ class RenameSpec extends FlatSpec {
         )
       )
     )
-    val r = Rename("e", "f").applyToModel(model).fold(e => fail(e.message), identity)
+    val r = Rename(id"e", id"f").applyToModel(model).fold(e => fail(e.message), identity)
     r.toString should be ("(a, b) -> c -> (d, f)")
   }
 }

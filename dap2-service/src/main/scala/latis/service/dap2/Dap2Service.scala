@@ -67,7 +67,7 @@ class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
               newName <- Identifier.fromString(newName).toRight(
                 InvalidOperation(s"Invalid variable name $newName")
               )
-            } yield ops.Rename(oldName.asString, newName.asString)
+            } yield ops.Rename(oldName, newName)
           // TODO: Here we may need to dynamically construct an
           // instance of an operation based on the query string and
           // server/interface configuration.

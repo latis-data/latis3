@@ -12,6 +12,7 @@ import latis.data.SamplePosition
 import latis.data.Text
 import latis.dataset.Dataset
 import latis.ops.Operation
+import latis.util.Identifier.IdentifierStringContext
 import latis.util.LatisException
 import latis.util.NetUtils
 
@@ -31,7 +32,7 @@ final class GranuleListAppendAdapter(granules: Dataset, template: URI => Dataset
     val samples: Stream[IO, Sample] = for {
       sample <- granules.samples
       pos    <- Stream.fromEither[IO] {
-        granules.model.getPath("uri").toRight(
+        granules.model.getPath(id"uri").toRight(
           LatisException("Expected 'uri' variable")
         ).flatMap {
           case p :: Nil => p.asRight

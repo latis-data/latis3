@@ -4,6 +4,7 @@ import atto.Atto._
 import atto.Parser
 
 import latis.ops.parser.ast._
+import latis.util.Identifier
 
 object parsers {
 
@@ -22,7 +23,8 @@ object parsers {
     selection | operation | projection
 
   def projection: Parser[CExpr] =
-    sepBy1(variable.token, char(',').token).map(xs => Projection(xs.toList))
+    //TODO: is it okay to getOrElse(throw LatisException(...)) here?
+    sepBy1(variable.token, char(',').token).map(xs => Projection(xs.toList.map(Identifier.fromString(_).get)))
 
   def selectionOp: Parser[SelectionOp] = choice(
     string("~")   ~> ok(Tilde),
@@ -41,7 +43,12 @@ object parsers {
     name  <- variable.token
     op    <- selectionOp.token
     value <- time | number | stringLit
-  } yield Selection(name, op, value)
+  } yield Selection(
+      //TODO: is it okay to getOrElse(throw LatisException(...)) here?
+      Identifier.fromString(name).get,
+      op,
+      value
+    )
 
   def operation: Parser[CExpr] = for {
     name <- identifier
@@ -65,7 +72,7 @@ object parsers {
 
   def identifier: Parser[String] = for {
     init <- letter | char('_')
-    rest <- many(letterOrDigit | char('_'))
+    rest <- many(letterOrDigit | char('_') | char('.')) //TODO: remove '.' after Identifier refactor
   } yield (init :: rest).mkString
 
   def stringLit: Parser[String] = for {
