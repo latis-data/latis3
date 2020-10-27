@@ -9,6 +9,7 @@ import latis.model.DoubleValueType
 import latis.model.IntValueType
 import latis.model.StringValueType
 import latis.ops.parser.ast
+import latis.util.Identifier.IdentifierStringContext
 import latis.util.LatisException
 import latis.util.NetUtils
 
@@ -90,8 +91,8 @@ final class FdmlParserSpec extends FlatSpec {
         }
 
         inside(operations) { case firstOp :: secondOp :: thirdOp :: Nil =>
-          firstOp should equal (ast.Selection("time", ast.Gt, "2000-01-01"))
-          secondOp should equal (ast.Projection(List("a", "b", "c")))
+          firstOp should equal (ast.Selection(id"time", ast.Gt, "2000-01-01"))
+          secondOp should equal (ast.Projection(List(id"a", id"b", id"c")))
           thirdOp should equal (ast.Operation("rename", List("Constantinople", "Istanbul")))
         }
       }
