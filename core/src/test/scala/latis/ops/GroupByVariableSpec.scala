@@ -29,7 +29,7 @@ class GroupByVariableSpec extends FlatSpec {
   ))
 
   val ds = new MemoizedDataset(Metadata(id"test"), model, data)
-      .withOperation(GroupByVariable("y"))
+      .withOperation(GroupByVariable(id"y"))
       .unsafeForce()
 
   //TextWriter().write(ds)
