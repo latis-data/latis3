@@ -1,8 +1,5 @@
 package latis.util
 
-import atto.Atto._
-import atto.ParseResult
-import atto.Parser
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
@@ -88,14 +85,14 @@ class DatasetGeneratorSpec extends FlatSpec {
   }
 
   "fromString" should "generate a 1D dataset" in {
-    val ds = DatasetGenerator("double -> (double, boolean)")
+    val ds = DatasetGenerator("a: double -> (b: double, c: boolean)")
     ds.data.sampleSeq(0) should be (Sample(DomainData(0.0), RangeData(0.0, true)))
     ds.data.sampleSeq(1) should be (Sample(DomainData(1.0), RangeData(1.0, false)))
     ds.data.sampleSeq(2) should be (Sample(DomainData(2.0), RangeData(2.0, true)))
   }
 
   it should "generate a 2D dataset" in {
-    val ds = DatasetGenerator("(string, int) -> (double, double)")
+    val ds = DatasetGenerator("(a: string, b: int) -> (c: double, d: double)")
     ds.data.sampleSeq(0) should be (Sample(DomainData("a", 0), RangeData(0.0, 1.0)))
     ds.data.sampleSeq(1) should be (Sample(DomainData("a", 1), RangeData(2.0, 3.0)))
     ds.data.sampleSeq(2) should be (Sample(DomainData("a", 2), RangeData(4.0, 5.0)))
@@ -105,83 +102,12 @@ class DatasetGeneratorSpec extends FlatSpec {
   }
 
   it should "generate a 3D dataset" in {
-    val ds = DatasetGenerator("(string, int, int) -> double")
+    val ds = DatasetGenerator("(a: string, b, c) -> d: double")
     ds.data.sampleSeq(0)  should be (Sample(DomainData("a", 0, 0), RangeData(0.0)))
     ds.data.sampleSeq(1)  should be (Sample(DomainData("a", 0, 1), RangeData(1.0)))
     ds.data.sampleSeq(4)  should be (Sample(DomainData("a", 1, 0), RangeData(4.0)))
     ds.data.sampleSeq(11) should be (Sample(DomainData("a", 2, 3), RangeData(11.0)))
     ds.data.sampleSeq(12) should be (Sample(DomainData("b", 0, 0), RangeData(12.0)))
     ds.data.sampleSeq(23) should be (Sample(DomainData("b", 2, 3), RangeData(23.0)))
-  }
-}
-
-class ModelParserSpec extends FlatSpec {
-
-  "modelParser" should "parse scalars" in {
-    val testScalar = testParser(modelParser.scalar)(_, _)
-    testScalar("double", modelAst.Scalar(DoubleValueType))
-    testScalar("int", modelAst.Scalar(IntValueType))
-  }
-
-  "modelParser" should "parse tuples" in {
-    val testTuple = testParser(modelParser.tuple)(_, _)
-    testTuple("(double, int)",
-      modelAst.Tuple(List(
-        modelAst.Scalar(DoubleValueType),
-        modelAst.Scalar(IntValueType)
-      ))
-    )
-  }
-
-  "modelParser" should "parse functions" in {
-    val testFunction = testParser(modelParser.function)(_, _)
-    testFunction("int -> double",
-      modelAst.Function(
-        modelAst.Scalar(IntValueType),
-        modelAst.Scalar(DoubleValueType)
-      )
-    )
-    testFunction("(string, int) -> (double, double)",
-      modelAst.Function(
-        modelAst.Tuple(List(
-          modelAst.Scalar(StringValueType),
-          modelAst.Scalar(IntValueType)
-        )),
-        modelAst.Tuple(List(
-          modelAst.Scalar(DoubleValueType),
-          modelAst.Scalar(DoubleValueType)
-        ))
-      )
-    )
-    testFunction("int -> double -> double",
-      modelAst.Function(
-        modelAst.Scalar(IntValueType),
-        modelAst.Function(
-          modelAst.Scalar(DoubleValueType),
-          modelAst.Scalar(DoubleValueType)
-        )
-      )
-    )
-    testFunction("int -> (double -> double)",
-      modelAst.Function(
-        modelAst.Scalar(IntValueType),
-        modelAst.Function(
-          modelAst.Scalar(DoubleValueType),
-          modelAst.Scalar(DoubleValueType)
-        )
-      )
-    )
-  }
-
-  /**
-   * Partially apply with a parser to get a function that takes the string you
-   * want to parse and the thing you expect to get back
-   */
-  private def testParser[A](p: Parser[A])(s: String, d: A): Unit = p.parseOnly(s) match {
-    case ParseResult.Done(_, result) => result should be (d)
-    case ParseResult.Fail(_, _, m) => fail(s"$m in $s")
-    // parseOnly will never return anything but Done or Fail, but the types don't
-    // know that so we get a warning without the following line.
-    case _ => fail(s"failed to parse $s")
   }
 }

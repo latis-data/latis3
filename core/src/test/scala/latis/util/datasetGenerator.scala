@@ -2,14 +2,11 @@ package latis.util
 
 import java.util.UUID
 
-import atto.Atto._
-import atto.ParseResult
-import atto.Parser
-
 import latis.data.Data._
 import latis.data._
 import latis.dataset.MemoizedDataset
 import latis.metadata.Metadata
+import latis.model.ModelParser
 import latis.model._
 
 /**
@@ -23,16 +20,17 @@ object DatasetGenerator {
    * string. The values, starting with the first sample, increment depending on
    * their type. Domain variables increment independently.
    * {{{
-   *   > DatasetGenerator("double -> (double, boolean)")
+   *   > DatasetGenerator("a: double -> (b: double, c: boolean)")
    * }}}
-   * returns a dataset where the first two samples are
+   * returns a dataset where the first three samples are
    * 0.0 -> (0.0, true)
    * 1.0 -> (1.0, false)
+   * 2.0 -> (2.0, true)
    * If a multi-dimensional dataset is specified, then a cartesian dataset is
    * returned where the first variable in the domain is of size 2, the second
    * size 3, etc.
    * {{{
-   *   > DatasetGenerator("(string, int) -> (double, double)")
+   *   > DatasetGenerator("(a: string, b: int) -> (c: double, d: double)")
    * }}}
    * returns a dataset where the samples are:
    * ("a", 0) -> (0.0, 1.0)
@@ -53,19 +51,8 @@ object DatasetGenerator {
     ds
   }
 
-  private def modelFromString(s: String): DataType = {
-    val absModel = modelParser.model.parseOnly(s) match {
-      case ParseResult.Done(_, m) => m
-      case _ => throw LatisException(s"failed to parse $s")
-    }
-    modelFromAst(absModel)
-  }
-
-  private def modelFromAst(absModel: modelAst.Model): DataType = absModel match {
-    case modelAst.Function(d, r) => Function(modelFromAst(d), modelFromAst(r))
-    case modelAst.Tuple(l) => Tuple(l.map(modelFromAst))
-    case modelAst.Scalar(t) => Scalar(Metadata(t.toString) + ("type" -> t.toString))
-  }
+  private def modelFromString(s: String): DataType =
+    ModelParser.parse(s).fold(throw _, identity)
 
   private def generateData(m: DataType): MemoizedFunction = m.arity match {
     case 1 => generateData1D(m)
@@ -197,51 +184,30 @@ object DatasetGenerator {
   }
 }
 
-class BooleanGenerator extends Iterator[Datum] {
-  def hasNext: Boolean = true
-  private var lastValue = false
-  def next(): BooleanValue = {
-    lastValue = !lastValue
-    BooleanValue(lastValue)
-  }
-}
-
-class IntGenerator extends Iterator[Datum] {
-  def hasNext: Boolean = true
-  private var lastValue = -1
-  def next(): IntValue = {
-    lastValue += 1
-    IntValue(lastValue)
-  }
-}
-
-class DoubleGenerator extends Iterator[Datum] {
-  def hasNext: Boolean = true
-  private var lastValue = -1.0
-  def next(): DoubleValue = {
-    lastValue += 1.0
-    DoubleValue(lastValue)
-  }
-}
-
-class StringGenerator extends Iterator[Datum] {
-  def hasNext: Boolean = true
-  private var lastValue = "`"
-  def next(): StringValue = {
-    val nextAscii = if (lastValue == 'z') 97 else lastValue.head.toInt + 1
-    lastValue = nextAscii.toChar.toString
-    StringValue(lastValue)
-  }
-}
-
 object DataGenerator {
   def apply(vType: ValueType): Iterator[Datum] = vType match {
-    case BooleanValueType => new BooleanGenerator
-    case IntValueType => new IntGenerator
-    case DoubleValueType => new DoubleGenerator
-    case StringValueType => new StringGenerator
+    case BooleanValueType => booleanGenerator
+    case IntValueType => intGenerator
+    case DoubleValueType => doubleGenerator
+    case StringValueType => stringGenerator
     case t => throw LatisException(s"No generator for $t")
   }
+
+  def booleanGenerator: Iterator[Datum] =
+    Iterator.iterate(BooleanValue(true))(b => BooleanValue(!b.asBoolean))
+
+  def intGenerator: Iterator[Datum] =
+    Iterator.iterate(IntValue(0))(n => IntValue(n.asInt + 1))
+
+  def doubleGenerator: Iterator[Datum] =
+    Iterator.iterate(DoubleValue(0.0))(n => DoubleValue(n.asDouble + 1))
+
+  def stringGenerator: Iterator[Datum] =
+    Iterator.iterate(StringValue("a")){ n =>
+      // increments to 122 ('z'), then resets to 97 ('a')
+      val nextAscii = ((n.asString.head.toInt - 96) % 26) + 97
+      StringValue(nextAscii.toChar.toString)
+    }
 }
 
 class RangeGenerator(model: DataType) extends Iterator[RangeData] {
@@ -260,60 +226,4 @@ class RangeGenerator(model: DataType) extends Iterator[RangeData] {
   }
   private val rangeTypes = model.getScalars.drop(model.arity).map(_.valueType)
   def next(): RangeData = RangeData(rangeTypes.map(nextOfType))
-}
-
-object modelParser {
-  def model: Parser[modelAst.Model] =
-    parens(function) | function | tuple | scalar
-
-  /** Doesn't support nested functions in the domain. */
-  def function: Parser[modelAst.Model] = for {
-    d <- (tuple | scalar).token
-    _ <- string("->").token
-    r <- model.token
-  } yield modelAst.Function(d, r)
-
-  /** Only parses tuples of scalars */
-  def tuple: Parser[modelAst.Model] = for {
-    l <- parens(sepBy(scalar.token, char(',').token))
-  } yield modelAst.Tuple(l)
-
-  def scalar: Parser[modelAst.Model] = for {
-    t <- valueType
-  } yield modelAst.Scalar(t)
-
-  def valueType: Parser[ValueType] =
-    booleanType | intType | doubleType | stringType
-
-  def booleanType: Parser[ValueType] = for {
-    _ <- string("boolean") | string("Boolean")
-  } yield BooleanValueType
-
-  def intType: Parser[ValueType] = for {
-    _ <- string("int") | string("Int")
-  } yield IntValueType
-
-  def doubleType: Parser[ValueType] = for {
-    _ <- string("double") | string("Double")
-  } yield DoubleValueType
-
-  def stringType: Parser[ValueType] = for {
-    _ <- string("string") | string("String")
-  } yield StringValueType
-}
-
-object modelAst {
-  sealed trait Model
-
-  final case class Function(
-    domain: Model, range: Model
-  ) extends Model
-
-  final case class Tuple(
-    elements: List[Model]
-  ) extends Model
-
-  final case class Scalar(
-    valueType: ValueType
-  ) extends Model
 }
