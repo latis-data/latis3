@@ -43,13 +43,12 @@ case class NetcdfAdapter(
    */
   override def canHandleOperation(op: Operation): Boolean = op match {
     case Stride(stride) if stride.length == model.arity => true
-    case s@Selection(v, _, _) => Identifier.fromString(v).exists(
-      vId => model.getVariable(vId).exists(
-        v => v("cadence").nonEmpty && v("start").nonEmpty)) &&
+    case s@Selection(v, _, _) => model.getVariable(v).exists(v =>
+      v("cadence").nonEmpty && v("start").nonEmpty) &&
         (s.getSelectionOp match {
           case Right(Gt) | Right(Lt) | Right(GtEq) | Right(LtEq) | Right(Eq) | Right(EqEq) => true
           case _ => false
-    })
+        })
     //TODO: take, drop, ...
     case _ => false
   }
@@ -323,7 +322,9 @@ object NetcdfAdapter extends AdapterFactory {
 
     /** Gets the zero-indexed position of a domain scalar in a top-level function. */
     def getScalarPos(id: String): Either[LatisException, Int] =
-      model.getPath(id) match {
+      model.getPath(
+        Identifier.fromString(id).getOrElse(throw LatisException(s"Found invalid identifier: $id"))
+      ) match {
         case None => Left(LatisException(s"$id not found in model."))
         case Some(List(DomainPosition(n))) => Right(n)
         case _ => Left(LatisException(s"$id must be in the domain of a " +
@@ -463,8 +464,13 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
     ops.toList.foldM(sections)(NetcdfAdapter.applyOperation(_, model, _))
 
   // Note, get is safe since the id comes from the model in the first place
-  private def getNcVarName(id: String): String =
-    makeValidPathName(model.findVariable(id).get.metadata.getProperty("sourceId").getOrElse(id))
+  private def getNcVarName(id: String): String = {
+    makeValidPathName(model.findVariable(
+      Identifier.fromString(id).getOrElse {
+        throw LatisException(s"Found invalid identifier: $id")
+      }).get.metadata.getProperty("sourceId").getOrElse(id)
+    )
+  }
 
   /**
    * Reads the section of the given variable into a NcArray.
