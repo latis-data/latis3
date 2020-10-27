@@ -43,12 +43,11 @@ case class NetcdfAdapter(
    */
   override def canHandleOperation(op: Operation): Boolean = op match {
     case Stride(stride) if stride.length == model.arity => true
-    case s@Selection(v, _, _) => Identifier.fromString(v).exists(
-      vId => model.getVariable(vId).exists(
-        v => v("cadence").nonEmpty && v("start").nonEmpty)) &&
-        (s.getSelectionOp match {
-          case Right(Gt) | Right(Lt) | Right(GtEq) | Right(LtEq) | Right(Eq) | Right(EqEq) => true
-          case _ => false
+    case s@Selection(v, _, _) => model.getVariable(v).exists(
+      v => v("cadence").nonEmpty && v("start").nonEmpty) &&
+      (s.getSelectionOp match {
+        case Right(Gt) | Right(Lt) | Right(GtEq) | Right(LtEq) | Right(Eq) | Right(EqEq) => true
+        case _ => false
     })
     //TODO: take, drop, ...
     case _ => false
@@ -74,8 +73,7 @@ case class NetcdfAdapter(
       // Assumes all domain variables are 1D and define a Cartesian Product set.
       val domainSet: DomainSet = {
         val dsets: List[DomainSet] = domainSections.map { case (scalar, sec) =>
-          val scalarId = scalar.id.fold("")(_.asString)
-          nc.readVariable(scalarId, sec).map { ncArr =>
+          nc.readVariable(scalar.id, sec).map { ncArr =>
             val ds: IndexedSeq[DomainData] =
               (0 until ncArr.getSize.toInt).map { i =>
                 Data.fromValue(ncArr.getObject(i)).fold(throw _, DomainData(_))
@@ -98,8 +96,7 @@ case class NetcdfAdapter(
         val arrs: List[NcArray] = rangeSections.flatMap {
           case (scalar, section) =>
             //TODO: beware of silent failure if var not found
-            val scalarId = scalar.id.fold("")(_.asString)
-            nc.readVariable(scalarId, section)
+            nc.readVariable(scalar.id, section)
         }
         (0 until arrs.head.getSize.toInt).map { i =>
           RangeData(arrs.map { ncArr =>
@@ -356,7 +353,7 @@ object NetcdfAdapter extends AdapterFactory {
       firstValue <- getMetadataAsDouble(scalar, "start")
       selectValue <- getBigDecimalValue(scalar, selection.value)
       index <- getIndex(selectValue, firstValue, cadence)
-      pos <- getScalarPos(scalar.id.fold("")(_.asString))
+      pos <- getScalarPos(scalar.id)
       // find the URange to apply the selection to
       oldRange <- getOldRange(sections(pos))
       // apply the selection to get a new URange
@@ -394,7 +391,7 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
     }
 
     //TODO: fail faster by not making this lazy?
-    val ids: List[String] = model.getScalars.map(_.id.fold("")(_.asString))
+    val ids = model.getScalars.map(_.id)
     val pairs = ids.flatMap { id =>
       getNcVar(id).map((id, _))
       //Note, domain variables not found will be replaced by index
@@ -434,7 +431,7 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
     config.section match {
       case Some(spec) =>
         val sectionsNotNull = ids.zip(spec.split(';')).map {
-          case (id, str) => makeSectionFromIdAndString(id.fold("")(_.asString), str)
+          case (id, str) => makeSectionFromIdAndString(id, str)
         }
         sectionsNotNull match {
           //TODO: error handling. Throws ucar.ma2.InvalidRangeException and
@@ -457,7 +454,7 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
         // Makes a section for each variable in the model. Gets the shape of
         // each variable to select the full range of every dimension. If no
         // variable is found, use an empty section (no ranges).
-        ids.map(id => new Section(idToSectionString(id.fold("")(_.asString))))
+        ids.map(id => new Section(idToSectionString(id)))
     }
   }
 
