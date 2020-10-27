@@ -4,6 +4,7 @@ import cats.implicits._
 
 import latis.data._
 import latis.model._
+import latis.util.Identifier
 import latis.util.LatisException
 
 /**
@@ -13,7 +14,7 @@ import latis.util.LatisException
  * Assumes there are no nested function, for now.
  * Does not preserve nested Tuples, for now.
  */
-case class GroupByVariable(variableNames: String*) extends GroupOperation {
+case class GroupByVariable(variableNames: Identifier*) extends GroupOperation {
 
   /**
    * Defines a DefaultAggregation composed with a MapOperation that un-projects
@@ -30,10 +31,10 @@ case class GroupByVariable(variableNames: String*) extends GroupOperation {
     model.getPath(vname) match {
       case Some(path) =>
         if (path.length > 1)
-          throw LatisException(s"Group-by variable must not be in a nested Function: $vname")
+          throw LatisException(s"Group-by variable must not be in a nested Function: ${vname.asString}")
         else path.head
       case None =>
-        throw LatisException(s"Group-by variable not found: $vname")
+        throw LatisException(s"Group-by variable not found: ${vname.asString}")
     }
   }
 
@@ -41,11 +42,11 @@ case class GroupByVariable(variableNames: String*) extends GroupOperation {
     val scalars = variableNames.map { vname =>
       model.findVariable(vname) match {
         case Some(scalar: Scalar) => scalar
-        case Some(_) => throw LatisException(s"Group-by variable must be a Scalar: $vname")
+        case Some(_) => throw LatisException(s"Group-by variable must be a Scalar: ${vname.asString}")
         //TODO: support grouping by a tuple, e.g. location?
         case None =>
           //TODO: validate variables eagerly
-          val msg = s"Invalid variable name: $vname"
+          val msg = s"Invalid variable name: ${vname.asString}"
           throw LatisException(msg)
       }
     }
@@ -68,7 +69,7 @@ case class GroupByVariable(variableNames: String*) extends GroupOperation {
  * grouped variables from domains since all values for that dimension
  * should be the same in each group.
  */
-case class RemoveGroupedVariables(variableNames: Seq[String]) extends MapOperation {
+case class RemoveGroupedVariables(variableNames: Seq[Identifier]) extends MapOperation {
 
   override def applyToModel(model: DataType): Either[LatisException, DataType] =
     applyToVariable(model).toRight(LatisException("variableNames filtered entire model."))
@@ -76,8 +77,7 @@ case class RemoveGroupedVariables(variableNames: Seq[String]) extends MapOperati
   /** Recursive method to build new model by dropping variableNames. */
   private def applyToVariable(v: DataType): Option[DataType] = v match {
     case s: Scalar =>
-      val sId = s.id.fold("")(_.asString)
-      if (variableNames.contains(sId)) None else Some(s)
+      if (s.id.exists(id => variableNames.contains(id))) None else Some(s)
     case t @ Tuple(vars @ _*) =>
       val vs = vars.flatMap(applyToVariable)
       vs.length match {
@@ -96,8 +96,8 @@ case class RemoveGroupedVariables(variableNames: Seq[String]) extends MapOperati
 
   override def mapFunction(model: DataType): Sample => Sample = {
     // Determine the list of variables to keep
-    val vnames: List[String] = model.getScalars.map(
-      _.id.fold("")(_.asString)
+    val vnames: List[Identifier] = model.getScalars.map(
+      _.id.getOrElse(throw LatisException("Found an unnamed Scalar"))
     ).filterNot(variableNames.contains)
 
     // Get the paths of the variables to be removed from each Sample.

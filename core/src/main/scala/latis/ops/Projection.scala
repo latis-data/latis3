@@ -1,14 +1,17 @@
 package latis.ops
 
+import cats.syntax.all._
+
 import latis.data._
 import latis.model._
+import latis.util.Identifier
 import latis.util.LatisException
 
 /**
  * Operation to project only a given set of variables in a Dataset.
  * Domain variables will be included, for now.
  */
-case class Projection(vnames: String*) extends MapOperation {
+case class Projection(vnames: Identifier*) extends MapOperation {
   //TODO: support nested Functions
   //TODO: support aliases, hasName
   //TODO: support dot notation for nested tuples
@@ -20,7 +23,7 @@ case class Projection(vnames: String*) extends MapOperation {
   /** Recursive method to apply the projection. */
   private def applyToVariable(v: DataType): Option[DataType] = v match {
     case s: Scalar =>
-      if (vnames.contains(s.id)) Some(s) else None
+      if (s.id.exists(id => vnames.contains(id))) Some(s) else None
     case Tuple(vars @ _*) =>
       val vs = vars.flatMap(applyToVariable)
       vs.length match {
@@ -56,11 +59,21 @@ case class Projection(vnames: String*) extends MapOperation {
 
 object Projection {
 
-  def apply(exp: String): Projection =
-    Projection(exp.split(",").toIndexedSeq: _*)
+  def apply(exp: String): Projection = {
+    val ids = exp.split(",").map(id => Identifier.fromString(id).getOrElse {
+      throw LatisException(s"'$id' is not a valid identifier")
+    })
+    Projection(ids.toIndexedSeq: _*)
+  }
 
-  def fromArgs(args: List[String]): Either[LatisException, Projection] = args match {
-    case Nil => Left(LatisException("Projection requires at least one argument"))
-    case _   => Right(Projection(args: _*))
+  def fromArgs(args: List[String]): Either[LatisException, Projection] = Either.catchOnly[LatisException] {
+    args match {
+      case Nil => throw LatisException("Projection requires at least one argument")
+      case _ => Projection(
+        args.map(id =>
+          Identifier.fromString(id).getOrElse(throw LatisException(s"'$id' is not a valid identifier"))
+        ).toIndexedSeq: _*
+      )
+    }
   }
 }

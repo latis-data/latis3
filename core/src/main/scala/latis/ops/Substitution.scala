@@ -7,6 +7,7 @@ import latis.dataset.ComputationalDataset
 import latis.dataset.Dataset
 import latis.dataset.MemoizedDataset
 import latis.model._
+import latis.util.Identifier
 import latis.util.LatisException
 
 /**
@@ -19,7 +20,7 @@ case class Substitution(dataset: Dataset) extends MapOperation {
     // Get the paths to the substitution variables in the target Dataset
     //TODO: error if not consecutive
     val paths = modelScalars._1.toList.traverse { s =>
-      val sId = s.id.fold("")(_.asString)
+      val sId = s.id.getOrElse(throw LatisException("Found an unnamed Scalar"))
       model.getPath(sId)
     }.getOrElse {
       val msg = s"Failed to find substitution domain in target Dataset"
@@ -118,7 +119,7 @@ case class Substitution(dataset: Dataset) extends MapOperation {
     // Recursive helper function
     def go(dt: DataType): DataType = dt match {
       case s: Scalar =>
-        if ((domainVariableIDs.length == 1) && (s.id.contains(domainVariableIDs.head))) subScalars.head
+        if ((domainVariableIDs.length == 1) && s.id.contains(domainVariableIDs.head)) subScalars.head
         else s
       case Tuple(es @ _*) =>
         //TODO: support aliases
@@ -151,6 +152,8 @@ case class Substitution(dataset: Dataset) extends MapOperation {
   /**
    * Extracts the variable IDs from the domain of the Substitution Dataset.
    */
-  private val domainVariableIDs: Seq[String] = modelScalars._1.map(_.id.fold("")(_.asString))
+  private val domainVariableIDs: Seq[Identifier] = modelScalars._1.map(
+    _.id.getOrElse(throw LatisException("Found an unnamed Scalar"))
+  )
 
 }
