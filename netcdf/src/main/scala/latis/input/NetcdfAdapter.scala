@@ -381,18 +381,23 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
    * Note, this will access the file but not read data arrays.
    */
   private lazy val variableMap: Map[String, NcVariable] = {
+    def getNcVar(id: String): Option[NcVariable] = {
+      val validId = makeValidPathName(
+        model.findVariable(id)
+        .flatMap(_("sourceId"))
+        .getOrElse(id)
+      )
+      Option(ncDataset.findVariable(validId))
+    }
+
     //TODO: fail faster by not making this lazy?
     val ids = model.getScalars.map(_.id)
     val pairs = ids.flatMap { id =>
-      val vname = getNcVarName(id)
-      ncDataset.findVariable(vname) match {
-        case v: NcVariable => Some((id, v))
-        case null => None
-          //Note, domain variables not found will be replaced by index
-          //TODO: what about range vars?
-          //val msg = s"NetCDF variable not found: $vname"
-          //throw LatisException(msg)
-      }
+      getNcVar(id).map((id, _))
+      //Note, domain variables not found will be replaced by index
+      //TODO: what about range vars?
+      //val msg = s"NetCDF variable not found: $vname"
+      //throw LatisException(msg)
     }
     pairs.toMap
   }
@@ -458,10 +463,6 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
    */
   def applyOperations(ops: Seq[Operation]): Either[LatisException, List[Section]] =
     ops.toList.foldM(sections)(NetcdfAdapter.applyOperation(_, model, _))
-
-  // Note, get is safe since the id comes from the model in the first place
-  private def getNcVarName(id: String): String =
-    makeValidPathName(model.findVariable(id).get.metadata.getProperty("sourceId").getOrElse(id))
 
   /**
    * Reads the section of the given variable into a NcArray.
