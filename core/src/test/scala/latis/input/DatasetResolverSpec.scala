@@ -37,7 +37,7 @@ class DatasetResolverSpec extends FlatSpec {
     dataset.cache()
     Dataset.fromName("data").model match {
       case Function(d, _) =>
-        d.id should be ("myDomain")
+        d.id.get.asString should be ("myDomain")
     }
     CacheManager.removeDataset("data")
   }
@@ -45,7 +45,7 @@ class DatasetResolverSpec extends FlatSpec {
   it should "find a dataset if not cached" in {
     Dataset.fromName("data").model match {
       case Function(d, _) =>
-        d.id should be ("time")
+        d.id.get.asString should be ("time")
     }
   }
 }

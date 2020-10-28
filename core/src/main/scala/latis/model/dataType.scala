@@ -129,6 +129,7 @@ sealed trait DataType extends MetadataLike with Serializable {
       case 1 => types.head
       case _ => 
         if (tupIds.split('.').isEmpty) Tuple(types)
+        else if (tupIds.split('.').head.isEmpty) Tuple(types)
         else {
           val tupId = tupIds.split('.').head
           val id = Identifier.fromString(tupId).getOrElse {
