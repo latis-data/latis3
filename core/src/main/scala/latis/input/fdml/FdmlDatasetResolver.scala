@@ -21,10 +21,10 @@ class FdmlDatasetResolver extends DatasetResolver {
    * if this can provide the requested Dataset, so failures (None) are
    * to be expected.
    */
-  def getDataset(id: String): Option[Dataset] = {
+  def getDataset(id: Identifier): Option[Dataset] = {
     val validate: Boolean = LatisConfig.getOrElse("latis.fdml.validate", false)
     val ds = for {
-      uri     <- NetUtils.parseUri(id + ".fdml")
+      uri     <- NetUtils.parseUri(id.asString + ".fdml")
       fdml    <- resolveFdml(uri)
       dataset <- Either.catchNonFatal {
         FdmlReader.read(fdml, validate)

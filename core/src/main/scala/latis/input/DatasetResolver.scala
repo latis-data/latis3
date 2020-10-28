@@ -9,7 +9,9 @@ import scala.util.Try
 import latis.dataset.Dataset
 import latis.util.CacheManager
 import latis.util.FileUtils
+import latis.util.Identifier
 import latis.util.LatisConfig
+import latis.util.LatisException
 
 /**
  * A DatasetResolver provides a LaTiS Dataset given an identifier.
@@ -25,7 +27,7 @@ trait DatasetResolver {
    * return None. A failure to read the data could result in an empty Dataset
    * as opposed to None.
    */
-  def getDataset(id: String): Option[Dataset]
+  def getDataset(id: Identifier): Option[Dataset]
   //TODO: "resolve"?
 
 }
@@ -40,7 +42,7 @@ object DatasetResolver {
    * If the Dataset is not found among any resolver throw a
    * RuntimeException.
    */
-  def getDataset(id: String): Dataset =
+  def getDataset(id: Identifier): Dataset =
     //TODO: return Option, Either?
     // could throw ServiceConfigurationError
     CacheManager.getDataset(id).getOrElse {
@@ -50,14 +52,14 @@ object DatasetResolver {
         .flatMap(_.getDataset(id))
         .headOption
         .getOrElse {
-          throw new RuntimeException(s"Failed to resolve dataset: $id")
+          throw new RuntimeException(s"Failed to resolve dataset: ${id.asString}")
         }
     }
 
   /**
    * Find all datasets and return their IDs.
    */
-  def getDatasetIds: Try[Seq[String]] = {
+  def getDatasetIds: Try[Seq[Identifier]] = {
     //TODO: ask all DatasetResolvers to provide a list/catalog?
     val suffix = ".fdml"
     val searchPathFromConfig =
@@ -69,7 +71,12 @@ object DatasetResolver {
 
     searchPath.flatMap {
       FileUtils.getFileList(_, suffix).map {
-        _.map(_.getFileName.toString.stripSuffix(suffix))
+        _.map { file =>
+          val name = file.getFileName.toString.stripSuffix(suffix)
+          Identifier.fromString(name).getOrElse {
+            throw LatisException(s"File name is not a valid identifier: $name")
+          }
+        }
       }
     }
   }

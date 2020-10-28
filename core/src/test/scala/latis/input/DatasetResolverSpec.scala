@@ -35,15 +35,15 @@ class DatasetResolverSpec extends FlatSpec {
 
   "The DatasetResolver" should "find a cached dataset before all others" in {
     dataset.cache()
-    Dataset.fromName("data").model match {
+    Dataset.fromName(id"data").model match {
       case Function(d, _) =>
         d.id.get.asString should be ("myDomain")
     }
-    CacheManager.removeDataset("data")
+    CacheManager.removeDataset(id"data")
   }
   
   it should "find a dataset if not cached" in {
-    Dataset.fromName("data").model match {
+    Dataset.fromName(id"data").model match {
       case Function(d, _) =>
         d.id.get.asString should be ("time")
     }

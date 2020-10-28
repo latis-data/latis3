@@ -19,7 +19,7 @@ object ConstraintParserProps extends Properties("DAP 2 Constraint Parser") {
     init <- Gen.oneOf(Gen.alphaChar, Gen.const('_'))
     //TODO: remove '.' after Identifier refactor
     rest <- Gen.listOf(Gen.oneOf(Gen.alphaNumChar, Gen.const('_'), Gen.const('.')))
-  } yield Identifier.fromString(init + rest.mkString).getOrElse( ??? ) //TODO: not this getOrElse
+  } yield Identifier.fromString(init + rest.mkString)//.getOrElse( ??? ) //TODO: not this getOrElse
 
   val variable: Gen[String] = for {
     init <- identifier

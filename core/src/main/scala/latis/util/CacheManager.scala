@@ -15,7 +15,7 @@ object CacheManager {
   /**
    * Singleton instance of the CacheManager.
    */
-  private lazy val cache = mutable.Map[String, Dataset]()
+  private lazy val cache = mutable.Map[Identifier, Dataset]()
 
   /**
    * Add the given Dataset to the cache.
@@ -23,19 +23,19 @@ object CacheManager {
    * via a potentially unsafe read.
    */
   def cacheDataset(dataset: MemoizedDataset): Unit = {
-    val dsId = dataset.id.fold("")(_.asString)
+    val dsId = dataset.id.getOrElse(throw LatisException("Dataset does not have an identifier"))
     cache += dsId -> dataset
   }
 
   /**
    * Optionally get the Dataset with the given id.
    */
-  def getDataset(id: String): Option[Dataset] = cache.get(id)
+  def getDataset(id: Identifier): Option[Dataset] = cache.get(id)
 
   /**
    * Return an immutable Map of dataset id to Dataset instance.
    */
-  def getDatasets: immutable.Map[String, Dataset] = cache.toMap //make immutable
+  def getDatasets: immutable.Map[Identifier, Dataset] = cache.toMap //make immutable
 
   /**
    * Remove all entries from the cache.
@@ -45,6 +45,6 @@ object CacheManager {
   /**
    * Remove a single dataset from the cache.
    */
-  def removeDataset(id: String): Option[Dataset] = cache.remove(id)
+  def removeDataset(id: Identifier): Option[Dataset] = cache.remove(id)
 
 }

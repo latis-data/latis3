@@ -2,12 +2,15 @@ package latis.output
 
 import io.circe._
 import io.circe.syntax._
+
+import org.scalatest.FlatSpec
+import org.scalatest.Matchers._
+
 import latis.data.Sample
 import latis.data.RangeData
 import latis.data.DomainData
 import latis.dataset.Dataset
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import latis.util.Identifier.IdentifierStringContext
 
 class JsonEncoderSpec extends FlatSpec {
 
@@ -15,7 +18,7 @@ class JsonEncoderSpec extends FlatSpec {
    * Instance of TextEncoder for testing.
    */
   val enc = new JsonEncoder
-  val ds: Dataset = Dataset.fromName("data")
+  val ds: Dataset = Dataset.fromName(id"data")
 
   "A JSON encoder" should "encode a dataset to JSON" in {
     val encodedList = enc.encode(ds).compile.toList.unsafeRunSync()
