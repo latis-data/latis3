@@ -79,7 +79,7 @@ trait Dataset extends MetadataLike {
    * This will only show type information and will not impact
    * the Data (e.g. lazy data reading should not be triggered).
    */
-  override def toString: String = s"$id: $model"
+  override def toString: String = s"${id.fold("")(_.asString)}: $model"
 }
 
 object Dataset {

@@ -23,18 +23,18 @@ class PivotSuite extends FunSuite {
 
     inside(curryPivotDs.model) { case Function(domain, range) =>
       domain shouldBe a[Scalar]
-      assert(domain.id == "_1")
+      assert(domain.id.get.asString == "_1")
       range shouldBe a[Tuple]
 
       inside(range) { case Tuple(r1, r2, r3, r4) =>
         r1 shouldBe a[Scalar]
-        assert(r1.id == "Fe_a")
+        assert(r1.id.get.asString == "Fe_a")
         r2 shouldBe a[Scalar]
-        assert(r2.id == "Fe_b")
+        assert(r2.id.get.asString == "Fe_b")
         r3 shouldBe a[Scalar]
-        assert(r3.id == "Mg_a")
+        assert(r3.id.get.asString == "Mg_a")
         r4 shouldBe a[Scalar]
-        assert(r4.id == "Mg_b")
+        assert(r4.id.get.asString == "Mg_b")
       }
     }
   }
@@ -51,14 +51,14 @@ class PivotSuite extends FunSuite {
 
     inside(curryPivotDs.model) { case Function(domain, range) =>
       domain shouldBe a[Scalar]
-      assert(domain.id == "_1")
+      assert(domain.id.get.asString == "_1")
       range shouldBe a[Tuple]
 
       inside(range) { case Tuple(r1, r2) =>
         r1 shouldBe a[Scalar]
-        assert(r1.id == "Fe_a")
+        assert(r1.id.get.asString == "Fe_a")
         r2 shouldBe a[Scalar]
-        assert(r2.id == "Mg_a")
+        assert(r2.id.get.asString == "Mg_a")
       }
     }
   }
@@ -80,9 +80,9 @@ class PivotSuite extends FunSuite {
 
     inside(curryPivotDs.model) { case Function(domain, range) =>
       domain shouldBe a[Scalar]
-      assert(domain.id == "_1")
+      assert(domain.id.get.asString == "_1")
       range shouldBe a[Scalar]
-      assert(range.id == "Fe_a")
+      assert(range.id.get.asString == "Fe_a")
     }
   }
 

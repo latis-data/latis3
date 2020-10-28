@@ -39,19 +39,19 @@ class CurrySuite extends FunSuite {
     assert(curriedDs.model.toString == "_1 -> _2 -> (a, b)")
     inside(curriedDs.model) { case Function(domain, range) =>
       domain shouldBe a[Scalar]
-      assert(domain.id == "_1")
+      assert(domain.id.get.asString == "_1")
       range shouldBe a[Function]
 
       inside(range) { case Function(d, r) =>
         d shouldBe a[Scalar]
-        assert(d.id == "_2")
+        assert(d.id.get.asString == "_2")
         r shouldBe a[Tuple]
 
         inside(r) { case Tuple(s1, s2) =>
           s1 shouldBe a[Scalar]
-          assert(s1.id == "a")
+          assert(s1.id.get.asString == "a")
           s2 shouldBe a[Scalar]
-          assert(s2.id == "b")
+          assert(s2.id.get.asString == "b")
         }
       }
     }
@@ -75,16 +75,16 @@ class CurrySuite extends FunSuite {
 
       inside(domain) { case Tuple(d1, d2) =>
         d1 shouldBe a [Scalar]
-        assert(d1.id == "_1")
+        assert(d1.id.get.asString == "_1")
         d2 shouldBe a [Scalar]
-        assert(d2.id == "_2")
+        assert(d2.id.get.asString == "_2")
       }
 
       inside(range) { case Tuple(r1, r2) =>
         r1 shouldBe a [Scalar]
-        assert(r1.id == "a")
+        assert(r1.id.get.asString == "a")
         r2 shouldBe a [Scalar]
-        assert(r2.id == "b")
+        assert(r2.id.get.asString == "b")
       }
     }
   }
@@ -120,16 +120,16 @@ class CurrySuite extends FunSuite {
 
       inside(domain) { case Tuple(d1, d2) =>
         d1 shouldBe a [Scalar]
-        assert(d1.id == "_1")
+        assert(d1.id.get.asString == "_1")
         d2 shouldBe a [Scalar]
-        assert(d2.id == "_2")
+        assert(d2.id.get.asString == "_2")
       }
 
       inside(range) { case Function(d, r) =>
         d shouldBe a [Scalar]
-        assert(d.id == "_3")
+        assert(d.id.get.asString == "_3")
         r shouldBe a [Scalar]
-        assert(r.id == "a")
+        assert(r.id.get.asString == "a")
       }
     }
   }

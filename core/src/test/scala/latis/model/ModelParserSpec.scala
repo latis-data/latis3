@@ -11,23 +11,23 @@ class ModelParserSpec extends FlatSpec {
 
   "The ModelParser" should "parse a scalar" in {
      ModelParser.parse("foo") match {
-      case Right(s: Scalar) => s.id should be ("foo")
+      case Right(s: Scalar) => s.id.get.asString should be ("foo")
     }
   }
 
   it should "parse a tuple" in {
     ModelParser.parse("(a, b)") match {
       case Right(Tuple(a: Scalar, b: Scalar)) =>
-        a.id should be ("a")
-        b.id should be ("b")
+        a.id.get.asString should be ("a")
+        b.id.get.asString should be ("b")
     }
   }
 
   it should "parse a function" in {
     ModelParser.parse("x -> a") match {
       case Right(Function(x: Scalar, a: Scalar)) =>
-        x.id should be ("x")
-        a.id should be ("a")
+        x.id.get.asString should be ("x")
+        a.id.get.asString should be ("a")
     }
   }
 
