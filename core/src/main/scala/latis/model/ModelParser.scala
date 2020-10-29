@@ -1,10 +1,11 @@
 package latis.model
 
+import atto.Atto._
 import atto._
-import Atto._
 import cats.syntax.all._
 
 import latis.metadata.Metadata
+import latis.ops.parser.parsers.identifier
 import latis.util.LatisException
 
 /**
@@ -12,6 +13,7 @@ import latis.util.LatisException
  * into a DataType.
  */
 object ModelParser {
+  private val defaultScalarType: String = "Int"
 
   def parse(exp: String): Either[LatisException, DataType] =
     phrase(dataType).parse(exp).done.either.leftMap { s =>
@@ -19,35 +21,55 @@ object ModelParser {
       LatisException(msg)
     }
 
-  private def identifier: Parser[String] = for {
-    init <- letter | char('_')
-    rest <- many(letterOrDigit | char('_'))
-  } yield (init :: rest).mkString
+  def apply(exp: String): Either[LatisException, DataType] =
+    ModelParser.parse(exp)
 
   private def variable: Parser[String] =
     sepBy1(identifier, char('.')).map(_.toList.mkString("."))
 
-  private def scalar: Parser[Scalar] = variable.map { id =>
-    Scalar(Metadata(
-      "id" -> id,
-      "type" -> "double" //TODO: allow in spec
-    ))
-  }
-
-  private def tuple: Parser[Tuple] = for {
-    _ <- char('(')
-    vars <- many(scalar)
-    _ <- many(whitespace) ~ char(',') ~ many(whitespace)
-    last <- scalar
-    _ <- char(')')
-  } yield Tuple(vars :+ last)
-
-  private def function: Parser[Function] = for {
-    domain <- scalar | tuple
-    _ <- many(whitespace) ~ string("->") ~ many(whitespace)
-    range <- dataType
-  } yield Function(domain, range)
-
   private def dataType: Parser[DataType] =
     function | tuple | scalar
+
+  /** Doesn't support nested functions in the domain. */
+  def function: Parser[DataType] =
+    parens(functionWithoutParens) | functionWithoutParens
+
+  /** Doesn't support nested functions in the domain. */
+  private def functionWithoutParens: Parser[DataType] = for {
+    d <- (tuple | scalar).token
+    _ <- string("->").token
+    r <- dataType.token
+  } yield Function(d, r)
+
+  /** Only parses tuples of scalars */
+  def tuple: Parser[DataType] = for {
+    l <- parens(sepBy(scalar.token, char(',').token))
+  } yield Tuple(l)
+
+  def scalar: Parser[DataType] =
+    scalarWithType | scalarWithoutType
+
+  private def scalarWithType: Parser[DataType] = for {
+    id <- variable.token
+    _  <- string(":").token
+    t  <- valueType.token
+  } yield Scalar(Metadata(id) + ("type" -> t))
+
+  private def scalarWithoutType: Parser[DataType] = for {
+    id <- variable.token
+  } yield Scalar(Metadata(id) + ("type" -> defaultScalarType))
+
+  private def valueType: Parser[String] =
+    stringCI("boolean") |
+      stringCI("byte") |
+      stringCI("char") |
+      stringCI("short") |
+      stringCI("int") |
+      stringCI("long") |
+      stringCI("float") |
+      stringCI("double") |
+      stringCI("binary") |
+      stringCI("string") |
+      stringCI("bigint") |
+      stringCI("bigdecimal")
 }
