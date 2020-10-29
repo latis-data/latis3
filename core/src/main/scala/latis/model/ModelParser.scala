@@ -1,7 +1,7 @@
 package latis.model
 
+import atto.Atto._
 import atto._
-import Atto._
 import cats.syntax.all._
 
 import latis.metadata.Metadata
@@ -51,16 +51,25 @@ object ModelParser {
 
   private def scalarWithType: Parser[DataType] = for {
     id <- variable.token
-    _ <- string(":").token
-    t <- valueType.token
-  } yield Scalar(Metadata(id) + ("type" -> t.toString))
+    _  <- string(":").token
+    t  <- valueType.token
+  } yield Scalar(Metadata(id) + ("type" -> t))
 
   private def scalarWithoutType: Parser[DataType] = for {
     id <- variable.token
   } yield Scalar(Metadata(id) + ("type" -> defaultScalarType))
 
-  private def valueType: Parser[ValueType] = for {
-    tName <- many(letter)
-    tString = tName.mkString("")
-  } yield ValueType.fromName(tString).fold(throw _, identity)
+  private def valueType: Parser[String] =
+    stringCI("boolean") |
+      stringCI("byte") |
+      stringCI("char") |
+      stringCI("short") |
+      stringCI("int") |
+      stringCI("long") |
+      stringCI("float") |
+      stringCI("double") |
+      stringCI("binary") |
+      stringCI("string") |
+      stringCI("bigint") |
+      stringCI("bigdecimal")
 }
