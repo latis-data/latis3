@@ -67,12 +67,10 @@ object parsers {
   def identifier: Parser[Identifier] = for {
     init <- letter | char('_')
     rest <- many(letterOrDigit | char('_') | char('.')) //TODO: remove '.' after Identifier refactor
-    name =  (init :: rest).mkString
-//    id   <- Identifier.fromString(name)
-//      .fold(err(s"Invalid identifier: $name"))(ok(_))
-  } yield Identifier.fromString(name).getOrElse( ??? ) //id
-    //TODO: fix this getOrElse
-
+    name  = (init :: rest).mkString
+    id   <- Identifier.fromString(name)
+      .fold(err[Identifier](s"Invalid identifier: $name"))(ok(_))
+  } yield id
 
   def stringLit: Parser[String] = for {
     lit <- stringLiteral

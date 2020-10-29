@@ -6,6 +6,7 @@ import org.scalacheck.ScalacheckShapeless._
 import latis.ops.parser.ast._
 import ast._
 import latis.util.Identifier
+import latis.util.LatisException
 
 object ConstraintParserProps extends Properties("DAP 2 Constraint Parser") {
 
@@ -17,9 +18,12 @@ object ConstraintParserProps extends Properties("DAP 2 Constraint Parser") {
 
   val identifier: Gen[Identifier] = for {
     init <- Gen.oneOf(Gen.alphaChar, Gen.const('_'))
-    //TODO: remove '.' after Identifier refactor
+    //TODO: remove const('.') after Identifier refactor
     rest <- Gen.listOf(Gen.oneOf(Gen.alphaNumChar, Gen.const('_'), Gen.const('.')))
-  } yield Identifier.fromString(init + rest.mkString)//.getOrElse( ??? ) //TODO: not this getOrElse
+    id    = init + rest.mkString
+  } yield Identifier.fromString(id).getOrElse {
+    throw LatisException(s"Failed to generate identifier from: $id")
+  }
 
   val variable: Gen[String] = for {
     init <- identifier
