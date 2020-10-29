@@ -6,6 +6,7 @@ import latis.input.AdapterConfig
 import latis.metadata.Metadata
 import latis.model.ValueType
 import latis.ops.parser.ast.CExpr
+import latis.util.Identifier
 
 /** Abstract representation of an FDML file. */
 sealed trait Fdml
@@ -130,7 +131,7 @@ final case class FTuple(
  * @param attributes additional metadata
  */
 final case class FScalar(
-  id: String,
+  id: Identifier,
   ty: ValueType,
   attributes: Map[String, String]
 ) extends FModel {
@@ -142,5 +143,5 @@ final case class FScalar(
    * `attributes`, are included in this metadata.
    */
   def metadata: Metadata = Metadata(attributes) ++
-    Metadata("id" -> id, "type" -> ty.toString.toLowerCase)
+    Metadata("id" -> id.asString, "type" -> ty.toString.toLowerCase)
 }

@@ -4,6 +4,7 @@ import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
 import latis.model.DoubleValueType
+import latis.util.Identifier.IdentifierStringContext
 
 class FdmlSpec extends FlatSpec {
 
@@ -16,7 +17,7 @@ class FdmlSpec extends FlatSpec {
 
   "An FScalar" should "create valid scalar metadata" in {
     val metadata = FScalar(
-      "id",
+      id"id",
       DoubleValueType,
       Map("key" -> "value")
     ).metadata.properties

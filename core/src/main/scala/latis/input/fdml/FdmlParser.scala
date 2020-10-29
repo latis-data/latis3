@@ -15,6 +15,7 @@ import latis.model.ValueType
 import latis.ops.parser.ast.CExpr
 import latis.ops.parser.parsers.subexpression
 import latis.util.FdmlUtils
+import latis.util.Identifier
 import latis.util.LatisException
 import latis.util.NetUtils
 
@@ -193,11 +194,14 @@ object FdmlParser {
         id    <- attrs.get("id").toRight {
           LatisException("Expecting scalar with id attribute")
         }
+        ident <- Identifier.fromString(id).toRight {
+          LatisException(s"Scalar id '$id' is not a valid identifier")
+        }
         tyStr <- attrs.get("type").toRight {
           LatisException("Expecting scalar with type attribute")
         }
         ty    <- ValueType.fromName(tyStr)
-      } yield FScalar(id, ty, attrs)
+      } yield FScalar(ident, ty, attrs)
       case _ => LatisException("Expecting a single scalar").asLeft
     }
 

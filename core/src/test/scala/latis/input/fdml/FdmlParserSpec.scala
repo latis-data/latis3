@@ -39,7 +39,7 @@ final class FdmlParserSpec extends FlatSpec {
           attrs should contain ("id" -> "outer")
 
           inside(domain) { case FScalar(id, ty, attrs) =>
-            id should equal ("time")
+            id should equal (id"time")
             ty should equal (IntValueType)
             attrs should contain ("units" -> "days since 2000-01-01")
             attrs should contain ("class" -> "latis.time.Time")
@@ -52,18 +52,18 @@ final class FdmlParserSpec extends FlatSpec {
               attrs should contain ("id" -> "inner_domain")
 
               inside(fst) { case FScalar(id, ty, attrs) =>
-                id should equal ("a")
+                id should equal (id"a")
                 ty should equal (IntValueType)
               }
 
               inside(snd) { case FScalar(id, ty, attrs) =>
-                id should equal ("b")
+                id should equal (id"b")
                 ty should equal (DoubleValueType)
               }
 
               rest should have length 1
               inside(rest) { case FScalar(id, ty, attrs) :: Nil =>
-                id should equal ("c")
+                id should equal (id"c")
                 ty should equal (StringValueType)
               }
             }
@@ -72,18 +72,18 @@ final class FdmlParserSpec extends FlatSpec {
               attrs should contain ("id" -> "inner_range")
 
               inside(fst) { case FScalar(id, ty, attrs) =>
-                id should equal ("d")
+                id should equal (id"d")
                 ty should equal (IntValueType)
               }
 
               inside(snd) { case FScalar(id, ty, attrs) =>
-                id should equal ("e")
+                id should equal (id"e")
                 ty should equal (DoubleValueType)
               }
 
               rest should have length 1
               inside(rest) { case FScalar(id, ty, attrs) :: Nil =>
-                id should equal ("f")
+                id should equal (id"f")
                 ty should equal (StringValueType)
               }
             }
@@ -207,14 +207,14 @@ final class FdmlParserSpec extends FlatSpec {
 
               inside(model) { case FFunction(domain, range, _) =>
                 inside(domain) { case FScalar(id, ty, attrs) =>
-                  id should equal ("time")
+                  id should equal (id"time")
                   ty should equal (IntValueType)
                   attrs should contain ("units" -> "days since 2000-01-01")
                   attrs should contain ("class" -> "latis.time.Time")
                 }
 
                 inside(range) { case FScalar(id, ty, _) =>
-                  id should equal ("uri")
+                  id should equal (id"uri")
                   ty should equal (StringValueType)
                 }
               }
@@ -231,14 +231,14 @@ final class FdmlParserSpec extends FlatSpec {
 
           inside(model) { case FFunction(domain, range, _) =>
             inside(domain) { case FScalar(id, ty, attrs) =>
-              id should equal ("time")
+              id should equal (id"time")
               ty should equal (IntValueType)
               attrs should contain ("units" -> "days since 2000-01-01")
               attrs should contain ("class" -> "latis.time.Time")
             }
 
             inside(range) { case FScalar(id, ty, _) =>
-              id should equal ("a")
+              id should equal (id"a")
               ty should equal (IntValueType)
             }
           }
