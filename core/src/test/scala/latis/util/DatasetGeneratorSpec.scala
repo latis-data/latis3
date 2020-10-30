@@ -83,4 +83,31 @@ class DatasetGeneratorSpec extends FlatSpec {
     ds.data.sampleSeq.drop(2).head should be (Sample(DomainData('a', 2, 0.1), RangeData("a2.1", 3.3)))
     ds.data.sampleSeq.drop(4).head should be (Sample(DomainData('b', 1, 0.1), RangeData("b1.1", 5.5)))
   }
+
+  "fromString" should "generate a 1D dataset" in {
+    val ds = DatasetGenerator("a: double -> (b: double, c: boolean)")
+    ds.data.sampleSeq(0) should be (Sample(DomainData(0.0), RangeData(0.0, true)))
+    ds.data.sampleSeq(1) should be (Sample(DomainData(1.0), RangeData(1.0, false)))
+    ds.data.sampleSeq(2) should be (Sample(DomainData(2.0), RangeData(2.0, true)))
+  }
+
+  it should "generate a 2D dataset" in {
+    val ds = DatasetGenerator("(a: string, b: int) -> (c: double, d: double)")
+    ds.data.sampleSeq(0) should be (Sample(DomainData("a", 0), RangeData(0.0, 1.0)))
+    ds.data.sampleSeq(1) should be (Sample(DomainData("a", 1), RangeData(2.0, 3.0)))
+    ds.data.sampleSeq(2) should be (Sample(DomainData("a", 2), RangeData(4.0, 5.0)))
+    ds.data.sampleSeq(3) should be (Sample(DomainData("b", 0), RangeData(6.0, 7.0)))
+    ds.data.sampleSeq(4) should be (Sample(DomainData("b", 1), RangeData(8.0, 9.0)))
+    ds.data.sampleSeq(5) should be (Sample(DomainData("b", 2), RangeData(10.0, 11.0)))
+  }
+
+  it should "generate a 3D dataset" in {
+    val ds = DatasetGenerator("(a: string, b, c) -> d: double")
+    ds.data.sampleSeq(0)  should be (Sample(DomainData("a", 0, 0), RangeData(0.0)))
+    ds.data.sampleSeq(1)  should be (Sample(DomainData("a", 0, 1), RangeData(1.0)))
+    ds.data.sampleSeq(4)  should be (Sample(DomainData("a", 1, 0), RangeData(4.0)))
+    ds.data.sampleSeq(11) should be (Sample(DomainData("a", 2, 3), RangeData(11.0)))
+    ds.data.sampleSeq(12) should be (Sample(DomainData("b", 0, 0), RangeData(12.0)))
+    ds.data.sampleSeq(23) should be (Sample(DomainData("b", 2, 3), RangeData(23.0)))
+  }
 }
