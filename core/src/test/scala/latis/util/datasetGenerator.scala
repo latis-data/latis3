@@ -105,9 +105,9 @@ object DatasetGenerator {
   }
 
   def generate1DDataset(
-                         xs: Seq[Any],
-                         rs: Seq[Any]*
-                       ): MemoizedDataset = {
+    xs: Seq[Any],
+    rs: Seq[Any]*
+  ): MemoizedDataset = {
     val md    = Metadata(makeDatasetID())
     val model = makeModel(Seq(xs.head), rs.map(_.head))
     val data  = CartesianFunction1D.fromValues(xs, rs: _*).toTry.get
@@ -115,10 +115,10 @@ object DatasetGenerator {
   }
 
   def generate2DDataset(
-                         xs: Seq[Any],
-                         ys: Seq[Any],
-                         rs: Seq[Seq[Any]]*
-                       ): MemoizedDataset = {
+    xs: Seq[Any],
+    ys: Seq[Any],
+    rs: Seq[Seq[Any]]*
+  ): MemoizedDataset = {
     val md    = Metadata(makeDatasetID())
     val model = makeModel(Seq(xs.head, ys.head), rs.map(_.head.head))
     val data  = CartesianFunction2D.fromValues(xs, ys, rs: _*).toTry.get
@@ -126,11 +126,11 @@ object DatasetGenerator {
   }
 
   def generate3DDataset(
-                         xs: Seq[Any],
-                         ys: Seq[Any],
-                         zs: Seq[Any],
-                         rs: Seq[Seq[Seq[Any]]]*
-                       ): MemoizedDataset = {
+    xs: Seq[Any],
+    ys: Seq[Any],
+    zs: Seq[Any],
+    rs: Seq[Seq[Seq[Any]]]*
+  ): MemoizedDataset = {
     val md    = Metadata(makeDatasetID())
     val model = makeModel(Seq(xs.head, ys.head, zs.head), rs.map(_.head.head.head))
     val data  = CartesianFunction3D.fromValues(xs, ys, zs, rs: _*).toTry.get
