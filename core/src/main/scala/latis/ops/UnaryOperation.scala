@@ -30,6 +30,7 @@ object UnaryOperation {
     case "curry" => Curry.fromArgs(args)
     case "eval" => Evaluation.fromArgs(args)
     case "evaluation" => Evaluation.fromArgs(args)
+    case "first" => Right(First())
     case "pivot" => Pivot.fromArgs(args)
     case "project" => Projection.fromArgs(args)
     case "rename" => Rename.fromArgs(args)

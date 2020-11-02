@@ -1,0 +1,20 @@
+package latis.ops
+
+import org.scalatest.FlatSpec
+import org.scalatest.Matchers._
+
+import latis.data.DomainData
+import latis.data.RangeData
+import latis.data.Sample
+import latis.dataset.Dataset
+import latis.util.DatasetGenerator
+
+class DropRightSpec extends FlatSpec {
+
+  "The DropRight Operation" should "drop the last n samples of a dataset" in {
+    val ds: Dataset = DatasetGenerator("a -> b")
+    val dsDrop      = ds.withOperation(DropRight(2))
+    val samples     = dsDrop.samples.compile.toList.unsafeRunSync()
+    samples should be(List(Sample(DomainData(0), RangeData(0))))
+  }
+}

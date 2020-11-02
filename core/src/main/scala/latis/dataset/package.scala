@@ -23,6 +23,7 @@ package object dataset {
     def rename(varName: String, newName: String): Dataset = dataset.withOperation(Rename(varName, newName))
     def eval(value: String): Dataset = dataset.withOperation(Evaluation(value))
     def withReader(reader: DatasetReader): Dataset = dataset.withOperation(ReaderOperation(reader))
+    def first(): Dataset = dataset.withOperation(First())
 
     def filter(predicate: Sample => Boolean): Dataset = dataset.withOperation(Filter(predicate))
     //TODO: map, flataMap, mapRange, but need to know how model changes
