@@ -15,17 +15,17 @@ import latis.model.ModelParser
 import latis.model.Scalar
 import latis.util.DatasetGenerator
 
-class FirstSpec extends FlatSpec {
+class HeadSpec extends FlatSpec {
 
   "The First Operation" should "return the first sample of a simple dataset" in {
     val ds: Dataset = DatasetGenerator("a -> b")
-    val dsFirst     = ds.withOperation(First())
+    val dsFirst     = ds.withOperation(Head())
     val samples     = dsFirst.samples.compile.toList.unsafeRunSync()
     samples should be(List(Sample(DomainData(0), RangeData(0))))
   }
 
   it should "return the first sample of a dataset with a nested function" in {
-    val ds = DatasetGenerator("(a, b) -> c").curry(1).first()
+    val ds = DatasetGenerator("(a, b) -> c").curry(1).head()
     val samples = ds.samples.compile.toList.unsafeRunSync()
     val sf = SampledFunction(
       Seq(
@@ -42,7 +42,7 @@ class FirstSpec extends FlatSpec {
       Metadata("MT"),
       Scalar(Metadata("id") + ("type" -> "int")),
       SampledFunction(Seq.empty),
-      Seq(First())
+      Seq(Head())
     )
     val samples = md.samples.compile.toList.unsafeRunSync()
     samples should be(List.empty)
