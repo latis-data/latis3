@@ -66,6 +66,8 @@ sealed trait DataType extends MetadataLike with Serializable {
         }
         vbuf.toSeq
       case Array(n1, n2 @ _*) =>
+        //Note, first .get is safe because n1 came from a valid Identifier.
+        //TODO: Second .get is safe now, but wouldn't be if dots ('.') were removed from Identifier
         findAllVariables(Identifier.fromString(n1).get)
           .flatMap(_.findAllVariables(Identifier.fromString(n2.mkString(".")).get))
     }
