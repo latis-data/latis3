@@ -35,11 +35,12 @@ case class Rename(origName: Identifier, newName: Identifier) extends UnaryOperat
 object Rename {
 
   def fromArgs(args: List[String]): Either[LatisException, Rename] = Either.catchOnly[LatisException] {
-    args.map(arg => Identifier.fromString(arg)
-      .getOrElse {
-        throw LatisException(s"'$arg' is not a valid identifier")
-      }
-    ) match {
+    args.map { arg =>
+      Identifier.fromString(arg)
+        .getOrElse {
+          throw LatisException(s"'$arg' is not a valid identifier")
+        }
+    } match {
       case oldName :: newName :: Nil => Rename(oldName, newName)
       case _ => throw LatisException("Rename requires exactly two arguments")
     }

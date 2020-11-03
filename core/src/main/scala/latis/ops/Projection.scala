@@ -60,9 +60,11 @@ case class Projection(vnames: Identifier*) extends MapOperation {
 object Projection {
 
   def apply(exp: String): Projection = {
-    val ids = exp.split(",").map(id => Identifier.fromString(id).getOrElse {
-      throw LatisException(s"'$id' is not a valid identifier")
-    })
+    val ids = exp.split(",").map { id =>
+      Identifier.fromString(id).getOrElse {
+        throw LatisException(s"'$id' is not a valid identifier")
+      }
+    }
     Projection(ids.toIndexedSeq: _*)
   }
 
