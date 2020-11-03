@@ -4,7 +4,6 @@ import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
 import latis.data.DomainData
-import latis.data.MemoizedFunction
 import latis.data.RangeData
 import latis.data.Sample
 import latis.data.SampledFunction
@@ -15,26 +14,26 @@ import latis.model.ModelParser
 import latis.model.Scalar
 import latis.util.DatasetGenerator
 
-class FirstSpec extends FlatSpec {
+class LastSpec extends FlatSpec {
 
-  "The First Operation" should "return the first sample of a simple dataset" in {
+  "The Last Operation" should "return the last sample of a simple dataset" in {
     val ds: Dataset = DatasetGenerator("a -> b")
-    val dsFirst     = ds.withOperation(First())
-    val samples     = dsFirst.samples.compile.toList.unsafeRunSync()
-    samples should be(List(Sample(DomainData(0), RangeData(0))))
+    val dsTake     = ds.withOperation(Last())
+    val samples     = dsTake.samples.compile.toList.unsafeRunSync()
+    samples should be(List(Sample(DomainData(2), RangeData(2))))
   }
 
-  it should "return the first sample of a dataset with a nested function" in {
-    val ds = DatasetGenerator("(a, b) -> c").curry(1).first()
+  it should "return the last sample of a dataset with a nested function" in {
+    val ds = DatasetGenerator("(a, b) -> c").curry(1).withOperation(Last())
     val samples = ds.samples.compile.toList.unsafeRunSync()
     val sf = SampledFunction(
       Seq(
-        Sample(DomainData(0), RangeData(0)),
-        Sample(DomainData(1), RangeData(1)),
-        Sample(DomainData(2), RangeData(2))
+        Sample(DomainData(0), RangeData(3)),
+        Sample(DomainData(1), RangeData(4)),
+        Sample(DomainData(2), RangeData(5))
       )
     )
-    samples should be(List(Sample(DomainData(0), Seq(sf))))
+    samples should be(List(Sample(DomainData(1), Seq(sf))))
   }
 
   it should "return an empty dataset when applied to an empty dataset" in {
@@ -42,7 +41,7 @@ class FirstSpec extends FlatSpec {
       Metadata("MT"),
       Scalar(Metadata("id") + ("type" -> "int")),
       SampledFunction(Seq.empty),
-      Seq(First())
+      Seq(Last())
     )
     val samples = md.samples.compile.toList.unsafeRunSync()
     samples should be(List.empty)

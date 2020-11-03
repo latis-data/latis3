@@ -2,6 +2,7 @@ package latis.ops
 
 import cats.effect.IO
 import fs2.Pipe
+import fs2.Stream
 
 import latis.data.Sample
 import latis.model.DataType
@@ -10,7 +11,10 @@ import latis.util.LatisException
 case class Last() extends StreamOperation {
 
   def pipe(model: DataType): Pipe[IO, Sample, Sample] =
-    in => in.lastOr(Sample(Seq.empty, Seq.empty))
+    in => in.last.flatMap {
+      case Some(s: Sample) => Stream(s)
+      case None => Stream.empty
+    }
 
   def applyToModel(model: DataType): Either[LatisException, DataType] =
     Right(model)
