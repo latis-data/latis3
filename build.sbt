@@ -103,7 +103,6 @@ lazy val core = project
   .settings(
     name := "latis3-core",
     libraryDependencies ++= Seq(
-      "org.scala-lang"          % "scala-reflect"       % scalaVersion.value,
       "org.scala-lang.modules" %% "scala-collection-compat" % "2.2.0",
       "org.scala-lang.modules" %% "scala-xml"           % "1.3.0",
       "io.circe"               %% "circe-core"          % "0.13.0",
