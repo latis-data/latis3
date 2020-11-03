@@ -8,16 +8,13 @@ import latis.data.RangeData
 import latis.data.Sample
 import latis.data.SampledFunction
 import latis.dataset.Dataset
-import latis.dataset.MemoizedDataset
-import latis.metadata.Metadata
-import latis.model.ModelParser
 import latis.util.DatasetGenerator
 
 class TakeSpec extends FlatSpec {
 
   "The Take Operation" should "return the first n samples of a simple dataset" in {
     val ds: Dataset = DatasetGenerator("a -> b")
-    val dsTake     = ds.withOperation(Take(2))
+    val dsTake      = ds.withOperation(Take(2))
     val samples     = dsTake.samples.compile.toList.unsafeRunSync()
     samples should be(
       List(
@@ -28,7 +25,7 @@ class TakeSpec extends FlatSpec {
   }
 
   it should "return the first n samples of a dataset with a nested function" in {
-    val ds = DatasetGenerator("(a, b) -> c").curry(1).withOperation(Take(1))
+    val ds      = DatasetGenerator("(a, b) -> c").curry(1).withOperation(Take(1))
     val samples = ds.samples.compile.toList.unsafeRunSync()
     val sf = SampledFunction(
       Seq(

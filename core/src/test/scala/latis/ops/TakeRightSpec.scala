@@ -25,7 +25,7 @@ class TakeRightSpec extends FlatSpec {
   }
 
   it should "return the last n samples of a dataset with a nested function" in {
-    val ds = DatasetGenerator("(a, b) -> c").curry(1).withOperation(TakeRight(1))
+    val ds      = DatasetGenerator("(a, b) -> c").curry(1).withOperation(TakeRight(1))
     val samples = ds.samples.compile.toList.unsafeRunSync()
     val sf = SampledFunction(
       Seq(

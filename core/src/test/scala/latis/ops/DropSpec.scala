@@ -14,7 +14,7 @@ class DropSpec extends FlatSpec {
 
   "The Drop Operation" should "drop the first n samples of a simple dataset" in {
     val ds: Dataset = DatasetGenerator("a -> b")
-    val dsDrop     = ds.withOperation(Drop(1))
+    val dsDrop      = ds.withOperation(Drop(1))
     val samples     = dsDrop.samples.compile.toList.unsafeRunSync()
     samples should be(
       List(
@@ -25,7 +25,7 @@ class DropSpec extends FlatSpec {
   }
 
   it should "drop the first n samples of a dataset with a nested function" in {
-    val ds = DatasetGenerator("(a, b) -> c").curry(1).withOperation(Drop(1))
+    val ds      = DatasetGenerator("(a, b) -> c").curry(1).withOperation(Drop(1))
     val samples = ds.samples.compile.toList.unsafeRunSync()
     val sf = SampledFunction(
       Seq(

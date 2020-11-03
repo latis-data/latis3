@@ -4,14 +4,12 @@ import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
 import latis.data.DomainData
-import latis.data.MemoizedFunction
 import latis.data.RangeData
 import latis.data.Sample
 import latis.data.SampledFunction
 import latis.dataset.Dataset
 import latis.dataset.MemoizedDataset
 import latis.metadata.Metadata
-import latis.model.ModelParser
 import latis.model.Scalar
 import latis.util.DatasetGenerator
 
@@ -25,7 +23,7 @@ class HeadSpec extends FlatSpec {
   }
 
   it should "return the first sample of a dataset with a nested function" in {
-    val ds = DatasetGenerator("(a, b) -> c").curry(1).head()
+    val ds      = DatasetGenerator("(a, b) -> c").curry(1).head()
     val samples = ds.samples.compile.toList.unsafeRunSync()
     val sf = SampledFunction(
       Seq(

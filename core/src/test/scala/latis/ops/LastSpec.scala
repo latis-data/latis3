@@ -10,7 +10,6 @@ import latis.data.SampledFunction
 import latis.dataset.Dataset
 import latis.dataset.MemoizedDataset
 import latis.metadata.Metadata
-import latis.model.ModelParser
 import latis.model.Scalar
 import latis.util.DatasetGenerator
 
@@ -18,13 +17,13 @@ class LastSpec extends FlatSpec {
 
   "The Last Operation" should "return the last sample of a simple dataset" in {
     val ds: Dataset = DatasetGenerator("a -> b")
-    val dsTake     = ds.withOperation(Last())
+    val dsTake      = ds.withOperation(Last())
     val samples     = dsTake.samples.compile.toList.unsafeRunSync()
     samples should be(List(Sample(DomainData(2), RangeData(2))))
   }
 
   it should "return the last sample of a dataset with a nested function" in {
-    val ds = DatasetGenerator("(a, b) -> c").curry(1).withOperation(Last())
+    val ds      = DatasetGenerator("(a, b) -> c").curry(1).withOperation(Last())
     val samples = ds.samples.compile.toList.unsafeRunSync()
     val sf = SampledFunction(
       Seq(

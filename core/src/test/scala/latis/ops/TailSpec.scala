@@ -25,7 +25,7 @@ class TailSpec extends FlatSpec {
   }
 
   it should "drop the first sample from a dataset with a nested function" in {
-    val ds = DatasetGenerator("(a, b) -> c").curry(1).withOperation(Tail())
+    val ds      = DatasetGenerator("(a, b) -> c").curry(1).withOperation(Tail())
     val samples = ds.samples.compile.toList.unsafeRunSync()
     val sf = SampledFunction(
       Seq(

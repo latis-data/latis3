@@ -25,7 +25,7 @@ class DropLastSpec extends FlatSpec {
   }
 
   it should "drop the last sample from a dataset with a nested function" in {
-    val ds = DatasetGenerator("(a, b) -> c").curry(1).withOperation(DropLast())
+    val ds      = DatasetGenerator("(a, b) -> c").curry(1).withOperation(DropLast())
     val samples = ds.samples.compile.toList.unsafeRunSync()
     val sf = SampledFunction(
       Seq(

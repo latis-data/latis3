@@ -11,10 +11,11 @@ import latis.util.LatisException
 case class Last() extends StreamOperation {
 
   def pipe(model: DataType): Pipe[IO, Sample, Sample] =
-    in => in.last.flatMap {
-      case Some(s: Sample) => Stream(s)
-      case None => Stream.empty
-    }
+    in =>
+      in.last.flatMap {
+        case Some(s: Sample) => Stream(s)
+        case None            => Stream.empty
+      }
 
   def applyToModel(model: DataType): Either[LatisException, DataType] =
     Right(model)
