@@ -11,7 +11,7 @@ import latis.util.LatisException
  * Operation to project only a given set of variables in a Dataset.
  * Domain variables will be included, for now.
  */
-case class Projection(vnames: Identifier*) extends MapOperation {
+case class Projection(ids: Identifier*) extends MapOperation {
   //TODO: support nested Functions
   //TODO: support aliases, hasName
   //TODO: support dot notation for nested tuples
@@ -23,7 +23,7 @@ case class Projection(vnames: Identifier*) extends MapOperation {
   /** Recursive method to apply the projection. */
   private def applyToVariable(v: DataType): Option[DataType] = v match {
     case s: Scalar =>
-      if (s.id.exists(id => vnames.contains(id))) Some(s) else None
+      if (s.id.exists(id => ids.contains(id))) Some(s) else None
     case Tuple(vars @ _*) =>
       val vs = vars.flatMap(applyToVariable)
       vs.length match {
@@ -42,7 +42,7 @@ case class Projection(vnames: Identifier*) extends MapOperation {
     // Get the indices of the projected variables in the Sample.
     // Sort since the FDM requires original order of variables.
     // TODO: should we allow range to be reordered?
-    val rangeIndices: Seq[Int]  = vnames.map(model.getPath).flatMap {
+    val rangeIndices: Seq[Int]  = ids.map(model.getPath).flatMap {
       case Some(RangePosition(i) :: Nil) => Some(i)
       case Some(_) => None
       case None => ??? //error, invalid vname, catch earlier
@@ -68,14 +68,11 @@ object Projection {
     Projection(ids.toIndexedSeq: _*)
   }
 
-  def fromArgs(args: List[String]): Either[LatisException, Projection] = Either.catchOnly[LatisException] {
-    args match {
-      case Nil => throw LatisException("Projection requires at least one argument")
-      case _ => Projection(
-        args.map(id =>
-          Identifier.fromString(id).getOrElse(throw LatisException(s"'$id' is not a valid identifier"))
-        ).toIndexedSeq: _*
-      )
-    }
+  def fromArgs(args: List[String]): Either[LatisException, Projection] = args match {
+    case Nil => Left(LatisException("Projection requires at least one argument"))
+    case _ => args.traverse { id =>
+      Identifier.fromString(id).toRight(LatisException(s"'$id' is not a valid identifier"))
+    }.map(Projection(_: _*))
   }
+
 }

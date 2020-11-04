@@ -12,14 +12,14 @@ import latis.util.LatisException
 /**
  * Defines an Operation that converts a Tuple of time values to a single time Scalar.
  *
- * @param name the identifier of the Tuple that stores the time values
+ * @param id the identifier of the Tuple that stores the time values
  * TODO: using id"time" here yields macro implementation not found error. Why?
  */
-case class TimeTupleToTime(name: Identifier = id"time") extends MapOperation {
+case class TimeTupleToTime(id: Identifier = id"time") extends MapOperation {
 
   def applyToModel(model: DataType): Either[LatisException, DataType] =
     Either.catchOnly[LatisException](model.map {
-    case t @ Tuple(es @ _*) if t.id.contains(name) => //TODO: support aliases with hasName?
+    case t @ Tuple(es @ _*) if t.id.contains(id) => //TODO: support aliases with hasName?
       //build up format string
       val format: String = es.toList.traverse(_("units"))
         .fold(throw LatisException("A time Tuple must have units defined for each element."))(_.mkString(" "))
@@ -30,20 +30,20 @@ case class TimeTupleToTime(name: Identifier = id"time") extends MapOperation {
     })
 
   override def mapFunction(model: DataType): Sample => Sample = {
-    val timePos: SamplePosition = model.getPath(name) match {
+    val timePos: SamplePosition = model.getPath(id) match {
       case Some(List(sp)) => sp
-      case None => throw LatisException(s"Cannot find path to variable: ${name.asString}")
-      case _ => throw LatisException(s"Variable '${name.asString}' must not be in a nested Function.")
+      case None => throw LatisException(s"Cannot find path to variable: ${id.asString}")
+      case _ => throw LatisException(s"Variable '${id.asString}' must not be in a nested Function.")
     }
-    val timeLen: Int = model.findVariable(name)
+    val timeLen: Int = model.findVariable(id)
       .getOrElse {
-        throw new LatisException(s"Cannot find variable: ${name.asString}")
+        throw new LatisException(s"Cannot find variable: ${id.asString}")
       } match {
           case t: Tuple => t.flatten match {
             case tf: Tuple => tf.elements.length //TODO: is this "dimensionality"? Should it be a first class citizen?
             case _ => throw LatisException("Tuple did not flatten to a tuple.")
           }
-          case _ => throw LatisException(s"Variable '${name.asString}' must be a Tuple.")
+          case _ => throw LatisException(s"Variable '${id.asString}' must be a Tuple.")
         }
 
     { case Sample(dd, rd) =>
@@ -87,9 +87,9 @@ object TimeTupleToTime {
   def fromArgs(args: List[String]): Either[LatisException, TimeTupleToTime] = Either.catchOnly[LatisException] {
     args match {
       case Nil => TimeTupleToTime()
-      case name :: Nil => TimeTupleToTime(
-        Identifier.fromString(name).getOrElse {
-          throw LatisException(s"'$name' is not a valid identifier")
+      case id :: Nil => TimeTupleToTime(
+        Identifier.fromString(id).getOrElse {
+          throw LatisException(s"'$id' is not a valid identifier")
         }
       )
       case _ => throw LatisException("Too many arguments to TimeTupleToTime")

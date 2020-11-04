@@ -44,25 +44,25 @@ sealed trait DataType extends MetadataLike with Serializable {
   /**
    * Find the DataType of a variable by its identifier or aliases.
    */
-  def findVariable(variableName: Identifier): Option[DataType] =
-    findAllVariables(variableName).headOption
+  def findVariable(id: Identifier): Option[DataType] =
+    findAllVariables(id).headOption
     //TODO: support aliases
 
   /**
    * Find all Variables within this Variable by the given name.
    */
-  def findAllVariables(variableName: Identifier): Seq[DataType] = {
-    variableName.asString.split('.') match {
+  def findAllVariables(id: Identifier): Seq[DataType] = {
+    id.asString.split('.') match {
       case Array(_) =>
         val vbuf = ArrayBuffer[DataType]()
-        if (this.id.contains(variableName)) vbuf += this //TODO: use hasName to cover aliases?
+        if (this.id.contains(id)) vbuf += this //TODO: use hasName to cover aliases?
         this match {
           case _: Scalar =>
           case Tuple(es @ _*) =>
-            vbuf ++= es.flatMap(_.findAllVariables(variableName))
+            vbuf ++= es.flatMap(_.findAllVariables(id))
           case Function(d, r) => 
-            vbuf ++= d.findAllVariables(variableName) 
-            vbuf ++= r.findAllVariables(variableName)
+            vbuf ++= d.findAllVariables(id)
+            vbuf ++= r.findAllVariables(id)
         }
         vbuf.toSeq
       case Array(n1, n2 @ _*) =>
@@ -90,11 +90,11 @@ sealed trait DataType extends MetadataLike with Serializable {
   }
 
   // Used by Rename Operation, Pivot Operation, and this.flatten
-  def rename(name: Identifier): DataType = this match {
+  def rename(id: Identifier): DataType = this match {
     //TODO: add old name to alias?
-    case _: Scalar      => Scalar(metadata + ("id"   -> name.asString))
-    case Tuple(es @ _*) => Tuple(metadata + ("id"    -> name.asString), es)
-    case Function(d, r) => Function(metadata + ("id" -> name.asString), d, r)
+    case _: Scalar      => Scalar(metadata   + ("id" -> id.asString))
+    case Tuple(es @ _*) => Tuple(metadata    + ("id" -> id.asString), es)
+    case Function(d, r) => Function(metadata + ("id" -> id.asString), d, r)
   }
 
   /**

@@ -11,14 +11,14 @@ import latis.util.LatisException
  * Define an Operation that renames a specific variable within a Dataset.
  * This only impacts the model.
  */
-case class Rename(origName: Identifier, newName: Identifier) extends UnaryOperation {
+case class Rename(origId: Identifier, newId: Identifier) extends UnaryOperation {
 
   def applyToModel(model: DataType): Either[LatisException, DataType] = {
     // TODO: support renaming tuples and functions (findVariable instead of getVariable?)
-    model.getVariable(origName) match {
-      case None => Left(LatisException(s"Variable '${origName.asString}' not found"))
+    model.getVariable(origId) match {
+      case None => Left(LatisException(s"Variable '${origId.asString}' not found"))
       case _ => Right(model.map { s =>
-        if (s.id.contains(origName)) s.rename(newName)
+        if (s.id.contains(origId)) s.rename(newId)
         else s
         //TODO: support aliases with hasName
       })
@@ -41,7 +41,7 @@ object Rename {
           throw LatisException(s"'$arg' is not a valid identifier")
         }
     } match {
-      case oldName :: newName :: Nil => Rename(oldName, newName)
+      case oldId :: newId :: Nil => Rename(oldId, newId)
       case _ => throw LatisException("Rename requires exactly two arguments")
     }
   }

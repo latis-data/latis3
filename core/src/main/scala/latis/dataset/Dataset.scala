@@ -87,7 +87,7 @@ object Dataset {
   /**
    * Creates a Dataset by using the DatasetResolver ServiceLoader.
    */
-  def fromName(name: Identifier): Dataset = DatasetResolver.getDataset(name)
+  def fromName(id: Identifier): Dataset = DatasetResolver.getDataset(id)
 
   /**
    * Creates a Dataset by using the DatasetReader ServiceLoader.

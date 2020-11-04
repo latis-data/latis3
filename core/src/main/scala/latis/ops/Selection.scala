@@ -14,7 +14,7 @@ import latis.util.LatisException
 /**
  * Operation to keep only Samples that meet the given selection criterion.
  */
-case class Selection(vname: Identifier, operator: String, value: String) extends Filter {
+case class Selection(id: Identifier, operator: String, value: String) extends Filter {
   //TODO: use smaller types, enumerate operators?
   //TODO: enable IndexedFunction to use binary search...
   //TODO: support nested functions, all or none?
@@ -31,9 +31,9 @@ case class Selection(vname: Identifier, operator: String, value: String) extends
     cdata <- scalar.convertValue(value).leftMap(LatisException(_))
   } yield cdata
 
-  def getScalar(model: DataType): Either[LatisException, Scalar] = model.findVariable(vname) match {
+  def getScalar(model: DataType): Either[LatisException, Scalar] = model.findVariable(id) match {
     case Some(s: Scalar) => Right(s)
-    case _ => Left(LatisException(s"Selection variable not found: $vname"))
+    case _ => Left(LatisException(s"Selection variable not found: ${id.asString}"))
   }
 
   def predicate(model: DataType): Sample => Boolean = {
@@ -41,7 +41,7 @@ case class Selection(vname: Identifier, operator: String, value: String) extends
     //TODO: support aliases
 
     // Determine the Sample position of the selected variable
-    val pos: SamplePosition = model.getPath(vname) match {
+    val pos: SamplePosition = model.getPath(id) match {
       case Some(p) =>
         p.length match {
           case 1 => p.head
@@ -106,7 +106,7 @@ object Selection {
 
   def makeSelection(expression: String): Either[LatisException, Selection] =
     parsers.selection.parseOnly(expression) match {
-      case ParseResult.Done(_, ast.Selection(vname, op, value)) => Right(Selection(vname, ast.prettyOp(op), value))
-      case _ => Left(LatisException(s"Failed to parse expression $expression")) //TODO: make sure parsers statement works or we'll match this line every time
+      case ParseResult.Done(_, ast.Selection(id, op, value)) => Right(Selection(id, ast.prettyOp(op), value))
+      case _ => Left(LatisException(s"Failed to parse expression $expression"))
     }
 }
