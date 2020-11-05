@@ -50,13 +50,13 @@ object ModelParser {
     scalarWithType | scalarWithoutType
 
   private def scalarWithType: Parser[DataType] = for {
-    id <- variable.token
+    id <- identifier.token
     _  <- string(":").token
     t  <- valueType.token
   } yield Scalar(Metadata(id) + ("type" -> t))
 
   private def scalarWithoutType: Parser[DataType] = for {
-    id <- variable.token
+    id <- identifier.token
   } yield Scalar(Metadata(id) + ("type" -> defaultScalarType))
 
   private def valueType: Parser[String] =

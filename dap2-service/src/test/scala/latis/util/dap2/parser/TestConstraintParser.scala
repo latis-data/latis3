@@ -1,10 +1,12 @@
 package latis.util.dap2.parser
 
-import org.junit._, Assert._
+import org.junit._
+import Assert._
 import org.scalatestplus.junit.JUnitSuite
 
 import latis.ops.parser.ast._
 import ast._
+import latis.util.Identifier.IdentifierStringContext
 
 class TestConstraintParser extends JUnitSuite {
 
@@ -32,7 +34,7 @@ class TestConstraintParser extends JUnitSuite {
     testParse("time>0") { ce =>
       assertEquals(1, ce.exprs.length.toLong)
 
-      val expected = Selection("time", Gt, "0")
+      val expected = Selection(id"time", Gt, "0")
       assertEquals(expected, ce.exprs.head)
     }
 
@@ -41,7 +43,7 @@ class TestConstraintParser extends JUnitSuite {
     testParse("&time>0") { ce =>
       assertEquals(1, ce.exprs.length.toLong)
 
-      val expected = Selection("time", Gt, "0")
+      val expected = Selection(id"time", Gt, "0")
       assertEquals(expected, ce.exprs.head)
     }
 
@@ -50,8 +52,8 @@ class TestConstraintParser extends JUnitSuite {
     testParse("time>0&time<10") { ce =>
       assertEquals(2, ce.exprs.length.toLong)
 
-      val expected0 = Selection("time", Gt, "0")
-      val expected1 = Selection("time", Lt, "10")
+      val expected0 = Selection(id"time", Gt, "0")
+      val expected1 = Selection(id"time", Lt, "10")
       assertEquals(expected0, ce.exprs(0))
       assertEquals(expected1, ce.exprs(1))
     }
@@ -61,7 +63,7 @@ class TestConstraintParser extends JUnitSuite {
     testParse("time") { ce =>
       assertEquals(1, ce.exprs.length.toLong)
 
-      val expected = Projection(List("time"))
+      val expected = Projection(List(id"time"))
       assertEquals(expected, ce.exprs.head)
     }
 
@@ -70,7 +72,7 @@ class TestConstraintParser extends JUnitSuite {
     testParse("time,value") { ce =>
       assertEquals(1, ce.exprs.length.toLong)
 
-      val expected = Projection(List("time", "value"))
+      val expected = Projection(List(id"time", id"value"))
       assertEquals(expected, ce.exprs.head)
     }
 
@@ -99,8 +101,8 @@ class TestConstraintParser extends JUnitSuite {
     testParse("time&time<10&last()") { ce =>
       assertEquals(3, ce.exprs.length.toLong)
 
-      val expected0 = Projection(List("time"))
-      val expected1 = Selection("time", Lt, "10")
+      val expected0 = Projection(List(id"time"))
+      val expected1 = Selection(id"time", Lt, "10")
       val expected2 = Operation("last", List())
       assertEquals(expected0, ce.exprs(0))
       assertEquals(expected1, ce.exprs(1))
@@ -112,9 +114,9 @@ class TestConstraintParser extends JUnitSuite {
     testParse("time&time<10&last") { ce =>
       assertEquals(3, ce.exprs.length.toLong)
 
-      val expected0 = Projection(List("time"))
-      val expected1 = Selection("time", Lt, "10")
-      val expected2 = Projection(List("last"))
+      val expected0 = Projection(List(id"time"))
+      val expected1 = Selection(id"time", Lt, "10")
+      val expected2 = Projection(List(id"last"))
       assertEquals(expected0, ce.exprs(0))
       assertEquals(expected1, ce.exprs(1))
       assertEquals(expected2, ce.exprs(2))

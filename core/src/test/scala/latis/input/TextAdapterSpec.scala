@@ -10,12 +10,14 @@ import latis.dataset.AdaptedDataset
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
+import latis.util.Identifier.IdentifierStringContext
+
 class TextAdapterSpec extends FlatSpec {
 
   "A TextAdapter" should "read text data" in {
     val ds = {
       def uri: URI = resolveUri("data/data.txt").right.get
-      val metadata = Metadata("data")
+      val metadata = Metadata(id"data")
       val model: DataType = Function(
         Scalar(Metadata("id" -> "a", "type" -> "int")),
         Tuple(

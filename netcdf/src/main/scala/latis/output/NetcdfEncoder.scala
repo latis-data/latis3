@@ -73,7 +73,7 @@ class NetcdfEncoder(file: File) extends Encoder[IO, File] {
       val dScalars = domain.getScalars
       val rScalars = range.getScalars
       val scalars  = dScalars ++ rScalars
-      val dimNames = dScalars.map(_.id).mkString(" ")
+      val dimNames = dScalars.map(_.id.fold("")(_.asString)).mkString(" ")
       val acc: Accumulator =
         accumulate(scalarsToAccumulator(scalars, samples.length), scalars, samples)
       val dArrs = domainAccumulatorToNcArray(acc, dScalars)
@@ -82,11 +82,26 @@ class NetcdfEncoder(file: File) extends Encoder[IO, File] {
 
       for {
         // add dimensions
-        _ <- dScalars.zip(shape).traverse { case (s, dim) => addDimension(file, s.id, dim) }
+        _ <- dScalars.zip(shape).traverse { case (s, dim) =>
+          val sId = s.id.fold("")(_.asString)
+          addDimension(file, sId, dim)
+        }
         // add variables
-        dVars <- dScalars.traverse(s => addVariable(file, s.id, scalarToNetcdfDataType(s), s.id))
+        dVars <- dScalars.traverse(s =>
+          addVariable(
+            file,
+            s.id.fold("")(_.asString),
+            scalarToNetcdfDataType(s),
+            s.id.fold("")(_.asString)
+          )
+        )
         rVars <- rScalars.traverse(
-          s => addVariable(file, s.id, scalarToNetcdfDataType(s), dimNames)
+          s => addVariable(
+            file,
+            s.id.fold("")(_.asString),
+            scalarToNetcdfDataType(s),
+            dimNames
+          )
         )
         // add metadata
         _ <- metadata.properties.toList.traverse { case (k, v) => addGlobalAttribute(file, k, v) }

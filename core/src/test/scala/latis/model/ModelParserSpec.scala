@@ -7,6 +7,7 @@ import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
 import latis.metadata.Metadata
+import latis.util.Identifier.IdentifierStringContext
 import latis.util.LatisException
 
 class ModelParserSpec extends FlatSpec {
@@ -16,19 +17,19 @@ class ModelParserSpec extends FlatSpec {
   private val testFunction = testParser(ModelParser.function)(_, _)
 
   "The ModelParser" should "parse a scalar" in {
-    testScalar("b", Scalar(Metadata("b") + ("type" -> "int")))
+    testScalar("b", Scalar(Metadata(id"b") + ("type" -> "int")))
   }
 
   it should "parse a scalar with a type" in {
-    testScalar("a: double", Scalar(Metadata("a") + ("type" -> "double")))
+    testScalar("a: double", Scalar(Metadata(id"a") + ("type" -> "double")))
   }
 
   it should "parse a tuple" in {
     testTuple(
       "(a: double, b: int)",
       Tuple(
-        Scalar(Metadata("a") + ("type" -> "double")),
-        Scalar(Metadata("b") + ("type" -> "int"))
+        Scalar(Metadata(id"a") + ("type" -> "double")),
+        Scalar(Metadata(id"b") + ("type" -> "int"))
       )
     )
   }
@@ -37,9 +38,9 @@ class ModelParserSpec extends FlatSpec {
     testTuple(
       "(a, b, c)",
       Tuple(
-        Scalar(Metadata("a") + ("type" -> "int")),
-        Scalar(Metadata("b") + ("type" -> "int")),
-        Scalar(Metadata("c") + ("type" -> "int"))
+        Scalar(Metadata(id"a") + ("type" -> "int")),
+        Scalar(Metadata(id"b") + ("type" -> "int")),
+        Scalar(Metadata(id"c") + ("type" -> "int"))
       )
     )
   }
@@ -48,8 +49,8 @@ class ModelParserSpec extends FlatSpec {
     testFunction(
       "a: int -> b: double",
       Function(
-        Scalar(Metadata("a") + ("type" -> "int")),
-        Scalar(Metadata("b") + ("type" -> "double"))
+        Scalar(Metadata(id"a") + ("type" -> "int")),
+        Scalar(Metadata(id"b") + ("type" -> "double"))
       )
     )
   }
@@ -59,12 +60,12 @@ class ModelParserSpec extends FlatSpec {
       "(a: string, b: int) -> (c: double, d: double)",
       Function(
         Tuple(
-          Scalar(Metadata("a") + ("type" -> "string")),
-          Scalar(Metadata("b") + ("type" -> "int"))
+          Scalar(Metadata(id"a") + ("type" -> "string")),
+          Scalar(Metadata(id"b") + ("type" -> "int"))
         ),
         Tuple(
-          Scalar(Metadata("c") + ("type" -> "double")),
-          Scalar(Metadata("d") + ("type" -> "double"))
+          Scalar(Metadata(id"c") + ("type" -> "double")),
+          Scalar(Metadata(id"d") + ("type" -> "double"))
         )
       )
     )
@@ -74,10 +75,10 @@ class ModelParserSpec extends FlatSpec {
     testFunction(
       "a: int -> b: double -> c: double",
       Function(
-        Scalar(Metadata("a") + ("type" -> "int")),
+        Scalar(Metadata(id"a") + ("type" -> "int")),
         Function(
-          Scalar(Metadata("b") + ("type" -> "double")),
-          Scalar(Metadata("c") + ("type" -> "double"))
+          Scalar(Metadata(id"b") + ("type" -> "double")),
+          Scalar(Metadata(id"c") + ("type" -> "double"))
         )
       )
     )
@@ -87,10 +88,10 @@ class ModelParserSpec extends FlatSpec {
     testFunction(
       "a: int -> (b: double -> c: double)",
       Function(
-        Scalar(Metadata("a") + ("type" -> "int")),
+        Scalar(Metadata(id"a") + ("type" -> "int")),
         Function(
-          Scalar(Metadata("b") + ("type" -> "double")),
-          Scalar(Metadata("c") + ("type" -> "double"))
+          Scalar(Metadata(id"b") + ("type" -> "double")),
+          Scalar(Metadata(id"c") + ("type" -> "double"))
         )
       )
     )

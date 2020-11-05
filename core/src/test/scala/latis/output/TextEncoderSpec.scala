@@ -1,9 +1,11 @@
 package latis.output
 
-import latis.dataset.Dataset
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import scala.util.Properties.lineSeparator
+
+import latis.dataset.Dataset
+import latis.util.Identifier.IdentifierStringContext
 
 class TextEncoderSpec extends FlatSpec {
 
@@ -11,7 +13,7 @@ class TextEncoderSpec extends FlatSpec {
    * Instance of TextEncoder for testing.
    */
   val enc = new TextEncoder
-  val ds: Dataset = Dataset.fromName("data")
+  val ds: Dataset = Dataset.fromName(id"data")
   val expectedOutput: Seq[String] = List(
     "time -> (b, c, d)",
     "0 -> (1, 1.1, a)",

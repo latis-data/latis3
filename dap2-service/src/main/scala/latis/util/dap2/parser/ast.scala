@@ -20,8 +20,8 @@ object ast {
   def pretty(expr: ConstraintExpression): String = {
 
     expr.exprs.map {
-      case Projection(n)       => n.mkString(",")
-      case Selection(n, op, v) => s"$n${prettyOp(op)}$v"
+      case Projection(n)       => n.map(_.asString).mkString(",")
+      case Selection(n, op, v) => s"${n.asString}${prettyOp(op)}$v"
       case Operation(n, args)  => s"$n(${args.mkString(",")})"
     }.mkString("&")
   }

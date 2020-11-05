@@ -16,6 +16,7 @@ import latis.metadata.Metadata
 import latis.model.DataType
 import latis.model.Function
 import latis.model.Scalar
+import latis.util.Identifier.IdentifierStringContext
 
 final class GranuleListAppendAdapterSpec extends FlatSpec {
 
@@ -60,7 +61,7 @@ final class GranuleListAppendAdapterSpec extends FlatSpec {
 
   // Dataset for first granule
   private val g1: Dataset = {
-    val md: Metadata = Metadata("g1")
+    val md: Metadata = Metadata(id"g1")
 
     val model: DataType = Function(
       Scalar(
@@ -86,7 +87,7 @@ final class GranuleListAppendAdapterSpec extends FlatSpec {
 
   // Dataset for second granule
   private val g2: Dataset = {
-    val md: Metadata = Metadata("g2")
+    val md: Metadata = Metadata(id"g2")
 
     val model: DataType = Function(
       Scalar(
@@ -112,7 +113,7 @@ final class GranuleListAppendAdapterSpec extends FlatSpec {
 
   // Dataset for third granule
   private val g3: Dataset = {
-    val md: Metadata = Metadata("g3")
+    val md: Metadata = Metadata(id"g3")
 
     val model: DataType = Function(
       Scalar(
@@ -138,7 +139,7 @@ final class GranuleListAppendAdapterSpec extends FlatSpec {
 
   // Granule list dataset
   private val granuleList: Dataset = {
-    val md: Metadata = Metadata("granuleList")
+    val md: Metadata = Metadata(id"granuleList")
 
     val model: DataType = Function(
       Scalar(

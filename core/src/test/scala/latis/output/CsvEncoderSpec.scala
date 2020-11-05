@@ -6,6 +6,7 @@ import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
 import latis.dataset.Dataset
+import latis.util.Identifier.IdentifierStringContext
 
 class CsvEncoderSpec extends FlatSpec {
   import CsvEncoderSpec._
@@ -30,5 +31,5 @@ class CsvEncoderSpec extends FlatSpec {
 }
 
 object CsvEncoderSpec {
-  val ds: Dataset = Dataset.fromName("data")
+  val ds: Dataset = Dataset.fromName(id"data")
 }

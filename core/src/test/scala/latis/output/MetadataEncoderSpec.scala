@@ -10,14 +10,15 @@ import latis.dataset.MemoizedDataset
 import latis.metadata.Metadata
 import latis.model.Function
 import latis.model.Scalar
+import latis.util.Identifier.IdentifierStringContext
 
 final class MetadataEncoderSpec extends FlatSpec {
 
   private val dataset: Dataset = {
-    val metadata = Metadata("dataset")
+    val metadata = Metadata(id"dataset")
 
     val model = Function(
-      Metadata("function"),
+      Metadata(id"function"),
       Scalar(Metadata("id" -> "a", "type" -> "int")),
       Scalar(Metadata("id" -> "b", "type" -> "int"))
     )

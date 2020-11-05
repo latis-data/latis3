@@ -4,6 +4,7 @@ import atto.Atto._
 import atto.Parser
 
 import latis.ops.parser.ast._
+import latis.util.Identifier
 
 object parsers {
 
@@ -22,7 +23,7 @@ object parsers {
     selection | operation | projection
 
   def projection: Parser[CExpr] =
-    sepBy1(variable.token, char(',').token).map(xs => Projection(xs.toList))
+    sepBy1(identifier.token, char(',').token).map(xs => Projection(xs.toList))
 
   def selectionOp: Parser[SelectionOp] = choice(
     string("~")   ~> ok(Tilde),
@@ -38,15 +39,15 @@ object parsers {
   )
 
   def selection: Parser[CExpr] = for {
-    name  <- variable.token
+    name  <- identifier.token
     op    <- selectionOp.token
     value <- time | number | stringLit
   } yield Selection(name, op, value)
 
   def operation: Parser[CExpr] = for {
-    name <- identifier
+    name  <- identifier
     argsP <- parens(args)
-  } yield Operation(name, argsP)
+  } yield Operation(name.asString, argsP)
 
   def args: Parser[List[String]] = sepBy(arg.token, char(',').token)
 
@@ -61,12 +62,15 @@ object parsers {
   } yield "(" + l.mkString(",") + ")"
 
   def variable: Parser[String] =
-    sepBy1(identifier, char('.')).map(_.toList.mkString("."))
+    sepBy1(identifier, char('.')).map(ids => ids.map(_.asString).toList.mkString("."))
 
-  def identifier: Parser[String] = for {
+  def identifier: Parser[Identifier] = for {
     init <- letter | char('_')
-    rest <- many(letterOrDigit | char('_'))
-  } yield (init :: rest).mkString
+    rest <- many(letterOrDigit | char('_') | char('.')) //TODO: remove '.' after Identifier refactor
+    name  = (init :: rest).mkString
+    id   <- Identifier.fromString(name)
+      .fold(err[Identifier](s"Invalid identifier: $name"))(ok(_))
+  } yield id
 
   def stringLit: Parser[String] = for {
     lit <- stringLiteral

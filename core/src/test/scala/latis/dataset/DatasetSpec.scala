@@ -8,12 +8,13 @@ import latis.data.Data._
 import latis.metadata.Metadata
 import latis.model._
 import latis.ops.Selection
+import latis.util.Identifier.IdentifierStringContext
 import latis.util.StreamUtils
 
 class DatasetSpec extends FlatSpec {
 
   val dataset = {
-    val metadata = Metadata("test")
+    val metadata = Metadata(id"test")
     
     val model = Function(
       Scalar(Metadata("id" -> "time", "type" -> "long")),
@@ -44,7 +45,7 @@ class DatasetSpec extends FlatSpec {
   }
   
   it should "apply an operation" in {
-    val select = Selection("time", ">", "1")
+    val select = Selection(id"time", ">", "1")
     val ds2 = dataset.withOperation(select)
     StreamUtils.unsafeHead(ds2.samples) match {
       case Sample(DomainData(lv: Data.LongValue), RangeData(dv: Data.DoubleValue)) =>
@@ -54,12 +55,12 @@ class DatasetSpec extends FlatSpec {
   }
 
   it should "read text data given an fdml" in {
-    val textDs: Dataset = Dataset.fromName("data")
+    val textDs: Dataset = Dataset.fromName(id"data")
     textDs shouldBe a [Dataset]
   }
 
   it should "read matrix data given an fdml" in {
-    val matrixDs: Dataset = Dataset.fromName("matrixData")
+    val matrixDs: Dataset = Dataset.fromName(id"matrixData")
     matrixDs shouldBe a [Dataset]
   }
   

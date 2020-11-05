@@ -73,7 +73,8 @@ case class NetcdfAdapter(
       // Assumes all domain variables are 1D and define a Cartesian Product set.
       val domainSet: DomainSet = {
         val dsets: List[DomainSet] = domainSections.map { case (scalar, sec) =>
-          nc.readVariable(scalar.id, sec).map { ncArr =>
+          val scalarId = scalar.id.getOrElse(throw LatisException("Scalar must have an identifier"))
+          nc.readVariable(scalarId, sec).map { ncArr =>
             val ds: IndexedSeq[DomainData] =
               (0 until ncArr.getSize.toInt).map { i =>
                 Data.fromValue(ncArr.getObject(i)).fold(throw _, DomainData(_))
@@ -96,7 +97,8 @@ case class NetcdfAdapter(
         val arrs: List[NcArray] = rangeSections.flatMap {
           case (scalar, section) =>
             //TODO: beware of silent failure if var not found
-            nc.readVariable(scalar.id, section)
+            val scalarId = scalar.id.getOrElse(throw LatisException("Scalar must have an identifier"))
+            nc.readVariable(scalarId, section)
         }
         (0 until arrs.head.getSize.toInt).map { i =>
           RangeData(arrs.map { ncArr =>
@@ -319,7 +321,7 @@ object NetcdfAdapter extends AdapterFactory {
       Right(((selectValue - firstValue) / cadence).toDouble)
 
     /** Gets the zero-indexed position of a domain scalar in a top-level function. */
-    def getScalarPos(id: String): Either[LatisException, Int] =
+    def getScalarPos(id: Identifier): Either[LatisException, Int] =
       model.getPath(id) match {
         case None => Left(LatisException(s"$id not found in model."))
         case Some(List(DomainPosition(n))) => Right(n)
@@ -353,7 +355,7 @@ object NetcdfAdapter extends AdapterFactory {
       firstValue <- getMetadataAsDouble(scalar, "start")
       selectValue <- getBigDecimalValue(scalar, selection.value)
       index <- getIndex(selectValue, firstValue, cadence)
-      pos <- getScalarPos(scalar.id)
+      pos <- getScalarPos(scalar.id.getOrElse(throw LatisException("Scalar must have an identifier")))
       // find the URange to apply the selection to
       oldRange <- getOldRange(sections(pos))
       // apply the selection to get a new URange
@@ -380,18 +382,20 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
    * Defines a Map of LaTiS variable id to the corresponding NetCDF Variable.
    * Note, this will access the file but not read data arrays.
    */
-  private lazy val variableMap: Map[String, NcVariable] = {
-    def getNcVar(id: String): Option[NcVariable] = {
+  private lazy val variableMap: Map[Identifier, NcVariable] = {
+    def getNcVar(id: Identifier): Option[NcVariable] = {
       val validId = makeValidPathName(
         model.findVariable(id)
         .flatMap(_("sourceId"))
-        .getOrElse(id)
+        .getOrElse(id.asString)
       )
       Option(ncDataset.findVariable(validId))
     }
 
     //TODO: fail faster by not making this lazy?
-    val ids = model.getScalars.map(_.id)
+    val ids = model.getScalars.map(_.id.getOrElse {
+      throw LatisException("Scalar must have an identifier")
+    })
     val pairs = ids.flatMap { id =>
       getNcVar(id).map((id, _))
       //Note, domain variables not found will be replaced by index
@@ -402,12 +406,12 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
     pairs.toMap
   }
 
-  private def idToSectionString(id: String): String = variableMap.get(id) match {
+  private def idToSectionString(id: Identifier): String = variableMap.get(id) match {
     case Some(v) => v.getShape.map(n => s"0:${n - 1}").mkString(",")
     case _ => ""
   }
 
-  private def makeSectionFromIdAndString(id: String, sec: String): Section = {
+  private def makeSectionFromIdAndString(id: Identifier, sec: String): Section = {
     val rangeStrings = sec.split(',')
     if (rangeStrings.contains(":")) {
       val secString = idToSectionString(id).split(',').zip(rangeStrings).map {
@@ -427,7 +431,7 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
    * scalars in the model, and the section is then split into a list of sections.
    */
   lazy val sections: List[Section] = {
-    val ids = model.getScalars.map(_.id)
+    val ids = model.getScalars.map(_.id.getOrElse(throw LatisException("Scalar must have an identifier")))
     config.section match {
       case Some(spec) =>
         val sectionsNotNull = ids.zip(spec.split(';')).map {
@@ -468,7 +472,7 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
    * Reads the section of the given variable into a NcArray.
    * This is where the actual IO is done.
    */
-  def readVariable(id: String, section: Section): Option[NcArray] =
+  def readVariable(id: Identifier, section: Section): Option[NcArray] =
     variableMap.get(id).map(_.read(section))
 
   //def close(): Unit = ncDataset.close() //ncStream.compile.drain.unsafeRunSync()

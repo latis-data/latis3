@@ -89,6 +89,7 @@ lazy val latis = project
     `fdml-validator`,
     server,
     `service-interface`,
+    macros,
     netcdf
   )
   .settings(
@@ -97,11 +98,11 @@ lazy val latis = project
   )
 
 lazy val core = project
+  .dependsOn(macros)
   .settings(commonSettings)
   .settings(
     name := "latis3-core",
     libraryDependencies ++= Seq(
-      "org.scala-lang"          % "scala-reflect"       % scalaVersion.value,
       "org.scala-lang.modules" %% "scala-collection-compat" % "2.2.0",
       "org.scala-lang.modules" %% "scala-xml"           % "1.3.0",
       "io.circe"               %% "circe-core"          % "0.13.0",
@@ -110,8 +111,7 @@ lazy val core = project
       "org.http4s"             %% "http4s-blaze-client" % http4sVersion,
       "org.tpolecat"           %% "atto-core"           % attoVersion,
       "junit"                   % "junit"               % junitVersion  % Test
-    ),
-    scalacOptions += "-language:experimental.macros"
+    )
   )
 
 lazy val `fdml-validator` = project
@@ -185,6 +185,16 @@ lazy val `service-interface` = project
       "org.typelevel" %% "cats-effect" % catsEffectVersion
     ),
     crossScalaVersions := scalaVersions
+  )
+
+lazy val macros = project
+  .settings(commonSettings)
+  .settings(
+    name := "latis3-macros",
+    libraryDependencies ++= Seq(
+      "org.scala-lang" % "scala-reflect" % scalaVersion.value
+    ),
+    scalacOptions += "-language:experimental.macros"
   )
 
 lazy val netcdf = project

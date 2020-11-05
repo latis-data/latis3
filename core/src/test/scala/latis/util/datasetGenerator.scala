@@ -137,8 +137,12 @@ object DatasetGenerator {
     new MemoizedDataset(md, model, data)
   }
 
-  def makeDatasetID(): String =
-    "dataset_" + UUID.randomUUID().toString.take(8)
+  def makeDatasetID(): Identifier = {
+    val id = "dataset_" + UUID.randomUUID().toString.take(8)
+    Identifier.fromString(id).getOrElse {
+      throw LatisException(s"Made invalid identifier: $id")
+    }
+  }
 
   //use 1st value of each variable
   def makeModel(ds: Seq[Any], rs: Seq[Any]): DataType =

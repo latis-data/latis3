@@ -8,12 +8,13 @@ import latis.data._
 import latis.model._
 import latis.ops.parser.ast
 import latis.ops.parser.parsers
+import latis.util.Identifier
 import latis.util.LatisException
 
 /**
  * Operation to keep only Samples that meet the given selection criterion.
  */
-case class Selection(vname: String, operator: String, value: String) extends Filter {
+case class Selection(id: Identifier, operator: String, value: String) extends Filter {
   //TODO: use smaller types, enumerate operators?
   //TODO: enable IndexedFunction to use binary search...
   //TODO: support nested functions, all or none?
@@ -30,9 +31,9 @@ case class Selection(vname: String, operator: String, value: String) extends Fil
     cdata <- scalar.convertValue(value).leftMap(LatisException(_))
   } yield cdata
 
-  def getScalar(model: DataType): Either[LatisException, Scalar] = model.findVariable(vname) match {
+  def getScalar(model: DataType): Either[LatisException, Scalar] = model.findVariable(id) match {
     case Some(s: Scalar) => Right(s)
-    case _ => Left(LatisException(s"Selection variable not found: $vname"))
+    case _ => Left(LatisException(s"Selection variable not found: ${id.asString}"))
   }
 
   def predicate(model: DataType): Sample => Boolean = {
@@ -40,7 +41,7 @@ case class Selection(vname: String, operator: String, value: String) extends Fil
     //TODO: support aliases
 
     // Determine the Sample position of the selected variable
-    val pos: SamplePosition = model.getPath(vname) match {
+    val pos: SamplePosition = model.getPath(id) match {
       case Some(p) =>
         p.length match {
           case 1 => p.head
@@ -96,12 +97,16 @@ object Selection {
   def apply(expression: String): Selection = {
     //TODO: beef up expression parsing
     val ss = expression.split("\\s+") //split on whitespace
-    Selection(ss(0), ss(1), ss(2))
+    Selection(
+      Identifier.fromString(ss(0)).getOrElse(throw LatisException(s"'${ss(0)}' is not a valid identifier")),
+      ss(1),
+      ss(2)
+    )
   }
 
   def makeSelection(expression: String): Either[LatisException, Selection] =
     parsers.selection.parseOnly(expression) match {
-      case ParseResult.Done(_, ast.Selection(vname, op, value)) => Right(Selection(vname, ast.prettyOp(op), value))
+      case ParseResult.Done(_, ast.Selection(id, op, value)) => Right(Selection(id, ast.prettyOp(op), value))
       case _ => Left(LatisException(s"Failed to parse expression $expression"))
     }
 }

@@ -2,24 +2,25 @@ package latis.ops
 
 import latis.data._
 import latis.model._
+import latis.util.Identifier
 import latis.util.LatisException
 
 /**
  * Defines an Operation to keep only Samples with a variable
  * that matches one of the given values.
  */
-case class Contains(vname: String, values: String*) extends Filter {
+case class Contains(id: Identifier, values: String*) extends Filter {
   //TODO: support nested functions, aliases,... (See Selection)
 
   def predicate(model: DataType): Sample => Boolean = {
     // Determine the path to the selected variable
-    val path: SamplePosition = model.getPath(vname) match {
+    val path: SamplePosition = model.getPath(id) match {
       case Some(p) => p.head //assume no nested functions for now
       case None => ???    //TODO: invalid path or vname
     }
 
     // Convert values to appropriate type for comparison
-    val cvals: Seq[Datum] = model.findVariable(vname) match {
+    val cvals: Seq[Datum] = model.findVariable(id) match {
       case Some(s: Scalar) => values.map { v =>
         s.convertValue(v).getOrElse {
           val msg = s"Invalid comparison value: $v"

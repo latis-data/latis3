@@ -1,5 +1,7 @@
 package latis.metadata
 
+import latis.util.Identifier
+
 /**
  * Trait to provide direct Metadata access.
  * This trait can be mixed in with any class that provides "metadata".
@@ -21,5 +23,5 @@ trait MetadataLike {
   /**
    * Convenience method to get identifier.
    */
-  def id: String = metadata.getProperty("id", "")
+  def id: Option[Identifier] = Identifier.fromString(metadata.getProperty("id", ""))
 }

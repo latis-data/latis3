@@ -23,6 +23,7 @@ import latis.output._
 import latis.server.ServiceInterface
 import latis.service.dap2.error._
 import latis.util.Identifier
+import latis.util.LatisException
 import latis.util.StreamUtils
 import latis.util.dap2.parser.ConstraintParser
 import latis.util.dap2.parser.ast.ConstraintExpression
@@ -36,7 +37,8 @@ class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
     HttpRoutes.of {
       case req @ GET -> Root / id ~ ext =>
         (for {
-          dataset  <- IO.fromEither(getDataset(id))
+          ident    <- IO.fromOption(Identifier.fromString(id))(ParseFailure(s"'$id' is not a valid identifier"))
+          dataset  <- IO.fromEither(getDataset(ident))
           ops      <- IO.fromEither(getOperations(req.queryString))
           result    = ops.foldLeft(dataset)((ds, op) => ds.withOperation(op))
           response <- Ok(encode(ext, result))
@@ -46,7 +48,7 @@ class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
         }
     }
 
-  private def getDataset(id: String): Either[Dap2Error, Dataset] =
+  private def getDataset(id: Identifier): Either[Dap2Error, Dataset] =
     Either.catchNonFatal {
       DatasetResolver.getDataset(id)
     }.leftMap(_ => DatasetResolutionFailure(s"Failed to resolve dataset: $id"))
@@ -67,7 +69,7 @@ class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
               newName <- Identifier.fromString(newName).toRight(
                 InvalidOperation(s"Invalid variable name $newName")
               )
-            } yield ops.Rename(oldName.asString, newName.asString)
+            } yield ops.Rename(oldName, newName)
           // TODO: Here we may need to dynamically construct an
           // instance of an operation based on the query string and
           // server/interface configuration.

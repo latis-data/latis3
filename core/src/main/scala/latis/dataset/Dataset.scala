@@ -13,6 +13,8 @@ import latis.metadata.MetadataLike
 import latis.model.DataType
 import latis.ops.UnaryOperation
 import latis.util.CacheManager
+import latis.util.Identifier
+import latis.util.LatisException
 
 /**
  * Defines the interface for a LaTiS Dataset.
@@ -77,7 +79,7 @@ trait Dataset extends MetadataLike {
    * This will only show type information and will not impact
    * the Data (e.g. lazy data reading should not be triggered).
    */
-  override def toString: String = s"$id: $model"
+  override def toString: String = s"${id.fold("")(_.asString)}: $model"
 }
 
 object Dataset {
@@ -85,7 +87,7 @@ object Dataset {
   /**
    * Creates a Dataset by using the DatasetResolver ServiceLoader.
    */
-  def fromName(name: String): Dataset = DatasetResolver.getDataset(name)
+  def fromName(id: Identifier): Dataset = DatasetResolver.getDataset(id)
 
   /**
    * Creates a Dataset by using the DatasetReader ServiceLoader.

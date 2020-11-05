@@ -1,17 +1,24 @@
 package latis.output
 
-import latis.data.Data._
 import scodec._
 import scodec.bits._
 import scodec.codecs.implicits._
 import scodec.{Encoder => SEncoder}
-import latis.data.{DomainData, RangeData, Sample}
-import latis.dataset.Dataset
-import latis.metadata.Metadata
-import latis.model.{Scalar, Tuple, Function}
+
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import scodec.bits.BitVector
+
+import latis.data.Data._
+import latis.data.DomainData
+import latis.data.RangeData
+import latis.data.Sample
+import latis.dataset.Dataset
+import latis.metadata.Metadata
+import latis.model.Function
+import latis.model.Scalar
+import latis.model.Tuple
+import latis.util.Identifier.IdentifierStringContext
 
 class BinaryEncoderSpec extends FlatSpec {
 
@@ -19,7 +26,7 @@ class BinaryEncoderSpec extends FlatSpec {
    * Instance of BinaryEncoder for testing.
    */
   val enc = new BinaryEncoder
-  val ds: Dataset = Dataset.fromName("data2")
+  val ds: Dataset = Dataset.fromName(id"data2")
 
   "A Binary encoder" should "encode a dataset to binary" in {
     val encodedList = enc.encode(ds).compile.toList.unsafeRunSync()

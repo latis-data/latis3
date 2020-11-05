@@ -5,6 +5,8 @@ import org.scalacheck.ScalacheckShapeless._
 
 import latis.ops.parser.ast._
 import ast._
+import latis.util.Identifier
+import latis.util.LatisException
 
 object ConstraintParserProps extends Properties("DAP 2 Constraint Parser") {
 
@@ -14,15 +16,19 @@ object ConstraintParserProps extends Properties("DAP 2 Constraint Parser") {
     )
   }
 
-  val identifier: Gen[String] = for {
+  val identifier: Gen[Identifier] = for {
     init <- Gen.oneOf(Gen.alphaChar, Gen.const('_'))
-    rest <- Gen.listOf(Gen.oneOf(Gen.alphaNumChar, Gen.const('_')))
-  } yield init + rest.mkString
+    //TODO: remove const('.') after Identifier refactor
+    rest <- Gen.listOf(Gen.oneOf(Gen.alphaNumChar, Gen.const('_'), Gen.const('.')))
+    id    = init + rest.mkString
+  } yield Identifier.fromString(id).getOrElse {
+    throw LatisException(s"Failed to generate identifier from: $id")
+  }
 
   val variable: Gen[String] = for {
     init <- identifier
-    rest <- Gen.oneOf(Gen.const(""), identifier.map("." + _))
-  } yield init + rest
+    rest <- Gen.oneOf(Gen.const(""), identifier.map("." + _.asString))
+  } yield init.asString + rest
 
   val operator: Gen[SelectionOp] =
     implicitly[Arbitrary[SelectionOp]].arbitrary
@@ -84,10 +90,11 @@ object ConstraintParserProps extends Properties("DAP 2 Constraint Parser") {
     Gen.alphaNumStr.retryUntil(_.length > 0).map("\"" + _ + "\"")
 
   val projection: Gen[CExpr] =
-    Gen.listOf(variable).retryUntil(_.length > 0).map(Projection)
+    //TODO: maybe revert to Gen.listOf(variable) after Identifier refactor
+    Gen.listOf(identifier).retryUntil(_.length > 0).map(Projection)
 
   val selection: Gen[CExpr] = for {
-    n <- variable
+    n <- identifier
     o <- operator
     v <- Gen.oneOf(time, number, stringLit)
   } yield Selection(n, o, v)
@@ -95,7 +102,7 @@ object ConstraintParserProps extends Properties("DAP 2 Constraint Parser") {
   val operation: Gen[CExpr] = for {
     n <- identifier
     a <- Gen.listOf(Gen.oneOf(time, number, stringLit, variable))
-  } yield Operation(n, a)
+  } yield Operation(n.asString, a)
 
   val expr: Gen[CExpr] = Gen.oneOf(projection, selection, operation)
 
