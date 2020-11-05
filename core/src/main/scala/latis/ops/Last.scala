@@ -1,6 +1,7 @@
 package latis.ops
 
 import cats.effect.IO
+import cats.syntax.all._
 import fs2.Pipe
 import fs2.Stream
 
@@ -18,5 +19,5 @@ case class Last() extends StreamOperation {
       }
 
   def applyToModel(model: DataType): Either[LatisException, DataType] =
-    Right(model)
+    model.asRight
 }

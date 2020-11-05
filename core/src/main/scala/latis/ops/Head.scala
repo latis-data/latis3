@@ -1,6 +1,6 @@
 package latis.ops
 import cats.effect.IO
-import cats.implicits._
+import cats.syntax.all._
 import fs2.Pipe
 
 import latis.data.Sample
