@@ -15,3 +15,9 @@ case class TakeRight(n: Int) extends StreamOperation {
     Right(model)
 }
 
+object TakeRight {
+  def fromArgs(args: List[String]): Either[LatisException, TakeRight] = args match {
+    case n :: Nil => n.toIntOption.map(TakeRight(_)).toRight(LatisException(s"Couldn't parse $n to int"))
+    case _ => Left(LatisException("TakeRight requires one argument"))
+  }
+}
