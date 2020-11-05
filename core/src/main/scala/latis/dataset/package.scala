@@ -28,6 +28,7 @@ package object dataset {
     def dropRight(n: Int): Dataset = dataset.withOperation(DropRight(n))
     def head(): Dataset = dataset.withOperation(Head())
     def first(): Dataset = dataset.withOperation(Head())
+    def last(): Dataset = dataset.withOperation(Last())
     def tail(): Dataset = dataset.withOperation(Tail())
     def take(n: Long): Dataset = dataset.withOperation(Take(n))
     def takeRight(n: Int): Dataset = dataset.withOperation(TakeRight(n))
