@@ -24,6 +24,15 @@ package object dataset {
     def rename(id: Identifier, newId: Identifier): Dataset = dataset.withOperation(Rename(id, newId))
     def eval(value: String): Dataset = dataset.withOperation(Evaluation(value))
     def withReader(reader: DatasetReader): Dataset = dataset.withOperation(ReaderOperation(reader))
+    def drop(n: Long): Dataset = dataset.withOperation(Drop(n))
+    def dropLast(): Dataset = dataset.withOperation(DropLast())
+    def dropRight(n: Int): Dataset = dataset.withOperation(DropRight(n))
+    def head(): Dataset = dataset.withOperation(Head())
+    def first(): Dataset = dataset.withOperation(Head())
+    def last(): Dataset = dataset.withOperation(Last())
+    def tail(): Dataset = dataset.withOperation(Tail())
+    def take(n: Long): Dataset = dataset.withOperation(Take(n))
+    def takeRight(n: Int): Dataset = dataset.withOperation(TakeRight(n))
 
     def filter(predicate: Sample => Boolean): Dataset = dataset.withOperation(Filter(predicate))
     //TODO: map, flataMap, mapRange, but need to know how model changes
