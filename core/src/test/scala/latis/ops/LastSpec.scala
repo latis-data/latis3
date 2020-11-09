@@ -12,6 +12,7 @@ import latis.dataset.MemoizedDataset
 import latis.metadata.Metadata
 import latis.model.Scalar
 import latis.util.DatasetGenerator
+import latis.util.Identifier.IdentifierStringContext
 
 class LastSpec extends FlatSpec {
 
@@ -37,8 +38,8 @@ class LastSpec extends FlatSpec {
 
   it should "return an empty dataset when applied to an empty dataset" in {
     val md = new MemoizedDataset(
-      Metadata("MT"),
-      Scalar(Metadata("id") + ("type" -> "int")),
+      Metadata(id"MT"),
+      Scalar(Metadata(id"id") + ("type" -> "int")),
       SampledFunction(Seq.empty),
       Seq(Last())
     )
