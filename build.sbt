@@ -11,9 +11,11 @@ val catsEffectVersion = "2.2.0"
 val coursierVersion   = "2.0.0"
 val fs2Version        = "2.4.4"
 val http4sVersion     = "0.21.8"
-val junitVersion      = "4.13"
 val netcdfVersion     = "5.3.3"
 val pureconfigVersion = "0.14.0"
+val junitVersion      = "4.13"
+val scalatestVersion  = "3.0.8"
+val scalacheckVersion = "1.14.3"
 
 lazy val commonSettings = compilerFlags ++ Seq(
   libraryDependencies ++= Seq(
@@ -21,10 +23,16 @@ lazy val commonSettings = compilerFlags ++ Seq(
     "org.typelevel" %% "cats-effect" % catsEffectVersion,
     "co.fs2"        %% "fs2-core"    % fs2Version,
     "co.fs2"        %% "fs2-io"      % fs2Version,
-    "com.typesafe"   % "config"      % "1.4.0",
-    "org.scalatest" %% "scalatest"   % "3.0.8" % Test
+    "com.typesafe"   % "config"      % "1.4.0"
   ),
   crossScalaVersions := scalaVersions
+)
+
+lazy val testingDependencies = Seq(
+  libraryDependencies ++= Seq(
+    "org.scalatest"  %% "scalatest"   % scalatestVersion  % Test,
+    "junit"           % "junit"       % junitVersion      % Test
+  )
 )
 
 lazy val compilerFlags = Seq(
@@ -109,8 +117,7 @@ lazy val core = project
       "org.scodec"             %% "scodec-core"         % "1.11.7",
       "org.scodec"             %% "scodec-stream"       % "2.0.0",
       "org.http4s"             %% "http4s-blaze-client" % http4sVersion,
-      "org.tpolecat"           %% "atto-core"           % attoVersion,
-      "junit"                   % "junit"               % junitVersion  % Test
+      "org.tpolecat"           %% "atto-core"           % attoVersion
     )
   )
 
@@ -126,15 +133,15 @@ lazy val `dap2-service` = project
   .dependsOn(netcdf)
   .dependsOn(`service-interface`)
   .settings(commonSettings)
+  .settings(testingDependencies)
   .settings(
     name := "dap2-service-interface",
     libraryDependencies ++= Seq(
       "org.http4s"     %% "http4s-core" % http4sVersion % Provided,
       "org.http4s"     %% "http4s-dsl"  % http4sVersion % Provided,
       "org.tpolecat"   %% "atto-core"   % attoVersion,
-      "org.scalacheck" %% "scalacheck"  % "1.14.3" % Test,
-      "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.5" % Test,
-      "junit"           % "junit"       % junitVersion  % Test
+      "org.scalacheck" %% "scalacheck"  % scalacheckVersion % Test,
+      "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.5" % Test
     )
   )
 
@@ -204,11 +211,22 @@ lazy val netcdf = project
     name := "latis3-netcdf",
     libraryDependencies ++= Seq(
       "org.scala-lang.modules" %% "scala-collection-compat" % "2.2.0",
-      "edu.ucar"            % "cdm-core"         % netcdfVersion,
-      "edu.ucar"            % "httpservices"     % netcdfVersion,
-      "edu.ucar"            % "netcdf4"          % netcdfVersion,
+      "edu.ucar"       % "cdm-core"     % netcdfVersion,
+      "edu.ucar"       % "httpservices" % netcdfVersion,
+      "edu.ucar"       % "netcdf4"      % netcdfVersion,
+      "org.scalatest" %% "scalatest"    % scalatestVersion % Test
     ),
     resolvers ++= Seq(
       "Unidata" at "https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases"
     )
   )
+
+lazy val testkit = project
+  .dependsOn(core)
+  .settings(commonSettings)
+  .settings(name := "latis3-testkit")
+
+lazy val tests = project
+  .dependsOn(testkit % Test)
+  .settings(name := "latis3-tests")
+  .settings(testingDependencies)
