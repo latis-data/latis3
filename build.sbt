@@ -199,6 +199,7 @@ lazy val macros = project
 
 lazy val netcdf = project
   .dependsOn(core)
+  .dependsOn(core % "test -> test")
   .settings(commonSettings)
   .settings(
     name := "latis3-netcdf",
