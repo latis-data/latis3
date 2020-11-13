@@ -212,3 +212,13 @@ lazy val netcdf = project
       "Unidata" at "https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases"
     )
   )
+
+lazy val fits = project
+  .dependsOn(core)
+  .settings(commonSettings)
+  .settings(
+    name := "latis3-fits",
+    libraryDependencies ++= Seq(
+      "gov.nasa.gsfc.heasarc" % "nom-tam-fits" % "1.15.2"
+    )
+  )
