@@ -61,7 +61,7 @@ class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
       .flatMap { cexprs: ConstraintExpression =>
         cexprs.exprs.traverse {
           case ast.Projection(vs)      => Right(ops.Projection(vs:_*))
-          case ast.Selection(n, op, v) => Right(ops.Selection(n, ast.prettyOp(op), v))
+          case ast.Selection(n, op, v) => Right(ops.Selection(n, op, v))
           case ast.Operation("rename", oldName :: newName :: Nil) => for {
               oldName <- Identifier.fromString(oldName).toRight(
                 InvalidOperation(s"Invalid variable name $oldName")

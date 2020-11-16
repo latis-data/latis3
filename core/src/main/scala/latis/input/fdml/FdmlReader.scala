@@ -123,7 +123,7 @@ object FdmlReader {
     expression match {
       case ast.Projection(vs) => Right(ops.Projection(vs: _*))
       case ast.Selection(n, op, v) =>
-        Right(ops.Selection(n, ast.prettyOp(op), v))
+        Right(ops.Selection(n, op, v))
       case ast.Operation(name, args) =>
         UnaryOperation.makeOperation(name, args)
     }
