@@ -88,15 +88,8 @@ case class Selection(id: Identifier, operator: ast.SelectionOp, value: String) e
 
 object Selection {
 
-  def apply(expression: String): Selection = {
-    val ss = expression.split("\\s+") //split on whitespace
-    val id = Identifier.fromString(ss(0))
-      .getOrElse(throw LatisException(s"'${ss(0)}' is not a valid identifier"))
-    val op = getSelectionOp(ss(1))
-      .getOrElse(throw LatisException(s"'${ss(1)}' is not a valid operator"))
-
-    Selection(id, op, ss(2))
-  }
+  def apply(expression: String): Selection =
+    fromArgs(expression.split("\\s+").toList).fold(throw _, identity)
 
   def fromArgs(args: List[String]): Either[LatisException, Selection] = args match {
     case expr :: Nil => makeSelection(expr)
