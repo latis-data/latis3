@@ -11,7 +11,9 @@ package object dataset {
    * Defines the DSL for the functional algebra
    */
   implicit class DatasetOps(dataset: Dataset) {
-    def select(exp: String): Dataset = dataset.withOperation(Selection(exp))
+    def select(exp: String): Dataset = dataset.withOperation(
+      Selection.fromArgs(exp.split("\\s+").toList).fold(throw _, identity)
+    )
     def project(exp: String): Dataset = dataset.withOperation(Projection(exp))
     def stride(s: Int, ss: Int*): Dataset = dataset.withOperation(Stride((s +: ss).toIndexedSeq))
     def uncurry(): Dataset = dataset.withOperation(Uncurry())

@@ -88,9 +88,6 @@ case class Selection(id: Identifier, operator: ast.SelectionOp, value: String) e
 
 object Selection {
 
-  def apply(expression: String): Selection =
-    fromArgs(expression.split("\\s+").toList).fold(throw _, identity)
-
   def fromArgs(args: List[String]): Either[LatisException, Selection] = args match {
     case expr :: Nil => makeSelection(expr)
     case i :: o :: v :: Nil => for {
