@@ -115,27 +115,47 @@ class NetcdfAdapterSpec extends FlatSpec {
 
   it should "apply selections on a 2D model" in {
     // simple2dSections = 0:9; 0:4; 0:9, 0:4
-    NetcdfAdapter.applySelection(simple2dSections, simple2dModel, Selection("wavelength == 5.2")) should be(
+    NetcdfAdapter.applySelection(
+      simple2dSections,
+      simple2dModel,
+      Selection.makeSelection("wavelength == 5.2").fold(throw _, identity)
+    ) should be(
       Right(makeSections("0:9; 2:2; 0:9, 2:2"))
     )
   }
 
   it should "apply selections on a model like SDO EVE diodes l3" in {
     // sdoDiodesSections = 0, 0:3760; 0:5; 0, 0:3760, 0:5; 0, 0:3760, 0:5
-    NetcdfAdapter.applySelection(sdoDiodesSections, sdoDiodesModel, Selection("time <= 100")) should be(
+    NetcdfAdapter.applySelection(
+      sdoDiodesSections,
+      sdoDiodesModel,
+      Selection.makeSelection("time <= 100").fold(throw _, identity)
+    ) should be(
       Right(makeSections("0, 0:93; 0:5; 0, 0:93, 0:5; 0, 0:93, 0:5"))
     )
   }
 
   it should "support selections that use formatted time strings" in {
-    NetcdfAdapter.applySelection(timeSections, timeModel, Selection("time > 19710102"))
+    NetcdfAdapter.applySelection(
+      timeSections,
+      timeModel,
+      Selection.makeSelection("time > 19710102").fold(throw _, identity)
+    )
       .flatMap(
-        NetcdfAdapter.applySelection(_, timeModel, Selection("time <= 19710115T123000.000"))
+        NetcdfAdapter.applySelection(
+          _,
+          timeModel,
+          Selection.makeSelection("time <= 19710115T123000.000").fold(throw _, identity)
+        )
       ) should be(Right(makeSections("2:14; 2:14")))
   }
 
   def simpleSelectTest(selection: String, expectedRange: URange): Unit =
-    NetcdfAdapter.applySelection(simple1dSections, simple1dModel, Selection(selection)) should be(
+    NetcdfAdapter.applySelection(
+      simple1dSections,
+      simple1dModel,
+      Selection.makeSelection(selection).fold(throw _, identity)
+    ) should be(
       Right(List.fill(2)(new Section(expectedRange)))
     )
 }

@@ -9,6 +9,7 @@ import latis.metadata.Metadata
 import latis.model._
 import latis.ops.GranuleListJoin
 import latis.ops.Selection
+import latis.ops.parser.ast
 import latis.util.Identifier.IdentifierStringContext
 import latis.util.StreamUtils
 
@@ -57,8 +58,8 @@ class TestGranuleListJoin {
 //    )
     
     val ds = gl.withOperation(glj)
-               .withOperation(Selection(id"a", ">=", "2"))
-               .withOperation(Selection(id"a", "<=", "3"))
+               .withOperation(Selection(id"a", ast.GtEq, "2"))
+               .withOperation(Selection(id"a", ast.LtEq, "3"))
                //.withOperation(Projection("a,b,d"))
     
     //val ds = ops.foldLeft(glj(gl))((ds, op) => op(ds))

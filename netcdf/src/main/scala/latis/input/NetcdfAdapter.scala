@@ -45,8 +45,8 @@ case class NetcdfAdapter(
     case Stride(stride) if stride.length == model.arity => true
     case s@Selection(v, _, _) => model.getVariable(v).exists(
       v => v("cadence").nonEmpty && v("start").nonEmpty) &&
-      (s.getSelectionOp match {
-        case Right(Gt) | Right(Lt) | Right(GtEq) | Right(LtEq) | Right(Eq) | Right(EqEq) => true
+      (s.operator match {
+        case Gt | Lt | GtEq | LtEq | Eq | EqEq => true
         case _ => false
     })
     //TODO: take, drop, ...
@@ -257,38 +257,37 @@ object NetcdfAdapter extends AdapterFactory {
      * like: index == index.toInt.toDouble
      */
     def getNewRange(range: URange, index: Double): Either[LatisException, URange] =
-      selection.getSelectionOp match {
-        case Left(e) => Left(e)
-        case Right(Gt)   =>
+      selection.operator match {
+        case Gt   =>
           val indexCeil = index.ceil.toInt
           val adjustedLow = if (index == indexCeil.toDouble) indexCeil + 1
           else indexCeil
           val lowerRange = max(range.first, adjustedLow)
           if (lowerRange > range.last) Right(URange.EMPTY)
           else Right(new URange(lowerRange, range.last))
-        case Right(Lt)   =>
+        case Lt   =>
           val indexFloor = index.floor.toInt
           val adjustedHigh = if (index == indexFloor.toDouble) indexFloor - 1
           else indexFloor
           val upperRange = min(range.last, adjustedHigh)
           if (range.first > upperRange) Right(URange.EMPTY)
           else Right(new URange(range.first, upperRange))
-        case Right(GtEq) =>
+        case GtEq =>
           val lowerRange = max(index.ceil.toInt, range.first)
           if (lowerRange > range.last) Right(URange.EMPTY)
           else Right(new URange(lowerRange, range.last))
-        case Right(LtEq) =>
+        case LtEq =>
           val upperRange = min(index.floor.toInt, range.last)
           if (range.first > upperRange) Right(URange.EMPTY)
           else Right(new URange(range.first, upperRange))
-        case Right(Eq) | Right(EqEq) =>
+        case Eq | EqEq =>
           val intIndex = index.toInt
           if (index == intIndex.toDouble &&
             intIndex <= range.last &&
             intIndex >= range.first)
             Right(new URange(intIndex, intIndex))
           else Right(URange.EMPTY)
-        case Right(op) => Left(LatisException(s"Unsupported selection operator $op"))
+        case op => Left(LatisException(s"Unsupported selection operator ${prettyOp(op)}"))
       }
 
     /** Gets a scalar's metadata and converts it to a double. */

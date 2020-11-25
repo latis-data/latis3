@@ -14,17 +14,11 @@ import latis.util.LatisException
 /**
  * Operation to keep only Samples that meet the given selection criterion.
  */
-case class Selection(id: Identifier, operator: String, value: String) extends Filter {
+case class Selection(id: Identifier, operator: ast.SelectionOp, value: String) extends Filter {
   //TODO: use smaller types, enumerate operators?
   //TODO: enable IndexedFunction to use binary search...
   //TODO: support nested functions, all or none?
   //TODO: allow value to have units
-
-  def getSelectionOp: Either[LatisException, ast.SelectionOp] =
-    parsers.selectionOp.parseOnly(operator) match {
-    case ParseResult.Done(_, o) => Right(o)
-    case _ => Left(LatisException(s"failed to parse operator $operator"))
-  }
 
   def getValue(model: DataType): Either[LatisException, Datum] = for {
     scalar <- getScalar(model)
@@ -83,30 +77,35 @@ case class Selection(id: Identifier, operator: String, value: String) extends Fi
    * satisfies the selection operation.
    */
   private def matches(comparison: Int): Boolean =
-    if (operator == "!=") {
+    if (operator == ast.NeEq) {
       comparison != 0
     } else {
-      (comparison < 0 && operator.contains("<")) ||
-      (comparison > 0 && operator.contains(">")) ||
-      (comparison == 0 && operator.contains("="))
+      (comparison < 0 && ast.prettyOp(operator).contains("<")) ||
+      (comparison > 0 && ast.prettyOp(operator).contains(">")) ||
+      (comparison == 0 && ast.prettyOp(operator).contains("="))
     }
 }
 
 object Selection {
 
-  def apply(expression: String): Selection = {
-    //TODO: beef up expression parsing
-    val ss = expression.split("\\s+") //split on whitespace
-    Selection(
-      Identifier.fromString(ss(0)).getOrElse(throw LatisException(s"'${ss(0)}' is not a valid identifier")),
-      ss(1),
-      ss(2)
-    )
+  def fromArgs(args: List[String]): Either[LatisException, Selection] = args match {
+    case expr :: Nil => makeSelection(expr)
+    case i :: o :: v :: Nil => for {
+      id <- Identifier.fromString(i).toRight(LatisException(s"'$i' is not a valid identifier"))
+      op <- getSelectionOp(o)
+    } yield Selection(id, op, v)
+    case _ => Left(LatisException("Selection requires either one or three arguments"))
   }
+
+  def getSelectionOp(op: String): Either[LatisException, ast.SelectionOp] =
+    parsers.selectionOp.parseOnly(op) match {
+      case ParseResult.Done(_, o) => Right(o)
+      case _ => Left(LatisException(s"Failed to parse operator $op"))
+    }
 
   def makeSelection(expression: String): Either[LatisException, Selection] =
     parsers.selection.parseOnly(expression) match {
-      case ParseResult.Done(_, ast.Selection(id, op, value)) => Right(Selection(id, ast.prettyOp(op), value))
+      case ParseResult.Done(_, ast.Selection(id, op, value)) => Right(Selection(id, op, value))
       case _ => Left(LatisException(s"Failed to parse expression $expression"))
     }
 }

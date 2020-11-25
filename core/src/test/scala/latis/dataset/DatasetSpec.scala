@@ -8,6 +8,7 @@ import latis.data.Data._
 import latis.metadata.Metadata
 import latis.model._
 import latis.ops.Selection
+import latis.ops.parser.ast
 import latis.util.Identifier.IdentifierStringContext
 import latis.util.StreamUtils
 
@@ -45,7 +46,7 @@ class DatasetSpec extends FlatSpec {
   }
   
   it should "apply an operation" in {
-    val select = Selection(id"time", ">", "1")
+    val select = Selection(id"time", ast.Gt, "1")
     val ds2 = dataset.withOperation(select)
     StreamUtils.unsafeHead(ds2.samples) match {
       case Sample(DomainData(lv: Data.LongValue), RangeData(dv: Data.DoubleValue)) =>
