@@ -168,7 +168,7 @@ lazy val server = project
       "io.chrisdavenport"     %% "log4cats-slf4j"         % "1.1.1",
       "ch.qos.logback"         % "logback-classic"        % "1.2.3" % Runtime
     ),
-    // Required to suppress spurious warnings with 2.13.3
+    // Required to suppress spurious warnings with 2.13
     scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
       case Some((2, 13)) => Seq("-Xlint:-byname-implicit")
       case _             => Nil
