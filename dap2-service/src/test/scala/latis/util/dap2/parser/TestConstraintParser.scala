@@ -39,6 +39,33 @@ class TestConstraintParser extends JUnitSuite {
     }
 
   @Test
+  def selection_full_time(): Unit =
+    testParse("time>=2000-01-01T00:00:00.000Z") { ce =>
+      assertEquals(1, ce.exprs.length.toLong)
+
+      val expected = Selection(id"time", GtEq, "2000-01-01T00:00:00.000Z")
+      assertEquals(expected, ce.exprs.head)
+    }
+
+  @Test
+  def selection_partial_time(): Unit =
+    testParse("time>=2000-01-01T00:00:00") { ce =>
+      assertEquals(1, ce.exprs.length.toLong)
+
+      val expected = Selection(id"time", GtEq, "2000-01-01T00:00:00")
+      assertEquals(expected, ce.exprs.head)
+    }
+
+  @Test
+  def selection_short_time(): Unit =
+    testParse("time<2000-01-01") { ce =>
+      assertEquals(1, ce.exprs.length.toLong)
+
+      val expected = Selection(id"time", Lt, "2000-01-01")
+      assertEquals(expected, ce.exprs.head)
+    }
+
+  @Test
   def selection_leading_and(): Unit =
     testParse("&time>0") { ce =>
       assertEquals(1, ce.exprs.length.toLong)
