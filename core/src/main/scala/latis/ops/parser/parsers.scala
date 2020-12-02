@@ -41,7 +41,7 @@ object parsers {
   def selection: Parser[CExpr] = for {
     name  <- identifier.token
     op    <- selectionOp.token
-    value <- stringLit //TODO: value gets parsed in Selection.getValue; reconsider parsing time or number here too again
+    value <- takeText
   } yield Selection(name, op, value)
 
   def operation: Parser[CExpr] = for {
