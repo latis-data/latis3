@@ -49,10 +49,10 @@ class TestConstraintParser extends JUnitSuite {
 
   @Test
   def selection_partial_time(): Unit =
-    testParse("time>=2000-01-01T00:00:00") { ce =>
+    testParse("time>=2000-01-01T00:00") { ce =>
       assertEquals(1, ce.exprs.length.toLong)
 
-      val expected = Selection(id"time", GtEq, "2000-01-01T00:00:00")
+      val expected = Selection(id"time", GtEq, "2000-01-01T00:00")
       assertEquals(expected, ce.exprs.head)
     }
 
