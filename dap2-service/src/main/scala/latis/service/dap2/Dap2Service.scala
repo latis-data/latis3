@@ -96,6 +96,7 @@ class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
         bytes   <- io.file.readAll[IO](file.toPath(), StreamUtils.blocker, 4096)
       } yield bytes
     case "txt"  => new TextEncoder().encode(ds).through(text.utf8Encode)
+    case "meta" => new MetadataEncoder().encode(ds).map(_.noSpaces).through(text.utf8Encode)
     case _      => Stream.raiseError[IO](UnknownExtension(s"Unknown extension: $ext"))
   }
 
