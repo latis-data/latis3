@@ -231,8 +231,22 @@ class Scalar(val metadata: Metadata) extends DataType {
 
   /**
    * Returns a string representation of the given Datum.
+   * This should be used to get a string representation of a Datum
+   * instead of Datum.asString so properties of the Scalar, such as
+   * precision, can be applied to an otherwise agnostic data value.
    */
-  def formatValue(data: Datum): String = data.asString
+  def formatValue(data: Datum): String = {
+    //TODO: disallow construction of non-real Scalar with precision metadata
+    //TODO: validate construction with precision as int >= 0
+    metadata.getProperty("precision").map { p =>
+      data match {
+        case Real(d) => (s"%.${p}f").format(d)
+        case _ => data.asString
+      }
+    }.getOrElse {
+      data.asString
+    }
+  }
 
   /**
    * Converts a string value into the appropriate type and units
