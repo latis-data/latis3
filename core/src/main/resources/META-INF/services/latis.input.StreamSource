@@ -1,2 +1,3 @@
 latis.input.FileStreamSource
 latis.input.HttpStreamSource
+latis.input.FtpStreamSource
