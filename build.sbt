@@ -110,6 +110,7 @@ lazy val core = project
       "org.scodec"             %% "scodec-stream"       % "2.0.0",
       "org.http4s"             %% "http4s-blaze-client" % http4sVersion,
       "org.tpolecat"           %% "atto-core"           % attoVersion,
+      "com.github.regis-leray" %% "fs2-ftp"             % "0.7.0",
       "junit"                   % "junit"               % junitVersion  % Test
     )
   )
