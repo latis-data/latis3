@@ -108,6 +108,14 @@ class NetcdfAdapterSpec extends FlatSpec {
     simpleSelectTest("time == 0", URange.EMPTY)
   }
 
+  it should "support ~ selections" in {
+    simpleSelectTest("time ~ 8", new URange(1, 1))
+    simpleSelectTest("time ~ 8.4", new URange(1, 1))
+    simpleSelectTest("time ~ 8.7", new URange(2, 2))
+    simpleSelectTest("time ~ 0", new URange(0, 0))
+    simpleSelectTest("time ~ 9001", new URange(9, 9))
+  }
+
   it should "apply selections on a 1D model" in {
     // simple1dSections = 0:9; 0:9
     simpleSelectTest("time > 10", new URange(4, 9))

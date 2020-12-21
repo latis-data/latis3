@@ -46,7 +46,7 @@ case class NetcdfAdapter(
     case s@Selection(v, _, _) => model.getVariable(v).exists(
       v => v("cadence").nonEmpty && v("start").nonEmpty) &&
       (s.operator match {
-        case Gt | Lt | GtEq | LtEq | Eq | EqEq => true
+        case Gt | Lt | GtEq | LtEq | Eq | EqEq | Tilde => true
         case _ => false
     })
     //TODO: take, drop, ...
@@ -287,6 +287,14 @@ object NetcdfAdapter extends AdapterFactory {
             intIndex >= range.first)
             Right(new URange(intIndex, intIndex))
           else Right(URange.EMPTY)
+        case Tilde =>
+          val nearestIndex = if (index.round.toInt < range.first)
+            range.first
+          else if (index.round.toInt > range.last)
+            range.last
+          else index.round.toInt
+          Right(new URange(nearestIndex, nearestIndex))
+        // If support for an operation is added here, it must also be added to `canHandleOperation`
         case op => Left(LatisException(s"Unsupported selection operator ${prettyOp(op)}"))
       }
 
