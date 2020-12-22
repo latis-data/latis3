@@ -349,8 +349,10 @@ object NetcdfAdapter extends AdapterFactory {
     ): Either[LatisException, Section] = {
       val ranges = sec.getRanges.asScala.toList
       ranges.zipWithIndex.find { case (r, _) => r == oldRange} match {
+        //TODO: relying on matching oldRange by eq seems risky.
+          //also used to match URange in nD range Section
         case Some((_, n)) =>
-          val newRanges = ranges.take(n) ++ List(newRange) ++ ranges.drop(n + 1)
+          val newRanges = ranges.take(n) ++ List(newRange) ++ ranges.drop(n + 1) //TODO: use updated?
           Right(new Section(newRanges: _*))
         case _ => Left(LatisException("Could not find viable range to apply selection."))
       }
