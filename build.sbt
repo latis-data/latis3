@@ -6,12 +6,12 @@ ThisBuild / organization := "io.latis-data"
 ThisBuild / scalaVersion := scala213
 
 val attoVersion       = "0.8.0"
-val catsEffectVersion = "2.3.0"
 val coursierVersion   = "2.0.7"
 val fs2Version        = "2.4.6"
 val http4sVersion     = "0.21.13"
 val junitVersion      = "4.13"
 val catsVersion       = "2.3.1"
+val catsEffectVersion = "2.3.1"
 val netcdfVersion     = "5.3.3"
 val pureconfigVersion = "0.14.0"
 
