@@ -21,7 +21,7 @@ lazy val commonSettings = compilerFlags ++ Seq(
     "org.typelevel" %% "cats-effect" % catsEffectVersion,
     "co.fs2"        %% "fs2-core"    % fs2Version,
     "co.fs2"        %% "fs2-io"      % fs2Version,
-    "com.typesafe"   % "config"      % "1.4.0",
+    "com.typesafe"   % "config"      % "1.4.1",
     "org.scalatest" %% "scalatest"   % "3.0.8" % Test
   ),
   crossScalaVersions := scalaVersions
