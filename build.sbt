@@ -5,7 +5,7 @@ val scalaVersions = Seq(scala212, scala213)
 ThisBuild / organization := "io.latis-data"
 ThisBuild / scalaVersion := scala213
 
-val attoVersion       = "0.8.0"
+val attoVersion       = "0.9.0"
 val catsVersion       = "2.3.1"
 val catsEffectVersion = "2.3.1"
 val coursierVersion   = "2.0.8"
