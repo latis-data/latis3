@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<dataset id="DbAdapterTest"
+         title="Oasis Events"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="http://latis-data.io/schemas/1.0/fdml.xsd">
+
+  <source uri="jdbc:oracle:thin:@cprs-db.lasp.colorado.edu:1521/cprsprod"/>
+
+  <adapter class="latis.input.DatabaseAdapter"
+           table="CPRS_MISC.OASISEVENTS e, CPRS_MISC.OASISEVENTFILES f"
+           predicate="e.oasisFileId = f.oasisFileId"/>
+
+  <function>
+    <scalar id="time"
+            sourceId="timeGps"
+            units="TAI microseconds since 1980-01-06"
+            type="long"
+            class="latis.time.Time"/>
+    <tuple>
+      <scalar id="type"
+              type="string"/>
+      <scalar id="message"
+              type="string"/>
+      <scalar id="filename"
+              type="string"/>
+    </tuple>
+  </function>
+
+</dataset>

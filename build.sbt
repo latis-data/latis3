@@ -111,6 +111,11 @@ lazy val core = project
       "org.scodec"             %% "scodec-stream"       % "2.0.0",
       "org.http4s"             %% "http4s-blaze-client" % http4sVersion,
       "org.tpolecat"           %% "atto-core"           % attoVersion,
+      "org.tpolecat"           %% "doobie-core"         % "0.9.0",
+      "org.tpolecat"           %% "doobie-quill"        % "0.9.0",          // Support for Quill 3.5.1
+      "org.tpolecat"           %% "doobie-specs2"       % "0.9.0" % "test", // Specs2 support for typechecking statements.
+      "org.tpolecat"           %% "doobie-scalatest"    % "0.9.0" % "test",  // ScalaTest support for typechecking statements.
+      "com.oracle.database.jdbc" % "ojdbc8"              % "19.9.0.0",
       "com.github.regis-leray" %% "fs2-ftp"             % "0.7.0",
       "junit"                   % "junit"               % junitVersion  % Test
     )
