@@ -188,3 +188,15 @@ lazy val netcdf = project
       "Unidata" at "https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases"
     )
   )
+
+lazy val jdbc = project
+  .dependsOn(core)
+  .dependsOn(core % "test -> test")
+  .settings(commonSettings)
+  .settings(
+    name := "latis3-netcdf",
+    libraryDependencies ++= Seq(
+      "org.tpolecat"             %% "doobie-core" % "0.9.0",
+      "com.h2database"            % "h2"          % "1.4.200" % Test,
+    )
+  )
