@@ -12,12 +12,12 @@ import latis.data.DomainData
 import latis.dataset.Dataset
 import latis.util.Identifier.IdentifierStringContext
 
-class JsonEncoderSpec extends FlatSpec {
+class JsonLinesEncoderSpec extends FlatSpec {
 
   /**
    * Instance of TextEncoder for testing.
    */
-  val enc = new JsonEncoder
+  val enc = new JsonLinesEncoder
   val ds: Dataset = Dataset.fromName(id"data")
 
   "A JSON encoder" should "encode a dataset to JSON" in {

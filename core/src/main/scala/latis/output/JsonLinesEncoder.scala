@@ -8,7 +8,7 @@ import io.circe.syntax._
 import latis.dataset._
 import latis.ops.Uncurry
 
-class JsonEncoder extends Encoder[IO, Json] {
+class JsonLinesEncoder extends Encoder[IO, Json] {
 
   /**
    * Encodes the Stream of Samples from the given Dataset as a Stream
