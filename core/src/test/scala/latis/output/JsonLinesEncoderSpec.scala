@@ -20,7 +20,7 @@ class JsonLinesEncoderSpec extends FlatSpec {
   val enc = new JsonLinesEncoder
   val ds: Dataset = Dataset.fromName(id"data")
 
-  "A JSON encoder" should "encode a dataset to JSON" in {
+  "A JSON Lines encoder" should "encode a dataset to JSON Lines" in {
     val encodedList = enc.encode(ds).compile.toList.unsafeRunSync()
 
     val expected = List(
@@ -32,7 +32,7 @@ class JsonLinesEncoderSpec extends FlatSpec {
     encodedList should be(expected)
   }
 
-  "A JSON encoder" should "encode a Sample to JSON" in {
+  "A JSON Lines encoder" should "encode a Sample to JSON Lines" in {
     val sample = Sample(DomainData(0), RangeData(1, 1.1, "a")).asJson
     val expected = Json.arr(0.asJson, 1.asJson, 1.1.asJson, "a".asJson)
 
