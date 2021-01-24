@@ -18,8 +18,8 @@ class FileUtilsSpec extends FlatSpec {
   }
   
   it should "find a file in a jar in the classpath" in {
-    val path = Paths.get("org/scalatest/FlatSpec.class")
-    FileUtils.resolvePath(path).get.toString should be ("/org/scalatest/FlatSpec.class")
+    val path = Paths.get("org/scalatest/flatspec/AnyFlatSpec.class")
+    FileUtils.resolvePath(path).get.toString should be ("/org/scalatest/flatspec/AnyFlatSpec.class")
   }
   
   // Test reuse of the ZipFileSystem
