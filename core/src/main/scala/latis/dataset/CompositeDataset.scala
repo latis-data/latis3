@@ -13,6 +13,9 @@ import latis.ops.BinaryOperation
 import latis.ops.UnaryOperation
 import latis.util.LatisException
 
+/**
+ * Defines a Dataset with data provided via a list of Datasets.
+ */
 class CompositeDataset(
   _metadata: Metadata,
   _model: DataType,
