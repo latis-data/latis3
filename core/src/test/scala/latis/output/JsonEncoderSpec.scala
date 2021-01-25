@@ -12,15 +12,15 @@ import latis.data.DomainData
 import latis.dataset.Dataset
 import latis.util.Identifier.IdentifierStringContext
 
-class JsonLinesEncoderSpec extends FlatSpec {
+class JsonEncoderSpec extends FlatSpec {
 
   /**
    * Instance of TextEncoder for testing.
    */
-  val enc = new JsonLinesEncoder
+  val enc = new JsonEncoder
   val ds: Dataset = Dataset.fromName(id"data")
 
-  "A JSON Lines encoder" should "encode a dataset to JSON Lines" in {
+  "A JSON encoder" should "encode a dataset to JSON" in {
     val encodedList = enc.encode(ds).compile.toList.unsafeRunSync()
 
     val expected = List(
@@ -32,7 +32,7 @@ class JsonLinesEncoderSpec extends FlatSpec {
     encodedList should be(expected)
   }
 
-  "A JSON Lines encoder" should "encode a Sample to JSON Lines" in {
+  "A JSON encoder" should "encode a Sample to JSON" in {
     val sample = Sample(DomainData(0), RangeData(1, 1.1, "a")).asJson
     val expected = Json.arr(0.asJson, 1.asJson, 1.1.asJson, "a".asJson)
 
