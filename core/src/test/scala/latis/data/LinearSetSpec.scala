@@ -1,9 +1,9 @@
 package latis.data
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
-class LinearSetSpec extends FlatSpec {
+class LinearSetSpec extends AnyFlatSpec {
 
   val set1D = LinearSet1D(0.0, 1.0, 10)
 

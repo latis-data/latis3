@@ -5,8 +5,8 @@ import scodec.bits._
 import scodec.codecs.implicits._
 import scodec.{Encoder => SEncoder}
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 import scodec.bits.BitVector
 
 import latis.data.Data._
@@ -20,7 +20,7 @@ import latis.model.Scalar
 import latis.model.Tuple
 import latis.util.Identifier.IdentifierStringContext
 
-class BinaryEncoderSpec extends FlatSpec {
+class BinaryEncoderSpec extends AnyFlatSpec {
 
   /**
    * Instance of BinaryEncoder for testing.

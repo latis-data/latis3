@@ -3,8 +3,8 @@ package latis.output
 import io.circe._
 import io.circe.syntax._
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
 import latis.data.Sample
 import latis.data.RangeData
@@ -12,7 +12,7 @@ import latis.data.DomainData
 import latis.dataset.Dataset
 import latis.util.Identifier.IdentifierStringContext
 
-class JsonEncoderSpec extends FlatSpec {
+class JsonEncoderSpec extends AnyFlatSpec {
 
   /**
    * Instance of TextEncoder for testing.

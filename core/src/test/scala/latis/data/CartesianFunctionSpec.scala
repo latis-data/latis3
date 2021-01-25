@@ -2,11 +2,11 @@ package latis.data
 
 import Data._
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
 
-class CartesianFunctionSpec extends FlatSpec {
+class CartesianFunctionSpec extends AnyFlatSpec {
 
   "A CartesianFunction" should "evaluate" in {
     val xs: IndexedSeq[Datum] = Vector(1.1, 2.2, 3.3).map(DoubleValue)

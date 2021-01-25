@@ -1,14 +1,14 @@
 package latis.input
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
 import latis.data._
 import latis.metadata.Metadata
 import latis.model._
 import latis.util.Identifier.IdentifierStringContext
 
-class RegexAdapterSpec extends FlatSpec {
+class RegexAdapterSpec extends AnyFlatSpec {
 
   private val model = Function(
     Tuple(

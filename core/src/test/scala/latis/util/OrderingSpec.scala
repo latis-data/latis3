@@ -2,8 +2,8 @@ package latis.util
 
 import scala.collection.mutable
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
 import latis.data._
 import latis.metadata.Metadata
@@ -12,7 +12,7 @@ import latis.model.Scalar
 import latis.model.Tuple
 import latis.time.Time
 
-class OrderingSpec extends FlatSpec {
+class OrderingSpec extends AnyFlatSpec {
 
   val model = Function(
     Tuple(

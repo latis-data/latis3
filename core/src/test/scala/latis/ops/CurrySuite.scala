@@ -1,8 +1,8 @@
 package latis.ops
 
-import org.scalatest.FunSuite
 import org.scalatest.Inside._
-import org.scalatest.Matchers._
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers._
 
 import latis.data._
 import latis.dataset.Dataset
@@ -10,7 +10,7 @@ import latis.dataset.MemoizedDataset
 import latis.model._
 import latis.util.DatasetGenerator
 
-class CurrySuite extends FunSuite {
+class CurrySuite extends AnyFunSuite {
 
   test("Curry a 2D dataset") {
     val curriedDs = mock2d.withOperation(Curry()).unsafeForce()

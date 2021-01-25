@@ -1,13 +1,13 @@
 package latis.output
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 import scala.util.Properties.lineSeparator
 
 import latis.dataset.Dataset
 import latis.util.Identifier.IdentifierStringContext
 
-class TextEncoderSpec extends FlatSpec {
+class TextEncoderSpec extends AnyFlatSpec {
 
   /**
    * Instance of TextEncoder for testing.

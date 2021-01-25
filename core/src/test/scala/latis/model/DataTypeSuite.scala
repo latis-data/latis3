@@ -3,11 +3,11 @@ package latis.model
 import latis.data.DomainPosition
 import latis.data.RangePosition
 import latis.metadata.Metadata
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import latis.util.Identifier.IdentifierStringContext
 
-class GetPathSuite extends FunSuite {
+class GetPathSuite extends AnyFunSuite {
   test("getPath to Tuple in domain") {
     val func = {
       val d = Tuple(Metadata(id"tup"),
@@ -115,7 +115,7 @@ class GetPathSuite extends FunSuite {
   }
 }
 
-class TupleFlattenSuite extends FunSuite {
+class TupleFlattenSuite extends AnyFunSuite {
   test("Flattening doubly nested tuple where all tuples have IDs") {
     val nestedTuple = Tuple(Metadata(id"tup1"),
       Scalar(Metadata(id"a") + ("type" -> "int")),

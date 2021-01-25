@@ -1,10 +1,10 @@
 package latis.util
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 import java.nio.file.Paths
 
-class FileUtilsSpec extends FlatSpec {
+class FileUtilsSpec extends AnyFlatSpec {
   
   /* 
    * This is designed to find the file in the local file system, 

@@ -1,7 +1,7 @@
 package latis.model
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
 import latis.data.Data._
 import latis.metadata.Metadata
@@ -11,7 +11,7 @@ import latis.metadata.Metadata
  * which rounds the string representation of real data to
  * the given number of decimal places.
  */
-class PrecisionSpec extends FlatSpec {
+class PrecisionSpec extends AnyFlatSpec {
   //TODO: enforce and test that only double, float, and BigDecimal
   //      types can have a precision property.
 

@@ -4,8 +4,8 @@ import java.io.File
 import java.nio.DoubleBuffer
 import java.nio.IntBuffer
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 import ucar.ma2.{DataType => NcDataType}
 import ucar.nc2.NetcdfFile
 
@@ -15,7 +15,7 @@ import latis.metadata.Metadata
 import latis.model._
 import latis.util.Identifier.IdentifierStringContext
 
-class NetcdfEncoderSpec extends FlatSpec {
+class NetcdfEncoderSpec extends AnyFlatSpec {
   import NetcdfEncoderSpec._
 
   "A NetCDF encoder" should "encode a 1-D dataset with a single range variable to NetCDF" in {

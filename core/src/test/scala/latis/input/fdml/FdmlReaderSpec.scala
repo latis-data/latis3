@@ -2,15 +2,15 @@ package latis.input.fdml
 
 import java.net.URI
 
-import org.scalatest.FlatSpec
 import org.scalatest.Inside._
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
 import latis.data._
 import latis.model._
 import latis.util.StreamUtils
 
-class FdmlReaderSpec extends FlatSpec {
+class FdmlReaderSpec extends AnyFlatSpec {
 
   "An FDML Reader" should "create a dataset from FDML" in {
     val ds = FdmlReader.read(new URI("datasets/data.fdml"), true)

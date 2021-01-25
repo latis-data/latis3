@@ -1,9 +1,9 @@
 package latis.input.fdml
 
 import org.scalatest.EitherValues._
-import org.scalatest.FlatSpec
 import org.scalatest.Inside._
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
 import latis.model.DoubleValueType
 import latis.model.IntValueType
@@ -15,7 +15,7 @@ import latis.util.NetUtils
 
 // FDML files live in core/src/test/resources/fdml-parser.
 
-final class FdmlParserSpec extends FlatSpec {
+final class FdmlParserSpec extends AnyFlatSpec {
 
   "An FDML parser" should "parse a valid FDML file" in
     withFdmlFile("fdml-parser/valid.fdml") { fdml =>

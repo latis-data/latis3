@@ -1,7 +1,7 @@
 package latis.dataset
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
 import latis.data._
 import latis.data.Data._
@@ -12,7 +12,7 @@ import latis.ops.parser.ast
 import latis.util.Identifier.IdentifierStringContext
 import latis.util.StreamUtils
 
-class DatasetSpec extends FlatSpec {
+class DatasetSpec extends AnyFlatSpec {
 
   val dataset = {
     val metadata = Metadata(id"test")

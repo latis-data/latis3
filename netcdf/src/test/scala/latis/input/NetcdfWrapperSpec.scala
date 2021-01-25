@@ -2,8 +2,8 @@ package latis.input
 
 import java.io.File
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 import ucar.ma2.Section
 import ucar.nc2.dataset.NetcdfDataset
 
@@ -11,7 +11,7 @@ import latis.dataset.MemoizedDataset
 import latis.output.NetcdfEncoder
 import latis.util.DatasetGenerator
 
-class NetcdfWrapperSpec extends FlatSpec {
+class NetcdfWrapperSpec extends AnyFlatSpec {
 
   private val mock2d: MemoizedDataset =
     DatasetGenerator("(a, b) -> (c, d)")

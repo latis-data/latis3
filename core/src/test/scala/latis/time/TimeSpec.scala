@@ -1,12 +1,12 @@
 package latis.time
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
 import latis.data.Data
 import latis.metadata.Metadata
 
-class TimeSpec extends FlatSpec {
+class TimeSpec extends AnyFlatSpec {
   
   val formattedTime: Time = Time(
     Metadata(

@@ -2,13 +2,13 @@ package latis.ops
 
 import latis.data._
 import latis.metadata.Metadata
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 import latis.model._
 import latis.time.Time
 
 
-class SelectionSpec extends FlatSpec {
+class SelectionSpec extends AnyFlatSpec {
 
   "A time selection" should "filter formatted times" in {
     val model = Function(

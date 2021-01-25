@@ -10,8 +10,8 @@ import java.nio.file.attribute.BasicFileAttributes
 
 import org.scalactic.Equality
 import org.scalatest.EitherValues._
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
 import latis.data._
 import latis.metadata.Metadata
@@ -20,7 +20,7 @@ import latis.util.LatisException
 import latis.util.StreamUtils
 import FileListAdapter.Config
 
-class FileListAdapterSpec extends FlatSpec {
+class FileListAdapterSpec extends AnyFlatSpec {
 
   "A file list adapter" should "list files in a flat directory" in withFlatDir { root =>
     val adapter = {

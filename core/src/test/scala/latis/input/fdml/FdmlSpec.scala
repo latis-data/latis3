@@ -1,12 +1,12 @@
 package latis.input.fdml
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
 import latis.model.DoubleValueType
 import latis.util.Identifier.IdentifierStringContext
 
-class FdmlSpec extends FlatSpec {
+class FdmlSpec extends AnyFlatSpec {
 
   "An FAdapter" should "create a valid AdapterConfig" in {
     val config = SingleAdapter("class", Map("key" -> "value")).config.properties

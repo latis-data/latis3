@@ -1,7 +1,7 @@
 package latis.input
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 import ucar.ma2.Section
 import ucar.ma2.{Range => URange}
 
@@ -9,7 +9,7 @@ import latis.metadata.Metadata
 import latis.model._
 import latis.ops.Selection
 
-class NetcdfAdapterSpec extends FlatSpec {
+class NetcdfAdapterSpec extends AnyFlatSpec {
 
   private val simple1dModel = Function(
     Scalar(Metadata("id" -> "time", "type" -> "int", "cadence" -> "1", "start" -> "7")),

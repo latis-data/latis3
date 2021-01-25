@@ -11,12 +11,12 @@ import latis.data.{DomainData, RangeData, Sample}
 import latis.dataset.AdaptedDataset
 import latis.input
 import latis.util.NetUtils.resolveUri
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
 import latis.util.Identifier.IdentifierStringContext
 
-class MatrixTextAdapterSpec extends FlatSpec {
+class MatrixTextAdapterSpec extends AnyFlatSpec {
 
   val ds = {
     val metadata = Metadata(id"matrixData")

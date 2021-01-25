@@ -3,10 +3,10 @@ package latis.ops.parser
 import atto.Atto._
 import atto.ParseResult
 import atto.Parser
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
-class ParsersSpec extends FlatSpec {
+class ParsersSpec extends AnyFlatSpec {
 
   "parsers.operation" should "parse expressions to operations" in {
     val testOperation = testParser(parsers.operation)(_, _)

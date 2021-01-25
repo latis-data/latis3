@@ -2,13 +2,13 @@ package latis.output
 
 import scala.util.Properties.lineSeparator
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
 import latis.dataset.Dataset
 import latis.util.Identifier.IdentifierStringContext
 
-class CsvEncoderSpec extends FlatSpec {
+class CsvEncoderSpec extends AnyFlatSpec {
   import CsvEncoderSpec._
 
   "A CSV encoder" should "encode a dataset to CSV" in {

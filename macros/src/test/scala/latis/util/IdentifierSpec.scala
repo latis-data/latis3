@@ -1,11 +1,11 @@
 package latis.util
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
 import latis.util.Identifier._
 
-class IdentifierSpec extends FlatSpec {
+class IdentifierSpec extends AnyFlatSpec {
 
   "A valid Identifier" should "compile" in {
     id"myString"

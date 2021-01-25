@@ -1,13 +1,13 @@
 package latis.ops
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
 import latis.metadata.Metadata
 import latis.model._
 import latis.util.Identifier.IdentifierStringContext
 
-class RenameSpec extends FlatSpec {
+class RenameSpec extends AnyFlatSpec {
 
   "The Rename Operation" should "reconstruct the model with a single variable's name changed" in {
     val model = Function(

@@ -3,12 +3,12 @@ package latis.util
 import java.net.URI
 
 import cats.syntax.all._
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
 import latis.util.NetUtils._
 
-class NetUtilsSpec extends FlatSpec {
+class NetUtilsSpec extends AnyFlatSpec {
 
   private val uri1 = new URI("http://user:password@host:123/URI")
   private val uri2 = new URI("http://user:password@host:port/URI")

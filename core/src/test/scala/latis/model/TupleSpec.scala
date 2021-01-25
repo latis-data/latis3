@@ -1,12 +1,12 @@
 package latis.model
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
 import latis.metadata.Metadata
 import latis.util.Identifier.IdentifierStringContext
 
-class TupleSpec extends FlatSpec {
+class TupleSpec extends AnyFlatSpec {
 
   "A nested tuple" should "flatten into a non-nested tuple" in {
     val nestedTuple = Tuple(

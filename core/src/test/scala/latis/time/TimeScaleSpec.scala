@@ -1,10 +1,10 @@
 package latis.time
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 import latis.units.UnitConverter
 
-class TimeScaleSpec extends FlatSpec {
+class TimeScaleSpec extends AnyFlatSpec {
   
   val timeScaleFromFormat = TimeScale("yyyy-MM-dd")
   

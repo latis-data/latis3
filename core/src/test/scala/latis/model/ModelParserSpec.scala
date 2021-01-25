@@ -3,14 +3,15 @@ package latis.model
 import atto.Atto._
 import atto._
 import org.scalactic.Equality
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
 import latis.metadata.Metadata
 import latis.util.Identifier.IdentifierStringContext
 import latis.util.LatisException
 
-class ModelParserSpec extends FlatSpec {
+
+class ModelParserSpec extends AnyFlatSpec {
 
   private val testScalar   = testParser(ModelParser.scalar)(_, _)
   private val testTuple    = testParser(ModelParser.tuple)(_, _)

@@ -1,12 +1,12 @@
 package latis.ops
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
 import latis.data._
 import latis.util.DatasetGenerator
 
-class EvaluationSpec extends FlatSpec {
+class EvaluationSpec extends AnyFlatSpec {
 
   "Evaluation" should "evaluate a 1D dataset" in {
     DatasetGenerator.generate1DDataset(

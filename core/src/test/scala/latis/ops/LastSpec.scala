@@ -1,7 +1,7 @@
 package latis.ops
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
 import latis.data.DomainData
 import latis.data.RangeData
@@ -14,7 +14,7 @@ import latis.model.Scalar
 import latis.util.DatasetGenerator
 import latis.util.Identifier.IdentifierStringContext
 
-class LastSpec extends FlatSpec {
+class LastSpec extends AnyFlatSpec {
 
   "The Last Operation" should "return the last sample of a simple dataset" in {
     val ds: Dataset = DatasetGenerator("a -> b")

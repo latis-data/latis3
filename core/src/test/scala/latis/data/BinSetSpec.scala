@@ -1,9 +1,9 @@
 package latis.data
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
-class BinSetSpec extends FlatSpec {
+class BinSetSpec extends AnyFlatSpec {
 
   //Note, bin center semantics
   val set1D = BinSet1D(0.0, 1.0, 10)

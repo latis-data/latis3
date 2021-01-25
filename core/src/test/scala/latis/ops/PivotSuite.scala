@@ -1,15 +1,15 @@
 package latis.ops
 
-import org.scalatest.FunSuite
 import org.scalatest.Inside._
-import org.scalatest.Matchers._
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers._
 
 import latis.data._
 import latis.dataset.Dataset
 import latis.model._
 import latis.util.DatasetGenerator
 
-class PivotSuite extends FunSuite {
+class PivotSuite extends AnyFunSuite {
 
   test("Pivot a dataset with nested functions") {
     val expectedFirstSample = Sample(DomainData(1), RangeData(1.1, 0.1, 1.2, 0.2))

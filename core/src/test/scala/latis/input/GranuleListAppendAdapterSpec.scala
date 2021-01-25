@@ -2,8 +2,8 @@ package latis.input
 
 import java.net.URI
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
 import latis.data.Data.IntValue
 import latis.data.Data.StringValue
@@ -18,7 +18,7 @@ import latis.model.Function
 import latis.model.Scalar
 import latis.util.Identifier.IdentifierStringContext
 
-final class GranuleListAppendAdapterSpec extends FlatSpec {
+final class GranuleListAppendAdapterSpec extends AnyFlatSpec {
 
   "A granule list append adapter" should
     "create a dataset from appended granules" in {

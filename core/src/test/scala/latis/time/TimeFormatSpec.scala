@@ -1,9 +1,9 @@
 package latis.time
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
-class TimeFormatSpec extends FlatSpec {
+class TimeFormatSpec extends AnyFlatSpec {
   
   "TimeFormat" should "parse an ISO string" in {
     TimeFormat.parseIso("1970-001T00:00:01") should be (Right(1000))

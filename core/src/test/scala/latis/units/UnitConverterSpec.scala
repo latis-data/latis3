@@ -1,10 +1,10 @@
 package latis.units
 
 import latis.time.TimeScale
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
-class UnitConverterSpec extends FlatSpec {
+class UnitConverterSpec extends AnyFlatSpec {
 
   "A UnitConverter" should "convert time units" in {
     val ts1 = TimeScale.Default

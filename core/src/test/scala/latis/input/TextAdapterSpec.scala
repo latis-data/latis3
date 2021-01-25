@@ -7,12 +7,12 @@ import java.net.URI
 
 import latis.data.{DomainData, RangeData, Sample}
 import latis.dataset.AdaptedDataset
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
 import latis.util.Identifier.IdentifierStringContext
 
-class TextAdapterSpec extends FlatSpec {
+class TextAdapterSpec extends AnyFlatSpec {
 
   "A TextAdapter" should "read text data" in {
     val ds = {

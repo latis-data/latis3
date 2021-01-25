@@ -1,9 +1,9 @@
 package latis.data
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
-class DataSpec extends FlatSpec {
+class DataSpec extends AnyFlatSpec {
 
   "Identical Data" should "be equivalent" in {
     val d1: Data = 1.1

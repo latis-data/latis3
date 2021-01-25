@@ -1,13 +1,13 @@
 package latis.util
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
 import latis.data.Data._
 import latis.data._
 import latis.model._
 
-class DatasetGeneratorSpec extends FlatSpec {
+class DatasetGeneratorSpec extends AnyFlatSpec {
 
   "A DatasetGenerator" should "make a 1D dataset" in {
     val xs = Seq(1,2,3)

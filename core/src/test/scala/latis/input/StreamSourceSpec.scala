@@ -3,11 +3,11 @@ package latis.input
 import java.io.FileNotFoundException
 import java.net.URI
 
-import org.scalatest.FlatSpec
+import org.scalatest.flatspec.AnyFlatSpec
 
 import latis.util.LatisException
 
-class StreamSourceSpec extends FlatSpec {
+class StreamSourceSpec extends AnyFlatSpec {
 
   "A StreamSource" should "delay throwing an exception for file not found" in {
     val s = StreamSource.getStream(new URI("file:///not/found"))

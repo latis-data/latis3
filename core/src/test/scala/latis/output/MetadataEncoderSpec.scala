@@ -1,8 +1,8 @@
 package latis.output
 
 import io.circe.Json
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
 import latis.data.SampledFunction
 import latis.dataset.Dataset
@@ -12,7 +12,7 @@ import latis.model.Function
 import latis.model.Scalar
 import latis.util.Identifier.IdentifierStringContext
 
-final class MetadataEncoderSpec extends FlatSpec {
+final class MetadataEncoderSpec extends AnyFlatSpec {
 
   private val dataset: Dataset = {
     val metadata = Metadata(id"dataset")

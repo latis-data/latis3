@@ -3,10 +3,10 @@ package latis.util
 import java.net.URI
 
 import org.scalatest.EitherValues._
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
-class FdmlUtilsSpec extends FlatSpec {
+class FdmlUtilsSpec extends AnyFlatSpec {
 
   "FdmlUtils.getSchemaLocation" should "get the schema URI" in {
     val uri = FdmlUtils.getSchemaLocation(
