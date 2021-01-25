@@ -13,7 +13,7 @@ import fs2.Stream
 import ucar.ma2.Section
 import ucar.ma2.{Array => NcArray}
 import ucar.ma2.{Range => URange}
-import ucar.nc2.NetcdfFiles.makeValidPathName
+import ucar.nc2.util.EscapeStrings.backslashEscape
 import ucar.nc2.dataset.NetcdfDataset
 import ucar.nc2.{Variable => NcVariable}
 
@@ -390,6 +390,10 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
    * Note, this will access the file but not read data arrays.
    */
   private lazy val variableMap: Map[Identifier, NcVariable] = {
+    /** Escape special characters in a netcdf short name when it is intended for use in a fullname. */
+    def makeValidPathName(name: String): String =
+        backslashEscape(name, ".\\")
+
     def getNcVar(id: Identifier): Option[NcVariable] = {
       val validId = makeValidPathName(
         model.findVariable(id)
