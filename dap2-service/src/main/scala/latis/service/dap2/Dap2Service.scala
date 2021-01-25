@@ -84,7 +84,7 @@ class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
       bits => Stream.emits(bits.toByteArray)
     }
     case "csv"  => CsvEncoder.withColumnName.encode(ds).through(text.utf8Encode)
-    case "json" => new JsonEncoder().encode(ds).map(_.noSpaces).through(text.utf8Encode)
+    case "jsonl" => new JsonEncoder().encode(ds).map(_.noSpaces).intersperse("\n").through(text.utf8Encode)
     case "nc"   =>
       implicit val cs = StreamUtils.contextShift
       for {
