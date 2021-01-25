@@ -12,7 +12,7 @@ val coursierVersion   = "2.0.9"
 val fs2Version        = "2.5.0"
 val http4sVersion     = "0.21.16"
 val junitVersion      = "4.13.1"
-val netcdfVersion     = "5.3.3"
+val netcdfVersion     = "5.4.1"
 val pureconfigVersion = "0.14.0"
 
 lazy val commonSettings = compilerFlags ++ Seq(
