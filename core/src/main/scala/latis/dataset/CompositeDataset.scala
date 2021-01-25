@@ -5,34 +5,41 @@ import cats.effect.IO
 import cats.syntax.all._
 import fs2.Stream
 
+import latis.data.Data
 import latis.data.Sample
+import latis.data.SampledFunction
 import latis.data.StreamFunction
 import latis.metadata.Metadata
 import latis.model.DataType
+import latis.ops.Append
 import latis.ops.BinaryOperation
 import latis.ops.UnaryOperation
 import latis.util.LatisException
 
 /**
- * Defines a Dataset with data provided via a list of Datasets.
+ * Defines a Dataset with data provided via a list of Datasets to be appended.
  */
 class CompositeDataset(
   _metadata: Metadata,
-  _model: DataType,
   datasets: NonEmptyList[Dataset],
-  joinOperation: BinaryOperation,
   operations: Seq[UnaryOperation] = Seq.empty
-) extends AbstractDataset(
-  _metadata,
-  _model,
-  operations
-) {
+) extends Dataset {
+
+  val joinOperation: BinaryOperation = Append()
+
+  // TODO: implement metadata appending
+  override def metadata: Metadata = _metadata
+
+  override def model: DataType = (for {
+    model <- compositeModel
+    opsModel <- operations.foldM(model)((mod, op) => op.applyToModel(mod))
+  } yield opsModel).fold(throw _, identity)
 
   /**
    * Returns a lazy fs2.Stream of Samples.
    */
   def samples: fs2.Stream[IO, Sample] =
-    tap().fold(Stream.raiseError[IO](_), _.samples)
+    applyOperations().fold(Stream.raiseError[IO](_), _.samples)
 
   /**
    * Returns a new Dataset with the given Operation *logically*
@@ -41,42 +48,41 @@ class CompositeDataset(
   def withOperation(op: UnaryOperation): Dataset =
     new CompositeDataset(
       _metadata,
-      _model,
       datasets,
-      joinOperation,
       operations :+ op
     )
+
+  /**
+   * Applies the Operations to generate the new Data.
+   */
+  private def applyOperations(): Either[LatisException, Data] = for {
+      model <- compositeModel
+      data <- compositeData
+      newData <- operations.foldM((model, data)) { case ((mod1, dat1), op) =>
+        (op.applyToModel(mod1), op.applyToData(dat1, mod1)).mapN((_, _))
+      }.map(_._2)
+    } yield newData
 
   /**
    * Causes the data source to be read and released
    * and existing Operations to be applied.
    */
-  def unsafeForce(): MemoizedDataset = tap().fold(throw _, identity).unsafeForce()
+  def unsafeForce(): MemoizedDataset = new MemoizedDataset(
+    metadata,  //from super with ops applied
+    model,     //from super with ops applied
+    applyOperations().fold(throw _, identity).asInstanceOf[SampledFunction].unsafeForce
+  )
 
-  /**
-   * Invokes the joinOperation to return data as a SampledFunction.
-   * Note that this could still be lazy, wrapping a unreleased
-   * resource.
-   * Contrast to "unsafeForce".
-   */
-  def tap(): Either[LatisException, TappedDataset] =
-    // TODO: add provenance
-    // TODO: handle metadata
+  lazy val compositeData: Either[LatisException, Data] =
     datasets.tail.foldM {
-      val ds = datasets.head
-      new TappedDataset(_metadata, ds.model, StreamFunction(ds.samples), operations)
-    } { (ds1, ds2) =>
-      // join the data
-      val data = joinOperation.applyToData(
-        StreamFunction(ds1.samples),
-        StreamFunction(ds2.samples)
-      )
-      // join the models
-      val model = joinOperation.applyToModel(
-        ds1.model,
-        ds2.model
-      )
-      // make a tapped dataset
-      (data, model).mapN((d, m) => new TappedDataset(_metadata, m, d, operations))
+      StreamFunction(datasets.head.samples): Data
+    } { (data, ds) =>
+      joinOperation.applyToData(data, StreamFunction(ds.samples))
     }
+
+  lazy val compositeModel: Either[LatisException, DataType] =
+    datasets.tail.foldM(datasets.head.model){ (model, ds) =>
+      joinOperation.applyToModel(model, ds.model)
+    }
+
 }
