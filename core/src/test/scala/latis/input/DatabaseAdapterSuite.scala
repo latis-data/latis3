@@ -2,12 +2,13 @@ package latis.input
 
 import java.net.URI
 
-import org.scalatest.funsuite.AnyFunSuite
-import org.scalatest.matchers.should.Matchers
+import org.scalatest.FunSuite
+import org.scalatest.Matchers
 import org.scalactic.Equality
 
 import latis.data.Data.DoubleValue
 import latis.data.Data.FloatValue
+import latis.data.Data.LongValue
 import latis.data.DomainData
 import latis.data.RangeData
 import latis.data.Sample
@@ -15,11 +16,11 @@ import latis.dataset.Dataset
 import latis.input.fdml.FdmlReader
 
 class DatabaseAdapterSuite extends BaseDatasetSuite {
-  lazy val fdmlFile = "src/test/resources/DbAdapterTest.fdml"
+  lazy val fdmlFile = "/Users/ryhe6408/LATIS/latis3/core/src/test/resources/DbAdapterTest.fdml"
   lazy val expectedFirstSample: Sample =
     Sample(
-      DomainData(9999999L),
-      RangeData("expected_message", "expected_filename")
+      DomainData(LongValue(1260140318000000L)),
+      RangeData("DI", "Recording messages", "f19_dec_11_22_58_20.event_messages")
     )
 }
 
@@ -43,14 +44,14 @@ trait SampleEquality extends Equality[Sample] {
   }
 }
 
-abstract class BaseDatasetSuite extends AnyFunSuite with Matchers {
+abstract class BaseDatasetSuite extends FunSuite with Matchers {
   def fdmlFile: String
   def expectedFirstSample: Sample
   implicit def sampleEq: SampleEquality = new SampleEquality {}
 
   test(s"First sample from ${fdmlFile} should match the expected first sample") {
     val uri: URI = new URI(fdmlFile)
-    val ds: Dataset = FdmlReader.read(uri, validate = true)
+    val ds: Dataset = FdmlReader.read(uri, validate = false)
     val actualFirstSample = ds.samples.take(1).compile.last.unsafeRunSync().getOrElse {
       fail("Empty Dataset")
     }

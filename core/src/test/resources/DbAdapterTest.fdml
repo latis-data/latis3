@@ -14,7 +14,7 @@
   <function>
     <scalar id="time"
             sourceId="timeGps"
-            units="TAI microseconds since 1980-01-06"
+            units="microseconds since 1980-01-06"
             type="long"
             class="latis.time.Time"/>
     <tuple>
