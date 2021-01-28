@@ -8,9 +8,9 @@ import latis.data.Data._
 import latis.metadata.Metadata
 import latis.model._
 import latis.ops.Selection
-import latis.ops.parser.ast
 import latis.util.Identifier.IdentifierStringContext
 import latis.util.StreamUtils
+import latis.util.dap2.parser.ast
 
 class DatasetSpec extends AnyFlatSpec {
 

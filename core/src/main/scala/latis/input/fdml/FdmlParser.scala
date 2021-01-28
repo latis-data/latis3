@@ -12,12 +12,12 @@ import cats.syntax.all._
 
 import latis.metadata.Metadata
 import latis.model.ValueType
-import latis.ops.parser.ast.CExpr
-import latis.ops.parser.parsers.subexpression
 import latis.util.FdmlUtils
 import latis.util.Identifier
 import latis.util.LatisException
 import latis.util.NetUtils
+import latis.util.dap2.parser.ast.CExpr
+import latis.util.dap2.parser.parsers.subexpression
 
 /** Provides methods for parsing things as FDML. */
 object FdmlParser {

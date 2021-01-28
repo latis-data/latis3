@@ -5,9 +5,9 @@ import cats.syntax.all._
 
 import latis.data._
 import latis.model._
-import latis.ops.parser.parsers.scalarArg
 import latis.util.Identifier
 import latis.util.LatisException
+import latis.util.dap2.parser.parsers.scalarArg
 
 /**
  * Pivot the samples of a nested Function such that each outer sample becomes

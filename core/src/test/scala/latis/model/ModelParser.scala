@@ -5,8 +5,8 @@ import atto._
 import cats.syntax.all._
 
 import latis.metadata.Metadata
-import latis.ops.parser.parsers.identifier
 import latis.util.LatisException
+import latis.util.dap2.parser.parsers.identifier
 
 /**
  * Defines a parser that turns a functional data model expression

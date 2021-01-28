@@ -13,9 +13,9 @@ import latis.metadata.Metadata
 import latis.model._
 import latis.ops
 import latis.ops.UnaryOperation
-import latis.ops.parser.ast
 import latis.util.LatisException
 import latis.util.ReflectionUtils
+import latis.util.dap2.parser.ast
 
 /** Provides methods for creating datasets from FDML. */
 object FdmlReader {

@@ -5,8 +5,8 @@ import java.net.URI
 import latis.input.AdapterConfig
 import latis.metadata.Metadata
 import latis.model.ValueType
-import latis.ops.parser.ast.CExpr
 import latis.util.Identifier
+import latis.util.dap2.parser.ast.CExpr
 
 /** Abstract representation of an FDML file. */
 sealed trait Fdml

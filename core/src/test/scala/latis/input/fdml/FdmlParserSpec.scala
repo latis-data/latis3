@@ -8,10 +8,10 @@ import org.scalatest.matchers.should.Matchers._
 import latis.model.DoubleValueType
 import latis.model.IntValueType
 import latis.model.StringValueType
-import latis.ops.parser.ast
 import latis.util.Identifier.IdentifierStringContext
 import latis.util.LatisException
 import latis.util.NetUtils
+import latis.util.dap2.parser.ast
 
 // FDML files live in core/src/test/resources/fdml-parser.
 

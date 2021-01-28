@@ -4,9 +4,9 @@ import org.junit._
 import Assert._
 import org.scalatestplus.junit.JUnitSuite
 
-import latis.ops.parser.ast._
-import ast._
 import latis.util.Identifier.IdentifierStringContext
+
+import ast._
 
 class TestConstraintParser extends JUnitSuite {
 

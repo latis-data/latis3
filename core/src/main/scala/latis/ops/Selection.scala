@@ -6,10 +6,10 @@ import cats.syntax.all._
 
 import latis.data._
 import latis.model._
-import latis.ops.parser.ast
-import latis.ops.parser.parsers
 import latis.util.Identifier
 import latis.util.LatisException
+import latis.util.dap2.parser.ast
+import latis.util.dap2.parser.parsers
 
 /**
  * Operation to keep only Samples that meet the given selection criterion.

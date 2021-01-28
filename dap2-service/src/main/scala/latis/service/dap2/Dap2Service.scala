@@ -18,7 +18,6 @@ import latis.dataset.Dataset
 import latis.input.DatasetResolver
 import latis.ops
 import latis.ops.UnaryOperation
-import latis.ops.parser.ast
 import latis.output._
 import latis.server.ServiceInterface
 import latis.service.dap2.error._
@@ -26,6 +25,7 @@ import latis.util.Identifier
 import latis.util.LatisException
 import latis.util.StreamUtils
 import latis.util.dap2.parser.ConstraintParser
+import latis.util.dap2.parser.ast
 import latis.util.dap2.parser.ast.ConstraintExpression
 
 /**

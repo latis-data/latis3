@@ -66,6 +66,7 @@ lazy val dockerSettings = Seq(
 //=== Sub-projects ============================================================
 
 lazy val core = project
+  .dependsOn(`dap2-parser`)
   .dependsOn(macros)
   .settings(commonSettings)
   .settings(
@@ -76,7 +77,6 @@ lazy val core = project
       "org.scodec"             %% "scodec-core"         % "1.11.7",
       "org.scodec"             %% "scodec-stream"       % "2.0.0",
       "org.http4s"             %% "http4s-blaze-client" % http4sVersion,
-      "org.tpolecat"           %% "atto-core"           % attoVersion,
       "com.github.regis-leray" %% "fs2-ftp"             % "0.7.0",
       "junit"                   % "junit"               % junitVersion  % Test
     )
@@ -89,8 +89,22 @@ lazy val `fdml-validator` = project
     name := "fdml-validator"
   )
 
+lazy val `dap2-parser` = project
+  .dependsOn(macros)
+  .settings(commonSettings)
+  .settings(
+    name := "dap2-parser",
+    libraryDependencies ++= Seq(
+      "org.tpolecat"   %% "atto-core"  % attoVersion,
+      "org.scalacheck" %% "scalacheck" % "1.14.3" % Test,
+      "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.5" % Test,
+      "junit"           % "junit"      % junitVersion % Test
+    )
+  )
+
 lazy val `dap2-service` = project
   .dependsOn(core)
+  .dependsOn(`dap2-parser`)
   .dependsOn(netcdf)
   .dependsOn(`service-interface`)
   .settings(commonSettings)
@@ -98,11 +112,7 @@ lazy val `dap2-service` = project
     name := "dap2-service-interface",
     libraryDependencies ++= Seq(
       "org.http4s"     %% "http4s-core" % http4sVersion % Provided,
-      "org.http4s"     %% "http4s-dsl"  % http4sVersion % Provided,
-      "org.tpolecat"   %% "atto-core"   % attoVersion,
-      "org.scalacheck" %% "scalacheck"  % "1.14.3" % Test,
-      "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.5" % Test,
-      "junit"           % "junit"       % junitVersion  % Test
+      "org.http4s"     %% "http4s-dsl"  % http4sVersion % Provided
     )
   )
 

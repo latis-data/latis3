@@ -1,4 +1,4 @@
-package latis.ops.parser
+package latis.util.dap2.parser
 
 import atto.Atto._
 import atto.ParseResult

@@ -22,7 +22,7 @@ import latis.model._
 import latis.ops.Operation
 import latis.ops.Selection
 import latis.ops.Stride
-import latis.ops.parser.ast._
+import latis.util.dap2.parser.ast._
 import latis.util._
 
 /**
