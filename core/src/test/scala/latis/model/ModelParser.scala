@@ -21,6 +21,9 @@ object ModelParser {
       LatisException(msg)
     }
 
+  def unsafeParse(exp: String): DataType =
+    ModelParser.parse(exp).fold(throw _, identity)
+
   def apply(exp: String): Either[LatisException, DataType] =
     ModelParser.parse(exp)
 
