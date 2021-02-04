@@ -1,9 +1,5 @@
-val scala212 = "2.12.12"
-val scala213 = "2.13.4"
-val scalaVersions = Seq(scala212, scala213)
-
 ThisBuild / organization := "io.latis-data"
-ThisBuild / scalaVersion := scala213
+ThisBuild / scalaVersion := "2.13.4"
 
 val attoVersion       = "0.9.1"
 val catsVersion       = "2.3.1"
@@ -24,8 +20,7 @@ lazy val commonSettings = compilerFlags ++ Seq(
     "com.typesafe"   % "config"      % "1.4.1",
     "org.scalatest" %% "scalatest"   % "3.2.3" % Test,
     "org.scalatestplus" %% "junit-4-13" % "3.2.3.0" % Test
-  ),
-  crossScalaVersions := scalaVersions
+  )
 )
 
 lazy val compilerFlags = Seq(
@@ -34,26 +29,14 @@ lazy val compilerFlags = Seq(
     "-encoding", "utf-8",
     "-feature",
     "-language:higherKinds"
-  ) ++ (CrossVersion.partialVersion(scalaVersion.value) match {
-    case Some((2, 12)) => Seq("-Ypartial-unification")
-    case _             => Nil
-  }),
+  ),
   Compile / compile / scalacOptions ++= Seq(
     "-unchecked",
-    "-Xlint"
-  ) ++ (CrossVersion.partialVersion(scalaVersion.value) match {
-    case Some((2, 12)) => Seq(
-      "-Ywarn-dead-code",
-      "-Ywarn-numeric-widen",
-      "-Ywarn-value-discard"
-    )
-    case Some((2, 13)) => Seq(
-      "-Wdead-code",
-      "-Wnumeric-widen",
-      "-Wvalue-discard"
-    )
-    case _             => Nil
-  })
+    "-Xlint",
+    "-Wdead-code",
+    "-Wnumeric-widen",
+    "-Wvalue-discard"
+  )
 )
 
 lazy val dockerSettings = Seq(
@@ -82,29 +65,12 @@ lazy val dockerSettings = Seq(
 
 //=== Sub-projects ============================================================
 
-lazy val latis = project
-  .in(file("."))
-  .aggregate(
-    core,
-    `dap2-service`,
-    `fdml-validator`,
-    server,
-    `service-interface`,
-    macros,
-    netcdf
-  )
-  .settings(
-    crossScalaVersions := Nil,
-    publish / skip := true
-  )
-
 lazy val core = project
   .dependsOn(macros)
   .settings(commonSettings)
   .settings(
     name := "latis3-core",
     libraryDependencies ++= Seq(
-      "org.scala-lang.modules" %% "scala-collection-compat" % "2.3.2",
       "org.scala-lang.modules" %% "scala-xml"           % "1.3.0",
       "io.circe"               %% "circe-core"          % "0.13.0",
       "org.scodec"             %% "scodec-core"         % "1.11.7",
@@ -170,11 +136,10 @@ lazy val server = project
       "io.chrisdavenport"     %% "log4cats-slf4j"         % "1.1.1",
       "ch.qos.logback"         % "logback-classic"        % "1.2.3" % Runtime
     ),
-    // Required to suppress spurious warnings with 2.13
-    scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
-      case Some((2, 13)) => Seq("-Xlint:-byname-implicit")
-      case _             => Nil
-    })
+    scalacOptions ++= Seq(
+      // Required to suppress spurious warnings with 2.13
+      "-Xlint:-byname-implicit"
+    )
   )
 
 lazy val `service-interface` = project
@@ -185,8 +150,7 @@ lazy val `service-interface` = project
       "org.http4s"    %% "http4s-core" % http4sVersion,
       "org.typelevel" %% "cats-core"   % catsVersion,
       "org.typelevel" %% "cats-effect" % catsEffectVersion
-    ),
-    crossScalaVersions := scalaVersions
+    )
   )
 
 lazy val macros = project
@@ -206,7 +170,6 @@ lazy val netcdf = project
   .settings(
     name := "latis3-netcdf",
     libraryDependencies ++= Seq(
-      "org.scala-lang.modules" %% "scala-collection-compat" % "2.3.2",
       "edu.ucar"            % "cdm-core"         % netcdfVersion,
       "edu.ucar"            % "httpservices"     % netcdfVersion,
       "edu.ucar"            % "netcdf4"          % netcdfVersion,
