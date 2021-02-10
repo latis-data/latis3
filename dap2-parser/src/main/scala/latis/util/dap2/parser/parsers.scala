@@ -20,8 +20,7 @@ object parsers {
    * succeed.
    */
 
-  def subexpression: Parser[CExpr] =
-    selection | operation | projection
+  def subexpression: Parser[CExpr] = selection | operation
 
   def projection: Parser[CExpr] =
     sepBy1(identifier.token, char(',').token).map(xs => Projection(xs.toList))

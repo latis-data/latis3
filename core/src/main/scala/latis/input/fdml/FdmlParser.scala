@@ -17,6 +17,7 @@ import latis.util.Identifier
 import latis.util.LatisException
 import latis.util.NetUtils
 import latis.util.dap2.parser.ast.CExpr
+import latis.util.dap2.parser.parsers.projection
 import latis.util.dap2.parser.parsers.subexpression
 
 /** Provides methods for parsing things as FDML. */
@@ -217,7 +218,7 @@ object FdmlParser {
   private def parseExpression(
     expression: String
   ): Either[LatisException, CExpr] =
-    subexpression.parseOnly(expression) match {
+    (subexpression | projection).parseOnly(expression) match {
       case ParseResult.Done(_, e) => Right(e)
       case _                      => Left(LatisException(s"Failed to parse expression $expression"))
     }

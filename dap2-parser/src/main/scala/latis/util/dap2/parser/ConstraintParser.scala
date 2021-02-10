@@ -20,16 +20,18 @@ object ConstraintParser {
    *
    * @param expr non-URL-encoded DAP 2 constraint expression
    */
-  def parse(expr: String): Either[String, ast.ConstraintExpression] = {
-    def p(sexpr: String): Either[String, CExpr] =
-      (phrase(subexpression) | err(s"Invalid subexpression: $sexpr"))
-        .parseOnly(sexpr).either
-
-    if (expr.nonEmpty) {
-      val sexprs = expr.dropWhile(_ === '&').split("&").toList
-      sexprs.traverse(p).map(ast.ConstraintExpression)
-    } else {
-      Right(ast.ConstraintExpression(List.empty))
+  def parse(expr: String): Either[String, ConstraintExpression] = {
+    expr.dropWhile(_ === '&').split("&").toList.filter(_.nonEmpty) match {
+      case Nil       => Right(ConstraintExpression(Nil))
+      case x :: Nil  =>
+        (subexpression | projection)
+          .parseOnly(x)
+          .either
+          .map(x => ConstraintExpression(List(x)))
+      case x :: rest => for {
+        first <- (subexpression | projection).parseOnly(x).either
+        other <- rest.traverse(subexpression.parseOnly(_).either)
+      } yield ConstraintExpression(first :: other)
     }
   }
 }

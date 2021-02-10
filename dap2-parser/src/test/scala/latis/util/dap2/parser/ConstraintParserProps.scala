@@ -36,20 +36,20 @@ object ConstraintParserProps extends Properties("DAP 2 Constraint Parser") {
 
   val integer: Gen[String] = for {
     s <- sign
-    n <- Gen.numStr.retryUntil(_.length > 0)
+    n <- Gen.nonEmptyListOf(Gen.numChar).map(_.mkString)
   } yield s + n
 
   val decimal: Gen[String] = {
     // A decimal variant for which the fractional part is optional.
     val n1: Gen[String] = for {
-      int  <- Gen.numStr.retryUntil(_.length > 0)
+      int  <- Gen.nonEmptyListOf(Gen.numChar).map(_.mkString)
       frac <- Gen.oneOf(Gen.numStr, Gen.const(""))
     } yield s"$int.$frac"
 
     // A decimal variant for which the integral part is optional.
     val n2: Gen[String] = for {
       int  <- Gen.oneOf(Gen.numStr, Gen.const(""))
-      frac <- Gen.numStr.retryUntil(_.length > 0)
+      frac <- Gen.nonEmptyListOf(Gen.numChar).map(_.mkString)
     } yield s"$int.$frac"
 
     for {
@@ -86,11 +86,11 @@ object ConstraintParserProps extends Properties("DAP 2 Constraint Parser") {
   }
 
   val stringLit: Gen[String] =
-    Gen.alphaNumStr.retryUntil(_.length > 0).map("\"" + _ + "\"")
+    Gen.nonEmptyListOf(Gen.alphaNumChar).map(x => s""""${x.mkString}"""")
 
   val projection: Gen[CExpr] =
     //TODO: maybe revert to Gen.listOf(variable) after Identifier refactor
-    Gen.listOf(identifier).retryUntil(_.length > 0).map(Projection)
+    Gen.nonEmptyListOf(identifier).map(Projection)
 
   val selection: Gen[CExpr] = for {
     n <- identifier
@@ -103,8 +103,8 @@ object ConstraintParserProps extends Properties("DAP 2 Constraint Parser") {
     a <- Gen.listOf(Gen.oneOf(time, number, stringLit, variable))
   } yield Operation(n.asString, a)
 
-  val expr: Gen[CExpr] = Gen.oneOf(projection, selection, operation)
-
-  val cexpr: Gen[ConstraintExpression] =
-    Gen.listOf(expr).map(ConstraintExpression)
+  val cexpr: Gen[ConstraintExpression] = for {
+    first <- Gen.option(Gen.oneOf(projection, selection, operation))
+    rest  <- Gen.listOf(Gen.oneOf(selection, operation))
+  } yield ConstraintExpression(first.toList ++ rest)
 }
