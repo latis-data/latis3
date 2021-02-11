@@ -19,7 +19,7 @@ object ConstraintParserProps extends Properties("DAP 2 Constraint Parser") {
     init <- Gen.oneOf(Gen.alphaChar, Gen.const('_'))
     //TODO: remove const('.') after Identifier refactor
     rest <- Gen.listOf(Gen.oneOf(Gen.alphaNumChar, Gen.const('_'), Gen.const('.')))
-    id    = init + rest.mkString
+    id    = s"$init${rest.mkString}"
   } yield Identifier.fromString(id).getOrElse {
     throw new RuntimeException(s"Failed to generate identifier from: $id")
   }
