@@ -7,6 +7,8 @@ val catsEffectVersion = "2.5.0"
 val coursierVersion   = "2.0.16"
 val fs2Version        = "2.5.5"
 val http4sVersion     = "0.21.22"
+val log4catsVersion   = "1.3.0"
+val log4jVersion      = "2.14.1"
 val netcdfVersion     = "5.4.1"
 val pureconfigVersion = "0.14.1"
 
@@ -49,6 +51,35 @@ lazy val dockerSettings = Seq(
 )
 
 //=== Sub-projects ============================================================
+
+lazy val `aws-lambda` = project
+  .dependsOn(core)
+  .enablePlugins(DockerPlugin)
+  .settings(commonSettings)
+  .settings(
+    name := "latis3-aws-lambda",
+    libraryDependencies ++= Seq(
+      "com.amazonaws"             % "aws-lambda-java-core"   % "1.2.1",
+      "com.amazonaws"             % "aws-lambda-java-events" % "3.8.0",
+      "com.amazonaws"             % "aws-lambda-java-log4j2" % "1.2.0" % Runtime,
+      "org.apache.logging.log4j"  % "log4j-core"             % log4jVersion,
+      "org.apache.logging.log4j"  % "log4j-slf4j-impl"       % log4jVersion % Runtime,
+      "org.typelevel"            %% "log4cats-slf4j"         % log4catsVersion
+    ),
+    docker / imageNames := {
+      Seq(ImageName(s"${organization.value}/latis3-lambda:${version.value}"))
+    },
+    docker / dockerfile := {
+      val depClasspath = (Runtime / managedClasspath).value
+      val intClasspath = (Runtime / internalDependencyAsJars).value
+      new Dockerfile {
+        from("public.ecr.aws/lambda/java:8")
+        copy(depClasspath.files, "/var/task/lib/")
+        copy(intClasspath.files, "/var/task/lib/")
+        cmd("latis.lambda.LatisLambdaHandler")
+      }
+    }
+  )
 
 lazy val core = project
   .dependsOn(`dap2-parser`)
@@ -128,7 +159,7 @@ lazy val server = project
       "org.http4s"            %% "http4s-dsl"             % http4sVersion,
       "com.github.pureconfig" %% "pureconfig"             % pureconfigVersion,
       "com.github.pureconfig" %% "pureconfig-cats-effect" % pureconfigVersion,
-      "org.typelevel"         %% "log4cats-slf4j"         % "1.3.0",
+      "org.typelevel"         %% "log4cats-slf4j"         % log4catsVersion,
       "ch.qos.logback"         % "logback-classic"        % "1.2.3" % Runtime
     )
   )
