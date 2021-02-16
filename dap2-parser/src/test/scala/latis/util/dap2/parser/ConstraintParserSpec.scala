@@ -86,6 +86,15 @@ class ConstraintParserSpec extends AnyFlatSpec {
       ce should be (correct)
     }
 
+  it should "parse selections with double-quoted values" in {
+    testParse("&time>\"text\"") { ce =>
+      val correct = ConstraintExpression(
+        List(Selection(id"time", Gt, "\"text\""))
+      )
+      ce should be (correct)
+    }
+  }
+
   it should "parse a single-variable projection" in
     testParse("time") { ce =>
       val correct = ConstraintExpression(
@@ -128,6 +137,15 @@ class ConstraintParserSpec extends AnyFlatSpec {
       )
       ce should be (correct)
     }
+
+  it should "parse an operation with a double-quoted argument" in {
+    testParse("&op(\"a\")") { ce =>
+      val correct = ConstraintExpression(
+        List(Operation("op", List("\"a\"")))
+      )
+      ce should be (correct)
+    }
+  }
 
   it should "parse an operation with multiple arguments" in
     testParse("&op(a,b)") { ce =>
