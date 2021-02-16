@@ -61,7 +61,7 @@ class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
       .flatMap { cexprs: ConstraintExpression =>
         cexprs.exprs.traverse {
           case ast.Projection(vs)      => Right(ops.Projection(vs:_*))
-          case ast.Selection(n, op, v) => Right(ops.Selection(n, op, v))
+          case ast.Selection(n, op, v) => Right(ops.Selection(n, op, stripQuotes(v)))
           case ast.Operation("rename", oldName :: newName :: Nil) => for {
               oldName <- Identifier.fromString(oldName).toRight(
                 InvalidOperation(s"Invalid variable name $oldName")
@@ -77,6 +77,9 @@ class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
         }
       }
   }
+
+  private def stripQuotes(str: String): String =
+    str.stripPrefix("\"").stripSuffix("\"")
 
   private def encode(ext: String, ds: Dataset): Either[Dap2Error, Stream[IO, Byte]] = ext match {
     case ""     => encode("html", ds)
