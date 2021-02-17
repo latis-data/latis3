@@ -41,7 +41,8 @@ class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
           dataset  <- IO.fromEither(getDataset(ident))
           ops      <- IO.fromEither(getOperations(req.queryString))
           result    = ops.foldLeft(dataset)((ds, op) => ds.withOperation(op))
-          response <- Ok(encode(ext, result))
+          bytes    <- IO.fromEither(encode(ext, result))
+          response <- Ok(bytes)
         } yield response).handleErrorWith {
           case err: Dap2Error => handleDap2Error(err)
           case _              => InternalServerError()
@@ -78,26 +79,26 @@ class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
       }
   }
 
-  private def encode(ext: String, ds: Dataset): Stream[IO, Byte] = ext match {
+  private def encode(ext: String, ds: Dataset): Either[Dap2Error, Stream[IO, Byte]] = ext match {
     case ""     => encode("html", ds)
     case "bin"  => new BinaryEncoder().encode(ds).flatMap {
       bits => Stream.emits(bits.toByteArray)
-    }
-    case "csv"  => CsvEncoder.withColumnName.encode(ds).through(text.utf8Encode)
-    case "jsonl" => new JsonEncoder().encode(ds).map(_.noSpaces).intersperse("\n").through(text.utf8Encode)
+    }.asRight
+    case "csv"  => CsvEncoder.withColumnName.encode(ds).through(text.utf8Encode).asRight
+    case "jsonl" => new JsonEncoder().encode(ds).map(_.noSpaces).intersperse("\n").through(text.utf8Encode).asRight
     case "nc"   =>
       implicit val cs = StreamUtils.contextShift
-      for {
+      (for {
         tmpFile <- io.file.tempFileStream[IO](
           StreamUtils.blocker,
           Paths.get(Properties.tmpDir)
         )
         file    <- new NetcdfEncoder(tmpFile.toFile()).encode(ds)
         bytes   <- io.file.readAll[IO](file.toPath(), StreamUtils.blocker, 4096)
-      } yield bytes
-    case "txt"  => new TextEncoder().encode(ds).through(text.utf8Encode)
-    case "meta" => new MetadataEncoder().encode(ds).map(_.noSpaces).through(text.utf8Encode)
-    case _      => Stream.raiseError[IO](UnknownExtension(s"Unknown extension: $ext"))
+      } yield bytes).asRight
+    case "txt"  => new TextEncoder().encode(ds).through(text.utf8Encode).asRight
+    case "meta" => new MetadataEncoder().encode(ds).map(_.noSpaces).through(text.utf8Encode).asRight
+    case _      => UnknownExtension(s"Unknown extension: $ext").asLeft
   }
 
   private def handleDap2Error(err: Dap2Error): IO[Response[IO]] =
