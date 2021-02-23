@@ -55,7 +55,7 @@ case class JdbcAdapter(
               case DoubleValueType => rs.getDouble(k)
               case BinaryValueType => rs.getBytes(k)
               case StringValueType => rs.getString(k)
-              case BigIntValueType => rs.getObject(k) // there is no getBigInt method on result set
+              //case BigIntValueType => rs.getObject(k) // there is no getBigInt method on result set
               case BigDecimalValueType => BigDecimal(rs.getBigDecimal(k))  // convert java BigDecimal to Scala BigDecimal
             }).fold(throw _, identity)
           }
