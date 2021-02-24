@@ -120,7 +120,7 @@ lazy val python = project
   .settings(
     name := "latis3-python",
     libraryDependencies ++= Seq(
-      "black.ninia" % "jep" % "3.9.0"
+      "black.ninia" % "jep" % "3.9.1"
     )
   )
 
