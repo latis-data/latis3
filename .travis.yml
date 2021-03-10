@@ -27,6 +27,7 @@ addons:
 install:
   - travis/netcdf_build.sh
   - travis/python_build.sh
+  - travis/sbt_install.sh
 
 env:
   - LD_LIBRARY_PATH=$HOME/local/lib
