@@ -7,14 +7,11 @@ import fs2.Stream
 
 import latis.data._
 import latis.input.DatasetReader
-import latis.input.DatasetResolver
 import latis.metadata.Metadata
 import latis.metadata.MetadataLike
 import latis.model.DataType
 import latis.ops.UnaryOperation
 import latis.util.CacheManager
-import latis.util.Identifier
-import latis.util.LatisException
 
 /**
  * Defines the interface for a LaTiS Dataset.
@@ -83,11 +80,6 @@ trait Dataset extends MetadataLike {
 }
 
 object Dataset {
-
-  /**
-   * Creates a Dataset by using the DatasetResolver ServiceLoader.
-   */
-  def fromName(id: Identifier): Dataset = DatasetResolver.getDataset(id)
 
   /**
    * Creates a Dataset by using the DatasetReader ServiceLoader.
