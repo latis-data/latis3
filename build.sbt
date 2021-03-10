@@ -17,7 +17,7 @@ lazy val commonSettings = compilerFlags ++ Seq(
     "co.fs2"        %% "fs2-core"    % fs2Version,
     "co.fs2"        %% "fs2-io"      % fs2Version,
     "com.typesafe"   % "config"      % "1.4.1",
-    "org.scalatest" %% "scalatest"   % "3.2.5" % Test
+    "org.scalatest" %% "scalatest"   % "3.2.6" % Test
   )
 )
 
@@ -77,7 +77,7 @@ lazy val core = project
       "org.http4s"             %% "http4s-blaze-client" % http4sVersion,
       "com.github.regis-leray" %% "fs2-ftp"             % "0.7.0",
       "junit"                   % "junit"               % "4.13.2"  % Test,
-      "org.scalatestplus"      %% "junit-4-13"          % "3.2.5.0" % Test
+      "org.scalatestplus"      %% "junit-4-13"          % "3.2.6.0" % Test
     )
   )
 
