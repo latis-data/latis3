@@ -16,6 +16,8 @@ import pureconfig.ConfigSource
 import pureconfig.generic.auto._
 import pureconfig.module.catseffect.syntax._
 
+import latis.catalog.FdmlCatalog
+
 object Latis3Server extends IOApp {
 
   private val loader: ServiceInterfaceLoader =
@@ -23,6 +25,9 @@ object Latis3Server extends IOApp {
 
   private val latisConfigSource: ConfigSource =
     ConfigSource.default.at("latis")
+
+  private def getCatalogConf(blocker: Blocker): IO[CatalogConf] =
+    latisConfigSource.at("fdml").loadF[IO, CatalogConf](blocker)
 
   private def getServerConf(blocker: Blocker): IO[ServerConf] =
     latisConfigSource.loadF[IO, ServerConf](blocker)
@@ -60,9 +65,14 @@ object Latis3Server extends IOApp {
     Blocker[IO].use { blocker =>
       for {
         logger      <- Slf4jLogger.create[IO]
+        catalogConf <- getCatalogConf(blocker)
+        catalog      = FdmlCatalog.fromDirectory(
+          catalogConf.dir,
+          catalogConf.validate
+        )
         serverConf  <- getServerConf(blocker)
         serviceConf <- getServiceConf(blocker)
-        services    <- loader.loadServices(serviceConf)
+        services    <- loader.loadServices(serviceConf, catalog)
         routes       = constructRoutes(services)
         _           <- startServer(routes, serverConf, logger)
       } yield ExitCode.Success

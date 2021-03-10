@@ -152,6 +152,7 @@ lazy val server = project
   )
 
 lazy val `service-interface` = project
+  .dependsOn(core)
   .settings(compilerFlags)
   .settings(
     name := "latis3-service-interface",

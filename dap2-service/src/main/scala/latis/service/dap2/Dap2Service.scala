@@ -16,8 +16,8 @@ import org.http4s.MediaType
 import org.http4s.Response
 import org.http4s.dsl.Http4sDsl
 
+import latis.catalog.Catalog
 import latis.dataset.Dataset
-import latis.input.DatasetResolver
 import latis.ops
 import latis.ops.UnaryOperation
 import latis.output._
@@ -32,14 +32,14 @@ import latis.util.dap2.parser.ast.ConstraintExpression
 /**
  * A service interface implementing the DAP 2 specification.
  */
-class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
+class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4sDsl[IO] {
 
   override def routes: HttpRoutes[IO] =
     HttpRoutes.of {
       case req @ GET -> Root / id ~ ext =>
         (for {
           ident    <- IO.fromOption(Identifier.fromString(id))(ParseFailure(s"'$id' is not a valid identifier"))
-          dataset  <- IO.fromEither(getDataset(ident))
+          dataset  <- getDataset(ident)
           ops      <- IO.fromEither(getOperations(req.queryString))
           result    = ops.foldLeft(dataset)((ds, op) => ds.withOperation(op))
           encoding <- IO.fromEither(encode(ext, result))
@@ -52,10 +52,13 @@ class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
         }
     }
 
-  private def getDataset(id: Identifier): Either[Dap2Error, Dataset] =
-    Either.catchNonFatal {
-      DatasetResolver.getDataset(id)
-    }.leftMap(_ => DatasetResolutionFailure(s"Failed to resolve dataset: $id"))
+  private def getDataset(id: Identifier): IO[Dataset] =
+    catalog.findDataset(id).flatMap {
+      case None => IO.raiseError {
+        DatasetResolutionFailure(s"Failed to resolver dataset: $id")
+      }
+      case Some(ds) => ds.pure[IO]
+    }
 
   private def getOperations(query: String): Either[Dap2Error, List[UnaryOperation]] = {
     val ce = URLDecoder.decode(query, "UTF-8")

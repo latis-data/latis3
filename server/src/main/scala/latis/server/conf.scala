@@ -1,6 +1,7 @@
 package latis.server
 
 import java.net.URL
+import java.nio.file.Path
 
 import pureconfig.CamelCase
 import pureconfig.ConfigFieldMapping
@@ -8,6 +9,11 @@ import pureconfig.KebabCase
 import pureconfig.generic.CoproductHint
 import pureconfig.generic.FieldCoproductHint
 import pureconfig.generic.ProductHint
+
+final case class CatalogConf(
+  dir: Path,
+  validate: Boolean
+)
 
 final case class ServerConf(
   port: Int,

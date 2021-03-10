@@ -13,6 +13,8 @@ import coursier._
 import coursier.cache.FileCache
 import coursier.interop.cats._
 
+import latis.catalog.Catalog
+
 final class ServiceInterfaceLoader(implicit cs: ContextShift[IO]) {
 
   // Make Coursier use cats-effect IO.
@@ -28,15 +30,22 @@ final class ServiceInterfaceLoader(implicit cs: ContextShift[IO]) {
    *
    * This only needs to be called once on server initialization.
    */
-  def loadServices(conf: ServiceConf): IO[List[(ServiceSpec, ServiceInterface)]] =
+  def loadServices(
+    conf: ServiceConf,
+    catalog: Catalog
+  ): IO[List[(ServiceSpec, ServiceInterface)]] =
     conf.services.traverse { spec =>
       for {
         loader  <- getClassLoader(spec)
-        service <- loadService(loader, spec)
+        service <- loadService(loader, spec, catalog)
       } yield (spec, service)
     }
 
-  private def loadService(cl: ClassLoader, spec: ServiceSpec): IO[ServiceInterface] =
+  private def loadService(
+    cl: ClassLoader,
+    spec: ServiceSpec,
+    catalog: Catalog
+  ): IO[ServiceInterface] =
     IO {
       val constructor = {
         val m = ru.runtimeMirror(cl)
@@ -45,7 +54,7 @@ final class ServiceInterfaceLoader(implicit cs: ContextShift[IO]) {
         val ctor = clss.toType.decl(ru.termNames.CONSTRUCTOR).asMethod
         cm.reflectConstructor(ctor)
       }
-      constructor().asInstanceOf[ServiceInterface]
+      constructor(catalog).asInstanceOf[ServiceInterface]
     }
 
   private def fetchServiceArtifacts(spec: MavenServiceSpec): IO[List[URL]] = {
