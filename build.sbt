@@ -8,7 +8,7 @@ val coursierVersion   = "2.0.12"
 val fs2Version        = "2.5.3"
 val http4sVersion     = "0.21.20"
 val netcdfVersion     = "5.4.1"
-val pureconfigVersion = "0.14.0"
+val pureconfigVersion = "0.14.1"
 
 lazy val commonSettings = compilerFlags ++ Seq(
   libraryDependencies ++= Seq(
