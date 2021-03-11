@@ -91,7 +91,7 @@ class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
     case "csv"  => CsvEncoder.withColumnName.encode(ds).through(text.utf8Encode).asRight
       .map((_, `Content-Type`(MediaType.text.csv)))
     case "jsonl" => new JsonEncoder().encode(ds).map(_.noSpaces).intersperse("\n").through(text.utf8Encode).asRight
-      .map((_, `Content-Type`(MediaType.unsafeParse("application/jsonl")))) //TODO: verify safety of unsafeParse
+      .map((_, `Content-Type`(MediaType.unsafeParse("application/jsonl")))) //TODO: verify safety of unsafeParse. Could throw ParseFailure.
     case "nc"   =>
       implicit val cs = StreamUtils.contextShift
       (for {
