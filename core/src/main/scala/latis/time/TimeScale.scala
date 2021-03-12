@@ -26,6 +26,8 @@ case class TimeScale(timeUnit: TimeUnit, epoch: String) extends MeasurementScale
     -TimeFormat.parseIso(epoch)
       .map(_ / 1000 / baseMultiplier)
       .getOrElse { ??? }
+
+  override def toString() = s"$timeUnit since $epoch"
 }
 
 object TimeScale {

@@ -4,7 +4,22 @@ package latis.time
  * Defines a time duration unit in terms of a
  * multiplier of the base unit "seconds".
  */
-case class TimeUnit(baseMultiplier: Double)
+case class TimeUnit(baseMultiplier: Double) {
+
+  /** Represents a TimeUnit as a String */
+  override def toString() = baseMultiplier match {
+    case 1e-9     => "nanoseconds"
+    case 1e-6     => "microseconds"
+    case 0.001    => "milliseconds"
+    case 1        => "seconds"
+    case 60       => "minutes"
+    case 3600     => "hours"
+    case 86400    => "days"
+    case 604800   => "weeks"
+    case 31536000 => "years"
+    case d        => s"$d-seconds"
+  }
+}
 
 object TimeUnit {
 
