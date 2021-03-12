@@ -1,11 +1,14 @@
 package latis.output
 
+import java.nio.file.Paths
+
 import io.circe._
 import io.circe.syntax._
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 
+import latis.catalog.FdmlCatalog
 import latis.data.Sample
 import latis.data.RangeData
 import latis.data.DomainData
@@ -18,7 +21,17 @@ class JsonEncoderSpec extends AnyFlatSpec {
    * Instance of TextEncoder for testing.
    */
   val enc = new JsonEncoder
-  val ds: Dataset = Dataset.fromName(id"data")
+  val ds: Dataset = {
+    val catalog = FdmlCatalog.fromClasspath(
+      getClass().getClassLoader(),
+      Paths.get("datasets"),
+      validate = false
+    )
+
+    catalog.findDataset(id"data").unsafeRunSync().getOrElse {
+      fail("Unable to find dataset")
+    }
+  }
 
   "A JSON encoder" should "encode a dataset to JSON" in {
     val encodedList = enc.encode(ds).compile.toList.unsafeRunSync()

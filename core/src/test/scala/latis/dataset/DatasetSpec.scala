@@ -1,10 +1,13 @@
 package latis.dataset
 
+import java.nio.file.Paths
+
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 
-import latis.data._
+import latis.catalog.FdmlCatalog
 import latis.data.Data._
+import latis.data._
 import latis.metadata.Metadata
 import latis.model._
 import latis.ops.Selection
@@ -13,6 +16,12 @@ import latis.util.StreamUtils
 import latis.util.dap2.parser.ast
 
 class DatasetSpec extends AnyFlatSpec {
+
+  val catalog = FdmlCatalog.fromClasspath(
+    getClass().getClassLoader(),
+    Paths.get("datasets"),
+    validate = false
+  )
 
   val dataset = {
     val metadata = Metadata(id"test")
@@ -56,12 +65,16 @@ class DatasetSpec extends AnyFlatSpec {
   }
 
   it should "read text data given an fdml" in {
-    val textDs: Dataset = Dataset.fromName(id"data")
+    val textDs: Dataset = catalog.findDataset(id"data").unsafeRunSync().getOrElse {
+      fail("Unable to find dataset")
+    }
     textDs shouldBe a [Dataset]
   }
 
   it should "read matrix data given an fdml" in {
-    val matrixDs: Dataset = Dataset.fromName(id"matrixData")
+    val matrixDs: Dataset = catalog.findDataset(id"matrixData").unsafeRunSync().getOrElse {
+      fail("Unable to find dataset")
+    }
     matrixDs shouldBe a [Dataset]
   }
   

@@ -1,15 +1,29 @@
 package latis.output
 
+import java.nio.file.Paths
+
 import scala.util.Properties.lineSeparator
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 
+import latis.catalog.FdmlCatalog
 import latis.dataset.Dataset
 import latis.util.Identifier.IdentifierStringContext
 
 class CsvEncoderSpec extends AnyFlatSpec {
-  import CsvEncoderSpec._
+
+  val ds: Dataset = {
+    val catalog = FdmlCatalog.fromClasspath(
+      getClass().getClassLoader(),
+      Paths.get("datasets"),
+      validate = false
+    )
+
+    catalog.findDataset(id"data").unsafeRunSync().getOrElse {
+      fail("Unable to find dataset")
+    }
+  }
 
   "A CSV encoder" should "encode a dataset to CSV" in {
     val enc     = CsvEncoder()
@@ -28,8 +42,4 @@ class CsvEncoderSpec extends AnyFlatSpec {
     val expectedHeader = "time,b,c,d"
     csvList.head should be(expectedHeader)
   }
-}
-
-object CsvEncoderSpec {
-  val ds: Dataset = Dataset.fromName(id"data")
 }

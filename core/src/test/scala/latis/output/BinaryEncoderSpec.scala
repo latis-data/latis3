@@ -1,5 +1,7 @@
 package latis.output
 
+import java.nio.file.Paths
+
 import scodec._
 import scodec.bits._
 import scodec.codecs.implicits._
@@ -9,6 +11,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import scodec.bits.BitVector
 
+import latis.catalog.FdmlCatalog
 import latis.data.Data._
 import latis.data.DomainData
 import latis.data.RangeData
@@ -26,7 +29,17 @@ class BinaryEncoderSpec extends AnyFlatSpec {
    * Instance of BinaryEncoder for testing.
    */
   val enc = new BinaryEncoder
-  val ds: Dataset = Dataset.fromName(id"data2")
+  val ds: Dataset = {
+    val catalog = FdmlCatalog.fromClasspath(
+      getClass().getClassLoader(),
+      Paths.get("datasets"),
+      validate = false
+    )
+
+    catalog.findDataset(id"data2").unsafeRunSync().getOrElse {
+      fail("Unable to find dataset")
+    }
+  }
 
   "A Binary encoder" should "encode a dataset to binary" in {
     val encodedList = enc.encode(ds).compile.toList.unsafeRunSync()
