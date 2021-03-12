@@ -18,7 +18,8 @@ lazy val commonSettings = compilerFlags ++ Seq(
     "co.fs2"        %% "fs2-io"      % fs2Version,
     "com.typesafe"   % "config"      % "1.4.1",
     "org.scalatest" %% "scalatest"   % "3.2.6" % Test
-  )
+  ),
+  Test / fork := true
 )
 
 lazy val compilerFlags = Seq(
