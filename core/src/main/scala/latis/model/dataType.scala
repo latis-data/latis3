@@ -1,12 +1,15 @@
 package latis.model
 
+import scala.collection.mutable.ArrayBuffer
+
+import cats.syntax.all._
+
 import latis.data._
 import latis.metadata._
 import latis.util.DefaultDatumOrdering
-import latis.util.LatisException
-import scala.collection.mutable.ArrayBuffer
-
 import latis.util.Identifier
+import latis.util.LatisException
+import latis.util.ReflectionUtils
 
 /**
  * Define the algebraic data type for the LaTiS implementation of the
@@ -277,13 +280,21 @@ object Scalar {
 
   /**
    * Construct a Scalar with the given Metadata.
+   * If a class is defined, construct it dynamically.
    */
-  def apply(md: Metadata): Scalar = new Scalar(md)
+  def apply(md: Metadata): Scalar = md.getProperty("class") match {
+    case Some(clss) => Either.catchNonFatal {
+      ReflectionUtils.callMethodOnCompanionObject(
+        clss, "apply", md
+      ).asInstanceOf[Scalar]
+    }.fold(throw _, identity)
+    case None => new Scalar(md)
+  }
 
   /**
-   * Construct a Scalar with the given identifier.
+   * Construct a Scalar with the given identifier and default type (double).
    */
-  def apply(id: Identifier): Scalar = Scalar(Metadata(id))
+  def apply(id: Identifier): Scalar = Scalar(Metadata(id) + ("type" -> "double"))
 }
 
 //-- Tuple ------------------------------------------------------------------//

@@ -94,16 +94,9 @@ object FdmlReader {
     }
 
   private def makeScalar(scalar: FScalar): Either[LatisException, Scalar] =
-    scalar.attributes.get("class") match {
-      case None       => Scalar(scalar.metadata).asRight
-      case Some(clss) => Either.catchNonFatal {
-        ReflectionUtils.callMethodOnCompanionObject(
-          clss,
-          "apply",
-          scalar.metadata
-        ).asInstanceOf[Scalar]
-      }.leftMap(LatisException(_))
-    }
+    Either.catchNonFatal {
+      Scalar(scalar.metadata)
+    }.leftMap(LatisException(_))
 
   private def makeAdapter(
     adapter: FAdapter,
