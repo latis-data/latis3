@@ -62,18 +62,10 @@ class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
         cexprs.exprs.traverse {
           case ast.Projection(vs)      => Right(ops.Projection(vs:_*))
           case ast.Selection(n, op, v) => Right(ops.Selection(n, op, stripQuotes(v)))
-          case ast.Operation("rename", oldName :: newName :: Nil) => for {
-              oldName <- Identifier.fromString(oldName).toRight(
-                InvalidOperation(s"Invalid variable name $oldName")
-              )
-              newName <- Identifier.fromString(newName).toRight(
-                InvalidOperation(s"Invalid variable name $newName")
-              )
-            } yield ops.Rename(oldName, newName)
-          // TODO: Here we may need to dynamically construct an
-          // instance of an operation based on the query string and
-          // server/interface configuration.
-          case ast.Operation(n, _)  => Left(UnknownOperation(s"Unknown operation: $n"))
+          // Delegate to Operation factory
+          case ast.Operation(name, args) =>
+            UnaryOperation.makeOperation(name, args)
+              .leftMap(le => InvalidOperation(le.message))
         }
       }
   }
