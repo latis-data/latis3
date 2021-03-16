@@ -42,8 +42,10 @@ class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
           dataset  <- IO.fromEither(getDataset(ident))
           ops      <- IO.fromEither(getOperations(req.queryString))
           result    = ops.foldLeft(dataset)((ds, op) => ds.withOperation(op))
-          bytes    <- IO.fromEither(encode(ext, result))
-          response <- Ok(bytes._1).map(_.withContentType(bytes._2))
+          encoding <- IO.fromEither(encode(ext, result))
+          bytes     = encoding._1
+          content   = encoding._2
+          response <- Ok(bytes).map(_.withContentType(content))
         } yield response).handleErrorWith {
           case err: Dap2Error => handleDap2Error(err)
           case _              => InternalServerError()
