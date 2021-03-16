@@ -4,8 +4,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 
 import latis.util.Identifier._
-
-import ast._
+import latis.util.dap2.parser.ast._
 
 class ConstraintParserSpec extends AnyFlatSpec {
 
@@ -29,6 +28,14 @@ class ConstraintParserSpec extends AnyFlatSpec {
 
   it should "parse a selection" in
     testParse("time>0") { ce =>
+      val correct = ConstraintExpression(
+        List(Selection(id"time", Gt, "0"))
+      )
+      ce should be (correct)
+    }
+
+  it should "parse a selection with white space" in
+    testParse("time > 0") { ce =>
       val correct = ConstraintExpression(
         List(Selection(id"time", Gt, "0"))
       )
@@ -149,6 +156,14 @@ class ConstraintParserSpec extends AnyFlatSpec {
 
   it should "parse an operation with multiple arguments" in
     testParse("&op(a,b)") { ce =>
+      val correct = ConstraintExpression(
+        List(Operation("op", List("a", "b")))
+      )
+      ce should be (correct)
+    }
+
+  it should "parse an operation with multiple arguments with white space" in
+    testParse("&op( a, b )") { ce =>
       val correct = ConstraintExpression(
         List(Operation("op", List("a", "b")))
       )
