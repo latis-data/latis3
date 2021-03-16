@@ -68,12 +68,13 @@ class Dap2Service extends ServiceInterface with Http4sDsl[IO] {
           case ast.Selection(n, op, v) => Right(ops.Selection(n, op, stripQuotes(v)))
           // Delegate to Operation factory
           case ast.Operation(name, args) =>
-            UnaryOperation.makeOperation(name, args)
+            UnaryOperation.makeOperation(name, args.map(stripQuotes(_)))
               .leftMap(le => InvalidOperation(le.message))
         }
       }
   }
 
+  //TODO: StringUtil?
   private def stripQuotes(str: String): String =
     str.stripPrefix("\"").stripSuffix("\"")
 
