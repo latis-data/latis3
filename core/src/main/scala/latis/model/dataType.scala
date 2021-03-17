@@ -290,11 +290,6 @@ object Scalar {
     }.fold(throw _, identity)
     case None => new Scalar(md)
   }
-
-  /**
-   * Construct a Scalar with the given identifier and default type (double).
-   */
-  def apply(id: Identifier): Scalar = Scalar(Metadata(id) + ("type" -> "double"))
 }
 
 //-- Tuple ------------------------------------------------------------------//
