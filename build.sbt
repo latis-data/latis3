@@ -10,7 +10,7 @@ val http4sVersion     = "0.21.20"
 val netcdfVersion     = "5.4.1"
 val pureconfigVersion = "0.14.1"
 
-lazy val commonSettings = compilerFlags ++ Seq(
+lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
     "org.typelevel" %% "cats-core"   % catsVersion,
     "org.typelevel" %% "cats-effect" % catsEffectVersion,
@@ -19,23 +19,8 @@ lazy val commonSettings = compilerFlags ++ Seq(
     "com.typesafe"   % "config"      % "1.4.1",
     "org.scalatest" %% "scalatest"   % "3.2.6" % Test
   ),
-  Test / fork := true
-)
-
-lazy val compilerFlags = Seq(
-  scalacOptions ++= Seq(
-    "-deprecation",
-    "-encoding", "utf-8",
-    "-feature",
-    "-language:higherKinds"
-  ),
-  Compile / compile / scalacOptions ++= Seq(
-    "-unchecked",
-    "-Xlint",
-    "-Wdead-code",
-    "-Wnumeric-widen",
-    "-Wvalue-discard"
-  )
+  Test / fork := true,
+  scalacOptions -= "-Xfatal-warnings"
 )
 
 lazy val dockerSettings = Seq(
@@ -144,23 +129,19 @@ lazy val server = project
       "com.github.pureconfig" %% "pureconfig-cats-effect" % pureconfigVersion,
       "io.chrisdavenport"     %% "log4cats-slf4j"         % "1.1.1",
       "ch.qos.logback"         % "logback-classic"        % "1.2.3" % Runtime
-    ),
-    scalacOptions ++= Seq(
-      // Required to suppress spurious warnings with 2.13
-      "-Xlint:-byname-implicit"
     )
   )
 
 lazy val `service-interface` = project
   .dependsOn(core)
-  .settings(compilerFlags)
   .settings(
     name := "latis3-service-interface",
     libraryDependencies ++= Seq(
       "org.http4s"    %% "http4s-core" % http4sVersion,
       "org.typelevel" %% "cats-core"   % catsVersion,
       "org.typelevel" %% "cats-effect" % catsEffectVersion
-    )
+    ),
+    scalacOptions -= "-Xfatal-warnings"
   )
 
 lazy val macros = project
