@@ -8,7 +8,7 @@ import cats.effect.Clock
 import cats.effect.Sync
 import cats.effect.Timer
 import cats.syntax.all._
-import io.chrisdavenport.log4cats.StructuredLogger
+import org.typelevel.log4cats.StructuredLogger
 import org.http4s.HttpApp
 import org.http4s.Response
 import org.http4s.Request
