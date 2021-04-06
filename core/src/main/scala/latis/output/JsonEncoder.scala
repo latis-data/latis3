@@ -9,7 +9,6 @@ import latis.dataset._
 import latis.ops.Uncurry
 
 class JsonEncoder extends Encoder[IO, Json] {
-
   /**
    * Encodes the Stream of Samples from the given Dataset as a Stream
    * of JSON arrays.

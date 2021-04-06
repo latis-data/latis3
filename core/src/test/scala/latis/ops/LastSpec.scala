@@ -15,7 +15,6 @@ import latis.util.DatasetGenerator
 import latis.util.Identifier.IdentifierStringContext
 
 class LastSpec extends AnyFlatSpec {
-
   "The Last Operation" should "return the last sample of a simple dataset" in {
     val ds: Dataset = DatasetGenerator("a -> b")
     val dsTake      = ds.withOperation(Last())

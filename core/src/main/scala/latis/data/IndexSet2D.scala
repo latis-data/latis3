@@ -9,8 +9,8 @@ import latis.util.LatisException
  * This is implemented as a product of two LinearSet1Ds.
  */
 case class IndexSet2D(set1: IndexSet1D, set2: IndexSet1D, val model: DataType)
-  extends DomainSet
-  with Serializable {
+    extends DomainSet
+    with Serializable {
   //TODO: ProductSet, could be used for any set of 1D sets
 
   override def length: Int = set1.length * set2.length
@@ -47,5 +47,3 @@ case class IndexSet2D(set1: IndexSet1D, set2: IndexSet1D, val model: DataType)
       throw LatisException(msg)
   }
 }
-
-

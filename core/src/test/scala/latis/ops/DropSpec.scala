@@ -11,7 +11,6 @@ import latis.dataset.Dataset
 import latis.util.DatasetGenerator
 
 class DropSpec extends AnyFlatSpec {
-
   "The Drop Operation" should "drop the first n samples of a simple dataset" in {
     val ds: Dataset = DatasetGenerator("a -> b")
     val dsDrop      = ds.withOperation(Drop(1))

@@ -7,12 +7,11 @@ import latis.model.DoubleValueType
 import latis.util.Identifier.IdentifierStringContext
 
 class FdmlSpec extends AnyFlatSpec {
-
   "An FAdapter" should "create a valid AdapterConfig" in {
     val config = SingleAdapter("class", Map("key" -> "value")).config.properties
 
-    config should contain ("class" -> "class")
-    config should contain ("key" -> "value")
+    config should contain("class" -> "class")
+    config should contain("key"   -> "value")
   }
 
   "An FScalar" should "create valid scalar metadata" in {
@@ -22,8 +21,8 @@ class FdmlSpec extends AnyFlatSpec {
       Map("key" -> "value")
     ).metadata.properties
 
-    metadata should contain ("id" -> "id")
-    metadata should contain ("type" -> "double")
-    metadata should contain ("key" -> "value")
+    metadata should contain("id"   -> "id")
+    metadata should contain("type" -> "double")
+    metadata should contain("key"  -> "value")
   }
 }

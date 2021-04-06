@@ -8,7 +8,6 @@ import latis.util.LatisException
  * DomainData type alias for List[Any].
  */
 object DomainData {
-
   /**
    * Define function to compute the distance between two
    * points defined as DomainData.
@@ -19,7 +18,7 @@ object DomainData {
       //TODO: assert same length
       val squares = dd1.zip(dd2).map {
         case (Number(d1), Number(d2)) => Math.pow((d2 - d1), 2)
-        case _ => ??? //TODO: invalid data type
+        case _                        => ??? //TODO: invalid data type
       }
       Math.sqrt(squares.sum)
     }

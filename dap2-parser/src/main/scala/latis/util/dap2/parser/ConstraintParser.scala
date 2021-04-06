@@ -13,7 +13,6 @@ import parsers._
  * follow the DAP 2 specification.
  */
 object ConstraintParser {
-
   /**
    * Parse a DAP 2 constraint expression into a sequence of LaTiS
    * operations.
@@ -22,19 +21,20 @@ object ConstraintParser {
    */
   def parse(expr: String): Either[String, ConstraintExpression] = {
     val firstSexprP: Parser[CExpr] = phrase(subexpression | projection)
-    val restSexprP: Parser[CExpr] = phrase(subexpression)
+    val restSexprP: Parser[CExpr]  = phrase(subexpression)
 
     expr.dropWhile(_ === '&').split("&").toList.filter(_.nonEmpty) match {
-      case Nil       => Right(ConstraintExpression(Nil))
-      case x :: Nil  =>
+      case Nil => Right(ConstraintExpression(Nil))
+      case x :: Nil =>
         firstSexprP
           .parseOnly(x)
           .either
           .map(x => ConstraintExpression(List(x)))
-      case x :: rest => for {
-        first <- firstSexprP.parseOnly(x).either
-        other <- rest.traverse(restSexprP.parseOnly(_).either)
-      } yield ConstraintExpression(first :: other)
+      case x :: rest =>
+        for {
+          first <- firstSexprP.parseOnly(x).either
+          other <- rest.traverse(restSexprP.parseOnly(_).either)
+        } yield ConstraintExpression(first :: other)
     }
   }
 }

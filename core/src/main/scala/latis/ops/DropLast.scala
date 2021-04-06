@@ -9,7 +9,6 @@ import latis.model.DataType
 import latis.util.LatisException
 
 case class DropLast() extends StreamOperation {
-
   def pipe(model: DataType): Pipe[IO, Sample, Sample] = in => in.dropLast
 
   def applyToModel(model: DataType): Either[LatisException, DataType] =

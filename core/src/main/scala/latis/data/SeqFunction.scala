@@ -11,7 +11,6 @@ case class SeqFunction(
 ) extends MemoizedFunction
 
 object SeqFunction extends FunctionFactory {
-
   def apply(sample: Sample): SeqFunction = SeqFunction(Seq(sample))
 
   def fromSamples(samples: Seq[Sample]): SeqFunction = SeqFunction(samples)

@@ -12,14 +12,13 @@ object LatisOrdering {
   /**
    * Defines the default partial ordering for Samples.
    */
-  def defaultSampleOrdering: PartialOrdering[Sample] = {
+  def defaultSampleOrdering: PartialOrdering[Sample] =
     new PartialOrdering[Sample] {
       def tryCompare(s1: Sample, s2: Sample): Option[Int] =
         DefaultDomainOrdering.tryCompare(s1.domain, s2.domain)
       def lteq(s1: Sample, s2: Sample): Boolean =
         DefaultDomainOrdering.lteq(s1.domain, s2.domain)
     }
-  }
 
   /**
    * Defines a PartialOrdering for Samples based on the function type.
@@ -44,5 +43,4 @@ object LatisOrdering {
         val msg = s"Ordering failed for $a1, $a2"
         throw LatisException(msg)
       }
-
 }

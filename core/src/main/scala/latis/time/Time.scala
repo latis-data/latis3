@@ -97,10 +97,8 @@ class Time(metadata: Metadata) extends Scalar(metadata) {
         }
       }
     }
-
 }
 
 object Time {
-
   def apply(md: Metadata) = new Time(md)
 }

@@ -10,7 +10,6 @@ import latis.util.ConfigLike
  * definitions for configurable properties of the Adapter.
  */
 case class AdapterConfig(properties: (String, String)*) extends ConfigLike {
-
   /**
    * An AdapterConfig must define a className.
    * This will fail upon construction if this

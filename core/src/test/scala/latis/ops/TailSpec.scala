@@ -11,7 +11,6 @@ import latis.dataset.Dataset
 import latis.util.DatasetGenerator
 
 class TailSpec extends AnyFlatSpec {
-
   "The Tail Operation" should "drop the first sample from a simple dataset" in {
     val ds: Dataset = DatasetGenerator("a -> b")
     val dsTail      = ds.withOperation(Tail())

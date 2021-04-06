@@ -80,10 +80,8 @@ trait Dataset extends MetadataLike {
 }
 
 object Dataset {
-
   /**
    * Creates a Dataset by using the DatasetReader ServiceLoader.
    */
   def fromURI(uri: URI): Dataset = DatasetReader.read(uri)
-
 }

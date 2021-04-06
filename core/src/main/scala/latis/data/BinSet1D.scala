@@ -11,9 +11,8 @@ import latis.util.LatisException
  * exclusive at the end).
  */
 class BinSet1D(start: Double, increment: Double, count: Int)
-  extends LinearSet1D(start, increment, count)
-  with Serializable {
-
+    extends LinearSet1D(start, increment, count)
+    with Serializable {
   /**
    * Override to match any value that falls within a bin.
    */
@@ -31,7 +30,6 @@ class BinSet1D(start: Double, increment: Double, count: Int)
 }
 
 object BinSet1D {
-
   def apply(start: Double, increment: Double, count: Int): BinSet1D =
     new BinSet1D(start, increment, count)
 
@@ -48,5 +46,4 @@ object BinSet1D {
     val count = ((max - min) / increment).toFloat.toInt //will round down, toFloat cleans up precision
     new BinSet1D(min, increment, count)
   }
-
 }

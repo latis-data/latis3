@@ -8,13 +8,11 @@ import latis.model.DataType
  * The bins have the same size and are contiguous.
  */
 class BinSet2D(set1: BinSet1D, set2: BinSet1D, model: DataType)
-  extends LinearSet2D(set1, set2, model)
+    extends LinearSet2D(set1, set2, model)
 
 object BinSet2D {
-
-  def apply(set1: BinSet1D, set2: BinSet1D, model: DataType = LinearSet2D.defaultModel): BinSet2D = {
+  def apply(set1: BinSet1D, set2: BinSet1D, model: DataType = LinearSet2D.defaultModel): BinSet2D =
     new BinSet2D(set1, set2, model)
-  }
 
   /**
    * Define a 2-dimensional domain set with regular sized bins from the
@@ -32,8 +30,8 @@ object BinSet2D {
     model: DataType = LinearSet2D.defaultModel
   ): BinSet2D = {
     //TODO: make sure model has type set to double
-    val d1 = max._1 - min._1
-    val d2 = max._2 - min._2
+    val d1      = max._1 - min._1
+    val d2      = max._2 - min._2
     val n1: Int = Math.round(Math.sqrt(d1 * count / d2)).toInt
     val n2: Int = Math.round(count.toFloat / n1)
 

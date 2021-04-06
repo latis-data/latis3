@@ -1,4 +1,3 @@
-
 import cats.Id
 import cats.effect._
 import fs2._
@@ -32,32 +31,21 @@ trait R[F[_]]
 case class D[+F[_]](s: Stream[F, Int])
 
 object Foo extends App {
-  
 //  val s: Stream[Pure, Int] = Stream.emits(Seq(1, 2, 3))
 //  val d: D[Pure] = D(s)
 //  //write[Pure](d)
 //  val z = doIt2[IO](d)
 //  z.unsafeRunSync
-//  
-//  def encode[F[_]](d: D[F]): Stream[F, String] = 
+//
+//  def encode[F[_]](d: D[F]): Stream[F, String] =
 //    d.s.map(_.toString)
-//  
-//  
+//
+//
 //  def doIt2[F[_]: Sync](d: D[F]): F[Unit] = {
 //    val z = encode(d)
 //    z.flatMap(x => Stream.eval(Sync[F].delay( println(x) ))).compile.drain
 //  }
-//  
-//  def doIt[F[_]: Sync, A](s: Stream[F, A]): F[Unit] = s.flatMap(x => 
+//
+//  def doIt[F[_]: Sync, A](s: Stream[F, A]): F[Unit] = s.flatMap(x =>
 //      Stream.eval(Sync[F].delay(println(x)))).compile.drain
-      
-
-      
 }
-
-
-
-
-
-
-

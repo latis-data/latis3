@@ -22,5 +22,4 @@ case class Append() extends BinaryOperation {
 
   def applyToData(data1: Data, data2: Data): Either[LatisException, Data] =
     StreamFunction(data1.samples ++ data2.samples).asRight
-
 }

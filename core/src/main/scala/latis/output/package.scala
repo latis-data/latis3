@@ -7,7 +7,6 @@ import latis.data._
 import latis.data.Data._
 
 package object output {
-
   /** Instance of io.circe.Encoder for Sample. */
   implicit val encodeSample: CEncoder[Sample] = new CEncoder[Sample] {
     final def apply(s: Sample): Json = s match {
@@ -27,5 +26,4 @@ package object output {
       case x              => x.toString.asJson
     }
   }
-
 }

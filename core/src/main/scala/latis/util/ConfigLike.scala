@@ -6,7 +6,6 @@ package latis.util
  * the properties like they would a LatisConfig.
  */
 trait ConfigLike {
-
   def properties: Seq[(String, String)]
 
   val propertyMap: Map[String, String] = properties.toMap

@@ -9,8 +9,8 @@ import latis.util.LatisException
  * This is implemented as a product of two LinearSet1Ds.
  */
 class LinearSet2D(set1: LinearSet1D, set2: LinearSet1D, val model: DataType)
-  extends DomainSet
-  with Serializable {
+    extends DomainSet
+    with Serializable {
   //TODO: ProductSet, could be used for any set of 1D sets
 
   override def length: Int = set1.length * set2.length
@@ -49,10 +49,12 @@ class LinearSet2D(set1: LinearSet1D, set2: LinearSet1D, val model: DataType)
 }
 
 object LinearSet2D {
-
-  def apply(set1: LinearSet1D, set2: LinearSet1D, model: DataType = LinearSet2D.defaultModel): LinearSet2D = {
+  def apply(
+    set1: LinearSet1D,
+    set2: LinearSet1D,
+    model: DataType = LinearSet2D.defaultModel
+  ): LinearSet2D =
     new LinearSet2D(set1, set2, model)
-  }
 
   /**
    * Define the model of this DomainSet assuming double value types

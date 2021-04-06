@@ -10,7 +10,6 @@ import latis.dataset.Dataset
 import latis.model._
 
 class TextEncoder extends Encoder[IO, String] {
-
   /**
    * Tracks the level of Function nesting so we can indent.
    */
@@ -54,7 +53,7 @@ class TextEncoder extends Encoder[IO, String] {
       case s: Scalar =>
         ds.pop() match {
           case d: Datum => s.formatValue(d)
-          case _ => ??? //bug, inconsistent data
+          case _        => ??? //bug, inconsistent data
         }
 
       case Tuple(es @ _*) =>
@@ -64,7 +63,7 @@ class TextEncoder extends Encoder[IO, String] {
       case f: Function =>
         ds.pop() match {
           case sf: MemoizedFunction => encodeFunction(f, sf)
-          case _ => ??? //Oops, model and data not consistent
+          case _                    => ??? //Oops, model and data not consistent
         }
     }
 

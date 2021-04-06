@@ -55,7 +55,6 @@ class CartesianFunction1D(
    */
   def sampleSeq: Seq[Sample] =
     (xs.zip(vs)).map { case (x, v) => Sample(DomainData(x), RangeData(v)) }
-
 }
 
 //==============================================================================
@@ -117,5 +116,4 @@ object CartesianFunction1D {
       rs = rss.transpose.map(Data.fromSeq(_)).map(RangeData(_))
     } yield new CartesianFunction1D(d1s.toIndexedSeq, rs, Some(DefaultDomainOrdering))
   }
-
 }

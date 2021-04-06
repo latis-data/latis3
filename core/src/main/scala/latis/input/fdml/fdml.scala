@@ -135,7 +135,6 @@ final case class FScalar(
   ty: ValueType,
   attributes: Map[String, String]
 ) extends FModel {
-
   /**
    * Returns metadata for this scalar.
    *

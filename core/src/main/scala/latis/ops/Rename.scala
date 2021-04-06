@@ -12,18 +12,17 @@ import latis.util.LatisException
  * This only impacts the model.
  */
 case class Rename(origId: Identifier, newId: Identifier) extends UnaryOperation {
-
-  def applyToModel(model: DataType): Either[LatisException, DataType] = {
+  def applyToModel(model: DataType): Either[LatisException, DataType] =
     // TODO: support renaming tuples and functions (findVariable instead of getVariable?)
     model.getVariable(origId) match {
       case None => Left(LatisException(s"Variable '${origId.asString}' not found"))
-      case _ => Right(model.map { s =>
-        if (s.id.contains(origId)) s.rename(newId)
-        else s
+      case _ =>
+        Right(model.map { s =>
+          if (s.id.contains(origId)) s.rename(newId)
+          else s
         //TODO: support aliases with hasName
-      })
+        })
     }
-  }
 
   /**
    * Provides a no-op implementation for Rename.
@@ -33,16 +32,15 @@ case class Rename(origId: Identifier, newId: Identifier) extends UnaryOperation 
 }
 
 object Rename {
-
-  def fromArgs(args: List[String]): Either[LatisException, Rename] = Either.catchOnly[LatisException] {
-    args.map { arg =>
-      Identifier.fromString(arg)
-        .getOrElse {
+  def fromArgs(args: List[String]): Either[LatisException, Rename] =
+    Either.catchOnly[LatisException] {
+      args.map { arg =>
+        Identifier.fromString(arg).getOrElse {
           throw LatisException(s"'$arg' is not a valid identifier")
         }
-    } match {
-      case oldId :: newId :: Nil => Rename(oldId, newId)
-      case _ => throw LatisException("Rename requires exactly two arguments")
+      } match {
+        case oldId :: newId :: Nil => Rename(oldId, newId)
+        case _                     => throw LatisException("Rename requires exactly two arguments")
+      }
     }
-  }
 }

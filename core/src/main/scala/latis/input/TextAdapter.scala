@@ -16,8 +16,7 @@ import latis.util.ConfigLike
  * Adapter for record-oriented text datasets that can be streamed.
  */
 class TextAdapter(model: DataType, config: TextAdapter.Config = new TextAdapter.Config())
-  extends StreamingAdapter[String] {
-
+    extends StreamingAdapter[String] {
   /**
    * Provide a Stream of records as Strings.
    * Apply configuration options to the Stream.
@@ -43,7 +42,7 @@ class TextAdapter(model: DataType, config: TextAdapter.Config = new TextAdapter.
    */
   private def seekToDataMarker(marker: Option[String]): Pipe[IO, String, String] = marker match {
     case Some(m) => _.dropWhile(!_.matches(m)).drop(1)
-    case None => identity
+    case None    => identity
   }
 
   /**
@@ -55,7 +54,7 @@ class TextAdapter(model: DataType, config: TextAdapter.Config = new TextAdapter.
   private val notComment: String => Boolean = (line: String) => {
     config.commentCharacter match {
       case Some(cc) => !line.startsWith(cc)
-      case None => true //no comment character defined
+      case None     => true //no comment character defined
     }
   }
 
@@ -76,12 +75,12 @@ class TextAdapter(model: DataType, config: TextAdapter.Config = new TextAdapter.
     // Get Vectors of domain and range Scalar types.
     val (dtypes, rtypes) = model match {
       case Function(d, r) => (d.getScalars, r.getScalars)
-      case _ => (Vector.empty, model.getScalars)
+      case _              => (Vector.empty, model.getScalars)
     }
 
     // Extract the data values from the record
     // and split into Vectors of domain and range values.
-    val values = extractValues(record)
+    val values         = extractValues(record)
     val (dvals, rvals) = values.splitAt(dtypes.length)
 
     // Zip the types with the values, then construct a Sample
@@ -120,7 +119,6 @@ class TextAdapter(model: DataType, config: TextAdapter.Config = new TextAdapter.
 //=============================================================================
 
 object TextAdapter extends AdapterFactory {
-
   def apply(model: DataType, config: Config = new Config()): TextAdapter =
     new TextAdapter(model, config)
 
@@ -140,5 +138,4 @@ object TextAdapter extends AdapterFactory {
     val linesToSkip: Int                 = getOrElse("skipLines", 0)
     val dataMarker: Option[String]       = get("dataMarker")
   }
-
 }

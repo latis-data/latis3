@@ -33,8 +33,7 @@ class FileStreamSource extends StreamSource {
           Option(Stream.raiseError[IO](LatisException(msg, le)))
         case Right(u) =>
           val fis: IO[InputStream] = IO(u.toURL.openStream) //TODO: handle exception, wrap as LatisException
-          val chunkSize: Int = 4096 //TODO: tune? config option?
+          val chunkSize: Int       = 4096                   //TODO: tune? config option?
           Option(readInputStream[IO](fis, chunkSize, blocker))
       }
-
 }

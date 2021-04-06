@@ -63,9 +63,9 @@ object DatasetGenerator {
 
   private def generateData1D(m: DataType): MemoizedFunction = {
     val scalarTypes = m.getScalars.map(_.valueType)
-    val dGen = DataGenerator(scalarTypes.head)
-    val rGen = new RangeGenerator(m)
-    val numSamples = 3
+    val dGen        = DataGenerator(scalarTypes.head)
+    val rGen        = new RangeGenerator(m)
+    val numSamples  = 3
     val samples = for {
       d <- dGen.take(numSamples).toList
     } yield {
@@ -76,9 +76,9 @@ object DatasetGenerator {
 
   private def generateData2D(m: DataType): MemoizedFunction = {
     val scalarTypes = m.getScalars.map(_.valueType)
-    val d1s = DataGenerator(scalarTypes.head).take(2).toList
-    val d2s = DataGenerator(scalarTypes(1)).take(3).toList
-    val rGen = new RangeGenerator(m)
+    val d1s         = DataGenerator(scalarTypes.head).take(2).toList
+    val d2s         = DataGenerator(scalarTypes(1)).take(3).toList
+    val rGen        = new RangeGenerator(m)
     val samples = for {
       d1 <- d1s
       d2 <- d2s
@@ -90,10 +90,10 @@ object DatasetGenerator {
 
   private def generateData3D(m: DataType): MemoizedFunction = {
     val scalarTypes = m.getScalars.map(_.valueType)
-    val d1s = DataGenerator(scalarTypes.head).take(2).toList
-    val d2s = DataGenerator(scalarTypes(1)).take(3).toList
-    val d3s = DataGenerator(scalarTypes(2)).take(4).toList
-    val rGen = new RangeGenerator(m)
+    val d1s         = DataGenerator(scalarTypes.head).take(2).toList
+    val d2s         = DataGenerator(scalarTypes(1)).take(3).toList
+    val d3s         = DataGenerator(scalarTypes(2)).take(4).toList
+    val rGen        = new RangeGenerator(m)
     val samples = for {
       d1 <- d1s
       d2 <- d2s
@@ -191,10 +191,10 @@ object DatasetGenerator {
 object DataGenerator {
   def apply(vType: ValueType): Iterator[Datum] = vType match {
     case BooleanValueType => booleanGenerator
-    case IntValueType => intGenerator
-    case DoubleValueType => doubleGenerator
-    case StringValueType => stringGenerator
-    case t => throw LatisException(s"No generator for $t")
+    case IntValueType     => intGenerator
+    case DoubleValueType  => doubleGenerator
+    case StringValueType  => stringGenerator
+    case t                => throw LatisException(s"No generator for $t")
   }
 
   def booleanGenerator: Iterator[Datum] =
@@ -207,7 +207,7 @@ object DataGenerator {
     Iterator.iterate(DoubleValue(0.0))(n => DoubleValue(n.asDouble + 1))
 
   def stringGenerator: Iterator[Datum] =
-    Iterator.iterate(StringValue("a")){ n =>
+    Iterator.iterate(StringValue("a")) { n =>
       // increments to 122 ('z'), then resets to 97 ('a')
       val nextAscii = ((n.asString.head.toInt - 96) % 26) + 97
       StringValue(nextAscii.toChar.toString)
@@ -215,19 +215,19 @@ object DataGenerator {
 }
 
 class RangeGenerator(model: DataType) extends Iterator[RangeData] {
-  def hasNext: Boolean = true
-  private val boolGen = DataGenerator(BooleanValueType)
-  private val intGen = DataGenerator(IntValueType)
+  def hasNext: Boolean  = true
+  private val boolGen   = DataGenerator(BooleanValueType)
+  private val intGen    = DataGenerator(IntValueType)
   private val doubleGen = DataGenerator(DoubleValueType)
   private val stringGen = DataGenerator(StringValueType)
 
   private def nextOfType(t: ValueType): Datum = t match {
     case BooleanValueType => boolGen.next()
-    case IntValueType => intGen.next()
-    case DoubleValueType => doubleGen.next()
-    case StringValueType => stringGen.next()
-    case t => throw LatisException(s"No generator for $t")
+    case IntValueType     => intGen.next()
+    case DoubleValueType  => doubleGen.next()
+    case StringValueType  => stringGen.next()
+    case t                => throw LatisException(s"No generator for $t")
   }
   private val rangeTypes = model.getScalars.drop(model.arity).map(_.valueType)
-  def next(): RangeData = RangeData(rangeTypes.map(nextOfType))
+  def next(): RangeData  = RangeData(rangeTypes.map(nextOfType))
 }

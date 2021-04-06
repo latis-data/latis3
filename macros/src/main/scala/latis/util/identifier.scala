@@ -20,7 +20,8 @@ object Identifier {
   }
 
   /** Returns whether the String is a regex "word" that doesn't start with a digit (may also contain dots). */
-  private def checkValidIdentifier(str: String): Boolean = str.matches("^(?!\\d)(\\w|\\.)+") //TODO: revert to "^(?!\\d)\\w+"
+  private def checkValidIdentifier(str: String): Boolean =
+    str.matches("^(?!\\d)(\\w|\\.)+") //TODO: revert to "^(?!\\d)\\w+"
 
   def literalMacro(c: Context)(): c.Expr[Identifier] = {
     import c.universe._

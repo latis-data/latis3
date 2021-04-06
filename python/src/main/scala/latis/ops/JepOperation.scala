@@ -10,7 +10,6 @@ import latis.util.LatisException
  * Defines an Operation that uses JEP and acts on a single Dataset.
  */
 trait JepOperation extends UnaryOperation {
-
   /**
    * Sets the path to the JEP library file if it hasn't already been set.
    * The file name is based off the operating system.
@@ -25,5 +24,4 @@ trait JepOperation extends UnaryOperation {
   } catch {
     case _: JepException => //JEP library path already set
   }
-
 }

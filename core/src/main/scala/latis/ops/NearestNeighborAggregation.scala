@@ -10,13 +10,13 @@ import latis.util.LatisException
  * whose domain is closest to the given domain.
  */
 case class NearestNeighborAggregation(domain: DomainData) extends Aggregation {
-
   def aggregateFunction(model: DataType): Iterable[Sample] => Data = {
     (samples: Iterable[Sample]) =>
       if (samples.isEmpty) model match {
         case Function(_, r) => r.fillValue
-        case _ => ??? //TODO: error, model must be a Function
-      } else {
+        case _              => ??? //TODO: error, model must be a Function
+      }
+      else {
         val sample = samples.minBy {
           case Sample(dd, _) => DomainData.distance(domain, dd)
         }
@@ -24,8 +24,8 @@ case class NearestNeighborAggregation(domain: DomainData) extends Aggregation {
       }
   }
 
-  def applyToModel(model:DataType): Either[LatisException, DataType] = model match {
+  def applyToModel(model: DataType): Either[LatisException, DataType] = model match {
     case Function(_, r) => Right(r)
-    case _ => Left(LatisException("Model must be a Function"))
+    case _              => Left(LatisException("Model must be a Function"))
   }
 }

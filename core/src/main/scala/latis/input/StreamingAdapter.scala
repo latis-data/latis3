@@ -14,7 +14,6 @@ import latis.ops.Operation
  * effectful Stream of Samples.
  */
 trait StreamingAdapter[R] extends Adapter {
-
   /**
    * Provides a Stream of records.
    */
@@ -31,5 +30,4 @@ trait StreamingAdapter[R] extends Adapter {
    */
   def getData(uri: URI, ops: Seq[Operation] = Seq.empty): SampledFunction =
     StreamFunction(recordStream(uri).map(parseRecord).unNone)
-
 }

@@ -40,7 +40,7 @@ case class Curry(arity: Int = 1) extends GroupOperation {
     case Function(d, _) =>
       d.getScalars.take(arity) match {
         case s1 :: Nil => s1
-        case ss => Tuple(ss)
+        case ss        => Tuple(ss)
       }
     //case Function(Tuple(es @ _*), _) => Tuple(es.take(arity))
   }
@@ -48,35 +48,35 @@ case class Curry(arity: Int = 1) extends GroupOperation {
   def aggregation: Aggregation = {
     val mapOp = new MapOperation {
       override def mapFunction(model: DataType): Sample => Sample = {
-          case Sample(d, r) => Sample(d.drop(arity), r)
-        }
+        case Sample(d, r) => Sample(d.drop(arity), r)
+      }
 
       // takes the model for the dataset and returns the range of the curried dataset
       override def applyToModel(model: DataType): Either[LatisException, DataType] = model match {
         // Ignore nested tuples
         case Function(d, range) =>
           (d.getScalars.drop(arity) match {
-            case Nil => range  // this happens when the arity is not changed
+            case Nil       => range // this happens when the arity is not changed
             case s1 :: Nil => Function(s1, range)
-            case ss => Function(Tuple(ss), range)
+            case ss        => Function(Tuple(ss), range)
           }).asRight
         case _ => Left(LatisException("Model must be a function"))
         //case Function(Tuple(es @ _*), range) => Function(Tuple(es.drop(arity)), range)
-          //TODO: beef up edge cases
+        //TODO: beef up edge cases
       }
     }
 
     DefaultAggregation().compose(mapOp)
   }
-
 }
 
 object Curry {
-
   def fromArgs(args: List[String]): Either[LatisException, Curry] = args match {
-    case arity :: Nil => Either.catchOnly[NumberFormatException](Curry(arity.toInt))
-      .leftMap(LatisException(_))
+    case arity :: Nil =>
+      Either
+        .catchOnly[NumberFormatException](Curry(arity.toInt))
+        .leftMap(LatisException(_))
     case Nil => Right(Curry())
-    case _ => Left(LatisException("Too many arguments to Curry"))
+    case _   => Left(LatisException("Too many arguments to Curry"))
   }
 }

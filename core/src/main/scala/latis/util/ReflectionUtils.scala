@@ -6,7 +6,6 @@ import scala.reflect.runtime._
  * Collection of utility methods for using reflection.
  */
 object ReflectionUtils {
-
   /**
    * Return the java.lang.Class for the given a fully resolved class name.
    * This will NOT return an instance of that class.
@@ -48,7 +47,7 @@ object ReflectionUtils {
     val companionObject = getCompanionObject(className)
     val method = {
       val maybeMethod = companionObject.getClass().getMethods.find { method =>
-        val argClasses = args.map(_.getClass)       // types of args passed to method
+        val argClasses   = args.map(_.getClass)     // types of args passed to method
         val paramClasses = method.getParameterTypes // types of method parameters
         (argClasses.length == paramClasses.length) && {
           (paramClasses.zip(argClasses)).forall {

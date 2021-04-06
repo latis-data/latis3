@@ -9,7 +9,6 @@ import cats.syntax.all._
 import org.xml.sax.SAXParseException
 
 object FdmlUtils {
-
   /** Returns a StreamSource for the given XML URI. */
   def getXmlSource(uri: URI): Either[LatisException, StreamSource] =
     NetUtils.resolveUri(uri).flatMap { u =>

@@ -17,7 +17,6 @@ trait AdapterFactory {
  * a companion object that extends the AdapterFactory trait.
  */
 object AdapterFactory {
-
   def makeAdapter(model: DataType, config: AdapterConfig): Adapter =
     try {
       callMethodOnCompanionObject(config.className, "apply", model, config).asInstanceOf[Adapter]
@@ -25,5 +24,4 @@ object AdapterFactory {
       case e: Exception =>
         throw new RuntimeException("Failed to construct Adapter: " + config.className, e)
     }
-
 }

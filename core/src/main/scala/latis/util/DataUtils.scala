@@ -5,7 +5,6 @@ import latis.data.Datum
 import latis.model.ValueType
 
 object DataUtils {
-
   /**
    * Tries to convert a sequence of any values into a sequence of Datum.
    * The values' types must be a supported ValueType and each element

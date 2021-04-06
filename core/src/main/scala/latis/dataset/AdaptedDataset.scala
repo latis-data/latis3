@@ -23,11 +23,10 @@ class AdaptedDataset(
   uri: URI,
   operations: Seq[UnaryOperation] = Seq.empty
 ) extends AbstractDataset(
-  _metadata,
-  _model,
-  operations
-) {
-
+      _metadata,
+      _model,
+      operations
+    ) {
   /**
    * Returns a copy of this Dataset with the given Operation
    * appended to its sequence of operations.

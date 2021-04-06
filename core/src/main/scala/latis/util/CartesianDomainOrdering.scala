@@ -5,7 +5,6 @@ import latis.data.DomainData
 
 case class CartesianDomainOrdering(ords: Seq[PartialOrdering[Datum]])
     extends PartialOrdering[DomainData] {
-
   def tryCompare(dd1: DomainData, dd2: DomainData): Option[Int] = {
     def go(os: Seq[PartialOrdering[Datum]], ds1: List[Datum], ds2: List[Datum]): Option[Int] =
       if (os.isEmpty) Some(0) //every pair was equal

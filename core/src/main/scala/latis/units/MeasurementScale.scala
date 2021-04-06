@@ -10,7 +10,7 @@ package latis.units
 trait MeasurementScale {
   def unitType: MeasurementType
   def baseMultiplier: Double = 1.0
-  def zero: Double = 0
+  def zero: Double           = 0
 }
 
 object Kelvin extends MeasurementScale {
@@ -19,13 +19,13 @@ object Kelvin extends MeasurementScale {
 
 object Celcius extends MeasurementScale {
   def unitType: MeasurementType = Temperature
-  override def zero: Double = -273.15
+  override def zero: Double     = -273.15
 }
 
 object Farenheight extends MeasurementScale {
-  def unitType: MeasurementType = Temperature
+  def unitType: MeasurementType       = Temperature
   override def baseMultiplier: Double = 5.0 / 9.0
-  override def zero: Double = -459.67
+  override def zero: Double           = -459.67
 }
 
 object Meter extends MeasurementScale {
@@ -33,6 +33,6 @@ object Meter extends MeasurementScale {
 }
 
 object KiloMeter extends MeasurementScale {
-  def unitType: MeasurementType = Length
+  def unitType: MeasurementType       = Length
   override def baseMultiplier: Double = 1000
 }

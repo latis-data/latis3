@@ -16,7 +16,6 @@ import latis.util.StreamUtils
 import StreamUtils.contextShift
 
 object FdmlCatalog {
-
   /**
    * Creates a catalog from a directory of FDML files.
    *

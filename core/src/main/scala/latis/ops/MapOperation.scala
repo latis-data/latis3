@@ -15,7 +15,7 @@ import latis.util.LatisException
  * have the same number of Samples.
  */
 trait MapOperation extends StreamOperation { self =>
-  
+
   /**
    * Defines a function that modifies a given Sample
    * into a new Sample.
@@ -41,11 +41,9 @@ trait MapOperation extends StreamOperation { self =>
       mapOp.mapFunction(model).andThen(self.mapFunction(tmpModel))
     }
   }
-
 }
 
 object MapOperation {
-
   def unapply(mapOp: MapOperation): Option[DataType => Sample => Sample] =
     Some(mapOp.mapFunction)
 }

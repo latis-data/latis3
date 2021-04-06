@@ -26,20 +26,22 @@ import latis.util.NetUtils
  * ..., d,,n,,) -> (..., uri, ...)`.
  */
 final class GranuleListAppendAdapter(granules: Dataset, template: URI => Dataset) {
-
   /** Gets data using this adapter. */
   def getData(ops: Seq[Operation]): SampledFunction = {
     val samples: Stream[IO, Sample] = for {
       sample <- granules.samples
-      pos    <- Stream.fromEither[IO] {
-        granules.model.getPath(id"uri").toRight(
-          LatisException("Expected 'uri' variable")
-        ).flatMap {
-          case p :: Nil => p.asRight
-          case _ => LatisException("Expected non-nested 'uri' variable").asLeft
-        }
+      pos <- Stream.fromEither[IO] {
+        granules.model
+          .getPath(id"uri")
+          .toRight(
+            LatisException("Expected 'uri' variable")
+          )
+          .flatMap {
+            case p :: Nil => p.asRight
+            case _        => LatisException("Expected non-nested 'uri' variable").asLeft
+          }
       }
-      uri    <- Stream.fromEither[IO](extractUri(sample, pos))
+      uri <- Stream.fromEither[IO](extractUri(sample, pos))
       dataset = template(uri)
       result <- dataset.samples
     } yield result
@@ -50,10 +52,13 @@ final class GranuleListAppendAdapter(granules: Dataset, template: URI => Dataset
   private def extractUri(
     s: Sample,
     p: SamplePosition
-  ): Either[LatisException, URI] = s.getValue(p).toRight {
-    LatisException("Expected sample with granule URI")
-  }.flatMap {
-    case Text(uri) => NetUtils.parseUri(uri)
-    case _ => LatisException("Expected text URI variable").asLeft
-  }
+  ): Either[LatisException, URI] = s
+    .getValue(p)
+    .toRight {
+      LatisException("Expected sample with granule URI")
+    }
+    .flatMap {
+      case Text(uri) => NetUtils.parseUri(uri)
+      case _         => LatisException("Expected text URI variable").asLeft
+    }
 }

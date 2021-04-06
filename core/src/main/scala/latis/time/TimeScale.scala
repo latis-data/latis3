@@ -17,13 +17,13 @@ import latis.units.MeasurementType
  * it's units (hours) the zero (one day ago) would be -24.
  */
 case class TimeScale(timeUnit: TimeUnit, epoch: String) extends MeasurementScale {
-
   def unitType: MeasurementType = TimeType
 
   override def baseMultiplier: Double = timeUnit.baseMultiplier
 
   override def zero: Double =
-    -TimeFormat.parseIso(epoch)
+    -TimeFormat
+      .parseIso(epoch)
       .map(_ / 1000 / baseMultiplier)
       .getOrElse { ??? }
 
@@ -31,7 +31,6 @@ case class TimeScale(timeUnit: TimeUnit, epoch: String) extends MeasurementScale
 }
 
 object TimeScale {
-
   /**
    * Defines the default time scale as Java's default:
    * milliseconds since 1970.

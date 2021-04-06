@@ -44,5 +44,4 @@ object SortedMapFunction { //extends FunctionFactory {
     val tord: Ordering[DomainData] = LatisOrdering.partialToTotal(ordering)
     SortedMapFunction(SortedMap(samples: _*)(tord))
   }
-
 }

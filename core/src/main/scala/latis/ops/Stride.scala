@@ -19,7 +19,6 @@ case class Stride(stride: Seq[Int]) extends Filter {
       else false
     }
   }
-
 }
 
 object Stride {

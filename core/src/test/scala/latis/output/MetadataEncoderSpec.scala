@@ -13,7 +13,6 @@ import latis.model.Scalar
 import latis.util.Identifier.IdentifierStringContext
 
 final class MetadataEncoderSpec extends AnyFlatSpec {
-
   private val dataset: Dataset = {
     val metadata = Metadata(id"dataset")
 
@@ -34,23 +33,23 @@ final class MetadataEncoderSpec extends AnyFlatSpec {
     val cursor = md.hcursor
     cursor.get[String]("id").getOrElse {
       fail("Missing dataset ID")
-    } should equal ("dataset")
+    } should equal("dataset")
     cursor.get[String]("model").getOrElse {
       fail("Missing model")
-    } should equal ("a -> b")
+    } should equal("a -> b")
 
     val variables = cursor.downField("variables")
     variables.downN(0).get[String]("id").getOrElse {
       fail("Missing variable ID")
-    } should equal ("a")
+    } should equal("a")
     variables.downN(0).get[String]("type").getOrElse {
       fail("Missing variable type")
-    } should equal ("int")
+    } should equal("int")
     variables.downN(1).get[String]("id").getOrElse {
       fail("Missing variable ID")
-    } should equal ("b")
+    } should equal("b")
     variables.downN(1).get[String]("type").getOrElse {
       fail("Missing variable type")
-    } should equal ("int")
+    } should equal("int")
   }
 }

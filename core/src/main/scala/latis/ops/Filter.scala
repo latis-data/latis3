@@ -44,7 +44,6 @@ trait Filter extends UnaryOperation with StreamOperation { self =>
     mapOp.mapFunction(model).andThen {
       self.predicate(mapOp.applyToModel(model).fold(throw _, identity))
     }
-
 }
 
 object Filter {

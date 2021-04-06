@@ -25,8 +25,8 @@ class TappedDataset(
   _model: DataType,
   _data: Data,
   operations: Seq[UnaryOperation] = Seq.empty
-) extends AbstractDataset(_metadata, _model, operations) with Serializable {
-
+) extends AbstractDataset(_metadata, _model, operations)
+    with Serializable {
   /**
    * Returns this Dataset's Data.
    */
@@ -59,10 +59,11 @@ class TappedDataset(
     // Defines a function to apply an Operation to Data.
     // The model (DataType) needs to ride along to provide context.
     val f: ((DataType, Data), UnaryOperation) => Either[LatisException, (DataType, Data)] = {
-      case ((model: DataType, data: Data), op: UnaryOperation) => for {
-        mod2 <- op.applyToModel(model)
-        dat2 <- data.applyOperation(op, model)
-      } yield (mod2, dat2)
+      case ((model: DataType, data: Data), op: UnaryOperation) =>
+        for {
+          mod2 <- op.applyToModel(model)
+          dat2 <- data.applyOperation(op, model)
+        } yield (mod2, dat2)
     }
 
     // Apply the operations to the data
@@ -75,9 +76,8 @@ class TappedDataset(
    * will be read into a MemoizedFunction.
    */
   def unsafeForce(): MemoizedDataset = new MemoizedDataset(
-    metadata,  //from super with ops applied
-    model,     //from super with ops applied
+    metadata, //from super with ops applied
+    model,    //from super with ops applied
     applyOperations().fold(throw _, identity).asInstanceOf[SampledFunction].unsafeForce
   )
-
 }

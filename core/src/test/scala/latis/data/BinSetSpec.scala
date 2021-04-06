@@ -4,7 +4,6 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 
 class BinSetSpec extends AnyFlatSpec {
-
   //Note, bin center semantics
   val set1D = BinSet1D(0.0, 1.0, 10)
 
@@ -33,7 +32,6 @@ class BinSetSpec extends AnyFlatSpec {
   it should "provide an index of a bin" in {
     set1D.indexOf(DomainData(3.3)) should be(3)
   }
-
 
   val set2D = BinSet2D(set1D, set1D)
 

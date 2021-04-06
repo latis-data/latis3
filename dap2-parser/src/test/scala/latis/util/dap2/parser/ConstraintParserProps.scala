@@ -8,18 +8,20 @@ import latis.util.Identifier
 import ast._
 
 object ConstraintParserProps extends Properties("DAP 2 Constraint Parser") {
-
   property("parse") = Prop.forAll(cexpr) { expr: ConstraintExpression =>
-    expr == ConstraintParser.parse(pretty(expr)).fold(
-      msg => throw new RuntimeException(msg), x => x
-    )
+    expr == ConstraintParser
+      .parse(pretty(expr))
+      .fold(
+        msg => throw new RuntimeException(msg),
+        x => x
+      )
   }
 
   val identifier: Gen[Identifier] = for {
     init <- Gen.oneOf(Gen.alphaChar, Gen.const('_'))
     //TODO: remove const('.') after Identifier refactor
     rest <- Gen.listOf(Gen.oneOf(Gen.alphaNumChar, Gen.const('_'), Gen.const('.')))
-    id    = s"$init${rest.mkString}"
+    id = s"$init${rest.mkString}"
   } yield Identifier.fromString(id).getOrElse {
     throw new RuntimeException(s"Failed to generate identifier from: $id")
   }

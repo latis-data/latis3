@@ -11,7 +11,6 @@ import latis.ops._
  * Defines a DatasetReader that uses an Adapter to get data from the source.
  */
 trait AdaptedDatasetReader extends DatasetReader {
-
   /** Returns global metadata. */
   def metadata: Metadata
 
@@ -40,5 +39,4 @@ trait AdaptedDatasetReader extends DatasetReader {
       uri,
       operations
     )
-
 }

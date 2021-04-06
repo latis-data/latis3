@@ -18,13 +18,11 @@ class OutputStreamWriter[F[_]: ContextShift: Sync](
   outputStream: F[OutputStream],
   blocker: Blocker
 ) extends Writer[F, Byte] {
-
   override val write: Pipe[F, Byte, Unit] =
     fs2.io.writeOutputStream(outputStream, blocker)
 }
 
 object OutputStreamWriter {
-
   /**
    * Create a writer from an impure output stream.
    *

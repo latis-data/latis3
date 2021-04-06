@@ -29,18 +29,17 @@ import latis.dataset.Dataset
  * }}}
  */
 class MetadataEncoder extends Encoder[IO, Json] {
-
   override def encode(dataset: Dataset): Stream[IO, Json] =
     Stream.emit(MetadataEncoder.MetadataOnly(dataset).asJson)
 }
 
 object MetadataEncoder {
-  private final case class MetadataOnly(ds: Dataset) extends AnyVal
+  final private case class MetadataOnly(ds: Dataset) extends AnyVal
 
-  private implicit val mdEncoder: JEncoder[MetadataOnly] =
+  implicit private val mdEncoder: JEncoder[MetadataOnly] =
     new JEncoder[MetadataOnly] {
       def apply(md: MetadataOnly): Json = {
-        val datasetMetadata = md.ds.metadata.properties.asJsonObject
+        val datasetMetadata  = md.ds.metadata.properties.asJsonObject
         val variableMetadata = md.ds.model.getScalars.map(_.metadata.properties).asJson
         Json.fromJsonObject(
           datasetMetadata

@@ -10,7 +10,6 @@ import latis.model._
 import latis.util.Identifier.IdentifierStringContext
 
 class TestProjection {
-  
   @Test
   def tuple() = {
     val model = Tuple(

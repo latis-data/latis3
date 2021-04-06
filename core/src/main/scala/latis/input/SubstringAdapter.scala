@@ -14,7 +14,6 @@ class SubstringAdapter(
   model: DataType,
   config: SubstringAdapter.Config
 ) extends TextAdapter(model, config) {
-
   /**
    * Parse the substring indices and store by variable name.
    */
@@ -25,15 +24,14 @@ class SubstringAdapter(
   /**
    * Extract the value of each Variable as a String.
    */
-  override def extractValues(record: String): Vector[String] = {
-    substringIndices.flatMap{ is =>
+  override def extractValues(record: String): Vector[String] =
+    substringIndices.flatMap { is =>
       val i0 = is(0)
       val i1 = is(1)
-      if (i1 > record.length) None  // Ignore rows not long enough
+      if (i1 > record.length) None // Ignore rows not long enough
       // TODO: replace with fill value
       else Some(record.substring(i0, i1))
     }
-  }
 }
 
 object SubstringAdapter extends AdapterFactory {

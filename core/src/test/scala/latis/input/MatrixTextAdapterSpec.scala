@@ -17,18 +17,17 @@ import org.scalatest.matchers.should.Matchers._
 import latis.util.Identifier.IdentifierStringContext
 
 class MatrixTextAdapterSpec extends AnyFlatSpec {
-
   val ds = {
     val metadata = Metadata(id"matrixData")
     val model: DataType = Function(
       Tuple(
-        Scalar(Metadata("id" -> "row", "type" -> "int")),
+        Scalar(Metadata("id" -> "row", "type"    -> "int")),
         Scalar(Metadata("id" -> "column", "type" -> "int"))
       ),
       Scalar(Metadata("id" -> "v", "type" -> "double"))
     )
-    val config = new input.TextAdapter.Config(("delimiter", ","))
-    val adapter = new MatrixTextAdapter(model, config)
+    val config   = new input.TextAdapter.Config(("delimiter", ","))
+    val adapter  = new MatrixTextAdapter(model, config)
     val uri: URI = resolveUri("data/matrixData.txt").right.get
     new AdaptedDataset(metadata, model, adapter, uri)
   }
@@ -41,7 +40,6 @@ class MatrixTextAdapterSpec extends AnyFlatSpec {
       Sample(DomainData(1, 0), RangeData(5.8)),
       Sample(DomainData(1, 1), RangeData(-5.4))
     )
-    result should be (expected)
+    result should be(expected)
   }
-
 }

@@ -15,53 +15,66 @@ import latis.util.dap2.parser.ast
 
 class TestGranuleListJoin {
   //TODO: ScalaTest flat spec?
-  
+
   @Test
   def test() = {
     //granule list dataset: i -> uri
     val gl: Dataset = {
       val md = Metadata(id"test_dataset")
       val model = Function(
-        Scalar(Metadata("id" -> "i", "type" -> "int")),
+        Scalar(Metadata("id" -> "i", "type"   -> "int")),
         Scalar(Metadata("id" -> "uri", "type" -> "string"))
       )
-      val data = SampledFunction(Seq(
-        //TODO: generate test data files
-        Sample(DomainData(0), RangeData(s"file://${System.getProperty("user.home")}/git/latis3/core/src/test/resources/data/data.txt")),
-        Sample(DomainData(1), RangeData(s"file://${System.getProperty("user.home")}/git/latis3/core/src/test/resources/data/data2.txt"))
-      ))
+      val data = SampledFunction(
+        Seq(
+          //TODO: generate test data files
+          Sample(
+            DomainData(0),
+            RangeData(
+              s"file://${System.getProperty("user.home")}/git/latis3/core/src/test/resources/data/data.txt"
+            )
+          ),
+          Sample(
+            DomainData(1),
+            RangeData(
+              s"file://${System.getProperty("user.home")}/git/latis3/core/src/test/resources/data/data2.txt"
+            )
+          )
+        )
+      )
       new TappedDataset(md, model, data)
     }
-    
+
     //model for granule: a -> (b, c, d)
     def model: DataType = Function(
       Scalar(Metadata("id" -> "a", "type" -> "short")),
       Tuple(
         Scalar(Metadata("id" -> "b", "type" -> "int")),
-        Scalar(Metadata("id" -> "c", "type" -> "float")), 
+        Scalar(Metadata("id" -> "c", "type" -> "float")),
         Scalar(Metadata("id" -> "d", "type" -> "string"))
       )
     )
-    
+
     val config: AdapterConfig = AdapterConfig {
       "className" -> "latis.input.TextAdapter"
-    }    
+    }
     //val adapter = TextAdapter(model)
-    
+
     val glj = GranuleListJoin(model, config)
     //val glj = GranuleListJoin(model, adapter)
-    
+
 //    val ops = Seq(
 //      Selection("a", ">=", "2"),
 //      Selection("a", "<=", "3"),
 //      //Projection("a,b,d") //TODO: projection not working
 //    )
-    
-    val ds = gl.withOperation(glj)
-               .withOperation(Selection(id"a", ast.GtEq, "2"))
-               .withOperation(Selection(id"a", ast.LtEq, "3"))
-               //.withOperation(Projection("a,b,d"))
-    
+
+    val ds = gl
+      .withOperation(glj)
+      .withOperation(Selection(id"a", ast.GtEq, "2"))
+      .withOperation(Selection(id"a", ast.LtEq, "3"))
+    //.withOperation(Projection("a,b,d"))
+
     //val ds = ops.foldLeft(glj(gl))((ds, op) => op(ds))
     //val ds = ops.foldLeft(gl.withOperation(glj))((ds, op) => op(ds))
     //val out = System.out //new FileOutputStream("/data/tmp/data3.txt")

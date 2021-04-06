@@ -76,35 +76,38 @@ case class Pivot(values: Seq[String], vids: Seq[String]) extends MapOperation {
     case Function(domain, Function(_, r)) =>
       val ranges = for {
         vid <- vids
-        s <- r.getScalars
+        s   <- r.getScalars
       } yield s.rename({
-          val sId = s.id.fold("")(_.asString)
-          Identifier.fromString(vid ++ "_" ++ sId).getOrElse {
-            throw LatisException(s"Could not rename Scalar with invalid identifier: $sId")
-          }
-        })
+        val sId = s.id.fold("")(_.asString)
+        Identifier.fromString(vid ++ "_" ++ sId).getOrElse {
+          throw LatisException(s"Could not rename Scalar with invalid identifier: $sId")
+        }
+      })
       (ranges match {
         case s1 :: Nil => Function(domain, s1)
-        case ss => Function(domain, Tuple(ss))
+        case ss        => Function(domain, Tuple(ss))
       }).asRight
     case _ => Left(LatisException("Invalid DataType"))
   }
-
 }
 
 object Pivot {
-
   def fromArgs(args: List[String]): Either[LatisException, Pivot] = {
     // define a parser that doesn't allow nested lists
     val argParser = parens(sepBy(scalarArg.token, char(',').token))
 
     args match {
-      case valuesStr :: vidsStr :: Nil => for {
-        values <- argParser.parseOnly(valuesStr).option
-          .toRight(LatisException(s"Failed to parse Pivot input 'values': $valuesStr"))
-        vids   <- argParser.parseOnly(vidsStr).option
-          .toRight(LatisException(s"Failed to parse Pivot input 'vids': $vidsStr"))
-      } yield Pivot(values, vids)
+      case valuesStr :: vidsStr :: Nil =>
+        for {
+          values <- argParser
+            .parseOnly(valuesStr)
+            .option
+            .toRight(LatisException(s"Failed to parse Pivot input 'values': $valuesStr"))
+          vids <- argParser
+            .parseOnly(vidsStr)
+            .option
+            .toRight(LatisException(s"Failed to parse Pivot input 'vids': $vidsStr"))
+        } yield Pivot(values, vids)
       case _ => Left(LatisException("Pivot requires exactly two list arguments"))
     }
   }

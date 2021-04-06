@@ -8,7 +8,6 @@ import latis.util.Identifier
 import ast._
 
 object parsers {
-
   /*
    * A note about "|" and "choice":
    *
@@ -26,16 +25,16 @@ object parsers {
     sepBy1(identifier.token, char(',').token).map(xs => Projection(xs.toList))
 
   def selectionOp: Parser[SelectionOp] = choice(
-    string("~")   ~> ok(Tilde),
-    string(">=")  ~> ok(GtEq),
-    string("<=")  ~> ok(LtEq),
-    string("==")  ~> ok(EqEq),
-    string("=~")  ~> ok(EqTilde),
+    string("~") ~> ok(Tilde),
+    string(">=") ~> ok(GtEq),
+    string("<=") ~> ok(LtEq),
+    string("==") ~> ok(EqEq),
+    string("=~") ~> ok(EqTilde),
     string("!=~") ~> ok(NeEqTilde),
-    string("!=")  ~> ok(NeEq),
-    string(">")   ~> ok(Gt),
-    string("<")   ~> ok(Lt),
-    string("=")   ~> ok(Eq)
+    string("!=") ~> ok(NeEq),
+    string(">") ~> ok(Gt),
+    string("<") ~> ok(Lt),
+    string("=") ~> ok(Eq)
   )
 
   def selection: Parser[CExpr] = for {
@@ -67,8 +66,9 @@ object parsers {
   def identifier: Parser[Identifier] = for {
     init <- letter | char('_')
     rest <- many(letterOrDigit | char('_') | char('.')) //TODO: remove '.' after Identifier refactor
-    name  = (init :: rest).mkString
-    id   <- Identifier.fromString(name)
+    name = (init :: rest).mkString
+    id <- Identifier
+      .fromString(name)
       .fold(err[Identifier](s"Invalid identifier: $name"))(ok(_))
   } yield id
 

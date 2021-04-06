@@ -1,7 +1,6 @@
 package latis.data
 
 object Sample {
-
   /**
    * Construct a Sample from a Seq of domain values and a Seq of range values.
    */
@@ -13,5 +12,4 @@ object Sample {
    */
   def unapply(sample: Sample): Option[(DomainData, RangeData)] =
     Some((sample._1, sample._2))
-
 }

@@ -18,7 +18,6 @@ import latis.util.StreamUtils._
  * consumed or after a timeout.
  */
 class FtpStreamSource extends StreamSource {
-
   /**
    * Specifies that "ftp" or "ftps" URIs can be read by this StreamSource.
    */
@@ -41,7 +40,8 @@ class FtpStreamSource extends StreamSource {
         settings = if (uri.getScheme == "ftps")
           UnsecureFtpSettings.ssl(host, port, credentials)
         else UnsecureFtpSettings(host, port, credentials)
-        path <- Option(uri.getPath).filter(_.nonEmpty)
+        path <- Option(uri.getPath)
+          .filter(_.nonEmpty)
           .toRight(LatisException(s"Could not get path from uri: $uri"))
       } yield Stream.resource(connect[IO](settings)).flatMap(_.readFile(path))
       Some(stream.fold(Stream.raiseError[IO], identity))

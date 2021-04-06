@@ -6,7 +6,6 @@ import latis.util.Identifier
  * Module for the DAP 2 constraint expression AST.
  */
 object ast {
-
   /**
    * Wrapper for DAP 2 constraint expressions.
    */
@@ -17,14 +16,12 @@ object ast {
    *
    * @param expr constraint expression to pretty print
    */
-  def pretty(expr: ConstraintExpression): String = {
-
+  def pretty(expr: ConstraintExpression): String =
     expr.exprs.map {
       case Projection(n)       => n.map(_.asString).mkString(",")
       case Selection(n, op, v) => s"${n.asString}${prettyOp(op)}$v"
       case Operation(n, args)  => s"$n(${args.mkString(",")})"
     }.mkString("&")
-  }
 
   sealed trait CExpr
 
@@ -33,23 +30,26 @@ object ast {
   ) extends CExpr
 
   final case class Selection(
-    name: Identifier, op: SelectionOp, value: String
+    name: Identifier,
+    op: SelectionOp,
+    value: String
   ) extends CExpr
 
   final case class Operation(
-    name: String, args: List[String]
+    name: String,
+    args: List[String]
   ) extends CExpr
 
   sealed trait SelectionOp
-  final case object Gt extends SelectionOp
-  final case object Lt extends SelectionOp
-  final case object Eq extends SelectionOp
-  final case object GtEq extends SelectionOp
-  final case object LtEq extends SelectionOp
-  final case object EqEq extends SelectionOp
-  final case object NeEq extends SelectionOp
-  final case object Tilde extends SelectionOp
-  final case object EqTilde extends SelectionOp
+  final case object Gt        extends SelectionOp
+  final case object Lt        extends SelectionOp
+  final case object Eq        extends SelectionOp
+  final case object GtEq      extends SelectionOp
+  final case object LtEq      extends SelectionOp
+  final case object EqEq      extends SelectionOp
+  final case object NeEq      extends SelectionOp
+  final case object Tilde     extends SelectionOp
+  final case object EqTilde   extends SelectionOp
   final case object NeEqTilde extends SelectionOp
 
   /**

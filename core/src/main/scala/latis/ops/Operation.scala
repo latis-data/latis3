@@ -18,5 +18,4 @@ trait Operation {
    */
   def provenance: String = this.toString
   //def apply(ds: Dataset*): Dataset
-
 }

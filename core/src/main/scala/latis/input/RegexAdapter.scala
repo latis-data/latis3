@@ -14,7 +14,6 @@ class RegexAdapter(
   model: DataType,
   config: RegexAdapter.Config
 ) extends TextAdapter(model, config) {
-
   /**
    * Get the required regular expression pattern from the adapter definition.
    */

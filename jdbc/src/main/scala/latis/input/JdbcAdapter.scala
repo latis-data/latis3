@@ -31,9 +31,7 @@ case class JdbcAdapter(
   model: DataType,
   config: JdbcAdapter.Config
 ) extends Adapter {
-
   def getData(baseUri: URI, ops: Seq[Operation]): Data = {
-
     // This escapes to raw JDBC for efficiency.
     def getNextChunkSamples(chunkSize: Int): ResultSetIO[Seq[Sample]] =
       FRS.raw { rs =>
@@ -43,21 +41,25 @@ case class JdbcAdapter(
         val rowBuilder   = Vector.newBuilder[Seq[Datum]]
         val datumBuilder = Vector.newBuilder[Datum]
         while (n > 0 && rs.next) {
-          ks.zip(model.getScalars).foreach { case (k, s) =>
-            datumBuilder += Data.fromValue(s.valueType match {
-              case BooleanValueType => rs.getBoolean(k)
-              case ByteValueType => rs.getByte(k)
-              case CharValueType => rs.getByte(k).toChar
-              case ShortValueType => rs.getShort(k)
-              case IntValueType => rs.getInt(k)
-              case LongValueType => rs.getLong(k)
-              case FloatValueType => rs.getFloat(k)
-              case DoubleValueType => rs.getDouble(k)
-              case BinaryValueType => rs.getBytes(k)
-              case StringValueType => rs.getString(k)
-              //case BigIntValueType => rs.getObject(k) // there is no getBigInt method on result set
-              case BigDecimalValueType => BigDecimal(rs.getBigDecimal(k))  // convert java BigDecimal to Scala BigDecimal
-            }).fold(throw _, identity)
+          ks.zip(model.getScalars).foreach {
+            case (k, s) =>
+              datumBuilder += Data
+                .fromValue(s.valueType match {
+                  case BooleanValueType => rs.getBoolean(k)
+                  case ByteValueType    => rs.getByte(k)
+                  case CharValueType    => rs.getByte(k).toChar
+                  case ShortValueType   => rs.getShort(k)
+                  case IntValueType     => rs.getInt(k)
+                  case LongValueType    => rs.getLong(k)
+                  case FloatValueType   => rs.getFloat(k)
+                  case DoubleValueType  => rs.getDouble(k)
+                  case BinaryValueType  => rs.getBytes(k)
+                  case StringValueType  => rs.getString(k)
+                  //case BigIntValueType => rs.getObject(k) // there is no getBigInt method on result set
+                  case BigDecimalValueType =>
+                    BigDecimal(rs.getBigDecimal(k)) // convert java BigDecimal to Scala BigDecimal
+                })
+                .fold(throw _, identity)
           }
           rowBuilder += datumBuilder.result()
           datumBuilder.clear()
@@ -118,7 +120,7 @@ case class JdbcAdapter(
     val where = config.predicate.map(p => s"WHERE $p ").getOrElse("")
     // order by domain variables ascending
     val order = s"order by ${colNames.take(model.arity).mkString(", ")} asc "
-    val sql = base ++ where ++ order
+    val sql   = base ++ where ++ order
 
     // processGeneric and the functions it calls were adapted from Doobie's
     // example.GenericStream to return Samples
@@ -127,11 +129,9 @@ case class JdbcAdapter(
 
     SampledFunction(result)
   }
-
 }
 
 object JdbcAdapter extends AdapterFactory {
-
   /** Constructor used by the AdapterFactory. */
   def apply(model: DataType, config: AdapterConfig): JdbcAdapter =
     new JdbcAdapter(model, JdbcAdapter.Config(config.properties: _*))
@@ -151,5 +151,4 @@ object JdbcAdapter extends AdapterFactory {
       .getOrElse(throw LatisException("DatabaseAdapter requires a password definition."))
     val predicate: Option[String] = get("predicate")
   }
-
 }

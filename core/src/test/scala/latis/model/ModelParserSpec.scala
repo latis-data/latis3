@@ -10,9 +10,7 @@ import latis.metadata.Metadata
 import latis.util.Identifier.IdentifierStringContext
 import latis.util.LatisException
 
-
 class ModelParserSpec extends AnyFlatSpec {
-
   private val testScalar   = testParser(ModelParser.scalar)(_, _)
   private val testTuple    = testParser(ModelParser.tuple)(_, _)
   private val testFunction = testParser(ModelParser.function)(_, _)

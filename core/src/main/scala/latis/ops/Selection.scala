@@ -22,12 +22,12 @@ case class Selection(id: Identifier, operator: ast.SelectionOp, value: String) e
 
   def getValue(model: DataType): Either[LatisException, Datum] = for {
     scalar <- getScalar(model)
-    cdata <- scalar.convertValue(value).leftMap(LatisException(_))
+    cdata  <- scalar.convertValue(value).leftMap(LatisException(_))
   } yield cdata
 
   def getScalar(model: DataType): Either[LatisException, Scalar] = model.findVariable(id) match {
     case Some(s: Scalar) => Right(s)
-    case _ => Left(LatisException(s"Selection variable not found: ${id.asString}"))
+    case _               => Left(LatisException(s"Selection variable not found: ${id.asString}"))
   }
 
   def predicate(model: DataType): Sample => Boolean = {
@@ -46,8 +46,8 @@ case class Selection(id: Identifier, operator: ast.SelectionOp, value: String) e
       case None => ??? //shouldn't happen due to earlier check
     }
 
-    val cdata = getValue(model).fold(throw _, identity)
-    val scalar = getScalar(model).fold(throw _, identity)
+    val cdata    = getValue(model).fold(throw _, identity)
+    val scalar   = getScalar(model).fold(throw _, identity)
     val ordering = scalar.ordering
 
     (sample: Sample) =>
@@ -87,25 +87,25 @@ case class Selection(id: Identifier, operator: ast.SelectionOp, value: String) e
 }
 
 object Selection {
-
   def fromArgs(args: List[String]): Either[LatisException, Selection] = args match {
     case expr :: Nil => makeSelection(expr)
-    case i :: o :: v :: Nil => for {
-      id <- Identifier.fromString(i).toRight(LatisException(s"'$i' is not a valid identifier"))
-      op <- getSelectionOp(o)
-    } yield Selection(id, op, v)
+    case i :: o :: v :: Nil =>
+      for {
+        id <- Identifier.fromString(i).toRight(LatisException(s"'$i' is not a valid identifier"))
+        op <- getSelectionOp(o)
+      } yield Selection(id, op, v)
     case _ => Left(LatisException("Selection requires either one or three arguments"))
   }
 
   def getSelectionOp(op: String): Either[LatisException, ast.SelectionOp] =
     parsers.selectionOp.parseOnly(op) match {
       case ParseResult.Done(_, o) => Right(o)
-      case _ => Left(LatisException(s"Failed to parse operator $op"))
+      case _                      => Left(LatisException(s"Failed to parse operator $op"))
     }
 
   def makeSelection(expression: String): Either[LatisException, Selection] =
     parsers.selection.parseOnly(expression) match {
       case ParseResult.Done(_, ast.Selection(id, op, value)) => Right(Selection(id, op, value))
-      case _ => Left(LatisException(s"Failed to parse expression $expression"))
+      case _                                                 => Left(LatisException(s"Failed to parse expression $expression"))
     }
 }

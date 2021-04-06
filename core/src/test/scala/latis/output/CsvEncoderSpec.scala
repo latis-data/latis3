@@ -12,7 +12,6 @@ import latis.dataset.Dataset
 import latis.util.Identifier.IdentifierStringContext
 
 class CsvEncoderSpec extends AnyFlatSpec {
-
   val ds: Dataset = {
     val catalog = FdmlCatalog.fromClasspath(
       getClass().getClassLoader(),

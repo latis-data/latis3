@@ -8,7 +8,6 @@ import latis.model._
 import latis.util.Identifier.IdentifierStringContext
 
 class RenameSpec extends AnyFlatSpec {
-
   "The Rename Operation" should "reconstruct the model with a single variable's name changed" in {
     val model = Function(
       Tuple(
@@ -24,6 +23,6 @@ class RenameSpec extends AnyFlatSpec {
       )
     )
     val r = Rename(id"e", id"f").applyToModel(model).fold(e => fail(e.message), identity)
-    r.toString should be ("(a, b) -> c -> (d, f)")
+    r.toString should be("(a, b) -> c -> (d, f)")
   }
 }

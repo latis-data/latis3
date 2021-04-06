@@ -6,7 +6,6 @@ package latis.util
  * String properties.
  */
 trait PropertiesLike {
-
   /**
    * Abstract method to return a Map of properties.
    * This is used to support the other functionality.
@@ -30,5 +29,4 @@ trait PropertiesLike {
    * May throw Exception.
    */
   def unsafeGet(name: String): String = properties(name)
-
 }

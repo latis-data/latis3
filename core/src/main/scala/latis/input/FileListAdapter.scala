@@ -72,7 +72,6 @@ class FileListAdapter(
   model: DataType,
   config: FileListAdapter.Config
 ) extends StreamingAdapter[FileInfo] {
-
   implicit private val cs: ContextShift[IO] = StreamUtils.contextShift
 
   override def recordStream(uri: URI): Stream[IO, FileInfo] =
@@ -87,7 +86,7 @@ class FileListAdapter(
         case Function(d, r) => (d.getScalars, r.getScalars).some
         case _              => None
       }
-      dv      = extractValues(info.path)
+      dv = extractValues(info.path)
       _      <- (ds.length == dv.length).guard[Option]
       domain <- ds.zip(dv).traverse(p => p._1.parseValue(p._2)).toOption
       range  <- makeRange(rs, info.path, info.size).toOption
@@ -121,7 +120,8 @@ class FileListAdapter(
    */
   private def extractValues(path: Path): List[String] = {
     val groups: List[String] =
-      config.pattern.findFirstMatchIn(path.toString)
+      config.pattern
+        .findFirstMatchIn(path.toString)
         .map(_.subgroups)
         .getOrElse(List.empty)
 
@@ -151,17 +151,17 @@ class FileListAdapter(
     range match {
       case (u: Scalar) :: Nil if u.id.contains(id"uri") =>
         u.parseValue(uri.toString).map(RangeData(_))
-      case (u: Scalar) :: (s: Scalar) :: Nil
-          if u.id.contains(id"uri") && s.id.contains(id"size") => for {
-            uriDatum  <- u.parseValue(uri.toString)
-            sizeLong  <- size.toRight {
-              // This shouldn't happen. If we have the size scalar in
-              // the model, we should have gotten the size in
-              // listFiles, so this variable should be defined.
-              LatisException("Missing size")
-            }
-            sizeDatum <- Data.fromValue(sizeLong)
-          } yield RangeData(uriDatum, sizeDatum)
+      case (u: Scalar) :: (s: Scalar) :: Nil if u.id.contains(id"uri") && s.id.contains(id"size") =>
+        for {
+          uriDatum <- u.parseValue(uri.toString)
+          sizeLong <- size.toRight {
+            // This shouldn't happen. If we have the size scalar in
+            // the model, we should have gotten the size in
+            // listFiles, so this variable should be defined.
+            LatisException("Missing size")
+          }
+          sizeDatum <- Data.fromValue(sizeLong)
+        } yield RangeData(uriDatum, sizeDatum)
       case _ => LatisException("Unsupported range").asLeft
     }
   }
@@ -228,10 +228,12 @@ object FileListAdapter extends AdapterFactory {
     } yield Config(pattern, columns, baseDir)
 
     private def parseColumns(cols: String): Either[LatisException, List[List[Int]]] =
-      Either.catchOnly[NumberFormatException] {
-        cols.split(";").map(_.split(",").map(_.toInt).toList).toList
-      }.leftMap {
-        new LatisException("Column specification must contain only numbers", _)
-      }
+      Either
+        .catchOnly[NumberFormatException] {
+          cols.split(";").map(_.split(",").map(_.toInt).toList).toList
+        }
+        .leftMap {
+          new LatisException("Column specification must contain only numbers", _)
+        }
   }
 }

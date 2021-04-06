@@ -143,7 +143,6 @@ class NetcdfEncoderSpec extends AnyFlatSpec {
 }
 
 object NetcdfEncoderSpec {
-
   private val time_series_1D: MemoizedDataset = {
     val samples = Seq(
       Sample(DomainData(1), RangeData(1.0)),

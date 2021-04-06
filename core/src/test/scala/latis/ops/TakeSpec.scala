@@ -11,7 +11,6 @@ import latis.dataset.Dataset
 import latis.util.DatasetGenerator
 
 class TakeSpec extends AnyFlatSpec {
-
   "The Take Operation" should "return the first n samples of a simple dataset" in {
     val ds: Dataset = DatasetGenerator("a -> b")
     val dsTake      = ds.withOperation(Take(2))

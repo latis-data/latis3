@@ -14,7 +14,6 @@ import latis.util.StreamUtils._
  * other form of cache.
  */
 trait MemoizedFunction extends SampledFunction {
-
   /**
    * Provides a sequence of Samples.
    */
@@ -47,7 +46,7 @@ trait MemoizedFunction extends SampledFunction {
     val eq: Equiv[DomainData] = ordering.getOrElse(DefaultDomainOrdering)
     val osample: Option[Sample] = sampleSeq.find {
       case Sample(d, _) => eq.equiv(d, data)
-      case _ => false
+      case _            => false
     }
     osample match {
       case Some(s) => Right(s.range)
@@ -126,7 +125,6 @@ trait MemoizedFunction extends SampledFunction {
 }
 
 object MemoizedFunction {
-
   /**
    * Extract a Seq of Samples from a SampledFunction.
    */
@@ -136,5 +134,4 @@ object MemoizedFunction {
       else Option(mf.sampleSeq)
     case _ => None //can't expose Seq from a non-memoized Function
   }
-
 }

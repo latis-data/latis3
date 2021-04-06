@@ -11,7 +11,6 @@ import fs2.text
 import latis.input.StreamSource
 
 object NetUtils {
-
   /** Returns a Path corresponding to the given file URI. */
   def getFilePath(uri: URI): Either[LatisException, Path] =
     if (uri.getScheme() != "file") {
@@ -74,13 +73,14 @@ object NetUtils {
     getPort(uri).orElse {
       Option(uri.getScheme) match {
         case None => LatisException(s"Couldn't parse port or scheme from uri: $uri").asLeft
-        case Some(scheme) => scheme match {
-          case "http" => 80.asRight
-          case "https" => 443.asRight
-          case "ftp" | "ftps" => 21.asRight
-          case "ssh" | "sftp" => 22.asRight
-          case _ => LatisException(s"No default port for scheme $scheme").asLeft
-        }
+        case Some(scheme) =>
+          scheme match {
+            case "http"         => 80.asRight
+            case "https"        => 443.asRight
+            case "ftp" | "ftps" => 21.asRight
+            case "ssh" | "sftp" => 22.asRight
+            case _              => LatisException(s"No default port for scheme $scheme").asLeft
+          }
       }
     }
 
@@ -94,12 +94,15 @@ object NetUtils {
   def getUserInfo(uri: URI): Either[LatisException, (String, String)] =
     Option(uri.getRawUserInfo) match {
       case None => LatisException(s"Couldn't parse user info from uri: $uri").asLeft
-      case Some(rawInfo) => rawInfo.split(':').toList match {
-        case rawUser :: rawPw :: Nil => (
-          URLDecoder.decode(rawUser, "UTF-8"),
-          URLDecoder.decode(rawPw, "UTF-8")
-        ).asRight
-        case _ => LatisException(s"Couldn't parse user and password from user-info: $rawInfo").asLeft
-      }
+      case Some(rawInfo) =>
+        rawInfo.split(':').toList match {
+          case rawUser :: rawPw :: Nil =>
+            (
+              URLDecoder.decode(rawUser, "UTF-8"),
+              URLDecoder.decode(rawPw, "UTF-8")
+            ).asRight
+          case _ =>
+            LatisException(s"Couldn't parse user and password from user-info: $rawInfo").asLeft
+        }
     }
 }

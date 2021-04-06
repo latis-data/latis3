@@ -8,7 +8,6 @@ import latis.util.LatisException
  * The domain values are 0-based indices as Ints.
  */
 case class ArrayFunction1D(array: Array[RangeData]) extends MemoizedFunction {
-
   /**
    * Defines the ordering for the domain indices.
    */
@@ -27,6 +26,5 @@ case class ArrayFunction1D(array: Array[RangeData]) extends MemoizedFunction {
     Seq.tabulate(array.length) { i =>
       Sample(DomainData(i), RangeData(array(i)))
     }
-
 }
 //TODO: fromSeq? See FunctionFactory

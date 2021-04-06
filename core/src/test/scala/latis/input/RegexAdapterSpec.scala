@@ -9,7 +9,6 @@ import latis.model._
 import latis.util.Identifier.IdentifierStringContext
 
 class RegexAdapterSpec extends AnyFlatSpec {
-
   private val model = Function(
     Tuple(
       Scalar(Metadata(id"time") + ("type" -> "string") + ("units" -> "yyyy MM dd"))

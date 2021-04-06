@@ -18,7 +18,6 @@ case class Uncurry() extends FlatMapOperation {
   //TODO: neglect function and tuple IDs, for now
 
   override def applyToModel(model: DataType): Either[LatisException, DataType] = {
-
     // Define buffers to accumulate domain and range types.
     val ds = ArrayBuffer[DataType]()
     val rs = ArrayBuffer[DataType]()
@@ -78,5 +77,4 @@ case class Uncurry() extends FlatMapOperation {
         case _ => SampledFunction(Seq(s)) //no-op if range is not a Function
       }
   }
-
 }

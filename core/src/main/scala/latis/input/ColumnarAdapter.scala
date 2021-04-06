@@ -14,7 +14,6 @@ class ColumnarAdapter(
   model: DataType,
   config: ColumnarAdapter.Config
 ) extends TextAdapter(model, config) {
-
   lazy val columnIndices: Vector[Array[Int]] = config.columns match {
     case s: String =>
       s.split(";").map(p => p.split(",").map(_.toInt)).toVector

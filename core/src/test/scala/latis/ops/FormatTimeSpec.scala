@@ -10,11 +10,10 @@ import latis.time.Time
 import latis.time.TimeFormat
 
 class FormatTimeSpec extends AnyFlatSpec {
-
   val numericTime = Time(
     Metadata(
-      "id" -> "t1",
-      "type" -> "int",
+      "id"    -> "t1",
+      "type"  -> "int",
       "units" -> "days since 2020-01-01",
       "class" -> "latis.time.Time"
     )
@@ -22,8 +21,8 @@ class FormatTimeSpec extends AnyFlatSpec {
 
   val textTime = Time(
     Metadata(
-      "id" -> "t2",
-      "type" -> "string",
+      "id"    -> "t2",
+      "type"  -> "string",
       "units" -> "yyyy-MM-dd",
       "class" -> "latis.time.Time"
     )
@@ -39,7 +38,7 @@ class FormatTimeSpec extends AnyFlatSpec {
   }
 
   it should "format a numeric time variable" in {
-    val f = formatTime.mapFunction(numericTime)
+    val f      = formatTime.mapFunction(numericTime)
     val sample = Sample(DomainData(), RangeData(14))
     f(sample) match {
       case Sample(_, RangeData(Text(t))) =>
@@ -48,7 +47,7 @@ class FormatTimeSpec extends AnyFlatSpec {
   }
 
   it should "format a text time variable" in {
-    val f = formatTime.mapFunction(textTime)
+    val f      = formatTime.mapFunction(textTime)
     val sample = Sample(DomainData(), RangeData("2020-01-15"))
     f(sample) match {
       case Sample(_, RangeData(Text(t))) =>
@@ -61,7 +60,7 @@ class FormatTimeSpec extends AnyFlatSpec {
       textTime,
       numericTime
     )
-    val f = formatTime.mapFunction(model)
+    val f      = formatTime.mapFunction(model)
     val sample = Sample(DomainData("2020-01-15"), RangeData(14))
     f(sample) match {
       case Sample(DomainData(Text(t1)), RangeData(Text(t2))) =>
@@ -69,5 +68,4 @@ class FormatTimeSpec extends AnyFlatSpec {
         t2 should be("2020-015")
     }
   }
-
 }

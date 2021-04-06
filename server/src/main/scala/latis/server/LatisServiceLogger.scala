@@ -20,25 +20,26 @@ import org.http4s.server.middleware.{Logger => Http4sLogger}
  * response.
  */
 object LatisServiceLogger {
-
   def apply[F[_]: Sync: Timer](
     app: HttpApp[F],
     logger: StructuredLogger[F]
   ): HttpApp[F] = Kleisli { req =>
     for {
-      id       <- Sync[F].delay(UUID.randomUUID().toString())
+      id <- Sync[F].delay(UUID.randomUUID().toString())
       ctxLogger = StructuredLogger.withContext(logger)(Map("request-id" -> id))
-      _        <- Http4sLogger.logMessage[F, Request[F]](req)(
-        logHeaders = true, logBody = false
+      _ <- Http4sLogger.logMessage[F, Request[F]](req)(
+        logHeaders = true,
+        logBody = false
       )(ctxLogger.info(_))
-      t0       <- Clock[F].monotonic(TimeUnit.MILLISECONDS)
-      res      <- app(req)
-      t1       <- Clock[F].monotonic(TimeUnit.MILLISECONDS)
-      _        <- Http4sLogger.logMessage[F, Response[F]](res)(
-        logHeaders = true, logBody = false
+      t0  <- Clock[F].monotonic(TimeUnit.MILLISECONDS)
+      res <- app(req)
+      t1  <- Clock[F].monotonic(TimeUnit.MILLISECONDS)
+      _ <- Http4sLogger.logMessage[F, Response[F]](res)(
+        logHeaders = true,
+        logBody = false
       )(ctxLogger.info(_))
-      elapsed   = t1 - t0
-      _        <- ctxLogger.info(s"Elapsed (ms): $elapsed")
+      elapsed = t1 - t0
+      _ <- ctxLogger.info(s"Elapsed (ms): $elapsed")
     } yield res
   }
 }

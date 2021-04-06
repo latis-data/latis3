@@ -18,14 +18,13 @@ import latis.util.LatisOrdering
  * for each dimension of the product set independently.
  */
 trait CartesianFunction extends MemoizedFunction {
-
   /**
    * Extracts the partial Datum ordering for the given component
    * of the Cartesian domain.
    */
   private def datumOrd(i: Int): PartialOrdering[Datum] = ordering match {
     case Some(CartesianDomainOrdering(ords)) => ords(i)
-    case _ => DefaultDatumOrdering
+    case _                                   => DefaultDatumOrdering
   }
 
   /**
@@ -43,5 +42,4 @@ trait CartesianFunction extends MemoizedFunction {
     val ord = LatisOrdering.partialToTotal(datumOrd(domainComponent))
     Try { values.search(data)(ord) }.toEither.leftMap(LatisException(_))
   }
-
 }

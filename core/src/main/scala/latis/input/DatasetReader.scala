@@ -24,7 +24,6 @@ trait DatasetReader {
 }
 
 object DatasetReader {
-
   def read(uri: URI): Dataset =
     ServiceLoader
       .load(classOf[DatasetReader])
@@ -35,5 +34,4 @@ object DatasetReader {
         val msg = s"Failed to find a DatasetReader for: uri"
         throw LatisException(msg)
       }
-
 }

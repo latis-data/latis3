@@ -5,7 +5,6 @@ package latis.time
  * multiplier of the base unit "seconds".
  */
 case class TimeUnit(baseMultiplier: Double) {
-
   /** Represents a TimeUnit as a String */
   override def toString() = baseMultiplier match {
     case 1e-9     => "nanoseconds"
@@ -22,7 +21,6 @@ case class TimeUnit(baseMultiplier: Double) {
 }
 
 object TimeUnit {
-
   /**
    * Base time unit of seconds.
    */

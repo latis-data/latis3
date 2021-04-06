@@ -16,11 +16,10 @@ import latis.util.ReflectionUtils
  * Functional Data Model.
  */
 sealed trait DataType extends MetadataLike with Serializable {
-
   /** Recursively apply f to this DataType. */
   def map(f: DataType => DataType): DataType = this match {
-    case s: Scalar => f(s)
-    case t @ Tuple(es @ _*) => f(Tuple(t.metadata, es.map(f)))
+    case s: Scalar             => f(s)
+    case t @ Tuple(es @ _*)    => f(Tuple(t.metadata, es.map(f)))
     case func @ Function(d, r) => f(Function(func.metadata, d.map(f), r.map(f)))
   }
 
@@ -30,7 +29,7 @@ sealed trait DataType extends MetadataLike with Serializable {
    */
   def getScalars: List[Scalar] = {
     def go(dt: DataType): List[Scalar] = dt match {
-      case s: Scalar => List(s)
+      case s: Scalar      => List(s)
       case Tuple(es @ _*) => es.flatMap(go).toList
       case Function(d, r) => go(d) ++ go(r)
     }
@@ -42,19 +41,19 @@ sealed trait DataType extends MetadataLike with Serializable {
    */
   def getVariable(id: Identifier): Option[DataType] =
     getScalars.find(_.id.contains(id))
-    //TODO: support finding any variable type
+  //TODO: support finding any variable type
 
   /**
    * Find the DataType of a variable by its identifier or aliases.
    */
   def findVariable(id: Identifier): Option[DataType] =
     findAllVariables(id).headOption
-    //TODO: support aliases
+  //TODO: support aliases
 
   /**
    * Find all Variables within this Variable by the given name.
    */
-  def findAllVariables(id: Identifier): Seq[DataType] = {
+  def findAllVariables(id: Identifier): Seq[DataType] =
     id.asString.split('.') match {
       case Array(_) =>
         val vbuf = ArrayBuffer[DataType]()
@@ -63,7 +62,7 @@ sealed trait DataType extends MetadataLike with Serializable {
           case _: Scalar =>
           case Tuple(es @ _*) =>
             vbuf ++= es.flatMap(_.findAllVariables(id))
-          case Function(d, r) => 
+          case Function(d, r) =>
             vbuf ++= d.findAllVariables(id)
             vbuf ++= r.findAllVariables(id)
         }
@@ -74,7 +73,6 @@ sealed trait DataType extends MetadataLike with Serializable {
         findAllVariables(Identifier.fromString(n1).get)
           .flatMap(_.findAllVariables(Identifier.fromString(n2.mkString(".")).get))
     }
-  }
 
   /**
    * Return the function arity of this DataType.
@@ -95,8 +93,8 @@ sealed trait DataType extends MetadataLike with Serializable {
   // Used by Rename Operation, Pivot Operation, and this.flatten
   def rename(id: Identifier): DataType = this match {
     //TODO: add old name to alias?
-    case _: Scalar      => Scalar(metadata   + ("id" -> id.asString))
-    case Tuple(es @ _*) => Tuple(metadata    + ("id" -> id.asString), es)
+    case _: Scalar      => Scalar(metadata + ("id"   -> id.asString))
+    case Tuple(es @ _*) => Tuple(metadata + ("id"    -> id.asString), es)
     case Function(d, r) => Function(metadata + ("id" -> id.asString), d, r)
   }
 
@@ -114,7 +112,7 @@ sealed trait DataType extends MetadataLike with Serializable {
     def go(dt: DataType, acc: Seq[DataType]): Seq[DataType] = dt match {
       //prepend Tuple ID(s) with dot(s) and drop leading dot(s)
       case s: Scalar =>
-        val sId = s.id.fold("")(_.asString)
+        val sId          = s.id.fold("")(_.asString)
         val namespacedId = s"$tupIds.$sId".replaceFirst("^\\.+", "")
         acc :+ s.rename(
           Identifier.fromString(namespacedId).getOrElse {
@@ -132,7 +130,7 @@ sealed trait DataType extends MetadataLike with Serializable {
     val types = go(this, Seq())
     types.length match {
       case 1 => types.head
-      case _ => 
+      case _ =>
         if (tupIds.split('.').isEmpty) Tuple(types)
         else if (tupIds.split('.').head.isEmpty) Tuple(types)
         else {
@@ -152,13 +150,12 @@ sealed trait DataType extends MetadataLike with Serializable {
    * When searching a Tuple's ID, the path to the first Scalar in the Tuple is returned.
    */
   def getPath(id: Identifier): Option[SamplePath] = {
-
     // Recursive function to try paths until it finds a match
     def go(dt: DataType, id: String, currentPath: SamplePath): Option[SamplePath] = {
       //TODO: use hasName to cover aliases?
       //searching fully qualified ID with namespace
       val dtId = dt.id.fold("")(_.asString)
-      if (id.contains('.') && dtId == id)    Some(currentPath) //found it
+      if (id.contains('.') && dtId == id) Some(currentPath) //found it
       //searching variable ID without namespace
       else if (dtId.split('.').contains(id)) Some(currentPath) //found it
       else
@@ -238,18 +235,20 @@ class Scalar(val metadata: Metadata) extends DataType {
    * instead of Datum.asString so properties of the Scalar, such as
    * precision, can be applied to an otherwise agnostic data value.
    */
-  def formatValue(data: Datum): String = {
+  def formatValue(data: Datum): String =
     //TODO: disallow construction of non-real Scalar with precision metadata
     //TODO: validate construction with precision as int >= 0
-    metadata.getProperty("precision").map { p =>
-      data match {
-        case Real(d) => (s"%.${p}f").format(d)
-        case _ => data.asString
+    metadata
+      .getProperty("precision")
+      .map { p =>
+        data match {
+          case Real(d) => (s"%.${p}f").format(d)
+          case _       => data.asString
+        }
       }
-    }.getOrElse {
-      data.asString
-    }
-  }
+      .getOrElse {
+        data.asString
+      }
 
   /**
    * Converts a string value into the appropriate type and units
@@ -269,10 +268,11 @@ class Scalar(val metadata: Metadata) extends DataType {
     metadata.getProperty("order", "asc").toLowerCase.take(3) match {
       case "asc" => DefaultDatumOrdering
       case "des" => DefaultDatumOrdering.reverse
-      case s => throw LatisException(s"Invalid order: $s") //TODO: validate sooner
+      case s     => throw LatisException(s"Invalid order: $s") //TODO: validate sooner
     }
 
-  override def toString: String = id.fold("")(_.asString) //TODO: do we want a different default than ""?
+  override def toString: String =
+    id.fold("")(_.asString) //TODO: do we want a different default than ""?
 }
 
 object Scalar {
@@ -283,11 +283,16 @@ object Scalar {
    * If a class is defined, construct it dynamically.
    */
   def apply(md: Metadata): Scalar = md.getProperty("class") match {
-    case Some(clss) => Either.catchNonFatal {
-      ReflectionUtils.callMethodOnCompanionObject(
-        clss, "apply", md
-      ).asInstanceOf[Scalar]
-    }.fold(throw _, identity)
+    case Some(clss) =>
+      Either.catchNonFatal {
+        ReflectionUtils
+          .callMethodOnCompanionObject(
+            clss,
+            "apply",
+            md
+          )
+          .asInstanceOf[Scalar]
+      }.fold(throw _, identity)
     case None => new Scalar(md)
   }
 }
@@ -298,9 +303,7 @@ object Scalar {
  * A Tuple type represents a group of variables of other DataTypes.
  */
 class Tuple(val metadata: Metadata, val elements: List[DataType]) extends DataType {
-
   override def toString: String = elements.mkString("(", ", ", ")")
-
 }
 
 object Tuple {
@@ -341,7 +344,6 @@ object Tuple {
  * from the domain type to the range type.
  */
 class Function(val metadata: Metadata, val domain: DataType, val range: DataType) extends DataType {
-
   override def toString: String = s"$domain -> $range"
 }
 
@@ -386,5 +388,4 @@ object Function {
    */
   def unapply(f: Function): Option[(DataType, DataType)] =
     Option((f.domain, f.range))
-
 }

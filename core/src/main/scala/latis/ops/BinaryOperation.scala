@@ -24,5 +24,4 @@ trait BinaryOperation extends Operation {
    * Combines the Data of two Datasets.
    */
   def applyToData(data1: Data, data2: Data): Either[LatisException, Data]
-
 }

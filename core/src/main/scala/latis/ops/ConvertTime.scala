@@ -16,7 +16,6 @@ import latis.util.LatisException
  * all Scalars of class Time.
  */
 case class ConvertTime(scale: TimeScale) extends TimeOperation {
-
   /**
    * Defines a data value converter based on the Time variable's value type.
    */
@@ -32,20 +31,23 @@ case class ConvertTime(scale: TimeScale) extends TimeOperation {
     t.valueType match {
       case StringValueType =>
         val format = t.timeFormat.get //bug if string time has no format
-        (d : Datum) => d match {
-          case Text(s) =>
-            format.parse(s)
-              .map(converter.convert(_))
-              .flatMap(Data.fromValue(_))
-              .fold(throw _, identity)
-          case _ => throw new LatisException(s"Data does not match string value type: $d")
-        }
+        (d: Datum) =>
+          d match {
+            case Text(s) =>
+              format
+                .parse(s)
+                .map(converter.convert(_))
+                .flatMap(Data.fromValue(_))
+                .fold(throw _, identity)
+            case _ => throw new LatisException(s"Data does not match string value type: $d")
+          }
       case _ =>
-        (d : Datum) => d match {
-          case Number(d) =>
-            Data.fromValue(converter.convert(d)).fold(throw _, identity)
-          case _ => throw new LatisException(s"Data is not a numeric value type: $d")
-        }
+        (d: Datum) =>
+          d match {
+            case Number(d) =>
+              Data.fromValue(converter.convert(d)).fold(throw _, identity)
+            case _ => throw new LatisException(s"Data is not a numeric value type: $d")
+          }
     }
   }
 
@@ -55,14 +57,16 @@ case class ConvertTime(scale: TimeScale) extends TimeOperation {
   def applyToModel(model: DataType): Either[LatisException, DataType] =
     model.map {
       case t: Time => Time(t.metadata + ("units" -> scale.toString) + ("type" -> "double"))
-      case dt => dt
+      case dt      => dt
     }.asRight
 }
 
 object ConvertTime {
   def fromArgs(args: List[String]): Either[LatisException, ConvertTime] = args match {
-    case units :: Nil => Either.catchNonFatal(ConvertTime(TimeScale(units)))
-      .leftMap(LatisException(_))
+    case units :: Nil =>
+      Either
+        .catchNonFatal(ConvertTime(TimeScale(units)))
+        .leftMap(LatisException(_))
     case _ => Left(LatisException("ConvertTime requires one argument"))
   }
 }

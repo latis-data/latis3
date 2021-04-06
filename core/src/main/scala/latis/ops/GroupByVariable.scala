@@ -15,7 +15,6 @@ import latis.util.LatisException
  * Does not preserve nested Tuples, for now.
  */
 case class GroupByVariable(ids: Identifier*) extends GroupOperation {
-
   /**
    * Defines a DefaultAggregation composed with a MapOperation that un-projects
    * the group-by variables. The Samples in each group will have the group-by
@@ -31,7 +30,9 @@ case class GroupByVariable(ids: Identifier*) extends GroupOperation {
     model.getPath(id) match {
       case Some(path) =>
         if (path.length > 1)
-          throw LatisException(s"Group-by variable must not be in a nested Function: ${id.asString}")
+          throw LatisException(
+            s"Group-by variable must not be in a nested Function: ${id.asString}"
+          )
         else path.head
       case None =>
         throw LatisException(s"Group-by variable not found: ${id.asString}")
@@ -42,7 +43,8 @@ case class GroupByVariable(ids: Identifier*) extends GroupOperation {
     val scalars = ids.map { vname =>
       model.findVariable(vname) match {
         case Some(scalar: Scalar) => scalar
-        case Some(_) => throw LatisException(s"Group-by variable must be a Scalar: ${vname.asString}")
+        case Some(_) =>
+          throw LatisException(s"Group-by variable must be a Scalar: ${vname.asString}")
         //TODO: support grouping by a tuple, e.g. location?
         case None =>
           //TODO: validate variables eagerly
@@ -57,11 +59,10 @@ case class GroupByVariable(ids: Identifier*) extends GroupOperation {
     (sample: Sample) => {
       val data: List[Datum] = samplePositions(model).map(sample.getValue).map {
         case Some(d: Datum) => d
-        case _ => throw LatisException("Invalid Sample")
+        case _              => throw LatisException("Invalid Sample")
       }
       Option(DomainData(data))
     }
-
 }
 
 /**
@@ -70,7 +71,6 @@ case class GroupByVariable(ids: Identifier*) extends GroupOperation {
  * should be the same in each group.
  */
 case class RemoveGroupedVariables(ids: Seq[Identifier]) extends MapOperation {
-
   override def applyToModel(model: DataType): Either[LatisException, DataType] =
     applyToVariable(model).toRight(LatisException("ids filtered entire model."))
 
@@ -88,7 +88,7 @@ case class RemoveGroupedVariables(ids: Seq[Identifier]) extends MapOperation {
     case f @ Function(d, r) =>
       (applyToVariable(d), applyToVariable(r)) match {
         case (Some(d), Some(r)) => Some(Function(f.metadata, d, r))
-        case (None, Some(r)) => Some(r)
+        case (None, Some(r))    => Some(r)
         //TODO: deal with empty range
         case _ => None
       }
@@ -96,9 +96,11 @@ case class RemoveGroupedVariables(ids: Seq[Identifier]) extends MapOperation {
 
   override def mapFunction(model: DataType): Sample => Sample = {
     // Determine the list of variables to keep
-    val vnames: List[Identifier] = model.getScalars.map(
-      _.id.getOrElse(throw LatisException("Found an unnamed Scalar"))
-    ).filterNot(ids.contains)
+    val vnames: List[Identifier] = model.getScalars
+      .map(
+        _.id.getOrElse(throw LatisException("Found an unnamed Scalar"))
+      )
+      .filterNot(ids.contains)
 
     // Get the paths of the variables to be removed from each Sample.
     // Sort to maintain the original order of variables.
@@ -107,14 +109,15 @@ case class RemoveGroupedVariables(ids: Seq[Identifier]) extends MapOperation {
       case DomainPosition(i) => i
     }.sorted
     val rangeIndices: Seq[Int] = samplePositions.collect {
-      case RangePosition(i)  => i
+      case RangePosition(i) => i
     }.sorted
 
-    (sample: Sample) => sample match {
-      case Sample(ds, rs) =>
-        val domain = domainIndices.map(ds(_))
-        val range = rangeIndices.map(rs(_))
-        Sample(domain, range)
-    }
+    (sample: Sample) =>
+      sample match {
+        case Sample(ds, rs) =>
+          val domain = domainIndices.map(ds(_))
+          val range  = rangeIndices.map(rs(_))
+          Sample(domain, range)
+      }
   }
 }

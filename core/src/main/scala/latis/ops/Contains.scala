@@ -16,27 +16,30 @@ case class Contains(id: Identifier, values: String*) extends Filter {
     // Determine the path to the selected variable
     val path: SamplePosition = model.getPath(id) match {
       case Some(p) => p.head //assume no nested functions for now
-      case None => ???    //TODO: invalid path or vname
+      case None    => ???    //TODO: invalid path or vname
     }
 
     // Convert values to appropriate type for comparison
     val cvals: Seq[Datum] = model.findVariable(id) match {
-      case Some(s: Scalar) => values.map { v =>
-        s.convertValue(v).getOrElse {
-          val msg = s"Invalid comparison value: $v"
-          throw LatisException(msg)
+      case Some(s: Scalar) =>
+        values.map { v =>
+          s.convertValue(v).getOrElse {
+            val msg = s"Invalid comparison value: $v"
+            throw LatisException(msg)
+          }
         }
-      }
-      case _  => ??? //bug, invalid path
+      case _ => ??? //bug, invalid path
     }
 
     // Define predicate function
     (sample: Sample) =>
-      sample.getValue(path).map { d =>
-        cvals.contains(d)  // Uses "==" or "equals", should work for Datum value classes
-      }.getOrElse {
-        ??? //bug, we should have a valid path at this point
-      }
+      sample
+        .getValue(path)
+        .map { d =>
+          cvals.contains(d) // Uses "==" or "equals", should work for Datum value classes
+        }
+        .getOrElse {
+          ??? //bug, we should have a valid path at this point
+        }
   }
-
 }

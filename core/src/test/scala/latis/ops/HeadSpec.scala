@@ -15,7 +15,6 @@ import latis.util.DatasetGenerator
 import latis.util.Identifier.IdentifierStringContext
 
 class HeadSpec extends AnyFlatSpec {
-
   "The Head Operation" should "return the first sample of a simple dataset" in {
     val ds: Dataset = DatasetGenerator("a -> b")
     val dsFirst     = ds.withOperation(Head())

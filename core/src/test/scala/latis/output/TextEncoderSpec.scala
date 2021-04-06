@@ -11,7 +11,6 @@ import latis.dataset.Dataset
 import latis.util.Identifier.IdentifierStringContext
 
 class TextEncoderSpec extends AnyFlatSpec {
-
   /**
    * Instance of TextEncoder for testing.
    */
@@ -36,6 +35,6 @@ class TextEncoderSpec extends AnyFlatSpec {
 
   "A Text encoder" should "encode a dataset to Text" in {
     val encodedList = enc.encode(ds).compile.toList.unsafeRunSync()
-    encodedList should be (expectedOutput)
+    encodedList should be(expectedOutput)
   }
 }

@@ -11,19 +11,20 @@ import latis.model._
 import latis.util.StreamUtils
 
 class FdmlReaderSpec extends AnyFlatSpec {
-
   "An FDML Reader" should "create a dataset from FDML" in {
     val ds = FdmlReader.read(new URI("datasets/data.fdml"), true)
 
-    inside(ds.model) { case Function(domain, range) =>
-      domain shouldBe a [latis.time.Time]
-      range shouldBe a [Tuple]
+    inside(ds.model) {
+      case Function(domain, range) =>
+        domain shouldBe a[latis.time.Time]
+        range shouldBe a[Tuple]
 
-      inside(range) { case Tuple(s1, s2, s3) =>
-        s1 shouldBe a [Scalar]
-        s2 shouldBe a [Scalar]
-        s3 shouldBe a [Scalar]
-      }
+        inside(range) {
+          case Tuple(s1, s2, s3) =>
+            s1 shouldBe a[Scalar]
+            s2 shouldBe a[Scalar]
+            s3 shouldBe a[Scalar]
+        }
     }
 
     StreamUtils.unsafeHead(ds.samples) match {
@@ -40,7 +41,7 @@ class FdmlReaderSpec extends AnyFlatSpec {
       FdmlReader.read(new URI("datasets/invalid.fdml"), true)
     }
 
-    err.getMessage should include ("'{source}' is expected")
+    err.getMessage should include("'{source}' is expected")
   }
 
   it should "apply operations to the returned dataset" in {

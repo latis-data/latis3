@@ -19,7 +19,6 @@ import latis.util.dap2.parser.ast
 
 /** Provides methods for creating datasets from FDML. */
 object FdmlReader {
-
   /** Creates a dataset from a URI pointing to FDML. */
   def read(uri: URI, validate: Boolean = false): Dataset = (for {
     fdml    <- FdmlParser.parseUri(uri, validate)
@@ -53,7 +52,7 @@ object FdmlReader {
     model      <- makeFunction(fdml.model)
     operations <- fdml.operations.traverse(makeOperation)
     template   <- makeDatasetTemplate(fdml.adapter.nested, model, operations)
-    adapter     = new GranuleListAppendAdapter(granules, template)
+    adapter = new GranuleListAppendAdapter(granules, template)
   } yield new TappedDataset(
     fdml.metadata,
     model,
@@ -67,13 +66,14 @@ object FdmlReader {
     operations: List[UnaryOperation]
   ): Either[LatisException, URI => Dataset] = for {
     adapter <- makeAdapter(adapter, model)
-  } yield uri => new AdaptedDataset(
-    Metadata(),
-    model,
-    adapter,
-    uri,
-    operations
-  )
+  } yield uri =>
+    new AdaptedDataset(
+      Metadata(),
+      model,
+      adapter,
+      uri,
+      operations
+    )
 
   private def makeDataType(model: FModel): Either[LatisException, DataType] =
     model match {
@@ -102,12 +102,14 @@ object FdmlReader {
     adapter: FAdapter,
     model: DataType
   ): Either[LatisException, Adapter] = Either.catchNonFatal {
-    ReflectionUtils.callMethodOnCompanionObject(
-      "latis.input.AdapterFactory",
-      "makeAdapter",
-      model,
-      adapter.config
-    ).asInstanceOf[Adapter]
+    ReflectionUtils
+      .callMethodOnCompanionObject(
+        "latis.input.AdapterFactory",
+        "makeAdapter",
+        model,
+        adapter.config
+      )
+      .asInstanceOf[Adapter]
   }.leftMap(LatisException(_))
 
   private def makeOperation(

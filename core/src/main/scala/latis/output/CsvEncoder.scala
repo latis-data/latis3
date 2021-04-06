@@ -14,7 +14,6 @@ import latis.model.Scalar
 import latis.ops.Uncurry
 
 class CsvEncoder(header: Dataset => Stream[IO, String]) extends Encoder[IO, String] {
-
   /**
    * Encodes the Stream of Samples from the given Dataset as a Stream
    * of Strings with comma separated values.
@@ -47,7 +46,6 @@ class CsvEncoder(header: Dataset => Stream[IO, String]) extends Encoder[IO, Stri
 }
 
 object CsvEncoder {
-
   /** Default encoder with no header */
   def apply(): CsvEncoder = new CsvEncoder(_ => Stream())
 

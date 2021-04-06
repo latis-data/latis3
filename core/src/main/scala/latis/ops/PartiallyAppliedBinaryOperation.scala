@@ -21,10 +21,9 @@ case class PartiallyAppliedBinaryOperation(
   override def applyToModel(model: DataType): Either[LatisException, DataType] =
     binOp.applyToModel(dataset.model, model)
 
-  override def applyToData(data: Data, model: DataType): Either[LatisException, Data] = {
+  override def applyToData(data: Data, model: DataType): Either[LatisException, Data] =
     (dataset match {
       case ad: AdaptedDataset => ad.tap().map(_.data)
       case td: TappedDataset  => td.data.asRight
     }).flatMap(binOp.applyToData(_, data))
-  }
 }

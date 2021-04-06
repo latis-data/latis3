@@ -16,7 +16,6 @@ import latis.util.LatisException
  * These Operations can be composed with a MapOperation.
  */
 trait StreamOperation extends UnaryOperation {
-
   /**
    * Returns a Pipe that can be applied to a Stream of Samples.
    */
@@ -34,5 +33,4 @@ trait StreamOperation extends UnaryOperation {
    */
   def applyToData(data: Data, model: DataType): Either[LatisException, Data] =
     StreamFunction(data.samples.through(pipe(model))).asRight
-
 }

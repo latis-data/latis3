@@ -12,7 +12,6 @@ import latis.util.LatisException
  * of a single zero-arity Sample.
  */
 case class DefaultAggregation() extends Aggregation {
-
   /**
    * Does not change the model for DefaultAggregation.
    */

@@ -12,14 +12,14 @@ import latis.util.Identifier.IdentifierStringContext
 import latis.util.StreamUtils
 
 class TimeTupleToTimeSpec extends AnyFlatSpec {
-  
   def mockDataset: MemoizedDataset = {
     val metadata: Metadata = Metadata(id"MockDataset") + ("title" -> "Mock Dataset")
     val model: DataType = Function(
-      Tuple(Metadata(id"time"),
-        Scalar(Metadata(id"year")  + ("type" -> "string") + ("units" -> "yyyy")),
+      Tuple(
+        Metadata(id"time"),
+        Scalar(Metadata(id"year") + ("type"  -> "string") + ("units" -> "yyyy")),
         Scalar(Metadata(id"month") + ("type" -> "string") + ("units" -> "MM")),
-        Scalar(Metadata(id"day")   + ("type" -> "string") + ("units" -> "dd")),
+        Scalar(Metadata(id"day") + ("type"   -> "string") + ("units" -> "dd"))
       ),
       Scalar(Metadata(id"flux") + ("type" -> "int"))
     )
@@ -40,8 +40,9 @@ class TimeTupleToTimeSpec extends AnyFlatSpec {
     val model: DataType = Function(
       Tuple(
         Scalar(Metadata(id"a") + ("type" -> "int")),
-        Tuple(Metadata(id"time"),
-          Scalar(Metadata(id"year")  + ("type" -> "string") + ("units" -> "yyyy")),
+        Tuple(
+          Metadata(id"time"),
+          Scalar(Metadata(id"year") + ("type"  -> "string") + ("units" -> "yyyy")),
           Scalar(Metadata(id"month") + ("type" -> "string") + ("units" -> "MM"))
         )
       ),
@@ -63,8 +64,9 @@ class TimeTupleToTimeSpec extends AnyFlatSpec {
     val metadata: Metadata = Metadata(id"MockDataset3") + ("title" -> "Mock Dataset 3")
     val model: DataType = Function(
       Scalar(Metadata(id"a") + ("type" -> "int")),
-      Tuple(Metadata(id"time"),
-        Scalar(Metadata(id"year")  + ("type" -> "string") + ("units" -> "yyyy")),
+      Tuple(
+        Metadata(id"time"),
+        Scalar(Metadata(id"year") + ("type"  -> "string") + ("units" -> "yyyy")),
         Scalar(Metadata(id"month") + ("type" -> "string") + ("units" -> "MM"))
       )
     )
@@ -85,13 +87,13 @@ class TimeTupleToTimeSpec extends AnyFlatSpec {
 
     ds.model match {
       case Function(t: Time, _: Scalar) =>
-        t.units should be ("yyyy MM dd")
+        t.units should be("yyyy MM dd")
     }
 
     StreamUtils.unsafeHead(ds.samples) match {
       case Sample(DomainData(Text(time)), RangeData(Number(f))) =>
-        time should be ("1945 1 1")
-        f should be (10)
+        time should be("1945 1 1")
+        f should be(10)
     }
   }
 
@@ -99,16 +101,17 @@ class TimeTupleToTimeSpec extends AnyFlatSpec {
     val ds = mockDataset2.withOperation(TimeTupleToTime())
 
     ds.model match {
-      case Function(Tuple(es @ _*), _: Scalar) => es(1) match {
-        case t: Time => t.units should be ("yyyy MM")
-      }
+      case Function(Tuple(es @ _*), _: Scalar) =>
+        es(1) match {
+          case t: Time => t.units should be("yyyy MM")
+        }
     }
 
     StreamUtils.unsafeHead(ds.samples) match {
       case Sample(DomainData(Number(a), Text(time)), RangeData(Number(f))) =>
-        a should be (1)
-        time should be ("1945 1")
-        f should be (10)
+        a should be(1)
+        time should be("1945 1")
+        f should be(10)
     }
   }
 
@@ -116,14 +119,13 @@ class TimeTupleToTimeSpec extends AnyFlatSpec {
     val ds = mockDataset3.withOperation(TimeTupleToTime())
 
     ds.model match {
-      case Function(_: Scalar, t: Time) => t.units should be ("yyyy MM")
+      case Function(_: Scalar, t: Time) => t.units should be("yyyy MM")
     }
 
     StreamUtils.unsafeHead(ds.samples) match {
       case Sample(DomainData(Number(a)), RangeData(Text(time))) =>
-        a should be (10)
-        time should be ("1945 1")
+        a should be(10)
+        time should be("1945 1")
     }
   }
-  
 }

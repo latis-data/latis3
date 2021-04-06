@@ -13,7 +13,6 @@ import org.scalatest.matchers.should.Matchers._
 import latis.util.Identifier.IdentifierStringContext
 
 class TextAdapterSpec extends AnyFlatSpec {
-
   "A TextAdapter" should "read text data" in {
     val ds = {
       def uri: URI = resolveUri("data/data.txt").right.get
@@ -26,7 +25,7 @@ class TextAdapterSpec extends AnyFlatSpec {
           Scalar(Metadata("id" -> "d", "type" -> "string"))
         )
       )
-      val config = new TextAdapter.Config()
+      val config  = new TextAdapter.Config()
       val adapter = new TextAdapter(model, config)
       new AdaptedDataset(metadata, model, adapter, uri)
     }
@@ -35,8 +34,8 @@ class TextAdapterSpec extends AnyFlatSpec {
     val expected = List(
       Sample(DomainData(0), RangeData(1, 1.1, "a")),
       Sample(DomainData(1), RangeData(2, 2.2, "b")),
-      Sample(DomainData(2), RangeData(4, 3.3, "c")),
+      Sample(DomainData(2), RangeData(4, 3.3, "c"))
     )
-    result should be (expected)
+    result should be(expected)
   }
 }

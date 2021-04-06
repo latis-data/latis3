@@ -21,32 +21,34 @@ import latis.util.LatisException
  * text variable representing a dataset URI that the reader
  * can turn into a dataset.
  */
-case class ReaderOperation(reader: DatasetReader, ops: Seq[UnaryOperation] = Seq.empty) extends MapRangeOperation {
+case class ReaderOperation(reader: DatasetReader, ops: Seq[UnaryOperation] = Seq.empty)
+    extends MapRangeOperation {
   //TODO: update metadata
 
   // not enough to avoid reader serialization
   val f: URI => Dataset = reader.read
 
-  def mapFunction(model:  DataType): Data => Data = {
+  def mapFunction(model: DataType): Data => Data = {
     //TODO: avoid reader in the closure, needs to be serialized for spark
-    (d: Data) => d match {
-      case Text(u) =>
-        val uri = Try(new URI(u)) match {
-          case Success(uri) => uri
-          case Failure(e) =>
-            val msg = s"Invalid URI: $u"
-            throw LatisException(msg, e)
-        }
-        f(uri).withOperations(ops).unsafeForce().data
+    (d: Data) =>
+      d match {
+        case Text(u) =>
+          val uri = Try(new URI(u)) match {
+            case Success(uri) => uri
+            case Failure(e) =>
+              val msg = s"Invalid URI: $u"
+              throw LatisException(msg, e)
+          }
+          f(uri).withOperations(ops).unsafeForce().data
         //TODO: deal will errors from unsafeForce
-      case _ =>
-        val msg = "URI variable must be of type text"
-        throw LatisException(msg)
-    }
+        case _ =>
+          val msg = "URI variable must be of type text"
+          throw LatisException(msg)
+      }
   }
 
   def applyToModel(model: DataType): Either[LatisException, DataType] = model match {
     case Function(d, _) => Right(Function(d, reader.model))
-    case _ => Left(LatisException("Model is not a function."))
+    case _              => Left(LatisException("Model is not a function."))
   }
 }

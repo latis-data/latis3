@@ -27,27 +27,25 @@ case class MatrixTextAdapter(
    * then memoizes the data as a row-major 2D array.
    */
   override def getData(uri: URI, ops: Seq[Operation] = Seq.empty): SampledFunction = {
-
     // The values represent a single scalar in the range of the Function.
     val scalar = model match {
       case Function(_, scalar: Scalar) => scalar
-      case _ => ??? //invalid model for matrix
+      case _                           => ??? //invalid model for matrix
     }
 
     // Row-major 2D array of parsed data values
     val values: Array[Array[Data]] =
       recordStream(uri) //stream of rows
-        .compile
-        .toList
+      .compile.toList
         .unsafeRunSync() //unparsed rows as List[String]
         .map {
           _.split(config.delimiter) //delimited values unparsed: List[Array[String]]
-            .map { v =>
-              scalar.parseValue(v) match {
-                case Right(d) => d
-                case Left(_) => scalar.fillValue //TODO: improve API
-              }
-            } //parsed row: List[Array[Data]]
+          .map { v =>
+            scalar.parseValue(v) match {
+              case Right(d) => d
+              case Left(_)  => scalar.fillValue //TODO: improve API
+            }
+          } //parsed row: List[Array[Data]]
         }
         .toArray //convert List of rows to Array of rows
 
@@ -58,11 +56,9 @@ case class MatrixTextAdapter(
 //=============================================================================
 
 object MatrixTextAdapter extends AdapterFactory {
-
   /**
    * Constructor used by the AdapterFactory.
    */
   def apply(model: DataType, config: AdapterConfig): TextAdapter =
     new TextAdapter(model, new TextAdapter.Config(config.properties: _*))
-
 }

@@ -7,13 +7,11 @@ import org.scalatest.matchers.should.Matchers._
 import latis.model._
 import latis.time.Time
 
-
 class SelectionSpec extends AnyFlatSpec {
-
   "A time selection" should "filter formatted times" in {
     val model = Function(
-      Time(Metadata("id" -> "time", "units" -> "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", "type" -> "string")),
-      Scalar(Metadata("id" -> "a", "type" -> "int"))
+      Time(Metadata("id"   -> "time", "units" -> "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", "type" -> "string")),
+      Scalar(Metadata("id" -> "a", "type"     -> "int"))
     )
 
     val sample = Sample(
@@ -21,7 +19,13 @@ class SelectionSpec extends AnyFlatSpec {
       RangeData(1)
     )
 
-    Selection.makeSelection("time > 1999").fold(throw _, identity).predicate(model)(sample) should be (true)
-    Selection.makeSelection("time > 2001").fold(throw _, identity).predicate(model)(sample) should be (false)
+    Selection
+      .makeSelection("time > 1999")
+      .fold(throw _, identity)
+      .predicate(model)(sample) should be(true)
+    Selection
+      .makeSelection("time > 2001")
+      .fold(throw _, identity)
+      .predicate(model)(sample) should be(false)
   }
 }

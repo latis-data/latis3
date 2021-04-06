@@ -78,11 +78,12 @@ trait GroupOperation extends StreamOperation { self =>
     (stream: Stream[IO, Sample]) => {
       stream.map { sample =>
         // Group the Samples into the sortedMap
-        groupByFunction(model)(sample) match {  //Option[DomainData]
-          case Some(dd) => sortedMap.get(dd) match { //Option[ListBuffer]
-            case Some(buffer) => buffer += sample; ()
-            case None => sortedMap += (dd -> ListBuffer(sample)); ()
-          }
+        groupByFunction(model)(sample) match { //Option[DomainData]
+          case Some(dd) =>
+            sortedMap.get(dd) match { //Option[ListBuffer]
+              case Some(buffer) => buffer += sample; ()
+              case None         => sortedMap += (dd -> ListBuffer(sample)); ()
+            }
           case None => //No valid DomainData found so drop Sample
         }
       }.compile.drain.unsafeRunSync()
@@ -96,13 +97,13 @@ trait GroupOperation extends StreamOperation { self =>
         aggregation.aggregateFunction(model)
 
       // For each buffer, aggregate the Samples to make a new Sample.
-      StreamUtils.seqToIOStream(sortedMap.toSeq) map {
+      StreamUtils.seqToIOStream(sortedMap.toSeq).map {
         case (dd, ss) =>
           Sample(dd, RangeData(aggF(ss)))
         /*
         TODO: NNAgg also needs dd
           optional arg to aggregation.aggregateFunction?
-         */
+       */
       }
     }
   }
@@ -114,5 +115,5 @@ trait GroupOperation extends StreamOperation { self =>
    */
   override def applyToModel(model: DataType): Either[LatisException, DataType] =
     aggregation.applyToModel(model).map(Function(domainType(model), _))
-    // TODO: preserve metadata from the original function
+  // TODO: preserve metadata from the original function
 }

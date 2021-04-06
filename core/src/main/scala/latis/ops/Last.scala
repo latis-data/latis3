@@ -10,7 +10,6 @@ import latis.model.DataType
 import latis.util.LatisException
 
 case class Last() extends StreamOperation {
-
   def pipe(model: DataType): Pipe[IO, Sample, Sample] =
     in =>
       in.last.flatMap {

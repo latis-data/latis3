@@ -11,7 +11,6 @@ import scala.util._
  * TimeFormat support that is thread safe and assumes GMT time zone.
  */
 class TimeFormat(format: String) {
-
   private val sdf: SimpleDateFormat = {
     val sdf = try {
       new SimpleDateFormat(format, Locale.ENGLISH)
@@ -64,7 +63,6 @@ class TimeFormat(format: String) {
 //==============================================================================
 
 object TimeFormat {
-
   def apply(format: String) = new TimeFormat(format)
 
   /**
@@ -154,5 +152,4 @@ object TimeFormat {
         Left(new IllegalArgumentException(msg))
     }
   }
-
 }

@@ -14,7 +14,6 @@ import latis.model._
  * into a stream of Samples.
  */
 trait FlatMapOperation extends StreamOperation {
-  
   /**
    * Defines a function that generates a SampledFunction
    * from a Sample.
@@ -25,7 +24,5 @@ trait FlatMapOperation extends StreamOperation {
    * Implements a Pipe in terms of the flatMapFunction.
    */
   def pipe(model: DataType): Pipe[IO, Sample, Sample] =
-    (stream: Stream[IO, Sample]) =>
-      stream.flatMap(flatMapFunction(model)(_).samples)
-
+    (stream: Stream[IO, Sample]) => stream.flatMap(flatMapFunction(model)(_).samples)
 }

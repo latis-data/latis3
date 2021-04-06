@@ -5,7 +5,6 @@ package latis.data
  * implementation to use for the cache.
  */
 abstract class FunctionFactory {
-
   /**
    * Construct a SampledFunction of the implementing type
    * from a sequence of Samples.

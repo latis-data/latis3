@@ -21,7 +21,6 @@ import latis.model.ModelParser.parse
 import latis.util.Identifier.IdentifierStringContext
 
 class JdbcAdapterSpec extends AnyFlatSpec {
-
   implicit val cs = IO.contextShift(ExecutionContexts.synchronous)
 
   "The JdbcAdapter" should "read data from a database table" in
@@ -38,9 +37,10 @@ class JdbcAdapterSpec extends AnyFlatSpec {
           ("password", "")
         )
       )
-      lazy val actualFirstSample = adapter.getData(uri).samples.take(1).compile.last.unsafeRunSync().getOrElse {
-        fail("Empty Dataset")
-      }
+      lazy val actualFirstSample =
+        adapter.getData(uri).samples.take(1).compile.last.unsafeRunSync().getOrElse {
+          fail("Empty Dataset")
+        }
       inside(actualFirstSample) {
         case (dd, rd) =>
           assert(dd == DomainData(Data.IntValue(1), 1.1))
@@ -63,9 +63,10 @@ class JdbcAdapterSpec extends AnyFlatSpec {
           ("password", "")
         )
       )
-      lazy val actualFirstSample = adapter.getData(uri).samples.take(1).compile.last.unsafeRunSync().getOrElse {
-        fail("Empty Dataset")
-      }
+      lazy val actualFirstSample =
+        adapter.getData(uri).samples.take(1).compile.last.unsafeRunSync().getOrElse {
+          fail("Empty Dataset")
+        }
       inside(actualFirstSample) {
         case (dd, rd) =>
           assert(dd == DomainData(Data.IntValue(1)))
@@ -89,7 +90,7 @@ class JdbcAdapterSpec extends AnyFlatSpec {
       )
       adapter.getData(uri).samples.compile.toList.attempt.unsafeRunSync() match {
         case Left(_) => succeed
-        case _ => fail()
+        case _       => fail()
       }
     }
 

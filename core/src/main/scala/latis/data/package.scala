@@ -32,7 +32,6 @@ package object data {
    * Define implicit class to provide operations on Sample objects.
    */
   implicit class SampleOps(sample: Sample) {
-
     def domain: DomainData = sample._1
 
     def range: RangeData = sample._2
@@ -65,5 +64,4 @@ package object data {
     //    d ++ r
     //  }
   }
-
 }

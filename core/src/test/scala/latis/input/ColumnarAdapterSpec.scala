@@ -9,7 +9,6 @@ import latis.model._
 import latis.util.Identifier.IdentifierStringContext
 
 class ColumnarAdapterSpec extends AnyFlatSpec {
-
   private val config = new ColumnarAdapter.Config(
     ("delimiter", " "),
     ("columns", "0,1,2;5;3;4")

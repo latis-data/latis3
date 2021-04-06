@@ -21,7 +21,6 @@ case class ProductSet(sets: Seq[DomainSet]) extends DomainSet {
    */
 
   def elements: IndexedSeq[DomainData] = {
-
     def prod(as: Seq[DomainData], bs: Seq[DomainData]): Seq[DomainData] =
       for {
         a <- as
@@ -30,11 +29,9 @@ case class ProductSet(sets: Seq[DomainSet]) extends DomainSet {
 
     sets.map(_.elements).reduce(prod).toIndexedSeq
   }
-
 }
 
 object ProductSet {
-
   def apply(fisrtSet: DomainSet, otherSets: DomainSet*): ProductSet =
     ProductSet(fisrtSet +: otherSets)
 }

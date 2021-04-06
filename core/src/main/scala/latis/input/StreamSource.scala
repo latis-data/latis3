@@ -21,7 +21,6 @@ import latis.util.LatisException
  * if the source is valid.
  */
 trait StreamSource {
-
   /**
    * Generate an fs2.Stream for the data identified by the given URI.
    * If this StreamSource does not support the given URI scheme,
@@ -31,7 +30,6 @@ trait StreamSource {
 }
 
 object StreamSource {
-
   /**
    * Given a URI for a data source, return an fs2.Stream.
    * This will inspect StreamSource implementations listed
@@ -47,5 +45,4 @@ object StreamSource {
         val msg = s"Failed to find a StreamSource for URI: $uri"
         Stream.raiseError[IO](LatisException(msg))
       }
-
 }

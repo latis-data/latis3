@@ -11,7 +11,6 @@ import latis.dataset.Dataset
 import latis.util.DatasetGenerator
 
 class DropLastSpec extends AnyFlatSpec {
-
   "The DropLast Operation" should "drop the last sample from a simple dataset" in {
     val ds: Dataset = DatasetGenerator("a -> b")
     val dsDrop      = ds.withOperation(DropLast())

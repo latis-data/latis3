@@ -25,10 +25,10 @@ trait MapRangeOperation extends StreamOperation {
    * Implements a Pipe in terms of the mapFunction.
    */
   def pipe(model: DataType): Pipe[IO, Sample, Sample] =
-    (stream: Stream[IO, Sample]) => stream.map {
-      case Sample(d, r) =>
-        val range = RangeData(mapFunction(model)(Data.fromSeq(r)))
-        Sample(d, range)
-    }
-
+    (stream: Stream[IO, Sample]) =>
+      stream.map {
+        case Sample(d, r) =>
+          val range = RangeData(mapFunction(model)(Data.fromSeq(r)))
+          Sample(d, range)
+      }
 }

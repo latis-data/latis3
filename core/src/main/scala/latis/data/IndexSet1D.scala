@@ -11,9 +11,7 @@ import latis.util.LatisException
  * The data values represent regularly spaced "instantaneous" domain data
  * as opposed to bins.
  */
-case class IndexSet1D(start: Int, increment: Int, count: Int)
-  extends DomainSet
-  with Serializable {
+case class IndexSet1D(start: Int, increment: Int, count: Int) extends DomainSet with Serializable {
   //TODO: require increment > 0 otherwise need to provide alternate ordering
   //TODO: optional model constructor arg?
 
@@ -67,7 +65,4 @@ case class IndexSet1D(start: Int, increment: Int, count: Int)
     if (isDefinedAt(index)) index
     else -1
   }
-
 }
-
-

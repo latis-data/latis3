@@ -7,14 +7,13 @@ import latis.metadata.Metadata
 import latis.time.Time
 
 class ScalarSpec extends AnyFlatSpec {
-
   "The smart constructor" should "construct a subclass" in {
     val md = Metadata(
-      "id" -> "a",
-      "type" -> "string",
+      "id"    -> "a",
+      "type"  -> "string",
       "units" -> "yyyy-MM-dd",
       "class" -> "latis.time.Time"
     )
-    Scalar(md) shouldBe a [Time]
+    Scalar(md) shouldBe a[Time]
   }
 }

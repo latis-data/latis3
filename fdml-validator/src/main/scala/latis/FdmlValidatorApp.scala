@@ -6,9 +6,8 @@ import java.nio.file.Paths
 import latis.util.FdmlUtils
 
 object FdmlValidatorApp {
-
   sealed trait Validation
-  final case object Valid extends Validation
+  final case object Valid   extends Validation
   final case object Invalid extends Validation
 
   private def usage(): Unit = println("No files or URLs specified.")
@@ -37,7 +36,7 @@ object FdmlValidatorApp {
       Option(uri)
     }
   } catch {
-    case _: java.net.URISyntaxException => None
+    case _: java.net.URISyntaxException        => None
     case _: java.nio.file.InvalidPathException => None
   }
 
@@ -57,7 +56,7 @@ object FdmlValidatorApp {
 
   def main(args: Array[String]): Unit = args.toList match {
     case Nil => usage()
-    case xs  =>
+    case xs =>
       val results = xs.map { x =>
         toUri(x).fold(invalidArg(x))(validate)
       }

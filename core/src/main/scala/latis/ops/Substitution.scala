@@ -36,9 +36,10 @@ case class Substitution(dataset: Dataset) extends MapOperation {
         val f: Data => Either[LatisException, Data] = (data: Data) =>
           dataset match {
             case ComputationalDataset(_, _, f) => f(data)
-            case mds: MemoizedDataset => DomainData.fromData(data).flatMap { dd =>
-              mds.data.eval(dd).map(Data.fromSeq(_))
-            }
+            case mds: MemoizedDataset =>
+              DomainData.fromData(data).flatMap { dd =>
+                mds.data.eval(dd).map(Data.fromSeq(_))
+              }
             case _ =>
               val msg = "Substitution not enabled for non-memoized Datasets."
               throw LatisException(msg)
@@ -55,11 +56,12 @@ case class Substitution(dataset: Dataset) extends MapOperation {
                 // Make sure these range data can be used for a domain, i.e. all Datum, no SF
                 rd match {
                   case d: Datum => List(d)
-                  case TupleData(ds @ _*) => ds.toList.map {
-                    case d: Datum => d
-                    case _ =>
-                      throw LatisException("Domain substitution includes Function")
-                  }
+                  case TupleData(ds @ _*) =>
+                    ds.toList.map {
+                      case d: Datum => d
+                      case _ =>
+                        throw LatisException("Domain substitution includes Function")
+                    }
                   case _: SampledFunction =>
                     throw LatisException("Domain substitution includes Function")
                 }
@@ -84,9 +86,9 @@ case class Substitution(dataset: Dataset) extends MapOperation {
             }
             // Evaluate the substitution Dataset with the values to be replaced
             val sub: List[Data] = f(Data.fromSeq(slice)) match {
-              case Right(d: Datum) => List(d)
+              case Right(d: Datum)           => List(d)
               case Right(TupleData(ds @ _*)) => ds.toList
-              case Left(le) => throw le
+              case Left(le)                  => throw le
             }
             // Substitute the new values into the range
             val range: RangeData = vals.splitAt(i) match {
@@ -119,7 +121,8 @@ case class Substitution(dataset: Dataset) extends MapOperation {
     // Recursive helper function
     def go(dt: DataType): DataType = dt match {
       case s: Scalar =>
-        if ((domainVariableIDs.length == 1) && s.id.contains(domainVariableIDs.head)) subScalars.head
+        if ((domainVariableIDs.length == 1) && s.id.contains(domainVariableIDs.head))
+          subScalars.head
         else s
       case Tuple(es @ _*) =>
         //TODO: support aliases
@@ -145,7 +148,7 @@ case class Substitution(dataset: Dataset) extends MapOperation {
    */
   private val modelScalars: (Seq[Scalar], Seq[Scalar]) = dataset.model match {
     case Function(d, r) => (d.getScalars, r.getScalars)
-    case _ => throw LatisException("A substitution Dataset must be a Function.")
+    case _              => throw LatisException("A substitution Dataset must be a Function.")
   }
   //TODO: factor out this exception into a smart constructor
 
@@ -155,5 +158,4 @@ case class Substitution(dataset: Dataset) extends MapOperation {
   private val domainVariableIDs: Seq[Identifier] = modelScalars._1.map(
     _.id.getOrElse(throw LatisException("Found an unnamed Scalar"))
   )
-
 }

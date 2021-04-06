@@ -13,7 +13,6 @@ import latis.util.Identifier
  * by their identifier.
  */
 trait Catalog {
-
   /** Returns all datasets in this catalog. */
   def datasets: Stream[IO, Dataset]
 
@@ -23,7 +22,6 @@ trait Catalog {
 }
 
 object Catalog {
-
   /** A [[Catalog]] containing the given datasets. */
   def apply(ds: Dataset*): Catalog = new Catalog {
     override val datasets: Stream[IO, Dataset] = Stream.emits(ds)

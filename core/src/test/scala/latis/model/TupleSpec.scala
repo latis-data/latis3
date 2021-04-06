@@ -7,7 +7,6 @@ import latis.metadata.Metadata
 import latis.util.Identifier.IdentifierStringContext
 
 class TupleSpec extends AnyFlatSpec {
-
   "A nested tuple" should "flatten into a non-nested tuple" in {
     val nestedTuple = Tuple(
       Tuple(
@@ -19,6 +18,6 @@ class TupleSpec extends AnyFlatSpec {
     val n = nestedTuple.flatten match {
       case Tuple(es @ _*) => es.length
     }
-    n should be (3)
+    n should be(3)
   }
 }

@@ -37,11 +37,10 @@ case class GranuleListJoin(
    * to generate Data for each and appends them into a single Stream.
    */
   def applyToData(data: Data, model: DataType): Either[LatisException, Data] = {
-
     // Get the position of the "uri" value within a Sample
     val pos: Either[LatisException, SamplePosition] = model.getPath(id"uri") match {
       case Some(path) if path.length == 1 => path.head.asRight
-      case _ => LatisException("uri not found.").asLeft
+      case _                              => LatisException("uri not found.").asLeft
     }
 
     // Make function that can be mapped over the granule list data.
@@ -62,11 +61,9 @@ case class GranuleListJoin(
       .flatMap(_.samples)
     StreamFunction(samples).asRight
   }
-
 }
 
 object GranuleListJoin {
-
   def apply(granuleModel: DataType, config: AdapterConfig): GranuleListJoin =
     GranuleListJoin(granuleModel, AdapterFactory.makeAdapter(granuleModel, config))
 }

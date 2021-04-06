@@ -19,13 +19,13 @@ trait Aggregation extends StreamOperation { self =>
   def aggregateFunction(model: DataType): Iterable[Sample] => Data
 
   override def pipe(model: DataType): Pipe[IO, Sample, Sample] =
-    (samples: Stream[IO, Sample]) => samples
-      .fold(List[Sample]())(_ :+ _)
-      .map(aggregateFunction(model))
-      .map(d => Sample(DomainData(), RangeData(d)))
+    (samples: Stream[IO, Sample]) =>
+      samples
+        .fold(List[Sample]())(_ :+ _)
+        .map(aggregateFunction(model))
+        .map(d => Sample(DomainData(), RangeData(d)))
 
   def compose(mapOp: MapOperation): Aggregation = new Aggregation {
-
     def applyToModel(model: DataType): Either[LatisException, DataType] =
       mapOp.applyToModel(model).flatMap(self.applyToModel)
 
@@ -37,5 +37,4 @@ trait Aggregation extends StreamOperation { self =>
       }
     }
   }
-
 }

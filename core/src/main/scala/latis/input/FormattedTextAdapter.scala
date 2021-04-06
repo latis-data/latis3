@@ -15,10 +15,8 @@ class FormattedTextAdapter(
   model: DataType,
   config: FormattedTextAdapter.Config
 ) extends RegexAdapter(model, config) {
-
   override def extractValues(record: String): Vector[String] =
     super.extractValues(record).map(_.replace(' ', '0'))
-
 }
 
 object FormattedTextAdapter extends AdapterFactory {
@@ -47,7 +45,6 @@ object FormattedTextAdapter extends AdapterFactory {
       val pattern: String = formatToRegex(format, tempConfig.delimiter)
       new FormattedTextAdapter.Config(properties :+ ("pattern" -> pattern): _*)
     }
-
   }
 
   private def formatToRegex(format: String, delimiter: String): String = {
@@ -97,5 +94,4 @@ object FormattedTextAdapter extends AdapterFactory {
 
     int(float(string(nl(format))))
   }
-
 }

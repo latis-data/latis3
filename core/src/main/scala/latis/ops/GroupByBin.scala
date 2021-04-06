@@ -19,7 +19,6 @@ case class GroupByBin(
   domainSet: DomainSet,
   aggregation: Aggregation = DefaultAggregation()
 ) extends GroupOperation {
-
   /**
    * Extends the default by constructing a SetFunction with the domainSet.
    */

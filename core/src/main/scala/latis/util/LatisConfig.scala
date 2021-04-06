@@ -8,7 +8,6 @@ import com.typesafe.config.ConfigFactory
  * access methods.
  */
 object LatisConfig {
-
   lazy val config: Config =
     ConfigFactory.load()
 

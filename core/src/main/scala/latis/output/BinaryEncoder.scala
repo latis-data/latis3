@@ -13,7 +13,6 @@ import latis.model._
 import latis.ops.Uncurry
 
 class BinaryEncoder extends Encoder[IO, BitVector] {
-
   /**
    * Encodes the Stream of Samples from the given Dataset as a Stream
    * of BitVectors.
@@ -30,35 +29,40 @@ class BinaryEncoder extends Encoder[IO, BitVector] {
 
   def sampleEncoder(model: DataType): SEncoder[Sample] = new SEncoder[(DomainData, RangeData)] {
     def encode(sample: (DomainData, RangeData)): Attempt[BitVector] =
-    (model, sample) match {
-      case (Function(domain, range), Sample(ds, rs)) =>
-        val scalars = domain.getScalars ++ range.getScalars
-        val datas   = ds ++ rs
-        (scalars zip datas).foldLeft(Attempt.successful(BitVector(hex""))) {
-          case (ab: Attempt[BitVector], (s: Scalar, d: Data)) =>
-            ab.flatMap {
-              case b: BitVector => dataCodec(s).encode(d).map(b ++ _)
-            }
-        }
-    }
+      (model, sample) match {
+        case (Function(domain, range), Sample(ds, rs)) =>
+          val scalars = domain.getScalars ++ range.getScalars
+          val datas   = ds ++ rs
+          scalars.zip(datas).foldLeft(Attempt.successful(BitVector(hex""))) {
+            case (ab: Attempt[BitVector], (s: Scalar, d: Data)) =>
+              ab.flatMap {
+                case b: BitVector => dataCodec(s).encode(d).map(b ++ _)
+              }
+          }
+      }
     def sizeBound: SizeBound = SizeBound.unknown
   }
 
   /** Instance of scodec.Codec for Data. */
   def dataCodec(s: Scalar): Codec[Data] = s.valueType match {
-    case BooleanValueType => codecs.bool(8).xmap[BooleanValue](BooleanValue(_), _.value).upcast[Data]
-    case ByteValueType    => codecs.byte.xmap[ByteValue](ByteValue(_), _.value).upcast[Data]
-    case ShortValueType   => codecs.short16.xmap[ShortValue](ShortValue(_), _.value).upcast[Data]
-    case IntValueType     => codecs.int32.xmap[IntValue](IntValue(_), _.value).upcast[Data]
-    case LongValueType    => codecs.int64.xmap[LongValue](LongValue(_), _.value).upcast[Data]
-    case FloatValueType   => codecs.float.xmap[FloatValue](FloatValue(_), _.value).upcast[Data]
-    case DoubleValueType  => codecs.double.xmap[DoubleValue](DoubleValue(_), _.value).upcast[Data]
+    case BooleanValueType =>
+      codecs.bool(8).xmap[BooleanValue](BooleanValue(_), _.value).upcast[Data]
+    case ByteValueType   => codecs.byte.xmap[ByteValue](ByteValue(_), _.value).upcast[Data]
+    case ShortValueType  => codecs.short16.xmap[ShortValue](ShortValue(_), _.value).upcast[Data]
+    case IntValueType    => codecs.int32.xmap[IntValue](IntValue(_), _.value).upcast[Data]
+    case LongValueType   => codecs.int64.xmap[LongValue](LongValue(_), _.value).upcast[Data]
+    case FloatValueType  => codecs.float.xmap[FloatValue](FloatValue(_), _.value).upcast[Data]
+    case DoubleValueType => codecs.double.xmap[DoubleValue](DoubleValue(_), _.value).upcast[Data]
     case StringValueType =>
       val size = s.metadata.getProperty("size").get.toLong * 8
-      scodec.codecs.paddedFixedSizeBits(size,
-                                        codecs.utf8,
-                                        codecs.literals.constantBitVectorCodec(BitVector(hex"00")))
-        .xmap[StringValue](StringValue(_), _.value).upcast[Data]
+      scodec.codecs
+        .paddedFixedSizeBits(
+          size,
+          codecs.utf8,
+          codecs.literals.constantBitVectorCodec(BitVector(hex"00"))
+        )
+        .xmap[StringValue](StringValue(_), _.value)
+        .upcast[Data]
     case _ => codecs.fail(Err("No encoder found for given datatype."))
   }
 }

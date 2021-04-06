@@ -14,7 +14,6 @@ import latis.util.StreamUtils
  * The Data trait is the root of all data values that go into a Sample.
  */
 sealed trait Data extends Any {
-
   /**
    * Returns this Data object as a Stream of Samples.
    */
@@ -40,16 +39,15 @@ class TupleData private (val elements: Seq[Data]) extends Data {
     Sample(DomainData(), RangeData(elements))
   }
 
-  def eval(data: DomainData): Either[LatisException, RangeData] = {
+  def eval(data: DomainData): Either[LatisException, RangeData] =
     if (data.isEmpty) RangeData(elements).asRight
     else LatisException("TupleData evaluation requires a zero-arity argument.").asLeft
-  }
 }
 
 object TupleData {
   //TODO: prevent tuple of 0 or 1?
   //Note, flatten prevents nested TupleData
-  def apply(ds: Seq[Data]): TupleData = new TupleData(Data.flatten(ds))
+  def apply(ds: Seq[Data]): TupleData      = new TupleData(Data.flatten(ds))
   def apply(d: Data, ds: Data*): TupleData = TupleData(d +: ds)
   def unapplySeq(td: TupleData): Option[Seq[Data]] =
     Option(td.elements)
@@ -65,11 +63,10 @@ trait SampledFunction extends Data {
       SetFunction(domainSet, range)
     }
 
-
   def unsafeForce: MemoizedFunction = this match { //TODO: Either
-      //TODO: optional to: FunctionFactory arg?
+    //TODO: optional to: FunctionFactory arg?
     case mf: MemoizedFunction => mf
-    case _ => SampledFunction(StreamUtils.unsafeStreamToSeq(samples))
+    case _                    => SampledFunction(StreamUtils.unsafeStreamToSeq(samples))
   }
 }
 
@@ -117,17 +114,16 @@ trait Datum extends Any with Data {
     Sample(DomainData(), RangeData(this))
   }
 
-  def eval(data: DomainData): Either[LatisException, RangeData] = {
+  def eval(data: DomainData): Either[LatisException, RangeData] =
     if (data.isEmpty) RangeData(this).asRight
     else LatisException("Datum evaluation requires a zero-arity argument.").asLeft
-  }
 
   def asString: String = value.toString
 }
 
 // Used for default fillValue, bad RDD key
 object NullDatum extends Datum with Serializable {
-  def value = null
+  def value                     = null
   override def asString: String = "null"
 }
 
@@ -164,7 +160,7 @@ object Number {
  */
 trait Integer extends Any with Number {
   def asLong: Long
-  def asDouble: Double = asLong.toDouble
+  def asDouble: Double          = asLong.toDouble
   override def asString: String = asLong.toString
 }
 object Integer {
@@ -179,7 +175,7 @@ object Integer {
  */
 trait Index extends Any with Integer {
   def asInt: Int
-  def asLong: Long = asInt.toLong
+  def asLong: Long              = asInt.toLong
   override def asDouble: Double = asInt.toDouble
   override def asString: String = asInt.toString
 }
@@ -210,7 +206,6 @@ object Text {
 //=============================================================================
 
 object Data {
-
   def fromSeq(ds: Seq[Data]): Data = {
     val flatData = flatten(ds)
     flatData.length match {
@@ -227,14 +222,16 @@ object Data {
    */
   def flatten(ds: Seq[Data]): List[Data] = ds.toList match {
     case Nil => Nil
-    case d :: Nil => d match {
-      case TupleData(ds @ _*) => ds.toList
-      case d: Data => List(d) //Datum or SF
-    }
-    case d :: ds =>d match {
-      case TupleData(es @ _*) => es.toList ++ flatten(ds)
-      case d: Data => d +: flatten(ds) //Datum or SF
-    }
+    case d :: Nil =>
+      d match {
+        case TupleData(ds @ _*) => ds.toList
+        case d: Data            => List(d) //Datum or SF
+      }
+    case d :: ds =>
+      d match {
+        case TupleData(es @ _*) => es.toList ++ flatten(ds)
+        case d: Data            => d +: flatten(ds) //Datum or SF
+      }
   }
 
   /**
@@ -255,7 +252,7 @@ object Data {
     case x: Array[Byte] => Right(BinaryValue(x))
     case x: BigInt      => Right(BigIntValue(x))
     case x: BigDecimal  => Right(BigDecimalValue(x))
-    case _ => Left(LatisException(s"Can't make a Datum from the value $v"))
+    case _              => Left(LatisException(s"Can't make a Datum from the value $v"))
   }
 
   /**
@@ -271,45 +268,48 @@ object Data {
   //Note, these are implicit so we can construct DomainData from primitive types
   //  Import latis.data.Data._ to get implicit Data construction from supported types
 
-  implicit class BooleanValue(val value: Boolean) extends AnyVal with BooleanDatum with Serializable {
-    override def toString = s"BooleanValue($value)"
+  implicit class BooleanValue(val value: Boolean)
+      extends AnyVal
+      with BooleanDatum
+      with Serializable {
+    override def toString           = s"BooleanValue($value)"
     override def asBoolean: Boolean = value
   }
 
   implicit class ByteValue(val value: Byte) extends AnyVal with Index with Serializable {
-    def asInt: Int = value.toInt
+    def asInt: Int        = value.toInt
     override def toString = s"ByteValue($value)"
   }
 
   // single Text character or Integer 0-65535
   implicit class CharValue(val value: Char) extends AnyVal with Text with Index with Serializable {
-    def asInt: Int = value.toInt
+    def asInt: Int        = value.toInt
     override def toString = s"CharValue($value)"
     //TODO: numeric or single test character?
   }
 
   implicit class ShortValue(val value: Short) extends AnyVal with Index with Serializable {
-    def asInt: Int = value.toInt
+    def asInt: Int        = value.toInt
     override def toString = s"ShortValue($value)"
   }
 
   implicit class IntValue(val value: Int) extends AnyVal with Index with Serializable {
-    def asInt: Int = value
+    def asInt: Int        = value
     override def toString = s"IntValue($value)"
   }
 
   implicit class LongValue(val value: Long) extends AnyVal with Integer with Serializable {
-    def asLong: Long = value
+    def asLong: Long      = value
     override def toString = s"LongValue($value)"
   }
 
   implicit class FloatValue(val value: Float) extends AnyVal with Real with Serializable {
-    def asDouble: Double = value.toDouble
+    def asDouble: Double  = value.toDouble
     override def toString = s"FloatValue($value)"
   }
 
   implicit class DoubleValue(val value: Double) extends AnyVal with Real with Serializable {
-    def asDouble: Double = value
+    def asDouble: Double  = value
     override def toString = s"DoubleValue($value)"
   }
 
@@ -319,16 +319,16 @@ object Data {
 
   implicit class BinaryValue(val value: Array[Byte]) extends AnyVal with Datum with Serializable {
     override def asString: String = "BLOB"
-    override def toString = s"BinaryValue($asString)"
+    override def toString         = s"BinaryValue($asString)"
   }
 
   implicit class BigIntValue(val value: BigInt) extends AnyVal with Integer with Serializable {
-    def asLong: Long = value.toLong //won't break but may be wrong
+    def asLong: Long      = value.toLong //won't break but may be wrong
     override def toString = s"BigIntValue($value)"
   }
 
   implicit class BigDecimalValue(val value: BigDecimal) extends AnyVal with Real with Serializable {
-    def asDouble: Double = value.toDouble //may lose precision
+    def asDouble: Double  = value.toDouble //may lose precision
     override def toString = s"BigDecimalValue($value)"
   }
 }

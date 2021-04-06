@@ -10,11 +10,10 @@ import latis.time.Time
 import latis.time.TimeScale
 
 class ConvertTimeSpec extends AnyFlatSpec {
-
   val numericTime = Time(
     Metadata(
-      "id" -> "t1",
-      "type" -> "int",
+      "id"    -> "t1",
+      "type"  -> "int",
       "units" -> "days since 2020-01-01",
       "class" -> "latis.time.Time"
     )
@@ -22,8 +21,8 @@ class ConvertTimeSpec extends AnyFlatSpec {
 
   val textTime = Time(
     Metadata(
-      "id" -> "t2",
-      "type" -> "string",
+      "id"    -> "t2",
+      "type"  -> "string",
       "units" -> "yyyy-MM-dd",
       "class" -> "latis.time.Time"
     )
@@ -39,7 +38,7 @@ class ConvertTimeSpec extends AnyFlatSpec {
   }
 
   it should "convert a numeric time variable" in {
-    val f = convertTime.mapFunction(numericTime)
+    val f      = convertTime.mapFunction(numericTime)
     val sample = Sample(DomainData(), RangeData(14))
     f(sample) match {
       case Sample(_, RangeData(Number(t))) =>
@@ -48,7 +47,7 @@ class ConvertTimeSpec extends AnyFlatSpec {
   }
 
   it should "convert a text time variable" in {
-    val f = convertTime.mapFunction(textTime)
+    val f      = convertTime.mapFunction(textTime)
     val sample = Sample(DomainData(), RangeData("2020-01-15"))
     f(sample) match {
       case Sample(_, RangeData(Number(t))) =>
@@ -61,7 +60,7 @@ class ConvertTimeSpec extends AnyFlatSpec {
       textTime,
       numericTime
     )
-    val f = convertTime.mapFunction(model)
+    val f      = convertTime.mapFunction(model)
     val sample = Sample(DomainData("2020-01-15"), RangeData(14))
     f(sample) match {
       case Sample(DomainData(Number(t1)), RangeData(Number(t2))) =>
@@ -69,5 +68,4 @@ class ConvertTimeSpec extends AnyFlatSpec {
         t2 should be(1.0)
     }
   }
-
 }

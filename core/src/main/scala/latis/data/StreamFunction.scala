@@ -15,7 +15,6 @@ import latis.util.StreamUtils
  * MemoizedFunction that can be more generally evaluated.
  */
 case class StreamFunction(samples: Stream[IO, Sample]) extends SampledFunction {
-
   def ordering: Option[PartialOrdering[DomainData]] = None //TODO: allow ord arg
 
   def eval(data: DomainData): Either[LatisException, RangeData] = {

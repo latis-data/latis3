@@ -4,7 +4,7 @@ import java.lang.ClassLoader
 import java.net.URL
 import java.net.URLClassLoader
 
-import scala.reflect.runtime.{ universe => ru }
+import scala.reflect.runtime.{universe => ru}
 
 import cats.effect.ContextShift
 import cats.effect.IO
@@ -16,7 +16,6 @@ import coursier.interop.cats._
 import latis.catalog.Catalog
 
 final class ServiceInterfaceLoader(implicit cs: ContextShift[IO]) {
-
   // Make Coursier use cats-effect IO.
   private val cache: FileCache[IO] = FileCache[IO]()
 
@@ -48,9 +47,9 @@ final class ServiceInterfaceLoader(implicit cs: ContextShift[IO]) {
   ): IO[ServiceInterface] =
     IO {
       val constructor = {
-        val m = ru.runtimeMirror(cl)
+        val m    = ru.runtimeMirror(cl)
         val clss = m.staticClass(spec.clss)
-        val cm = m.reflectClass(clss)
+        val cm   = m.reflectClass(clss)
         val ctor = clss.toType.decl(ru.termNames.CONSTRUCTOR).asMethod
         cm.reflectConstructor(ctor)
       }
@@ -69,9 +68,9 @@ final class ServiceInterfaceLoader(implicit cs: ContextShift[IO]) {
   private def getClassLoader(spec: ServiceSpec): IO[ClassLoader] = spec match {
     case _: ClassPathServiceSpec =>
       IO(Thread.currentThread().getContextClassLoader())
-    case spec: MavenServiceSpec  =>
+    case spec: MavenServiceSpec =>
       fetchServiceArtifacts(spec).flatMap(mkClassLoader)
-    case spec: JarServiceSpec    =>
+    case spec: JarServiceSpec =>
       List(spec.path).pure[IO].flatMap(mkClassLoader)
   }
 

@@ -30,5 +30,4 @@ case class SetFunction(domainSet: DomainSet, rangeValues: Seq[RangeData]) extend
       Left(LatisException(msg))
     }
   }
-
 }

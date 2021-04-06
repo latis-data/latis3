@@ -16,7 +16,7 @@ lazy val commonSettings = Seq(
     "org.typelevel" %% "cats-effect" % catsEffectVersion,
     "co.fs2"        %% "fs2-core"    % fs2Version,
     "co.fs2"        %% "fs2-io"      % fs2Version,
-    "com.typesafe"   % "config"      % "1.4.1",
+    "com.typesafe"  % "config"       % "1.4.1",
     "org.scalatest" %% "scalatest"   % "3.2.7" % Test
   ),
   Test / fork := true,
@@ -62,7 +62,7 @@ lazy val core = project
       "org.scodec"             %% "scodec-stream"       % "2.0.0",
       "org.http4s"             %% "http4s-blaze-client" % http4sVersion,
       "com.github.regis-leray" %% "fs2-ftp"             % "0.7.0",
-      "junit"                   % "junit"               % "4.13.2"  % Test,
+      "junit"                  % "junit"                % "4.13.2" % Test,
       "org.scalatestplus"      %% "junit-4-13"          % "3.2.7.0" % Test
     )
   )
@@ -80,8 +80,8 @@ lazy val `dap2-parser` = project
   .settings(
     name := "dap2-parser",
     libraryDependencies ++= Seq(
-      "org.tpolecat"   %% "atto-core"  % attoVersion,
-      "org.scalacheck" %% "scalacheck" % "1.14.3" % Test,
+      "org.tpolecat"               %% "atto-core"                 % attoVersion,
+      "org.scalacheck"             %% "scalacheck"                % "1.14.3" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.5" % Test
     )
   )
@@ -95,8 +95,8 @@ lazy val `dap2-service` = project
   .settings(
     name := "dap2-service-interface",
     libraryDependencies ++= Seq(
-      "org.http4s"     %% "http4s-core" % http4sVersion % Provided,
-      "org.http4s"     %% "http4s-dsl"  % http4sVersion % Provided
+      "org.http4s" %% "http4s-core" % http4sVersion % Provided,
+      "org.http4s" %% "http4s-dsl"  % http4sVersion % Provided
     )
   )
 
@@ -128,7 +128,7 @@ lazy val server = project
       "com.github.pureconfig" %% "pureconfig"             % pureconfigVersion,
       "com.github.pureconfig" %% "pureconfig-cats-effect" % pureconfigVersion,
       "io.chrisdavenport"     %% "log4cats-slf4j"         % "1.1.1",
-      "ch.qos.logback"         % "logback-classic"        % "1.2.3" % Runtime
+      "ch.qos.logback"        % "logback-classic"         % "1.2.3" % Runtime
     )
   )
 
@@ -161,12 +161,12 @@ lazy val netcdf = project
   .settings(
     name := "latis3-netcdf",
     libraryDependencies ++= Seq(
-      "edu.ucar"            % "cdm-core"         % netcdfVersion,
-      "edu.ucar"            % "httpservices"     % netcdfVersion,
-      "edu.ucar"            % "netcdf4"          % netcdfVersion,
+      "edu.ucar" % "cdm-core"     % netcdfVersion,
+      "edu.ucar" % "httpservices" % netcdfVersion,
+      "edu.ucar" % "netcdf4"      % netcdfVersion
     ),
     resolvers ++= Seq(
-      "Unidata" at "https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases"
+      "Unidata".at("https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases")
     )
   )
 
@@ -177,7 +177,7 @@ lazy val jdbc = project
   .settings(
     name := "latis3-jdbc",
     libraryDependencies ++= Seq(
-      "org.tpolecat"             %% "doobie-core" % "0.12.1",
-      "com.h2database"            % "h2"          % "1.4.200" % Test,
+      "org.tpolecat"   %% "doobie-core" % "0.12.1",
+      "com.h2database" % "h2"           % "1.4.200" % Test
     )
   )

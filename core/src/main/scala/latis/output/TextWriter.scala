@@ -9,7 +9,6 @@ import latis.dataset.Dataset
 import latis.util.StreamUtils._
 
 case class TextWriter(out: OutputStream) {
-
   def write(dataset: Dataset): Unit =
     new TextEncoder()
       .encode(dataset)
@@ -18,10 +17,8 @@ case class TextWriter(out: OutputStream) {
       .compile
       .drain
       .unsafeRunSync()
-
 }
 
 object TextWriter {
-
   def apply(): TextWriter = TextWriter(System.out)
 }

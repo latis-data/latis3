@@ -46,5 +46,4 @@ object CacheManager {
    * Remove a single dataset from the cache.
    */
   def removeDataset(id: Identifier): Option[Dataset] = cache.remove(id)
-
 }

@@ -19,23 +19,18 @@ import latis.model.Scalar
 import latis.util.Identifier.IdentifierStringContext
 
 final class GranuleListAppendAdapterSpec extends AnyFlatSpec {
-
   "A granule list append adapter" should
     "create a dataset from appended granules" in {
+    val glaSamples = new GranuleListAppendAdapter(granuleList, template)
+      .getData(List.empty)
+      .samples
+      .compile
+      .toList
+      .unsafeRunSync
 
-      val glaSamples = new GranuleListAppendAdapter(granuleList, template)
-        .getData(List.empty)
-        .samples
-        .compile
-        .toList
-        .unsafeRunSync
+    val gSamples = (g1.samples ++ g2.samples ++ g3.samples).compile.toList.unsafeRunSync
 
-      val gSamples = (g1.samples ++ g2.samples ++ g3.samples)
-        .compile
-        .toList
-        .unsafeRunSync
-
-      glaSamples should equal (gSamples)
+    glaSamples should equal(gSamples)
   }
 
   private val granules: List[List[Sample]] = List(
@@ -66,15 +61,15 @@ final class GranuleListAppendAdapterSpec extends AnyFlatSpec {
     val model: DataType = Function(
       Scalar(
         Metadata(
-          "id" -> "time",
-          "type" -> "string",
+          "id"    -> "time",
+          "type"  -> "string",
           "class" -> "latis.time.Time",
           "units" -> "yyyy-MM-dd"
         )
       ),
       Scalar(
         Metadata(
-          "id" -> "value",
+          "id"   -> "value",
           "type" -> "int"
         )
       )
@@ -92,15 +87,15 @@ final class GranuleListAppendAdapterSpec extends AnyFlatSpec {
     val model: DataType = Function(
       Scalar(
         Metadata(
-          "id" -> "time",
-          "type" -> "string",
+          "id"    -> "time",
+          "type"  -> "string",
           "class" -> "latis.time.Time",
           "units" -> "yyyy-MM-dd"
         )
       ),
       Scalar(
         Metadata(
-          "id" -> "value",
+          "id"   -> "value",
           "type" -> "int"
         )
       )
@@ -118,15 +113,15 @@ final class GranuleListAppendAdapterSpec extends AnyFlatSpec {
     val model: DataType = Function(
       Scalar(
         Metadata(
-          "id" -> "time",
-          "type" -> "string",
+          "id"    -> "time",
+          "type"  -> "string",
           "class" -> "latis.time.Time",
           "units" -> "yyyy-MM-dd"
         )
       ),
       Scalar(
         Metadata(
-          "id" -> "value",
+          "id"   -> "value",
           "type" -> "int"
         )
       )
@@ -144,15 +139,15 @@ final class GranuleListAppendAdapterSpec extends AnyFlatSpec {
     val model: DataType = Function(
       Scalar(
         Metadata(
-          "id" -> "time",
-          "type" -> "string",
+          "id"    -> "time",
+          "type"  -> "string",
           "class" -> "latis.time.Time",
           "units" -> "yyyy-MM-dd"
         )
       ),
       Scalar(
         Metadata(
-          "id" -> "uri",
+          "id"   -> "uri",
           "type" -> "string"
         )
       )

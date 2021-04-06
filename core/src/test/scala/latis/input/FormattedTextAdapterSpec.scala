@@ -9,7 +9,6 @@ import latis.model._
 import latis.util.Identifier.IdentifierStringContext
 
 class FormattedTextAdapterSpec extends AnyFlatSpec {
-
   private val model = Function(
     Tuple(
       Scalar(Metadata(id"time") + ("type" -> "string") + ("units" -> "yyyyMMdd"))
@@ -46,5 +45,4 @@ class FormattedTextAdapterSpec extends AnyFlatSpec {
 
     sample should be(expectedSample)
   }
-
 }

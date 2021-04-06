@@ -24,14 +24,13 @@ class CompositeDataset(
   datasets: NonEmptyList[Dataset],
   operations: Seq[UnaryOperation] = Seq.empty
 ) extends Dataset {
-
   val joinOperation: BinaryOperation = Append()
 
   // TODO: implement metadata appending
   override def metadata: Metadata = _metadata
 
   override def model: DataType = (for {
-    model <- compositeModel
+    model    <- compositeModel
     opsModel <- operations.foldM(model)((mod, op) => op.applyToModel(mod))
   } yield opsModel).fold(throw _, identity)
 
@@ -56,20 +55,23 @@ class CompositeDataset(
    * Applies the Operations to generate the new Data.
    */
   private def applyOperations(): Either[LatisException, Data] = for {
-      model <- compositeModel
-      data <- compositeData
-      newData <- operations.foldM((model, data)) { case ((mod1, dat1), op) =>
-        (op.applyToModel(mod1), op.applyToData(dat1, mod1)).mapN((_, _))
-      }.map(_._2)
-    } yield newData
+    model <- compositeModel
+    data  <- compositeData
+    newData <- operations
+      .foldM((model, data)) {
+        case ((mod1, dat1), op) =>
+          (op.applyToModel(mod1), op.applyToData(dat1, mod1)).mapN((_, _))
+      }
+      .map(_._2)
+  } yield newData
 
   /**
    * Causes the data source to be read and released
    * and existing Operations to be applied.
    */
   def unsafeForce(): MemoizedDataset = new MemoizedDataset(
-    metadata,  //from super with ops applied
-    model,     //from super with ops applied
+    metadata, //from super with ops applied
+    model,    //from super with ops applied
     applyOperations().fold(throw _, identity).asInstanceOf[SampledFunction].unsafeForce
   )
 
@@ -81,8 +83,7 @@ class CompositeDataset(
     }
 
   private lazy val compositeModel: Either[LatisException, DataType] =
-    datasets.tail.foldM(datasets.head.model){ (model, ds) =>
+    datasets.tail.foldM(datasets.head.model) { (model, ds) =>
       joinOperation.applyToModel(model, ds.model)
     }
-
 }

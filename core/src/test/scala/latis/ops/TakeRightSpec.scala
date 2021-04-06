@@ -11,7 +11,6 @@ import latis.dataset.Dataset
 import latis.util.DatasetGenerator
 
 class TakeRightSpec extends AnyFlatSpec {
-
   "The TakeRight Operation" should "return the last n samples of a simple dataset" in {
     val ds: Dataset = DatasetGenerator("a -> b")
     val dsTake      = ds.withOperation(TakeRight(2))

@@ -9,7 +9,6 @@ import latis.model._
 import latis.util.Identifier.IdentifierStringContext
 
 class SubstringAdapterSpec extends AnyFlatSpec {
-
   private val config = new SubstringAdapter.Config(
     ("substring", "0,4;5,8;9,10;11,12")
   )

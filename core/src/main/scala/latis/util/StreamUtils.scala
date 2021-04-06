@@ -13,7 +13,6 @@ import fs2.Stream
  * Utilities for working with fs2 Streams.
  */
 object StreamUtils {
-
   /**
    * An execution context for blocking operations.
    */
@@ -45,5 +44,4 @@ object StreamUtils {
    */
   def unsafeHead[T](stream: Stream[IO, T]): T =
     stream.head.compile.toVector.unsafeRunSync().head
-
 }

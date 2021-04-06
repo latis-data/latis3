@@ -5,7 +5,6 @@ package latis.data
  * RangeData type alias for List[Any].
  */
 object RangeData {
-
   /**
    * Construct RangeData from a Seq of Data.
    * TupleData will be flattened.

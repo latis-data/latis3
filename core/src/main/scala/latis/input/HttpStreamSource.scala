@@ -19,7 +19,6 @@ import latis.util.StreamUtils.contextShift
  * consumed or after a timeout (default 1m).
  */
 class HttpStreamSource extends StreamSource {
-
   /**
    * Specifies that "http" or "https" URIs can be read by this StreamSource.
    */
@@ -37,5 +36,4 @@ class HttpStreamSource extends StreamSource {
       }
       Option(stream)
     } else None
-
 }

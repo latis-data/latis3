@@ -7,7 +7,6 @@ import latis.util.Identifier._
 import latis.util.dap2.parser.ast._
 
 class ConstraintParserSpec extends AnyFlatSpec {
-
   /**
    * Helper for reducing boilerplate.
    *
@@ -23,7 +22,7 @@ class ConstraintParserSpec extends AnyFlatSpec {
 
   "A DAP 2 constraint parser" should "accept no constraints" in
     testParse("") {
-      _.exprs.length should be (0)
+      _.exprs.length should be(0)
     }
 
   it should "parse a selection" in
@@ -31,7 +30,7 @@ class ConstraintParserSpec extends AnyFlatSpec {
       val correct = ConstraintExpression(
         List(Selection(id"time", Gt, "0"))
       )
-      ce should be (correct)
+      ce should be(correct)
     }
 
   it should "parse a selection with white space" in
@@ -39,7 +38,7 @@ class ConstraintParserSpec extends AnyFlatSpec {
       val correct = ConstraintExpression(
         List(Selection(id"time", Gt, "0"))
       )
-      ce should be (correct)
+      ce should be(correct)
     }
 
   it should "parse a selection with a full ISO 8601 time string" in
@@ -47,7 +46,7 @@ class ConstraintParserSpec extends AnyFlatSpec {
       val correct = ConstraintExpression(
         List(Selection(id"time", GtEq, "2000-01-01T00:00:00.000Z"))
       )
-      ce should be (correct)
+      ce should be(correct)
     }
 
   it should "parse a selection with a partial ISO 8601 time string" in
@@ -55,7 +54,7 @@ class ConstraintParserSpec extends AnyFlatSpec {
       val correct = ConstraintExpression(
         List(Selection(id"time", GtEq, "2000-01-01T00:00"))
       )
-      ce should be (correct)
+      ce should be(correct)
     }
 
   it should "parse a selection with only a date" in
@@ -63,7 +62,7 @@ class ConstraintParserSpec extends AnyFlatSpec {
       val correct = ConstraintExpression(
         List(Selection(id"time", Lt, "2000-01-01"))
       )
-      ce should be (correct)
+      ce should be(correct)
     }
 
   it should "parse expressions with leading ampersands" in
@@ -71,7 +70,7 @@ class ConstraintParserSpec extends AnyFlatSpec {
       val correct = ConstraintExpression(
         List(Selection(id"time", Gt, "0"))
       )
-      ce should be (correct)
+      ce should be(correct)
     }
 
   it should "parse two selections joined by an ampersand" in
@@ -82,7 +81,7 @@ class ConstraintParserSpec extends AnyFlatSpec {
           Selection(id"time", Lt, "10")
         )
       )
-      ce should be (correct)
+      ce should be(correct)
     }
 
   it should "parse selections with text values" in
@@ -90,7 +89,7 @@ class ConstraintParserSpec extends AnyFlatSpec {
       val correct = ConstraintExpression(
         List(Selection(id"time", Gt, "text"))
       )
-      ce should be (correct)
+      ce should be(correct)
     }
 
   it should "parse selections with double-quoted values" in {
@@ -98,7 +97,7 @@ class ConstraintParserSpec extends AnyFlatSpec {
       val correct = ConstraintExpression(
         List(Selection(id"time", Gt, "\"text\""))
       )
-      ce should be (correct)
+      ce should be(correct)
     }
   }
 
@@ -107,7 +106,7 @@ class ConstraintParserSpec extends AnyFlatSpec {
       val correct = ConstraintExpression(
         List(Projection(List(id"time")))
       )
-      ce should be (correct)
+      ce should be(correct)
     }
 
   it should "parse a multi-variable projection" in
@@ -115,7 +114,7 @@ class ConstraintParserSpec extends AnyFlatSpec {
       val correct = ConstraintExpression(
         List(Projection(List(id"time", id"value")))
       )
-      ce should be (correct)
+      ce should be(correct)
     }
 
   it should "parse a single operation" in
@@ -123,7 +122,7 @@ class ConstraintParserSpec extends AnyFlatSpec {
       val correct = ConstraintExpression(
         List(Operation("first", List()))
       )
-      ce should be (correct)
+      ce should be(correct)
     }
 
   it should "parse multiple operations" in
@@ -134,7 +133,7 @@ class ConstraintParserSpec extends AnyFlatSpec {
           Operation("last", List())
         )
       )
-      ce should be (correct)
+      ce should be(correct)
     }
 
   it should "parse an operation with an argument" in
@@ -142,7 +141,7 @@ class ConstraintParserSpec extends AnyFlatSpec {
       val correct = ConstraintExpression(
         List(Operation("take", List("5")))
       )
-      ce should be (correct)
+      ce should be(correct)
     }
 
   it should "parse an operation with a double-quoted argument" in {
@@ -150,7 +149,7 @@ class ConstraintParserSpec extends AnyFlatSpec {
       val correct = ConstraintExpression(
         List(Operation("op", List("\"a\"")))
       )
-      ce should be (correct)
+      ce should be(correct)
     }
   }
 
@@ -159,7 +158,7 @@ class ConstraintParserSpec extends AnyFlatSpec {
       val correct = ConstraintExpression(
         List(Operation("op", List("a", "b")))
       )
-      ce should be (correct)
+      ce should be(correct)
     }
 
   it should "parse an operation with multiple arguments with white space" in
@@ -167,7 +166,7 @@ class ConstraintParserSpec extends AnyFlatSpec {
       val correct = ConstraintExpression(
         List(Operation("op", List("a", "b")))
       )
-      ce should be (correct)
+      ce should be(correct)
     }
 
   it should "parse a projection followed by selections and operations" in
@@ -179,7 +178,7 @@ class ConstraintParserSpec extends AnyFlatSpec {
           Operation("last", List())
         )
       )
-      ce should be (correct)
+      ce should be(correct)
     }
 
   it should "not parse expressions where projections aren't first" in

@@ -11,8 +11,8 @@ import latis.util.LatisException
  * as opposed to bins.
  */
 class LinearSet1D(start: Double, increment: Double, count: Int)
-  extends DomainSet
-  with Serializable {
+    extends DomainSet
+    with Serializable {
   //TODO: require increment > 0 otherwise need to provide alternate ordering
   //TODO: optional model constructor arg?
 
@@ -66,11 +66,9 @@ class LinearSet1D(start: Double, increment: Double, count: Int)
     if (isDefinedAt(index)) index
     else -1
   }
-
 }
 
 object LinearSet1D {
-
   def apply(start: Double, increment: Double, count: Int) =
     new LinearSet1D(start, increment, count)
 

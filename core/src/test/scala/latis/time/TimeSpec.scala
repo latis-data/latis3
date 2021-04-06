@@ -7,7 +7,6 @@ import latis.data.Data
 import latis.metadata.Metadata
 
 class TimeSpec extends AnyFlatSpec {
-  
   val formattedTime: Time = Time(
     Metadata(
       "id"    -> "time",
@@ -15,7 +14,7 @@ class TimeSpec extends AnyFlatSpec {
       "units" -> "MMM dd, yyyy"
     )
   )
-  
+
   val numericTime: Time = Time(
     Metadata(
       "id"    -> "time",
@@ -23,12 +22,11 @@ class TimeSpec extends AnyFlatSpec {
       "units" -> "seconds since 2000-01-01"
     )
   )
-      
-  
+
   "A numeric time" should "parse a string as a number" in {
     numericTime.parseValue("86400") match {
       case Right(d: Data.DoubleValue) =>
-        d.value should be (86400d)
+        d.value should be(86400d)
     }
   }
 
@@ -38,9 +36,8 @@ class TimeSpec extends AnyFlatSpec {
         d.value should be("Jan 01, 2000")
     }
   }
-  
-  "Time ordering" should "compare two formatted time values" in {
-    formattedTime.ordering.tryCompare("Jan 01, 2000", "Feb 01, 2000") should be (Some(-1))
-  }
 
+  "Time ordering" should "compare two formatted time values" in {
+    formattedTime.ordering.tryCompare("Jan 01, 2000", "Feb 01, 2000") should be(Some(-1))
+  }
 }

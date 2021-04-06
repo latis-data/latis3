@@ -37,18 +37,17 @@ case class NetcdfAdapter(
   model: DataType,
   config: NetcdfAdapter.Config = NetcdfAdapter.Config()
 ) extends Adapter {
-
   /**
    * Specifies which operations that this adapter will handle.
    */
   override def canHandleOperation(op: Operation): Boolean = op match {
     case Stride(stride) if stride.length == model.arity => true
-    case s@Selection(v, _, _) => model.getVariable(v).exists(
-      v => v("cadence").nonEmpty && v("start").nonEmpty) &&
-      (s.operator match {
-        case Gt | Lt | GtEq | LtEq | Eq | EqEq | Tilde => true
-        case _ => false
-    })
+    case s @ Selection(v, _, _) =>
+      model.getVariable(v).exists(v => v("cadence").nonEmpty && v("start").nonEmpty) &&
+        (s.operator match {
+          case Gt | Lt | GtEq | LtEq | Eq | EqEq | Tilde => true
+          case _                                         => false
+        })
     //TODO: take, drop, ...
     case _ => false
   }
@@ -67,25 +66,29 @@ case class NetcdfAdapter(
       val sections = nc.applyOperations(ops).fold(throw _, identity)
       // Zip scalars with their corresponding section.
       val (domainSections, rangeSections) = model.getScalars
-          .zip(sections)
-          .splitAt(model.arity)
+        .zip(sections)
+        .splitAt(model.arity)
 
       // Assumes all domain variables are 1D and define a Cartesian Product set.
       val domainSet: DomainSet = {
-        val dsets: List[DomainSet] = domainSections.map { case (scalar, sec) =>
-          val scalarId = scalar.id.getOrElse(throw LatisException("Scalar must have an identifier"))
-          nc.readVariable(scalarId, sec).map { ncArr =>
-            val ds: IndexedSeq[DomainData] =
-              (0 until ncArr.getSize.toInt).map { i =>
-                Data.fromValue(ncArr.getObject(i)).fold(throw _, DomainData(_))
-                //TODO: error or drop?
+        val dsets: List[DomainSet] = domainSections.map {
+          case (scalar, sec) =>
+            val scalarId =
+              scalar.id.getOrElse(throw LatisException("Scalar must have an identifier"))
+            nc.readVariable(scalarId, sec)
+              .map { ncArr =>
+                val ds: IndexedSeq[DomainData] =
+                  (0 until ncArr.getSize.toInt).map { i =>
+                    Data.fromValue(ncArr.getObject(i)).fold(throw _, DomainData(_))
+                  //TODO: error or drop?
+                  }
+                SeqSet1D(scalar, ds)
               }
-            SeqSet1D(scalar, ds)
-          }.getOrElse {
-            // Variable not found, use index
-            // Throws NullPointerException if section contains ":"
-            IndexSet1D(0, 1, sec.computeSize.toInt)
-          }
+              .getOrElse {
+                // Variable not found, use index
+                // Throws NullPointerException if section contains ":"
+                IndexSet1D(0, 1, sec.computeSize.toInt)
+              }
         }
         if (dsets.length == 1) dsets.head
         else ProductSet(dsets)
@@ -97,22 +100,21 @@ case class NetcdfAdapter(
         val arrs: List[NcArray] = rangeSections.flatMap {
           case (scalar, section) =>
             //TODO: beware of silent failure if var not found
-            val scalarId = scalar.id.getOrElse(throw LatisException("Scalar must have an identifier"))
+            val scalarId =
+              scalar.id.getOrElse(throw LatisException("Scalar must have an identifier"))
             nc.readVariable(scalarId, section)
         }
         (0 until arrs.head.getSize.toInt).map { i =>
           RangeData(arrs.map { ncArr =>
             Data.fromValue(ncArr.getObject(i)).fold(throw _, identity)
-            //TODO: error or fill?
+          //TODO: error or fill?
           })
         }
       }
 
       SetFunction(domainSet, rangeData)
     }.compile.toVector.unsafeRunSync().head //Note, will close file
-
   }
-
 }
 
 //TODO: move some of this to NetcdfUtils?
@@ -130,7 +132,7 @@ object NetcdfAdapter extends AdapterFactory {
   case class Config(properties: (String, String)*) extends ConfigLike {
     //Note: ucar.ma2.Section is not serializable, use string representation instead
     val section: Option[String] = get("section")
-      .map(_.replaceAll("""\s*""",""))  // trim whitespace
+      .map(_.replaceAll("""\s*""", "")) // trim whitespace
   }
 
   /**
@@ -175,7 +177,7 @@ object NetcdfAdapter extends AdapterFactory {
    */
   def applyOperation(
     sections: List[Section],
-    model:DataType,
+    model: DataType,
     op: Operation
   ): Either[LatisException, List[Section]] = op match {
     // TODO: revisit logic in each operation for multiple sections
@@ -200,28 +202,32 @@ object NetcdfAdapter extends AdapterFactory {
       Left(LatisException(s"Invalid rank for stride: ${stride.mkString(",")}"))
     } else {
       val domainSec =
-        Either.catchOnly[NullPointerException] {
-          sections.zip(stride).map {
-            case (sec, str) =>
-              val rs = sec.getRanges.asScala.toList
-              val firstR = applyStrideToRange(rs.head, str)
-              new Section(firstR :: rs.tail: _*)
-          }
-        }.leftMap(_ => LatisException("Can't apply a stride to a null Range."))
-
-      val rangeSec =
-        Either.catchOnly[NullPointerException] {
-          sections.drop(stride.length).map { sec =>
-            if (sec.getRank != stride.length) {
-              throw LatisException(s"Invalid rank for stride: ${stride.mkString(",")}")
-            } else {
-              val rs = sec.getRanges.asScala.toList.zip(stride).map {
-                case (r, str) => applyStrideToRange(r, str)
-              }
-              new Section(rs: _*)
+        Either
+          .catchOnly[NullPointerException] {
+            sections.zip(stride).map {
+              case (sec, str) =>
+                val rs     = sec.getRanges.asScala.toList
+                val firstR = applyStrideToRange(rs.head, str)
+                new Section(firstR :: rs.tail: _*)
             }
           }
-        }.leftMap(_ => LatisException("Can't apply a stride to a null Range."))
+          .leftMap(_ => LatisException("Can't apply a stride to a null Range."))
+
+      val rangeSec =
+        Either
+          .catchOnly[NullPointerException] {
+            sections.drop(stride.length).map { sec =>
+              if (sec.getRank != stride.length) {
+                throw LatisException(s"Invalid rank for stride: ${stride.mkString(",")}")
+              } else {
+                val rs = sec.getRanges.asScala.toList.zip(stride).map {
+                  case (r, str) => applyStrideToRange(r, str)
+                }
+                new Section(rs: _*)
+              }
+            }
+          }
+          .leftMap(_ => LatisException("Can't apply a stride to a null Range."))
 
       (domainSec, rangeSec).mapN(_ ++ _)
     }
@@ -249,7 +255,6 @@ object NetcdfAdapter extends AdapterFactory {
     model: DataType,
     selection: Selection
   ): Either[LatisException, List[Section]] = {
-
     /**
      * Creates a new range to replace the range in the given selection. The
      * index passed might not be an integer, but must be cast to an integer to
@@ -258,17 +263,19 @@ object NetcdfAdapter extends AdapterFactory {
      */
     def getNewRange(range: URange, index: Double): Either[LatisException, URange] =
       selection.operator match {
-        case Gt   =>
+        case Gt =>
           val indexCeil = index.ceil.toInt
-          val adjustedLow = if (index == indexCeil.toDouble) indexCeil + 1
-          else indexCeil
+          val adjustedLow =
+            if (index == indexCeil.toDouble) indexCeil + 1
+            else indexCeil
           val lowerRange = max(range.first, adjustedLow)
           if (lowerRange > range.last) Right(URange.EMPTY)
           else Right(new URange(lowerRange, range.last))
-        case Lt   =>
+        case Lt =>
           val indexFloor = index.floor.toInt
-          val adjustedHigh = if (index == indexFloor.toDouble) indexFloor - 1
-          else indexFloor
+          val adjustedHigh =
+            if (index == indexFloor.toDouble) indexFloor - 1
+            else indexFloor
           val upperRange = min(range.last, adjustedHigh)
           if (range.first > upperRange) Right(URange.EMPTY)
           else Right(new URange(range.first, upperRange))
@@ -283,16 +290,17 @@ object NetcdfAdapter extends AdapterFactory {
         case Eq | EqEq =>
           val intIndex = index.toInt
           if (index == intIndex.toDouble &&
-            intIndex <= range.last &&
-            intIndex >= range.first)
+              intIndex <= range.last &&
+              intIndex >= range.first)
             Right(new URange(intIndex, intIndex))
           else Right(URange.EMPTY)
         case Tilde =>
-          val nearestIndex = if (index.round.toInt < range.first)
-            range.first
-          else if (index.round.toInt > range.last)
-            range.last
-          else index.round.toInt
+          val nearestIndex =
+            if (index.round.toInt < range.first)
+              range.first
+            else if (index.round.toInt > range.last)
+              range.last
+            else index.round.toInt
           Right(new URange(nearestIndex, nearestIndex))
         // If support for an operation is added here, it must also be added to `canHandleOperation`
         case op => Left(LatisException(s"Unsupported selection operator ${prettyOp(op)}"))
@@ -301,8 +309,10 @@ object NetcdfAdapter extends AdapterFactory {
     /** Gets a scalar's metadata and converts it to a double. */
     def getMetadataAsDouble(s: Scalar, key: String): Either[LatisException, Double] =
       s(key) match {
-        case Some(v) => Either.catchOnly[NumberFormatException](v.toDouble)
-          .leftMap(_ => LatisException(s"$v could not be converted to a double"))
+        case Some(v) =>
+          Either
+            .catchOnly[NumberFormatException](v.toDouble)
+            .leftMap(_ => LatisException(s"$v could not be converted to a double"))
         case _ => Left(LatisException(s"scalar $s does not have $key metadata"))
       }
 
@@ -330,15 +340,21 @@ object NetcdfAdapter extends AdapterFactory {
     /** Gets the zero-indexed position of a domain scalar in a top-level function. */
     def getScalarPos(id: Identifier): Either[LatisException, Int] =
       model.getPath(id) match {
-        case None => Left(LatisException(s"$id not found in model."))
+        case None                          => Left(LatisException(s"$id not found in model."))
         case Some(List(DomainPosition(n))) => Right(n)
-        case _ => Left(LatisException(s"$id must be in the domain of a " +
-          "top-level function in the model."))
+        case _ =>
+          Left(
+            LatisException(
+              s"$id must be in the domain of a " +
+                "top-level function in the model."
+            )
+          )
       }
 
     /** Finds and returns the first Range with length > 1 in given Section. */
     def getOldRange(s: Section): Either[LatisException, URange] =
-      s.getRanges.asScala.toList.find(_.length > 1)
+      s.getRanges.asScala.toList
+        .find(_.length > 1)
         .toRight(LatisException(s"Could not find viable range to apply selection in $s."))
 
     /** Finds first occurrence of oldRange and replaces with newRange in given Section. */
@@ -348,7 +364,7 @@ object NetcdfAdapter extends AdapterFactory {
       sec: Section
     ): Either[LatisException, Section] = {
       val ranges = sec.getRanges.asScala.toList
-      ranges.zipWithIndex.find { case (r, _) => r == oldRange} match {
+      ranges.zipWithIndex.find { case (r, _) => r == oldRange } match {
         case Some((_, n)) =>
           val newRanges = ranges.take(n) ++ List(newRange) ++ ranges.drop(n + 1)
           Right(new Section(newRanges: _*))
@@ -357,12 +373,14 @@ object NetcdfAdapter extends AdapterFactory {
     }
 
     for {
-      scalar <- selection.getScalar(model)
-      cadence <- getMetadataAsDouble(scalar, "cadence")
-      firstValue <- getMetadataAsDouble(scalar, "start")
+      scalar      <- selection.getScalar(model)
+      cadence     <- getMetadataAsDouble(scalar, "cadence")
+      firstValue  <- getMetadataAsDouble(scalar, "start")
       selectValue <- getBigDecimalValue(scalar, selection.value)
-      index <- getIndex(selectValue, firstValue, cadence)
-      pos <- getScalarPos(scalar.id.getOrElse(throw LatisException("Scalar must have an identifier")))
+      index       <- getIndex(selectValue, firstValue, cadence)
+      pos <- getScalarPos(
+        scalar.id.getOrElse(throw LatisException("Scalar must have an identifier"))
+      )
       // find the URange to apply the selection to
       oldRange <- getOldRange(sections(pos))
       // apply the selection to get a new URange
@@ -372,10 +390,10 @@ object NetcdfAdapter extends AdapterFactory {
       domainSections = sections.take(pos) ++ List(domainSection) ++
         sections.slice(pos + 1, model.arity)
       // update the appropriate URange in every Section in the range
-      rangeSections <- sections.drop(model.arity)
+      rangeSections <- sections
+        .drop(model.arity)
         .traverse(replaceRangeInSection(oldRange, newRange, _))
     } yield domainSections ++ rangeSections
-
   }
 }
 
@@ -384,7 +402,6 @@ object NetcdfAdapter extends AdapterFactory {
  * and applies operations by modifying the requested Section.
  */
 case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: NetcdfAdapter.Config) {
-
   /**
    * Defines a Map of LaTiS variable id to the corresponding NetCDF Variable.
    * Note, this will access the file but not read data arrays.
@@ -392,13 +409,14 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
   private lazy val variableMap: Map[Identifier, NcVariable] = {
     /** Escape special characters in a netcdf short name when it is intended for use in a fullname. */
     def makeValidPathName(name: String): String =
-        backslashEscape(name, ".\\")
+      backslashEscape(name, ".\\")
 
     def getNcVar(id: Identifier): Option[NcVariable] = {
       val validId = makeValidPathName(
-        model.findVariable(id)
-        .flatMap(_("sourceId"))
-        .getOrElse(id.asString)
+        model
+          .findVariable(id)
+          .flatMap(_("sourceId"))
+          .getOrElse(id.asString)
       )
       Option(ncDataset.findVariable(validId))
     }
@@ -409,26 +427,30 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
     })
     val pairs = ids.flatMap { id =>
       getNcVar(id).map((id, _))
-      //Note, domain variables not found will be replaced by index
-      //TODO: what about range vars?
-      //val msg = s"NetCDF variable not found: $vname"
-      //throw LatisException(msg)
+    //Note, domain variables not found will be replaced by index
+    //TODO: what about range vars?
+    //val msg = s"NetCDF variable not found: $vname"
+    //throw LatisException(msg)
     }
     pairs.toMap
   }
 
   private def idToSectionString(id: Identifier): String = variableMap.get(id) match {
     case Some(v) => v.getShape.map(n => s"0:${n - 1}").mkString(",")
-    case _ => ""
+    case _       => ""
   }
 
   private def makeSectionFromIdAndString(id: Identifier, sec: String): Section = {
     val rangeStrings = sec.split(',')
     if (rangeStrings.contains(":")) {
-      val secString = idToSectionString(id).split(',').zip(rangeStrings).map {
-        case (r, ":") => r
-        case (_, r) => r
-      }.mkString(",")
+      val secString = idToSectionString(id)
+        .split(',')
+        .zip(rangeStrings)
+        .map {
+          case (r, ":") => r
+          case (_, r)   => r
+        }
+        .mkString(",")
       new Section(secString)
     } else {
       new Section(sec)
@@ -442,7 +464,8 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
    * scalars in the model, and the section is then split into a list of sections.
    */
   lazy val sections: List[Section] = {
-    val ids = model.getScalars.map(_.id.getOrElse(throw LatisException("Scalar must have an identifier")))
+    val ids =
+      model.getScalars.map(_.id.getOrElse(throw LatisException("Scalar must have an identifier")))
     config.section match {
       case Some(spec) =>
         val sectionsNotNull = ids.zip(spec.split(';')).map {
@@ -451,19 +474,25 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
         sectionsNotNull match {
           //TODO: error handling. Throws ucar.ma2.InvalidRangeException and
           // java.lang.IllegalArgumentException
-          case sec :: Nil =>  // Only one section.
+          case sec :: Nil => // Only one section.
             // Each domain variable uses one ma2.Range and the range variables
             // use the entire section each.
             val ranges = sec.getRanges.asScala.toList
             if (ranges.length == model.arity)
               ranges.map(new Section(_)) ++ List.fill(ids.length - ranges.length)(sec)
-            else throw LatisException("The number of ranges in the adapter section " +
-              "must match the number of scalars in the domain of the model.")
+            else
+              throw LatisException(
+                "The number of ranges in the adapter section " +
+                  "must match the number of scalars in the domain of the model."
+              )
           case sections =>
             // if there are many sections, then there should be one for each variable
             if (sections.length == ids.length) sections
-            else throw LatisException("The number of sections defined in the adapter " +
-              "must be either 1 or match the number of scalars in the model.")
+            else
+              throw LatisException(
+                "The number of sections defined in the adapter " +
+                  "must be either 1 or match the number of scalars in the model."
+              )
         }
       case None =>
         // Makes a section for each variable in the model. Gets the shape of

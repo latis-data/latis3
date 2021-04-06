@@ -11,17 +11,16 @@ import latis.util.LatisException
  * to a single zero-arity Sample with the range of the first Sample.
  */
 case class HeadAggregation() extends Aggregation {
-
   def aggregateFunction(model: DataType): Iterable[Sample] => Data =
     (samples: Iterable[Sample]) =>
       if (samples.isEmpty) applyToModel(model).fold(throw _, identity) match {
         case f: Function => SeqFunction(Seq.empty) //can't fill Function, use empty
-        case dt => dt.fillValue
+        case dt          => dt.fillValue
       }
       else Data.fromSeq(samples.head.range)
 
-  def applyToModel(model:DataType): Either[LatisException, DataType] = model match {
+  def applyToModel(model: DataType): Either[LatisException, DataType] = model match {
     case Function(_, r) => r.asRight
-    case _ => model.asRight
+    case _              => model.asRight
   }
 }

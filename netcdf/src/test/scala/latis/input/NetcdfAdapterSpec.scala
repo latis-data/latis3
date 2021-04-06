@@ -10,7 +10,6 @@ import latis.model._
 import latis.ops.Selection
 
 class NetcdfAdapterSpec extends AnyFlatSpec {
-
   private val simple1dModel = Function(
     Scalar(Metadata("id" -> "time", "type" -> "int", "cadence" -> "1", "start" -> "7")),
     Scalar(Metadata("id" -> "flux", "type" -> "double"))
@@ -20,7 +19,9 @@ class NetcdfAdapterSpec extends AnyFlatSpec {
   private val simple2dModel = Function(
     Tuple(
       Scalar(Metadata("id" -> "time", "type" -> "int", "cadence" -> "1", "start" -> "7")),
-      Scalar(Metadata("id" -> "wavelength", "type" -> "double", "cadence" -> "0.1", "start" -> "5.0")),
+      Scalar(
+        Metadata("id" -> "wavelength", "type" -> "double", "cadence" -> "0.1", "start" -> "5.0")
+      )
     ),
     Scalar(Metadata("id" -> "flux", "type" -> "double"))
   )
@@ -28,25 +29,27 @@ class NetcdfAdapterSpec extends AnyFlatSpec {
 
   private val sdoDiodesModel = Function(
     Tuple(
-      Scalar(Metadata("id" -> "time", "type" -> "int", "cadence" -> "1", "start" -> "7")),
-      Scalar(Metadata("id" -> "wavelength", "type" -> "double")),
+      Scalar(Metadata("id" -> "time", "type"       -> "int", "cadence" -> "1", "start" -> "7")),
+      Scalar(Metadata("id" -> "wavelength", "type" -> "double"))
     ),
     Tuple(
-      Scalar(Metadata("id" -> "flux", "type" -> "double")),
-      Scalar(Metadata("id" -> "error", "type" -> "double")),
+      Scalar(Metadata("id" -> "flux", "type"  -> "double")),
+      Scalar(Metadata("id" -> "error", "type" -> "double"))
     )
   )
   private val sdoDiodesSections = makeSections("0, 0:3760; 0:5; 0, 0:3760, 0:5; 0, 0:3760, 0:5")
 
   private val timeModel = Function(
-    latis.time.Time(Metadata(
-      "id" -> "time",
-      "class" -> "latis.time.Time",
-      "units" -> "yyyyMMdd",
-      "type" -> "string",
-      "cadence" -> "86400000", // ms in a day
-      "start" -> s"${86400000L * 365}"
-    )),
+    latis.time.Time(
+      Metadata(
+        "id"      -> "time",
+        "class"   -> "latis.time.Time",
+        "units"   -> "yyyyMMdd",
+        "type"    -> "string",
+        "cadence" -> "86400000", // ms in a day
+        "start"   -> s"${86400000L * 365}"
+      )
+    ),
     Scalar(Metadata("id" -> "flux", "type" -> "double"))
   )
   private val timeSections = makeSections("0:31; 0:31")
@@ -144,11 +147,12 @@ class NetcdfAdapterSpec extends AnyFlatSpec {
   }
 
   it should "support selections that use formatted time strings" in {
-    NetcdfAdapter.applySelection(
-      timeSections,
-      timeModel,
-      Selection.makeSelection("time > 19710102").fold(throw _, identity)
-    )
+    NetcdfAdapter
+      .applySelection(
+        timeSections,
+        timeModel,
+        Selection.makeSelection("time > 19710102").fold(throw _, identity)
+      )
       .flatMap(
         NetcdfAdapter.applySelection(
           _,

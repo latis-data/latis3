@@ -8,7 +8,6 @@ import latis.util.DefaultDomainOrdering
  * This is used explicitly for a SetFunction.
  */
 trait DomainSet {
-
   /**
    * Provide the data type for the variables represented by this DomainSet.
    */

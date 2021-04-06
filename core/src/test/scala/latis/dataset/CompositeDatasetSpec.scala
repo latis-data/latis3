@@ -18,7 +18,6 @@ import latis.util.StreamUtils
 import latis.util.dap2.parser.ast
 
 class CompositeDatasetSpec extends AnyFlatSpec {
-
   private val ds1 = {
     val metadata = Metadata(id"test1")
 
@@ -71,30 +70,29 @@ class CompositeDatasetSpec extends AnyFlatSpec {
   it should "provide a stream of samples" in {
     inside(StreamUtils.unsafeStreamToSeq(compDs.samples)) {
       case Seq(s1, s2, s3, s4) =>
-        s1 should be (Sample(DomainData(1), RangeData(1.2)))
-        s2 should be (Sample(DomainData(2), RangeData(2.4)))
-        s3 should be (Sample(DomainData(3), RangeData(3.6)))
-        s4 should be (Sample(DomainData(4), RangeData(4.8)))
+        s1 should be(Sample(DomainData(1), RangeData(1.2)))
+        s2 should be(Sample(DomainData(2), RangeData(2.4)))
+        s3 should be(Sample(DomainData(3), RangeData(3.6)))
+        s4 should be(Sample(DomainData(4), RangeData(4.8)))
       case _ => fail()
     }
   }
 
   it should "apply an operation that mutates data" in {
-    val select = Selection(id"time", ast.Gt, "1")
+    val select  = Selection(id"time", ast.Gt, "1")
     val compDs2 = compDs.withOperation(select)
     inside(StreamUtils.unsafeStreamToSeq(compDs2.samples)) {
       case Seq(s2, s3, s4) =>
-        s2 should be (Sample(DomainData(2), RangeData(2.4)))
-        s3 should be (Sample(DomainData(3), RangeData(3.6)))
-        s4 should be (Sample(DomainData(4), RangeData(4.8)))
+        s2 should be(Sample(DomainData(2), RangeData(2.4)))
+        s3 should be(Sample(DomainData(3), RangeData(3.6)))
+        s4 should be(Sample(DomainData(4), RangeData(4.8)))
       case _ => fail()
     }
   }
 
   it should "apply an operation that mutates the model" in {
-    val rename = Rename(id"flux", id"foo")
+    val rename  = Rename(id"flux", id"foo")
     val compDs2 = compDs.withOperation(rename)
-    compDs2.model.toString should be (unsafeParse("time: int -> foo: double").toString)
+    compDs2.model.toString should be(unsafeParse("time: int -> foo: double").toString)
   }
-
 }
