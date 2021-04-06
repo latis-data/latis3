@@ -4,8 +4,6 @@ import java.util.concurrent.Executors
 
 import scala.concurrent.ExecutionContext
 
-import cats.effect.Blocker
-import cats.effect.ContextShift
 import cats.effect.IO
 import fs2.Stream
 

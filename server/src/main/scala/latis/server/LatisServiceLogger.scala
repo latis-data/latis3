@@ -6,13 +6,13 @@ import java.util.concurrent.TimeUnit
 import cats.data.Kleisli
 import cats.effect.Clock
 import cats.effect.Sync
-import cats.effect.Timer
 import cats.syntax.all._
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.http4s.HttpApp
 import org.http4s.Response
 import org.http4s.Request
 import org.http4s.server.middleware.{Logger => Http4sLogger}
+import cats.effect.Temporal
 
 /**
  * Middleware that logs requests and responses (without bodies) and
@@ -21,7 +21,7 @@ import org.http4s.server.middleware.{Logger => Http4sLogger}
  */
 object LatisServiceLogger {
 
-  def apply[F[_]: Sync: Timer](
+  def apply[F[_]: Sync: Temporal](
     app: HttpApp[F],
     logger: StructuredLogger[F]
   ): HttpApp[F] = Kleisli { req =>

@@ -6,7 +6,6 @@ import java.net.URLClassLoader
 
 import scala.reflect.runtime.{ universe => ru }
 
-import cats.effect.ContextShift
 import cats.effect.IO
 import cats.syntax.all._
 import coursier._
