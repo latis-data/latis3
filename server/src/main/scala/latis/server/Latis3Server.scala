@@ -6,12 +6,12 @@ import cats.effect.Blocker
 import cats.effect.ExitCode
 import cats.effect.IO
 import cats.effect.IOApp
-import org.typelevel.log4cats.StructuredLogger
-import org.typelevel.log4cats.slf4j.Slf4jLogger
 import org.http4s.HttpRoutes
 import org.http4s.implicits._
 import org.http4s.server.Router
 import org.http4s.server.blaze._
+import org.typelevel.log4cats.StructuredLogger
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
 import pureconfig.module.catseffect.syntax._

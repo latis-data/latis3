@@ -8,11 +8,11 @@ import cats.effect.Clock
 import cats.effect.Sync
 import cats.effect.Timer
 import cats.syntax.all._
-import org.typelevel.log4cats.StructuredLogger
 import org.http4s.HttpApp
-import org.http4s.Response
 import org.http4s.Request
+import org.http4s.Response
 import org.http4s.server.middleware.{Logger => Http4sLogger}
+import org.typelevel.log4cats.StructuredLogger
 
 /**
  * Middleware that logs requests and responses (without bodies) and
