@@ -3,8 +3,6 @@ package latis.output
 import java.io.OutputStream
 
 import cats.Applicative
-import cats.effect.Blocker
-import cats.effect.ContextShift
 import cats.effect.Sync
 import cats.syntax.all._
 import fs2.Pipe
