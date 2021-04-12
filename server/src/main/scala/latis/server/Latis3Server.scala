@@ -10,6 +10,8 @@ import org.http4s.HttpRoutes
 import org.http4s.implicits._
 import org.http4s.server.Router
 import org.http4s.server.blaze._
+import org.http4s.server.middleware.CORS
+import org.http4s.server.middleware.CORS.DefaultCORSConfig
 import org.typelevel.log4cats.StructuredLogger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import pureconfig.ConfigSource
@@ -53,7 +55,9 @@ object Latis3Server extends IOApp {
       BlazeServerBuilder[IO](ExecutionContext.global)
         .bindHttp(port, "0.0.0.0")
         .withHttpApp {
-          LatisServiceLogger(Router(mapping -> routes).orNotFound, logger)
+          LatisServiceLogger(Router(mapping ->
+            CORS(routes, DefaultCORSConfig)
+          ).orNotFound, logger)
         }
         .withoutBanner
         .serve
