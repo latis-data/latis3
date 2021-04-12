@@ -15,6 +15,7 @@ import org.http4s.HttpRoutes
 import org.http4s.MediaType
 import org.http4s.Response
 import org.http4s.dsl.Http4sDsl
+import org.http4s.server.middleware._
 
 import latis.catalog.Catalog
 import latis.dataset.Dataset
@@ -34,8 +35,8 @@ import latis.util.dap2.parser.ast.ConstraintExpression
  */
 class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4sDsl[IO] {
 
-  override def routes: HttpRoutes[IO] =
-    HttpRoutes.of {
+  override def routes: HttpRoutes[IO] = {
+    val service = HttpRoutes.of {
       case req @ GET -> Root / id ~ ext =>
         (for {
           ident    <- IO.fromOption(Identifier.fromString(id))(ParseFailure(s"'$id' is not a valid identifier"))
@@ -51,6 +52,16 @@ class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4
           case _              => InternalServerError()
         }
     }
+
+    val corsConfig = CORSConfig(
+      anyOrigin = true,
+      allowCredentials = true,
+      maxAge = 86400 //1 day
+    )
+
+    CORS(service, corsConfig)
+  }
+
 
   private def getDataset(id: Identifier): IO[Dataset] =
     catalog.findDataset(id).flatMap {
