@@ -62,7 +62,6 @@ class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4
     CORS(service, corsConfig)
   }
 
-
   private def getDataset(id: Identifier): IO[Dataset] =
     catalog.findDataset(id).flatMap {
       case None => IO.raiseError {
