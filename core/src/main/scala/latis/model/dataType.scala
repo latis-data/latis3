@@ -227,10 +227,18 @@ class Scalar(val metadata: Metadata) extends DataType {
   }
 
   /**
-   * Converts a string value into the appropriate type for this Scalar.
+   * Converts a string value into the appropriate Datum type for this Scalar.
+   * If the value fails to parse and a missingValue is defined, the resulting
+   * Datum will encode that missing value.
+   * TODO: reconcile with DataType.fillValue, NullDatum
+   *   https://github.com/latis-data/latis3/issues/146
    */
   def parseValue(value: String): Either[LatisException, Datum] =
-    valueType.parseValue(value)
+    valueType.parseValue(value).recoverWith { ex =>
+      metadata.getProperty("missingValue")
+        .map(parseValue(_))
+        .getOrElse(Left(ex))
+    }
 
   /**
    * Returns a string representation of the given Datum.
