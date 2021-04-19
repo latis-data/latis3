@@ -3,6 +3,7 @@ package latis.input
 import java.net.URI
 
 import cats.effect.IO
+import cats.syntax.all._
 import fs2.Pipe
 import fs2.Stream
 import fs2.text
@@ -10,6 +11,7 @@ import fs2.text
 import latis.data.Sample
 import latis.model.DataType
 import latis.model.Function
+import latis.model.Scalar
 import latis.util.ConfigLike
 
 /**
@@ -73,10 +75,10 @@ class TextAdapter(model: DataType, config: TextAdapter.Config = new TextAdapter.
      * curry should be cheap for ordered data
      */
 
-    // Get Vectors of domain and range Scalar types.
+    // Get Lists of domain and range Scalar types.
     val (dtypes, rtypes) = model match {
       case Function(d, r) => (d.getScalars, r.getScalars)
-      case _ => (Vector.empty, model.getScalars)
+      case _ => (List[Scalar](), model.getScalars)
     }
 
     // Extract the data values from the record
@@ -88,8 +90,7 @@ class TextAdapter(model: DataType, config: TextAdapter.Config = new TextAdapter.
     // from the parsed domain and range values.
     if (rtypes.length != rvals.length) None //invalid record
     else {
-      import cats.syntax.all._
-      val eds = dtypes.zip(dvals).toList.map(p => p._1.parseValue(p._2)).sequence
+      val eds = dtypes.zip(dvals).map(p => p._1.parseValue(p._2)).sequence
       val ers = rtypes.zip(rvals).map(p => p._1.parseValue(p._2)).sequence
       val esample = for {
         ds <- eds
