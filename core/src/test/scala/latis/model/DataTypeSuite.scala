@@ -1,10 +1,9 @@
 package latis.model
 
-import latis.data.DomainPosition
-import latis.data.RangePosition
-import latis.metadata.Metadata
 import org.scalatest.funsuite.AnyFunSuite
 
+import latis.data._
+import latis.metadata.Metadata
 import latis.util.Identifier.IdentifierStringContext
 
 class GetPathSuite extends AnyFunSuite {
@@ -213,6 +212,21 @@ class TupleFlattenSuite extends AnyFunSuite {
         assert(r.toString == expectedTuple2.toString)
         assert(d.id == expectedTuple1.id)
         assert(r.id == expectedTuple2.id)
+    }
+  }
+}
+
+class ParseValueSuite extends AnyFunSuite {
+
+  test("Replace invalid value with missing value") {
+    val s = Scalar(Metadata(
+      "id" -> "a",
+      "type" -> "double",
+      "missingValue" -> "NaN"
+    ))
+    s.parseValue("word") match {
+      case Right(d: Data.DoubleValue) =>
+        assert(d.value.isNaN)
     }
   }
 }
