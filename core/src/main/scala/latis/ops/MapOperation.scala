@@ -1,8 +1,5 @@
 package latis.ops
 
-import scala.util.Success
-import scala.util.Try
-
 import cats.effect.IO
 import cats.syntax.all._
 import fs2.Pipe
