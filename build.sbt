@@ -3,7 +3,7 @@ ThisBuild / scalaVersion := "2.13.5"
 
 val attoVersion       = "0.9.3"
 val catsVersion       = "2.6.0"
-val catsEffectVersion = "2.4.1"
+val catsEffectVersion = "2.5.0"
 val coursierVersion   = "2.0.16"
 val fs2Version        = "2.5.4"
 val http4sVersion     = "0.21.22"
