@@ -6,7 +6,6 @@ import java.nio.file.Path
 
 import scala.util.matching.Regex
 
-import cats.effect.ContextShift
 import cats.effect.IO
 import cats.implicits._
 import fs2.Stream
