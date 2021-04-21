@@ -1,6 +1,7 @@
 package latis.ops
 
 import cats.effect.IO
+import cats.syntax.all._
 import fs2.Pipe
 import fs2.Stream
 
@@ -24,9 +25,17 @@ trait MapOperation extends StreamOperation { self =>
 
   /**
    * Implements a Pipe in terms of the mapFunction.
+   * Drop any Sample that results in an exception.
    */
-  def pipe(model: DataType): Pipe[IO, Sample, Sample] =
-    (stream: Stream[IO, Sample]) => stream.map(mapFunction(model))
+  def pipe(model: DataType): Pipe[IO, Sample, Sample] = {
+    val f = mapFunction(model)
+    (stream: Stream[IO, Sample]) =>
+      stream.map { sample =>
+        Either.catchNonFatal(f(sample))
+      }.collect {
+        case Right(s) => s
+      }
+  }
 
   /**
    * Composes this operation with the given MapOperation.
