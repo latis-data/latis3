@@ -61,9 +61,10 @@ case class FormatTime(format: TimeFormat) extends TimeOperation {
 }
 
 object FormatTime {
+
   def fromArgs(args: List[String]): Either[LatisException, FormatTime] = args match {
-    case format :: Nil => Either.catchNonFatal(FormatTime(TimeFormat(format)))
-      .leftMap(LatisException(_))
-    case _ => Left(LatisException("FormatTime requires one argument"))
+    case format :: Nil =>
+      TimeFormat.fromExpression(format).map(FormatTime(_))
+    case _ => LatisException("FormatTime requires one argument").asLeft
   }
 }
