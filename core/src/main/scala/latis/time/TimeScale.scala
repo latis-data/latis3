@@ -51,21 +51,22 @@ object TimeScale {
    * Gregorian calendar which is appropriate for modern scientific data.
    *
    * Note that this overrides the usual "units since epoch" form of toString
-   * with "Julian Date".
+   * with "JD" since this epoch can not be represented with our default ISO
+   * representation. This matches the units that LaTiS expects.
    */
-  lazy val Julian = {
+  lazy val JulianDate = {
     // Java's default calendar jumps from 1 BC to 1 AD, we need to use year -4712
     val cal = new GregorianCalendar(-4712, 0, 1, 12, 0)
     cal.setTimeZone(TimeZone.getTimeZone("GMT"))
     new TimeScale(TimeUnit(86400), cal.getTime) {
-      override def toString() = "Julian Date"
+      override def toString() = "JD"
     }
   }
 
   /**
    * Constructs a TimeScale from a "units" expression of the form:
    *   <time unit> since <epoch>
-   *   or "Julian Date" (and similar forms starting with "julian")
+   *   or "JD" (Julian Date)
    *   or a TimeFormat expression.
    * A formatted time expression will be handled with the default
    * numeric TimeScale.
@@ -79,12 +80,12 @@ object TimeScale {
           date = new Date(epoch)
         } yield TimeScale(unit, date)
       case Array(s) =>
-        // Check if some form of "Julian Date"
-        if (s.toLowerCase.startsWith("julian")) TimeScale.Julian.asRight
-        // Otherwise assumes a TimeFormat expression which
+        // Check if Julian Date (JD)
+        if (s == "JD") TimeScale.JulianDate.asRight
+        // Otherwise expect a TimeFormat expression which
         // is handled with the default numeric TimeScale
-        //TODO: fail if not a valid time format?
-        else TimeScale.Default.asRight
+        else if (TimeFormat.isValid(s)) TimeScale.Default.asRight
+        else LatisException(s"Invalid TimeScale expression: $units").asLeft
       case _ =>
         //Only if "since" appears more than once?
         LatisException(s"Invalid TimeScale expression: $units").asLeft

@@ -46,21 +46,21 @@ class TimeScaleSpec extends AnyFlatSpec {
   }
 
   "A Julian TimeScale" should "support conversion to Java time" in {
-    val tc = UnitConverter(TimeScale.Julian, TimeScale.Default)
+    val tc = UnitConverter(TimeScale.JulianDate, TimeScale.Default)
     tc.convert(2440587.5) should be (0) // 1970-01-01
   }
 
   it should "support conversion from Java time" in {
-    val tc = UnitConverter(TimeScale.Default, TimeScale.Julian)
+    val tc = UnitConverter(TimeScale.Default, TimeScale.JulianDate)
     tc.convert(0) should be (2440587.5) // 1970-01-01
   }
 
-  it should "be constructed from Julian units" in {
-    TimeScale.fromExpression("julian").fold(fail(_), identity) should be (TimeScale.Julian)
-    TimeScale.fromExpression("Julian Date").fold(fail(_), identity) should be (TimeScale.Julian)
+  it should "be constructed from JD units" in {
+    TimeScale.fromExpression("JD").fold(fail(_), identity) should be (TimeScale.JulianDate)
+    assert(TimeScale.fromExpression("Julian Date").isLeft)
   }
 
   it should "have the correct string representation" in {
-    TimeScale.Julian.toString should be ("Julian Date")
+    TimeScale.JulianDate.toString should be ("JD")
   }
 }

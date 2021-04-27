@@ -68,6 +68,8 @@ object TimeFormat {
       LatisException(msg, _)
     }
 
+  def isValid(format: String): Boolean = fromExpression(format).isRight
+
   /**
    * Provides a TimeFormat for the default ISO 8601 format.
    */
