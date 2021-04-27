@@ -29,7 +29,7 @@ class FormatTimeSpec extends AnyFlatSpec {
     )
   )
 
-  val formatTime = FormatTime(TimeFormat("yyyy-DDD"))
+  val formatTime = FormatTime(TimeFormat.fromExpression("yyyy-DDD").toTry.get)
 
   "The FormatTime Operation" should "update the metadata of the time variable" in {
     val newModel = formatTime.applyToModel(numericTime).toTry.get

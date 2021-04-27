@@ -13,6 +13,7 @@ import latis.units.UnitConverter
  */
 class Time(metadata: Metadata) extends Scalar(metadata) {
   //TODO: make sure this has the id or alias "time"
+  //TODO: validate units eagerly
 
   /**
    * Returns the units from the metadata.
@@ -27,7 +28,7 @@ class Time(metadata: Metadata) extends Scalar(metadata) {
    * as a string. Otherwise returns None.
    */
   val timeFormat: Option[TimeFormat] = valueType match {
-    case StringValueType => Option(TimeFormat(units))
+    case StringValueType => TimeFormat.fromExpression(units).toOption
     case _               => None
   }
 
@@ -42,7 +43,7 @@ class Time(metadata: Metadata) extends Scalar(metadata) {
    */
   val timeScale: TimeScale =
     if (isFormatted) TimeScale.Default
-    else TimeScale(units)
+    else TimeScale.fromExpression(units).fold(throw _, identity)
 
   /**
    * Overrides the basic Scalar PartialOrdering to provide

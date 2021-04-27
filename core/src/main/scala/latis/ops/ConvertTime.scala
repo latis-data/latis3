@@ -60,9 +60,9 @@ case class ConvertTime(scale: TimeScale) extends TimeOperation {
 }
 
 object ConvertTime {
+
   def fromArgs(args: List[String]): Either[LatisException, ConvertTime] = args match {
-    case units :: Nil => Either.catchNonFatal(ConvertTime(TimeScale(units)))
-      .leftMap(LatisException(_))
+    case units :: Nil => TimeScale.fromExpression(units).map(ConvertTime(_))
     case _ => Left(LatisException("ConvertTime requires one argument"))
   }
 }

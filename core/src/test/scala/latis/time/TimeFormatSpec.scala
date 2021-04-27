@@ -1,6 +1,7 @@
 package latis.time
 
 import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should
 import org.scalatest.matchers.should.Matchers._
 
 class TimeFormatSpec extends AnyFlatSpec {
@@ -15,15 +16,21 @@ class TimeFormatSpec extends AnyFlatSpec {
   }
   
   it should "parse a formatted time string" in {
-    TimeFormat("yyyyDDD").parse("1970002") should be (Right(86400000))
+    TimeFormat.fromExpression("yyyyDDD").flatMap( _.parse("1970002")) should be (Right(86400000))
+
   }
   
   it should "format a time value" in {
-    TimeFormat("yyyy MMM dd HH:mm").format(3600000) should be ("1970 Jan 01 01:00")
+    TimeFormat.fromExpression("yyyy MMM dd HH:mm").map(_.format(3600000)) should be (Right("1970 Jan 01 01:00"))
   }
   
   it should "use a specified century for 2-digit years" in {
-    val time = TimeFormat("yyMMdd").setCenturyStart("2100").parse("330501").getOrElse(0l)
-    TimeFormat("yyyy-MM-dd").format(time) should be ("2133-05-01")
+    val time: Long =  TimeFormat.fromExpression("yyMMdd")
+      .flatMap(_.setCenturyStart("3000").parse("330501")).getOrElse(0l)
+    TimeFormat.fromExpression("yyyy-MM-dd").map(_.format(time)) should be (Right("3033-05-01"))
+  }
+
+  it should "have a string representation" in {
+    TimeFormat.Iso.toString should be ("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
   }
 }

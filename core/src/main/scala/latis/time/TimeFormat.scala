@@ -7,35 +7,26 @@ import java.util.TimeZone
 
 import scala.util._
 
+import cats.syntax.all._
+
+import latis.util.LatisException
+
 /**
  * TimeFormat support that is thread safe and assumes GMT time zone.
  */
-class TimeFormat(format: String) {
-
-  private val sdf: SimpleDateFormat = {
-    val sdf = try {
-      new SimpleDateFormat(format, Locale.ENGLISH)
-    } catch {
-      case e: Exception =>
-        val msg = s"Could not parse '$format' as a time format."
-        throw new IllegalArgumentException(msg, e)
-    }
-    sdf.setTimeZone(TimeZone.getTimeZone("GMT"))
-    sdf
-  }
+class TimeFormat(sdf: SimpleDateFormat) {
+  //TODO: look into java.time.format.DateTimeFormatter
 
   def format(millis: Long): String = this.synchronized {
     sdf.format(new Date(millis))
   }
 
-  def parse(string: String): Either[Exception, Long] = this.synchronized {
-    Try {
-      sdf.parse(string).getTime
-    } match {
-      case Success(v) => Right(v)
-      case Failure(t) =>
-        val msg = s"Could not parse '$string' with the format $format"
-        Left(new IllegalArgumentException(msg, t))
+  def parse(string: String): Either[LatisException, Long] = this.synchronized {
+    Either.catchNonFatal(sdf.parse(string))
+      .map(_.getTime)
+      .leftMap {
+        val msg = s"Could not parse '$string' with the format $sdf"
+        LatisException(msg, _)
     }
   }
 
@@ -44,7 +35,7 @@ class TimeFormat(format: String) {
    * This time is expected to be an ISO 8601 time string
    * representing the start of the 100-year period.
    */
-  //TODO: can this be passed in as an optional constructor arg?
+  //TODO: pass as an optional constructor arg
   def setCenturyStart(start: String): TimeFormat = {
     TimeFormat.parseIso(start) match {
       case Right(t) =>
@@ -58,19 +49,32 @@ class TimeFormat(format: String) {
   /**
    * Overrides toString to return the format string.
    */
-  override def toString: String = format
+  override def toString: String = sdf.toPattern
 }
 
 //==============================================================================
 
 object TimeFormat {
 
-  def apply(format: String) = new TimeFormat(format)
+  def fromExpression(format: String): Either[LatisException, TimeFormat] =
+    Either.catchNonFatal {
+      val sdf = new SimpleDateFormat(format, Locale.ENGLISH)
+      sdf.setTimeZone(TimeZone.getTimeZone("GMT"))
+      sdf
+    }.map {
+      new TimeFormat(_)
+    }.leftMap {
+      val msg = s"Could not parse '$format' as a time format."
+      LatisException(msg, _)
+    }
+
+  def isValid(format: String): Boolean = fromExpression(format).isRight
 
   /**
    * Provides a TimeFormat for the default ISO 8601 format.
    */
-  val Iso: TimeFormat = TimeFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+  val Iso: TimeFormat = TimeFormat.fromExpression("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+    .fold(throw _, identity) //Should be safe
 
   /**
    * Represents the given time in milliseconds as the
@@ -84,7 +88,7 @@ object TimeFormat {
    * e.g. for each sample of a dataset, it is recommended that a
    * TimeFormat object be created with fromIsoValue and reused.
    */
-  def parseIso(time: String): Either[Exception, Long] =
+  def parseIso(time: String): Either[LatisException, Long] =
     for {
       formatter <- fromIsoValue(time)
       tvalue    <- formatter.parse(time)
@@ -95,8 +99,8 @@ object TimeFormat {
    * This supports most common ISO 8601 representations
    * not including weeks or time zones other than "Z".
    */
-  def fromIsoValue(value: String): Either[Exception, TimeFormat] = {
-    val format = value.split("T") match {
+  def fromIsoValue(value: String): Either[LatisException, TimeFormat] = {
+    (value.split("T") match {
       case Array(date) =>
         // No time component
         getDateFormatString(date)
@@ -105,9 +109,10 @@ object TimeFormat {
           d <- getDateFormatString(date)
           t <- getTimeFormatString(time)
         } yield List(d, t).mkString("'T'")
-    }
-    format.map {
-      TimeFormat(_)
+      case _ =>
+        LatisException(s"Invalid TimeFormat: $value").asLeft
+    }).flatMap {
+      TimeFormat.fromExpression(_)
     }
     //TODO: combine error messages if both time and date part fail
   }
@@ -115,7 +120,7 @@ object TimeFormat {
   /**
    * Matches the date portion of an ISO time to a format string.
    */
-  private def getDateFormatString(s: String): Either[Exception, String] =
+  private def getDateFormatString(s: String): Either[LatisException, String] =
     s.length match {
       case 4 => Right("yyyy")
       case 6 => Right("yyMMdd") //Note, yyyyMM is not ISO compliant
@@ -128,13 +133,13 @@ object TimeFormat {
       case 10 => Right("yyyy-MM-dd")
       case _ =>
         val msg = s"Failed to determine a date format for $s"
-        Left(new IllegalArgumentException(msg))
+        Left(new LatisException(msg))
     }
 
   /**
    * Matches the time portion of an ISO time to a format string.
    */
-  private def getTimeFormatString(s: String): Either[Exception, String] = {
+  private def getTimeFormatString(s: String): Either[LatisException, String] = {
     // Handle the "Z" time zone designation
     val length = s.indexOf("Z") match {
       case n: Int if (n != -1) => n
@@ -151,7 +156,7 @@ object TimeFormat {
       case 12 => Right("HH:mm:ss.SSS")
       case _ =>
         val msg = s"Failed to determine a time format for $s"
-        Left(new IllegalArgumentException(msg))
+        Left(new LatisException(msg))
     }
   }
 

@@ -1,5 +1,9 @@
 package latis.time
 
+import cats.syntax.all._
+
+import latis.util.LatisException
+
 /**
  * Defines a time duration unit in terms of a
  * multiplier of the base unit "seconds".
@@ -31,15 +35,18 @@ object TimeUnit {
   /**
    * Returns a TimeUnit given the unit's name.
    */
-  def fromName(unit: String): TimeUnit = unit match {
-    case "nanoseconds"  => TimeUnit(1e-9)
-    case "microseconds" => TimeUnit(1e-6)
-    case "milliseconds" => TimeUnit(0.001)
-    case "seconds"      => Base
-    case "minutes"      => TimeUnit(60)
-    case "hours"        => TimeUnit(3600)
-    case "days"         => TimeUnit(86400)
-    case "weeks"        => TimeUnit(7 * 86400)
-    case "years"        => TimeUnit(365 * 86400)
+  def fromName(unit: String): Either[LatisException, TimeUnit] = unit match {
+    case "nanoseconds"  => TimeUnit(1e-9).asRight
+    case "microseconds" => TimeUnit(1e-6).asRight
+    case "milliseconds" => TimeUnit(0.001).asRight
+    case "seconds"      => Base.asRight
+    case "minutes"      => TimeUnit(60).asRight
+    case "hours"        => TimeUnit(3600).asRight
+    case "days"         => TimeUnit(86400).asRight
+    case "weeks"        => TimeUnit(7 * 86400).asRight
+    case "years"        => TimeUnit(365 * 86400).asRight
+    case _ => LatisException(s"Invalid TimeUnit: $unit").asLeft
   }
+
+  //TODO: make enumeration of units for safer general usage
 }
