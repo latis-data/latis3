@@ -20,7 +20,8 @@ lazy val commonSettings = Seq(
     "org.scalatest" %% "scalatest"   % "3.2.8" % Test
   ),
   Test / fork := true,
-  scalacOptions -= "-Xfatal-warnings"
+  scalacOptions -= "-Xfatal-warnings",
+  addCompilerPlugin("org.typelevel" % "kind-projector" % "0.11.3" cross CrossVersion.full)
 )
 
 lazy val dockerSettings = Seq(
