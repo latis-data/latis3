@@ -161,8 +161,6 @@ lazy val netcdf = project
   .settings(
     name := "latis3-netcdf",
     libraryDependencies ++= Seq(
-      "edu.ucar"            % "cdm-core"         % netcdfVersion,
-      "edu.ucar"            % "httpservices"     % netcdfVersion,
       "edu.ucar"            % "netcdf4"          % netcdfVersion,
     ),
     resolvers ++= Seq(
