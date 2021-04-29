@@ -39,7 +39,14 @@ class CsvEncoderSpec extends AnyFlatSpec {
   it should "encode a dataset to CSV with a header" in {
     val enc            = CsvEncoder.withColumnName
     val csvList        = enc.encode(ds).compile.toList.unsafeRunSync()
-    val expectedHeader = "time,b,c,d"
+    val expectedHeader = "time,b,c,d" + lineSeparator
     csvList.head should be(expectedHeader)
+
+    val expectedCsv = expectedHeader :: List(
+      "0,1,1.1,a",
+      "1,2,2.2,b",
+      "2,4,3.3,c"
+    ).map(_ + lineSeparator)
+    csvList should be (expectedCsv)
   }
 }
