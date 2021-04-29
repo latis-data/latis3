@@ -23,7 +23,7 @@ class CsvEncoder(header: Dataset => Stream[IO, String]) extends Encoder[IO, Stri
   override def encode(dataset: Dataset): Stream[IO, String] = {
     val uncurriedDataset = dataset.withOperation(Uncurry())
     // Encode each Sample as a String in the Stream
-    header(dataset) ++ uncurriedDataset.samples
+    header(dataset).map(_ + lineSeparator) ++ uncurriedDataset.samples
       .map(encodeSample(uncurriedDataset.model, _) + lineSeparator)
   }
 
@@ -63,7 +63,7 @@ object CsvEncoder {
       case Function(domain, range) =>
         (domain.getScalars ++ range.getScalars)
           .map(_.id.fold("")(_.asString))
-          .mkString(",") + lineSeparator
+          .mkString(",")
     }
     CsvEncoder.withHeader(header)
   }
