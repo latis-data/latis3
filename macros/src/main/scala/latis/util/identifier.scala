@@ -26,9 +26,9 @@ object Identifier {
     import c.universe._
 
     val idExpr: Expr[String] = c.prefix.tree match {
-      case Apply(_, Apply(_, List(id @ Literal(Constant(s: String)))) :: Nil) =>
-        if (checkValidIdentifier(s)) c.Expr(id)
-        else c.abort(c.enclosingPosition, "not a valid LaTiS identifier")
+      case Apply(_, Apply(_, List(id @ Literal(Constant(s: String)))) :: Nil)
+          if checkValidIdentifier(s) => c.Expr(id)
+      case _ => c.abort(c.enclosingPosition, "not a valid LaTiS identifier")
     }
 
     reify(Identifier.fromString(idExpr.splice).get)
