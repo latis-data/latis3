@@ -44,9 +44,10 @@ object ModelParser {
     r <- dataType.token
   } yield Function(d, r)
 
-  /** Only parses tuples of scalars */
+  //TODO: support functions in tuples
   def tuple: Parser[DataType] = for {
-    l <- parens(sepBy(scalar.token, char(',').token))
+    //l <- parens(sepBy(dataType.token, char(',').token)) //stack overflow
+    l <- parens(sepBy((scalar | tuple).token, char(',').token))
   } yield Tuple(l)
 
   def scalar: Parser[DataType] =
