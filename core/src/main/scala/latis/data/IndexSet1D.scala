@@ -55,7 +55,7 @@ case class IndexSet1D(start: Int, increment: Int, count: Int)
    */
   override def indexOf(data: DomainData): Int = {
     val index: Int = data match {
-      case DomainData(Index(x)) =>
+      case DomainData(IndexDatum(x)) =>
         val i = (x - start) / increment
         // Must be integral for a match to an existing element
         if (i == Math.floor(i.toDouble)) i.toInt
