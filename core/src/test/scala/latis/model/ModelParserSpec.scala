@@ -46,6 +46,24 @@ class ModelParserSpec extends AnyFlatSpec {
     )
   }
 
+  it should "parse a nested tuple" in {
+    ModelParser.unsafeParse("(a, (b, c))") match {
+      case Tuple(a: Scalar, Tuple(b: Scalar, c: Scalar)) =>
+        a.id.get should be (id"a")
+        b.id.get should be (id"b")
+        c.id.get should be (id"c")
+    }
+  }
+
+  ignore should "parse a function in a tuple" in {
+    ModelParser.unsafeParse("(a, b -> c)") match {
+      case Tuple(a: Scalar, Function(b: Scalar, c: Scalar)) =>
+        a.id.get should be (id"a")
+        b.id.get should be (id"b")
+        c.id.get should be (id"c")
+    }
+  }
+
   it should "parse a function" in {
     testFunction(
       "a: int -> b: double",
