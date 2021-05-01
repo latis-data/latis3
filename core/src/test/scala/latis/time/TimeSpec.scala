@@ -5,6 +5,7 @@ import org.scalatest.matchers.should.Matchers._
 
 import latis.data.Data
 import latis.metadata.Metadata
+import latis.util.Identifier.IdentifierStringContext
 
 class TimeSpec extends AnyFlatSpec {
   
@@ -43,4 +44,12 @@ class TimeSpec extends AnyFlatSpec {
     formattedTime.ordering.tryCompare("Jan 01, 2000", "Feb 01, 2000") should be (Some(-1))
   }
 
+  "rename" should "preserve type" in {
+    val t = Time(Metadata(
+      "id"    -> "foo",
+      "type"  -> "double",
+      "units" -> "seconds since 2000-01-01"
+    ))
+    assert(t.rename(id"bar").isInstanceOf[Time])
+  }
 }
