@@ -47,8 +47,7 @@ class FdmlReaderSpec extends AnyFlatSpec {
     val ds = FdmlReader.read(new URI("datasets/dataWithOperations.fdml"), true)
 
     StreamUtils.unsafeHead(ds.samples) match {
-      case Sample(DomainData(Number(t)), RangeData(Integer(b), Real(c))) =>
-        assert(t == 1)
+      case Sample(DomainData(), RangeData(Integer(b), Real(c))) =>
         assert(b == 2)
         assert(c == 2.2)
     }

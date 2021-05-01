@@ -12,9 +12,11 @@ package object dataset {
    */
   implicit class DatasetOps(dataset: Dataset) {
     def select(exp: String): Dataset = dataset.withOperation(
-      Selection.fromArgs(exp.split("\\s+").toList).fold(throw _, identity)
+      Selection.makeSelection(exp).fold(throw _, identity)
     )
-    def project(exp: String): Dataset = dataset.withOperation(Projection(exp))
+    def project(exp: String): Dataset = dataset.withOperation(
+      Projection.fromExpression(exp).fold(throw _, identity)
+    )
     def stride(s: Int, ss: Int*): Dataset = dataset.withOperation(Stride((s +: ss).toIndexedSeq))
     def uncurry(): Dataset = dataset.withOperation(Uncurry())
     def curry(n: Int): Dataset = dataset.withOperation(Curry(n))
