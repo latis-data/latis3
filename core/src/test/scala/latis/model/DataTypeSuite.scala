@@ -71,7 +71,7 @@ class GetPathSuite extends AnyFunSuite {
     assert(func.getPath(id"tup") == Some(List(RangePosition(2))))
   }
 
-  test("getPath to Scalar in nested Tuple") {
+  test("getPath to Scalar in nested Tuple in range") {
     val func = {
       val d = Scalar(Metadata(id"a") + ("type" -> "int"))
       val r = Tuple(
@@ -111,6 +111,40 @@ class GetPathSuite extends AnyFunSuite {
     val func = Function(Scalar(Metadata(id"a") + ("type" -> "int")), Scalar(Metadata(id"b") + ("type" -> "int")))
     
     assert(func.getPath(id"tup") == None)
+  }
+
+  test("getPath to lone Scalar") {
+    Scalar(Metadata(id"a") + ("type" -> "int")).getPath(id"a") match {
+      case Some(RangePosition(p) :: Nil) => assert(p == 0)
+    }
+  }
+
+  ignore("getPath to Scalar in lone Tuple") {
+    Tuple(
+      Scalar(Metadata(id"a") + ("type" -> "int")),
+      Scalar(Metadata(id"b") + ("type" -> "int"))
+    ).getPath(id"b") match {
+      case Some(RangePosition(p) :: Nil) => assert(p == 1)
+    }
+  }
+
+  test("no path to Index variable") {
+    val p = Function(
+      Index("i"),
+      Scalar(Metadata(id"a") + ("type" -> "int"))
+    ).getPath(id"i")
+    assert(p.isEmpty)
+  }
+
+  test("getPath ignoring Index variable") {
+    // (i, y) -> a
+    Function(
+      Tuple(Index("i"), Scalar(Metadata(id"y") + ("type" -> "int"))),
+      Scalar(Metadata(id"a") + ("type" -> "int"))
+    ).getPath(id"y") match {
+      case Some(DomainPosition(p) :: Nil) =>
+        assert(p == 0)
+    }
   }
 }
 

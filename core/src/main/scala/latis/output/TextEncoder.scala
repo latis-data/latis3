@@ -8,6 +8,7 @@ import fs2.Stream
 import latis.data._
 import latis.dataset.Dataset
 import latis.model._
+import latis.util.Identifier
 
 class TextEncoder extends Encoder[IO, String] {
 
@@ -51,6 +52,11 @@ class TextEncoder extends Encoder[IO, String] {
 
     def go(dt: DataType): String = dt match {
       //TODO: error if ds is empty
+
+      case i: latis.model.Index =>
+        // No data in Sample, generate index
+        IndexGenerator.nextIndex(i.id.get).toString
+
       case s: Scalar =>
         ds.pop() match {
           case d: Datum => s.formatValue(d)
@@ -83,5 +89,17 @@ class TextEncoder extends Encoder[IO, String] {
 
     // Combine nested function into a single string
     head ++ samples.mkString(lineSeparator) ++ foot
+  }
+}
+
+/**
+ * Provides incrementing index values based on id.
+ */
+private object IndexGenerator {
+  val indexMap = scala.collection.mutable.Map[Identifier, Long]()
+  def nextIndex(id: Identifier): Long = {
+    val index = indexMap.getOrElse(id, 0L)
+    indexMap += ((id, index + 1))  //add or replace
+    index
   }
 }

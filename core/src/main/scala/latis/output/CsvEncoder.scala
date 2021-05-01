@@ -10,6 +10,7 @@ import latis.data.Sample
 import latis.dataset.Dataset
 import latis.model.DataType
 import latis.model.Function
+import latis.model.Index
 import latis.model.Scalar
 import latis.ops.Uncurry
 
@@ -33,7 +34,7 @@ class CsvEncoder(header: Dataset => Stream[IO, String]) extends Encoder[IO, Stri
   def encodeSample(model: DataType, sample: Sample): String =
     (model, sample) match {
       case (Function(domain, range), Sample(ds, rs)) =>
-        val scalars = domain.getScalars ++ range.getScalars
+        val scalars = (domain.getScalars ++ range.getScalars).filterNot(_.isInstanceOf[Index])
         val datas   = ds ++ rs
         scalars
           .zip(datas)
@@ -62,6 +63,7 @@ object CsvEncoder {
     def header(dataset: Dataset): String = dataset.model match {
       case Function(domain, range) =>
         (domain.getScalars ++ range.getScalars)
+          .filterNot(_.isInstanceOf[Index])
           .map(_.id.fold("")(_.asString))
           .mkString(",")
     }

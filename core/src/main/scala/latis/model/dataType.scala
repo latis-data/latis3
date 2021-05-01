@@ -150,24 +150,26 @@ sealed trait DataType extends MetadataLike with Serializable {
    * as a sequence of SamplePositions.
    * Note that length of the path reflects the number of nested Functions.
    * When searching a Tuple's ID, the path to the first Scalar in the Tuple is returned.
+   * Note that Index variables will be ignored since they are not represented in Samples.
    */
   def getPath(id: Identifier): Option[SamplePath] = {
-
     // Recursive function to try paths until it finds a match
     def go(dt: DataType, id: String, currentPath: SamplePath): Option[SamplePath] = {
       //TODO: use hasName to cover aliases?
       //searching fully qualified ID with namespace
       val dtId = dt.id.fold("")(_.asString)
-      if (id.contains('.') && dtId == id)    Some(currentPath) //found it
-      //searching variable ID without namespace
-      else if (dtId.split('.').contains(id)) Some(currentPath) //found it
-      else
+      if (dtId == id || dtId.split('.').contains(id)) { //found it
+        if (dt.isInstanceOf[Index]) None //Index variables have no data in Sample
+        else if (currentPath.isEmpty) Some(List(RangePosition(0))) //constant
+        else Some(currentPath)
+      } else {
         dt match { //recurse
           case _: Scalar => None //dead end
+          case _: Tuple => ??? //TODO: allow constant Tuple
           case Function(dtype, rtype) =>
             val ds = dtype match {
               case s: Scalar      => Seq(s)
-              case Tuple(vs @ _*) => vs
+              case Tuple(vs @ _*) => vs.filterNot(_.isInstanceOf[Index])
             }
             val rs = rtype match {
               case Tuple(vs @ _*) => vs
@@ -183,8 +185,11 @@ sealed trait DataType extends MetadataLike with Serializable {
 
             (d ++ r).collectFirst { case Some(p) => p } //short-circuit here, take first Some
         }
+      }
     }
 
+    //Note "flatten" so we don't have to deal with nested Tuples
+    //  Namespace should be preserved with dot (".") notation.
     go(this.flatten, id.asString, List.empty)
   }
 

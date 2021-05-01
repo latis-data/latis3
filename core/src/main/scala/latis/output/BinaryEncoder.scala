@@ -32,7 +32,7 @@ class BinaryEncoder extends Encoder[IO, BitVector] {
     def encode(sample: (DomainData, RangeData)): Attempt[BitVector] =
     (model, sample) match {
       case (Function(domain, range), Sample(ds, rs)) =>
-        val scalars = domain.getScalars ++ range.getScalars
+        val scalars = (domain.getScalars ++ range.getScalars).filterNot(_.isInstanceOf[Index])
         val datas   = ds ++ rs
         (scalars zip datas).foldLeft(Attempt.successful(BitVector(hex""))) {
           case (ab: Attempt[BitVector], (s: Scalar, d: Data)) =>
