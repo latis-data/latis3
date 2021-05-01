@@ -173,19 +173,19 @@ object Integer {
 }
 
 /**
- * Index is an Integer type representing data that can be used
- * to index a Seq or Array. Pattern matching on Index will
+ * IndexDatum is an Integer type representing data that can be used
+ * to index a Seq or Array. Pattern matching on IndexDatum will
  * extract an Int.
  */
-trait Index extends Any with Integer {
+trait IndexDatum extends Any with Integer {
   def asInt: Int
   def asLong: Long = asInt.toLong
   override def asDouble: Double = asInt.toDouble
   override def asString: String = asInt.toString
 }
-object Index {
-  // Extract an Int from an Index
-  def unapply(data: Index): Option[Int] = Option(data.asInt)
+object IndexDatum {
+  // Extract an Int from an IndexDatum
+  def unapply(data: IndexDatum): Option[Int] = Option(data.asInt)
 }
 
 /**
@@ -276,24 +276,24 @@ object Data {
     override def asBoolean: Boolean = value
   }
 
-  implicit class ByteValue(val value: Byte) extends AnyVal with Index with Serializable {
+  implicit class ByteValue(val value: Byte) extends AnyVal with IndexDatum with Serializable {
     def asInt: Int = value.toInt
     override def toString = s"ByteValue($value)"
   }
 
   // single Text character or Integer 0-65535
-  implicit class CharValue(val value: Char) extends AnyVal with Text with Index with Serializable {
+  implicit class CharValue(val value: Char) extends AnyVal with Text with IndexDatum with Serializable {
     def asInt: Int = value.toInt
     override def toString = s"CharValue($value)"
     //TODO: numeric or single test character?
   }
 
-  implicit class ShortValue(val value: Short) extends AnyVal with Index with Serializable {
+  implicit class ShortValue(val value: Short) extends AnyVal with IndexDatum with Serializable {
     def asInt: Int = value.toInt
     override def toString = s"ShortValue($value)"
   }
 
-  implicit class IntValue(val value: Int) extends AnyVal with Index with Serializable {
+  implicit class IntValue(val value: Int) extends AnyVal with IndexDatum with Serializable {
     def asInt: Int = value
     override def toString = s"IntValue($value)"
   }

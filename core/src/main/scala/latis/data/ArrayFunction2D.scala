@@ -15,7 +15,7 @@ case class ArrayFunction2D(array: Array[Array[RangeData]]) extends MemoizedFunct
   def ordering: Option[PartialOrdering[DomainData]] = Some(DefaultDomainOrdering)
 
   override def eval(data: DomainData): Either[LatisException, RangeData] = data match {
-    case RangeData(Index(i), Index(j)) =>
+    case RangeData(IndexDatum(i), IndexDatum(j)) =>
       array.lift(i).flatMap(_.lift(j)).toRight {
         val msg = s"No sample found matching $data"
         LatisException(msg)
@@ -40,7 +40,7 @@ object ArrayFunction2D extends FunctionFactory {
     case Seq() => ??? // TODO: figure out how to handle error, use Either
     case _ =>
       samples.last.domain match {
-        case DomainData(Index(x), Index(y)) =>
+        case DomainData(IndexDatum(x), IndexDatum(y)) =>
           val nx    = x + 1
           val ny    = y + 1
           val array = Array.tabulate(nx, ny)((i, j) => RangeData(samples(i * ny + j).range))
