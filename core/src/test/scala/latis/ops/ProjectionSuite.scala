@@ -4,6 +4,7 @@ import org.scalatest.funsuite.AnyFunSuite
 
 import latis.data._
 import latis.model._
+import latis.output.TextWriter
 import latis.util.DatasetGenerator
 import latis.util.Identifier.IdentifierStringContext
 
@@ -75,6 +76,21 @@ class ProjectionSuite extends AnyFunSuite {
     ds.samples.compile.toList.unsafeRunSync().head match {
       case Sample(DomainData(), RangeData(Integer(a))) =>
         assert(a == 0L)
+    }
+  }
+
+  test("Replace unprojected 2D domain variable with single Index") {
+    val ds = DatasetGenerator("(x, y) -> a")
+      .project("a")
+      .drop(2)
+    //TextWriter().write(ds)
+    ds.model match {
+      case Function(_: Index, a: Scalar) =>
+        assert(a.id.get == id"a")
+    }
+    ds.samples.compile.toList.unsafeRunSync().head match {
+      case Sample(DomainData(), RangeData(Integer(a))) =>
+        assert(a == 2L)
     }
   }
 

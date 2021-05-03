@@ -17,7 +17,7 @@ abstract class AbstractDataset(
    * Adds provenance to the metadata of the resulting Dataset
    * as derived from the operations applied.
    */
-  def metadata: Metadata = {
+  val metadata: Metadata = {
     // Gather the provenance from each operation
     //TODO: add time label, version, ...
     //TODO: provide new name/id?
@@ -38,7 +38,7 @@ abstract class AbstractDataset(
    * Applies the sequence of Operations to the
    * original model returning the new model.
    */
-  def model: DataType =
+  val model: DataType =
     operations.foldLeft(_model)((mod, op) => op.applyToModel(mod).fold(throw _, identity))
 
 }
