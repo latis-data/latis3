@@ -20,11 +20,6 @@ class Index private (metadata: Metadata) extends Scalar(metadata) {
 object Index {
 
   /**
-   * Constructs an Index variable with a randomly generated unique id.
-   */
-  def apply(): Index = Index("_i" + UUID.randomUUID().toString.take(8))
-
-  /**
    * Constructs an Index variable with the given id.
    */
   def apply(id: String): Index =
