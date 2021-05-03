@@ -106,7 +106,8 @@ case class Projection(ids: Identifier*) extends MapOperation {
     case _ => v.id.map { id =>
       Index("_i" + id.asString)
     }.getOrElse {
-      Index() //random id
+      // Derive Id
+      Index("_i" + v.getScalars.map(_.id.get.asString).mkString("_"))
     }
   }
 }

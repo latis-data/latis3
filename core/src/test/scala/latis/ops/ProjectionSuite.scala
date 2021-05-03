@@ -85,7 +85,8 @@ class ProjectionSuite extends AnyFunSuite {
       .drop(2)
     //TextWriter().write(ds)
     ds.model match {
-      case Function(_: Index, a: Scalar) =>
+      case Function(i: Index, a: Scalar) =>
+        assert(i.id.get == id"_ix_y")
         assert(a.id.get == id"a")
     }
     ds.samples.compile.toList.unsafeRunSync().head match {
