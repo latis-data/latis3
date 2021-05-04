@@ -7,6 +7,6 @@ import latis.util.Identifier.IdentifierStringContext
 class IndexSuite extends AnyFunSuite {
 
   test("rename preserves type") {
-    assert(Index("i").rename(id"foo").isInstanceOf[Index])
+    assert(Index(id"i").rename(id"foo").isInstanceOf[Index])
   }
 }

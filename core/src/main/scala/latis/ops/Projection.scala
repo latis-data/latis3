@@ -104,10 +104,10 @@ case class Projection(ids: Identifier*) extends MapOperation {
   private def makeIndex(v: DataType): Index = v match {
     case i: Index => i //no-op if already an Index
     case _ => v.id.map { id =>
-      Index("_i" + id.asString)
+      Index(Identifier.fromString("_i" + id.asString).get)
     }.getOrElse {
       // Derive Id
-      Index("_i" + v.getScalars.map(_.id.get.asString).mkString("_"))
+      Index(Identifier.fromString("_i" + v.getScalars.map(_.id.get.asString).mkString("_")).get)
     }
   }
 }
