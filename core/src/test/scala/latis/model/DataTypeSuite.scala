@@ -130,7 +130,7 @@ class GetPathSuite extends AnyFunSuite {
 
   test("no path to Index variable") {
     val p = Function(
-      Index("i"),
+      Index(id"i"),
       Scalar(Metadata(id"a") + ("type" -> "int"))
     ).getPath(id"i")
     assert(p.isEmpty)
@@ -139,7 +139,7 @@ class GetPathSuite extends AnyFunSuite {
   test("getPath ignoring Index variable") {
     // (i, y) -> a
     Function(
-      Tuple(Index("i"), Scalar(Metadata(id"y") + ("type" -> "int"))),
+      Tuple(Index(id"i"), Scalar(Metadata(id"y") + ("type" -> "int"))),
       Scalar(Metadata(id"a") + ("type" -> "int"))
     ).getPath(id"y") match {
       case Some(DomainPosition(p) :: Nil) =>

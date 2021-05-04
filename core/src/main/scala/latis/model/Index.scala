@@ -1,7 +1,5 @@
 package latis.model
 
-import java.util.UUID
-
 import latis.metadata.Metadata
 import latis.util.Identifier
 
@@ -14,7 +12,7 @@ class Index private (metadata: Metadata) extends Scalar(metadata) {
   //TODO: make sure operations handle Index appropriately
 
   /** Override to preserve type */
-  override def rename(id: Identifier): Index = Index(id.asString)
+  override def rename(id: Identifier): Index = Index(id)
 }
 
 object Index {
@@ -22,9 +20,9 @@ object Index {
   /**
    * Constructs an Index variable with the given id.
    */
-  def apply(id: String): Index =
+  def apply(id: Identifier): Index =
     new Index(Metadata(
-      "id" -> id,
+      "id" -> id.asString,
       "type" -> "long" //Scalar needs value type
     ))
 }
