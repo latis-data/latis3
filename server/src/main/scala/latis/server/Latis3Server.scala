@@ -2,7 +2,6 @@ package latis.server
 
 import scala.concurrent.ExecutionContext
 
-import cats.effect.Blocker
 import cats.effect.ExitCode
 import cats.effect.IO
 import cats.effect.IOApp
@@ -19,6 +18,7 @@ import pureconfig.generic.auto._
 import pureconfig.module.catseffect.syntax._
 
 import latis.catalog.FdmlCatalog
+import cats.effect.Resource
 
 object Latis3Server extends IOApp {
 
@@ -28,13 +28,13 @@ object Latis3Server extends IOApp {
   private val latisConfigSource: ConfigSource =
     ConfigSource.default.at("latis")
 
-  private def getCatalogConf(blocker: Blocker): IO[CatalogConf] =
+  private def getCatalogConf: IO[CatalogConf] =
     latisConfigSource.at("fdml").loadF[IO, CatalogConf](blocker)
 
-  private def getServerConf(blocker: Blocker): IO[ServerConf] =
+  private def getServerConf: IO[ServerConf] =
     latisConfigSource.loadF[IO, ServerConf](blocker)
 
-  private def getServiceConf(blocker: Blocker): IO[ServiceConf] =
+  private def getServiceConf: IO[ServiceConf] =
     latisConfigSource.loadF[IO, ServiceConf](blocker)
 
   private def constructRoutes(
@@ -66,7 +66,7 @@ object Latis3Server extends IOApp {
   }
 
   def run(args: List[String]): IO[ExitCode] =
-    Blocker[IO].use { blocker =>
+    Resource.unit[IO].use { blocker =>
       for {
         logger      <- Slf4jLogger.create[IO]
         catalogConf <- getCatalogConf(blocker)

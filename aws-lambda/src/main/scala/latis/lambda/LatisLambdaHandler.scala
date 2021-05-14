@@ -6,7 +6,6 @@ import java.util.concurrent.Executors
 import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters._
 
-import cats.effect.ContextShift
 import cats.effect.IO
 import cats.syntax.all._
 import com.amazonaws.services.lambda.runtime.Context
