@@ -129,8 +129,7 @@ lazy val `dap2-parser` = project
   .settings(
     name := "dap2-parser",
     libraryDependencies ++= Seq(
-      "org.tpolecat"   %% "atto-core"  % attoVersion,
-      "com.github.alexarchambault" %% "scalacheck-shapeless_1.15" % "1.3.0" % Test
+      "org.tpolecat"   %% "atto-core"  % attoVersion
     )
   )
 
