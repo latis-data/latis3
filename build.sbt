@@ -1,5 +1,5 @@
 ThisBuild / organization := "io.latis-data"
-ThisBuild / scalaVersion := "2.13.5"
+ThisBuild / scalaVersion := "2.13.6"
 
 val attoVersion       = "0.9.5"
 val catsVersion       = "2.6.1"
