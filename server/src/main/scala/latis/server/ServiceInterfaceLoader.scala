@@ -33,12 +33,12 @@ final class ServiceInterfaceLoader(implicit cs: ContextShift[IO]) {
   def loadServices(
     conf: ServiceConf,
     catalog: Catalog
-  ): IO[List[(ServiceSpec, ServiceInterface)]] =
+  ): IO[List[(String, ServiceInterface)]] =
     conf.services.traverse { spec =>
       for {
         loader  <- getClassLoader(spec)
         service <- loadService(loader, spec, catalog)
-      } yield (spec, service)
+      } yield (spec.mapping, service)
     }
 
   private def loadService(
