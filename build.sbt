@@ -207,7 +207,7 @@ lazy val jdbc = project
   .settings(
     name := "latis3-jdbc",
     libraryDependencies ++= Seq(
-      "org.tpolecat"             %% "doobie-core" % "0.13.2",
+      "org.tpolecat"             %% "doobie-core" % "0.13.3",
       "com.h2database"            % "h2"          % "1.4.200" % Test,
     )
   )
