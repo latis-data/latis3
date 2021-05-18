@@ -38,7 +38,7 @@ class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4
     HttpRoutes.of {
       case req @ GET -> Root / id ~ ext =>
         (for {
-          ident    <- IO.fromOption(Identifier.fromString(id))(ParseFailure(s"'$id' is not a valid identifier"))
+          ident    <- IO.fromOption(Identifier.fromString(id))(ParseFailure(s"Invalid identifier: '$id'"))
           dataset  <- getDataset(ident)
           ops      <- IO.fromEither(getOperations(req.queryString))
           result    = ops.foldLeft(dataset)((ds, op) => ds.withOperation(op))
@@ -55,7 +55,7 @@ class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4
   private def getDataset(id: Identifier): IO[Dataset] =
     catalog.findDataset(id).flatMap {
       case None => IO.raiseError {
-        DatasetResolutionFailure(s"Failed to resolver dataset: $id")
+        DatasetResolutionFailure(s"Dataset not found: ${id.asString}")
       }
       case Some(ds) => ds.pure[IO]
     }
@@ -111,7 +111,7 @@ class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4
     err match {
       case DatasetResolutionFailure(msg) => NotFound(msg)
       case ParseFailure(msg)             => BadRequest(msg)
-      case UnknownExtension(msg)         => NotFound(msg)
+      case UnknownExtension(msg)         => BadRequest(msg)
       case UnknownOperation(msg)         => BadRequest(msg)
       case InvalidOperation(msg)         => BadRequest(msg)
     }
