@@ -1,5 +1,7 @@
 package latis
 
+import java.nio.file.Paths
+
 import cats.effect.IO
 import fs2.text
 
@@ -8,8 +10,10 @@ import latis.data.Sample
 import latis.dataset.Dataset
 import latis.input.DatasetReader
 import latis.ops._
+import latis.output.CsvEncoder
 import latis.output.OutputStreamWriter
 import latis.output.TextEncoder
+import latis.util.FileUtils
 import latis.util.Identifier
 import latis.util.StreamUtils._
 
@@ -53,6 +57,10 @@ package object dsl {
     def filter(predicate: Sample => Boolean): Dataset = dataset.withOperation(Filter(predicate))
     //TODO: map, flataMap, mapRange, but need to know how model changes
 
+    /**
+     * Writes a dataset to stdout using the TextEncoder
+     * which preserves the functional structure.
+     */
     def show(): Unit = new TextEncoder()
       .encode(dataset)
       .through(text.utf8Encode)
@@ -61,5 +69,21 @@ package object dsl {
       .drain
       .unsafeRunSync()
 
+    /**
+     * Writes the dataset to a file based on its extension.
+     */
+    def write(file: String): Unit = FileUtils.getExtension(file) match {
+      //TODO: factor out extension to encoder mapping, reuse in dap2 service
+      case Some("csv") => CsvEncoder()
+        .encode(dataset)
+        .through(text.utf8Encode)
+        .through(fs2.io.file.writeAll(Paths.get(file), blocker))
+        .compile
+        .drain
+        .unsafeRunSync()
+      //case "nc"  => //TODO: need to be able to dynamically load dependendies
+      case Some(ext) => throw new RuntimeException(s"Unsupported file extension: $ext")
+      case None => throw new RuntimeException("No file extension.")
+    }
   }
 }
