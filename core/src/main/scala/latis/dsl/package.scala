@@ -48,6 +48,7 @@ package object dsl {
     def tail(): Dataset                            = dataset.withOperation(Tail())
     def take(n: Long): Dataset                     = dataset.withOperation(Take(n))
     def takeRight(n: Int): Dataset                 = dataset.withOperation(TakeRight(n))
+    def transpose(): Dataset                       = dataset.withOperation(Transpose())
 
     def filter(predicate: Sample => Boolean): Dataset = dataset.withOperation(Filter(predicate))
     //TODO: map, flataMap, mapRange, but need to know how model changes
