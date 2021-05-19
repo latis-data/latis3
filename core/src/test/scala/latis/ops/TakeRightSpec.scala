@@ -3,11 +3,9 @@ package latis.ops
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 
-import latis.data.DomainData
-import latis.data.RangeData
-import latis.data.Sample
-import latis.data.SampledFunction
+import latis.data._
 import latis.dataset.Dataset
+import latis.dsl._
 import latis.util.DatasetGenerator
 
 class TakeRightSpec extends AnyFlatSpec {
