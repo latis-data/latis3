@@ -5,6 +5,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.Inside
 
 import latis.data._
+import latis.dsl._
 import latis.model._
 import latis.output.TextWriter
 import latis.util.DatasetGenerator

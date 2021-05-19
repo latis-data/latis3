@@ -9,6 +9,7 @@ import latis.data.Sample
 import latis.data.SampledFunction
 import latis.dataset.Dataset
 import latis.dataset.MemoizedDataset
+import latis.dsl._
 import latis.metadata.Metadata
 import latis.model.Scalar
 import latis.util.DatasetGenerator

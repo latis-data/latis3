@@ -4,6 +4,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 
 import latis.data._
+import latis.dsl._
 import latis.util.DatasetGenerator
 
 class EvaluationSpec extends AnyFlatSpec {

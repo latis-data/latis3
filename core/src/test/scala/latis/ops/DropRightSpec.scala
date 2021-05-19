@@ -8,6 +8,7 @@ import latis.data.RangeData
 import latis.data.Sample
 import latis.data.SampledFunction
 import latis.dataset.Dataset
+import latis.dsl._
 import latis.util.DatasetGenerator
 
 class DropRightSpec extends AnyFlatSpec {

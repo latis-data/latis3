@@ -1,5 +1,7 @@
 package latis.ops
 
+import cats.syntax.all._
+
 import latis.data.Data
 import latis.model.DataType
 import latis.util.LatisException
@@ -30,18 +32,18 @@ object UnaryOperation {
     case "convertTime" => ConvertTime.fromArgs(args)
     case "curry" => Curry.fromArgs(args)
     case "drop" => Drop.fromArgs(args)
-    case "dropLast" => Right(DropLast())
+    case "dropLast" => DropLast().asRight
     case "dropRight" => DropRight.fromArgs(args)
     case "eval" => Evaluation.fromArgs(args)
     case "evaluation" => Evaluation.fromArgs(args)
-    case "first" => Right(Head())
+    case "first" => Head().asRight
     case "formatTime" => FormatTime.fromArgs(args)
-    case "head" => Right(Head())
-    case "last" => Right(Last())
+    case "head" => Head().asRight
+    case "last" => Last().asRight
     case "pivot" => Pivot.fromArgs(args)
     case "project" => Projection.fromArgs(args)
     case "rename" => Rename.fromArgs(args)
-    case "tail" => Right(Tail())
+    case "tail" => Tail().asRight
     case "take" => Take.fromArgs(args)
     case "takeRight" => TakeRight.fromArgs(args)
     case "timeTupleToTime" => TimeTupleToTime.fromArgs(args)
