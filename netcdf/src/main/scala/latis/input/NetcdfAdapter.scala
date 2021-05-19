@@ -10,12 +10,13 @@ import scala.math.min
 import cats.effect.IO
 import cats.syntax.all._
 import fs2.Stream
-import ucar.ma2.Section
 import ucar.ma2.{Array => NcArray}
 import ucar.ma2.{Range => URange}
-import ucar.nc2.util.EscapeStrings.backslashEscape
-import ucar.nc2.dataset.NetcdfDataset
+import ucar.ma2.Section
 import ucar.nc2.{Variable => NcVariable}
+import ucar.nc2.dataset.NetcdfDataset
+import ucar.nc2.dataset.NetcdfDatasets
+import ucar.nc2.util.EscapeStrings.backslashEscape
 
 import latis.data._
 import latis.model._
@@ -23,8 +24,8 @@ import latis.ops.Head
 import latis.ops.Operation
 import latis.ops.Selection
 import latis.ops.Stride
-import latis.util.dap2.parser.ast._
 import latis.util._
+import latis.util.dap2.parser.ast._
 
 /**
  * Defines an Adapter for NetCDF data sources.
@@ -168,7 +169,7 @@ object NetcdfAdapter extends AdapterFactory {
     }
 
     Stream.bracket(IO {
-      NetcdfDataset.openDataset(path)
+      NetcdfDatasets.openDataset(path)
     })(nc => IO(nc.close()))
   }
 
