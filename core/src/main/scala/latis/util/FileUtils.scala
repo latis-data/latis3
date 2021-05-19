@@ -75,4 +75,14 @@ object FileUtils {
       val fileIter = Files.list(path).iterator().asScala
       fileIter.filter(_.toString.endsWith(ext)).toList
     }
+
+  /**
+   * Returns the file extension given its path.
+   * This simply returns everything after the last ".".
+   */
+  def getExtension(path: String): Option[String] = path.split("\\.").toList match {
+    case _ :: ss => ss.lastOption
+    case _       => None
+  }
+
 }
