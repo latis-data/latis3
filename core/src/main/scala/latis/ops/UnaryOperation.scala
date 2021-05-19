@@ -46,6 +46,7 @@ object UnaryOperation {
     case "tail" => Tail().asRight
     case "take" => Take.fromArgs(args)
     case "takeRight" => TakeRight.fromArgs(args)
+    case "transpose" => Transpose().asRight
     case "timeTupleToTime" => TimeTupleToTime.fromArgs(args)
     case n => Left(LatisException(s"Unknown operation: $n"))
   }
