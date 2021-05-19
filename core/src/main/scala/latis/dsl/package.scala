@@ -1,11 +1,17 @@
 package latis
 
+import cats.effect.IO
+import fs2.text
+
 import latis.data.DomainSet
 import latis.data.Sample
 import latis.dataset.Dataset
 import latis.input.DatasetReader
 import latis.ops._
+import latis.output.OutputStreamWriter
+import latis.output.TextEncoder
 import latis.util.Identifier
+import latis.util.StreamUtils._
 
 package object dsl {
 
@@ -45,6 +51,14 @@ package object dsl {
 
     def filter(predicate: Sample => Boolean): Dataset = dataset.withOperation(Filter(predicate))
     //TODO: map, flataMap, mapRange, but need to know how model changes
+
+    def show(): Unit = new TextEncoder()
+      .encode(dataset)
+      .through(text.utf8Encode)
+      .through(OutputStreamWriter.unsafeFromOutputStream[IO](System.out).write)
+      .compile
+      .drain
+      .unsafeRunSync()
 
   }
 }

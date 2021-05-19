@@ -7,7 +7,6 @@ import org.scalatest.Inside
 import latis.data._
 import latis.dsl._
 import latis.model._
-import latis.output.TextWriter
 import latis.util.DatasetGenerator
 import latis.util.Identifier.IdentifierStringContext
 
@@ -55,7 +54,6 @@ class ProjectionSuite extends AnyFunSuite with EitherValues with Inside {
   test("Project one range variable") {
     val ds = DatasetGenerator("x -> (a, b: string)")
       .project("x,b")
-    //TextWriter().write(ds)
     inside (ds.model) {
       case Function(d, r) =>
         assert(d.id.get == id"x")
@@ -71,7 +69,6 @@ class ProjectionSuite extends AnyFunSuite with EitherValues with Inside {
   test("Replace unprojected domain variable with Index") {
     val ds = DatasetGenerator("x: double -> a")
       .project("a")
-    //TextWriter().write(ds)
     inside (ds.model) {
       case Function(_: Index, a: Scalar) =>
         assert(a.id.get == id"a")
@@ -86,7 +83,6 @@ class ProjectionSuite extends AnyFunSuite with EitherValues with Inside {
     val ds = DatasetGenerator("(x, y) -> a")
       .project("a")
       .drop(2)
-    //TextWriter().write(ds)
     inside (ds.model) {
       case Function(i: Index, a: Scalar) =>
         assert(i.id.get == id"_ix_y")
@@ -101,7 +97,6 @@ class ProjectionSuite extends AnyFunSuite with EitherValues with Inside {
   test("Project domain only") {
     val ds = DatasetGenerator("x: double -> a")
       .project("x")
-    //TextWriter().write(ds)
     inside (ds.model) {
       case Function(_: Index, x: Scalar) =>
         assert(x.id.get == id"x")
