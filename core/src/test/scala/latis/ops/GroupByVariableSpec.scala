@@ -7,7 +7,6 @@ import latis.data._
 import latis.dataset._
 import latis.metadata.Metadata
 import latis.model._
-import latis.output.TextWriter
 import latis.util.Identifier.IdentifierStringContext
 
 class GroupByVariableSpec extends AnyFlatSpec {
@@ -31,8 +30,6 @@ class GroupByVariableSpec extends AnyFlatSpec {
   val ds = new MemoizedDataset(Metadata(id"test"), model, data)
       .withOperation(GroupByVariable(id"y"))
       .unsafeForce()
-
-  //TextWriter().write(ds)
 
   "GroupByVariable" should "unProject the grouped variables" in {
     ds.model.toString should be ("y -> x -> a")

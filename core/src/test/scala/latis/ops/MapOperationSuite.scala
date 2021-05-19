@@ -7,7 +7,6 @@ import latis.data.RangeData
 import latis.data._
 import latis.model.DataType
 import latis.model.ModelParser
-import latis.output.TextWriter
 import latis.util.DatasetGenerator
 import latis.util.LatisException
 
@@ -25,7 +24,6 @@ class MapOperationSuite extends AnyFunSuite {
         def applyToModel(model: DataType) = model.asRight
       }
     }
-    //TextWriter().write(ds)
     assert(2 == ds.samples.compile.toList.unsafeRunSync().length)
   }
 }

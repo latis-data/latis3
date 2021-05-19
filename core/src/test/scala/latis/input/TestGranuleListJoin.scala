@@ -65,7 +65,6 @@ class TestGranuleListJoin {
     //val ds = ops.foldLeft(glj(gl))((ds, op) => op(ds))
     //val ds = ops.foldLeft(gl.withOperation(glj))((ds, op) => op(ds))
     //val out = System.out //new FileOutputStream("/data/tmp/data3.txt")
-    //TextWriter(System.out).write(ds)
     //val samples = ds.data.unsafeForce.samples
     val samples = StreamUtils.unsafeStreamToSeq(ds.samples)
     assertEquals(2, samples.length)
