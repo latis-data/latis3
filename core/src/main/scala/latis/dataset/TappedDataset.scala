@@ -28,9 +28,13 @@ class TappedDataset(
 ) extends AbstractDataset(_metadata, _model, operations) with Serializable {
 
   /**
-   * Returns this Dataset's Data.
+   * Returns this Dataset's Data with operations applied.
+   * This can be expensive. It is recommended to use samples
+   * when it is time to consume the data.
+   * If Data is really needed, consider unsafeForce to get a
+   * MemoizedDataset whose data returns a MemoizedFunction.
    */
-  def data: Data = _data
+  def data: Data = applyOperations().fold(throw _, identity)
 
   /**
    * Returns a copy of this Dataset with the given Operation
@@ -40,7 +44,7 @@ class TappedDataset(
     new TappedDataset(
       _metadata,
       _model,
-      data,
+      _data,
       operations :+ operation
     )
 
@@ -53,7 +57,7 @@ class TappedDataset(
   /**
    * Applies the Operations to generate the new Data.
    */
-  private def applyOperations(): Either[LatisException, Data] = {
+  protected def applyOperations(): Either[LatisException, Data] = {
     //TODO: compile/optimize the operations
 
     // Defines a function to apply an Operation to Data.
@@ -66,7 +70,7 @@ class TappedDataset(
     }
 
     // Apply the operations to the data
-    operations.toList.foldM((_model, data))(f).map(_._2)
+    operations.toList.foldM((_model, _data))(f).map(_._2)
   }
 
   /**
