@@ -13,6 +13,7 @@ package object data {
    * Define a type alias for RangeData as a List of values of a Data type.
    */
   type RangeData = List[Data]
+  //TODO: need to prevent adding a TupleData to a RangeData
 
   /**
    * Define a type alias for a Sample as a pair (scala Tuple2) of
