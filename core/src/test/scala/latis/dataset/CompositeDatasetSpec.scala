@@ -8,8 +8,8 @@ import org.scalatest.matchers.should.Matchers._
 import latis.data.Data._
 import latis.data.Sample
 import latis.data._
+import latis.dsl._
 import latis.metadata.Metadata
-import latis.model.ModelParser.unsafeParse
 import latis.model._
 import latis.ops.Rename
 import latis.ops.Selection
@@ -94,7 +94,7 @@ class CompositeDatasetSpec extends AnyFlatSpec {
   it should "apply an operation that mutates the model" in {
     val rename = Rename(id"flux", id"foo")
     val compDs2 = compDs.withOperation(rename)
-    compDs2.model.toString should be (unsafeParse("time: int -> foo: double").toString)
+    compDs2.model.toString should be (ModelParser.unsafeParse("time: int -> foo: double").toString)
   }
 
 }

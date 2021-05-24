@@ -9,7 +9,7 @@ import ucar.nc2.dataset.NetcdfDataset
 
 import latis.dataset.MemoizedDataset
 import latis.output.NetcdfEncoder
-import latis.util.DatasetGenerator
+import latis.dsl.DatasetGenerator
 
 class NetcdfWrapperSpec extends AnyFlatSpec {
 

@@ -1,10 +1,10 @@
-package latis.util
+package latis.dsl
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 
-import latis.data.Data._
 import latis.data._
+import latis.data.Data._
 import latis.model._
 
 class DatasetGeneratorSpec extends AnyFlatSpec {

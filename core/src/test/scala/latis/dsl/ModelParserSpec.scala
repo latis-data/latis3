@@ -1,12 +1,16 @@
-package latis.model
+package latis.dsl
 
-import atto.Atto._
 import atto._
+import atto.Atto._
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 
 import latis.metadata.Metadata
+import latis.model.DataType
+import latis.model.Function
+import latis.model.Scalar
+import latis.model.Tuple
 import latis.util.Identifier.IdentifierStringContext
 import latis.util.LatisException
 

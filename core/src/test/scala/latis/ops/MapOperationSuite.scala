@@ -5,9 +5,8 @@ import org.scalatest.funsuite.AnyFunSuite
 
 import latis.data.RangeData
 import latis.data._
+import latis.dsl._
 import latis.model.DataType
-import latis.model.ModelParser
-import latis.util.DatasetGenerator
 import latis.util.LatisException
 
 class MapOperationSuite extends AnyFunSuite {

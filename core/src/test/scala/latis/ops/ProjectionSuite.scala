@@ -7,7 +7,6 @@ import org.scalatest.Inside
 import latis.data._
 import latis.dsl._
 import latis.model._
-import latis.util.DatasetGenerator
 import latis.util.Identifier.IdentifierStringContext
 
 class ProjectionSuite extends AnyFunSuite with EitherValues with Inside {

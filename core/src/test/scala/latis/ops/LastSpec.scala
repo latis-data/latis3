@@ -12,7 +12,6 @@ import latis.dataset.MemoizedDataset
 import latis.dsl._
 import latis.metadata.Metadata
 import latis.model.Scalar
-import latis.util.DatasetGenerator
 import latis.util.Identifier.IdentifierStringContext
 
 class LastSpec extends AnyFlatSpec {
