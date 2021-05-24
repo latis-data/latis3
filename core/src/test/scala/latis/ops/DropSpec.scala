@@ -9,7 +9,6 @@ import latis.data.Sample
 import latis.data.SampledFunction
 import latis.dataset.Dataset
 import latis.dsl._
-import latis.util.DatasetGenerator
 
 class DropSpec extends AnyFlatSpec {
 

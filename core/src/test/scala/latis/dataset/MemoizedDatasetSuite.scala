@@ -5,7 +5,6 @@ import org.scalatest.Inside.inside
 
 import latis.dsl._
 import latis.ops.Head
-import latis.util.DatasetGenerator
 
 class MemoizedDatasetSuite extends AnyFunSuite {
 

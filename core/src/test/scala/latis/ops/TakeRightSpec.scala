@@ -6,7 +6,6 @@ import org.scalatest.matchers.should.Matchers._
 import latis.data._
 import latis.dataset.Dataset
 import latis.dsl._
-import latis.util.DatasetGenerator
 
 class TakeRightSpec extends AnyFlatSpec {
 

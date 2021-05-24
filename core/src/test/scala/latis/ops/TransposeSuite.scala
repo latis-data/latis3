@@ -6,7 +6,6 @@ import org.scalatest.Inside.inside
 import latis.data._
 import latis.dsl._
 import latis.model._
-import latis.util.DatasetGenerator
 
 class TransposeSuite extends AnyFunSuite {
 

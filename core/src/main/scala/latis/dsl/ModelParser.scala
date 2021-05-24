@@ -1,10 +1,11 @@
-package latis.model
+package latis.dsl
 
-import atto.Atto._
 import atto._
+import atto.Atto._
 import cats.syntax.all._
 
 import latis.metadata.Metadata
+import latis.model._
 import latis.util.LatisException
 import latis.util.dap2.parser.parsers.identifier
 
@@ -55,8 +56,8 @@ object ModelParser {
 
   private def scalarWithType: Parser[DataType] = for {
     id <- identifier.token
-    _  <- string(":").token
-    t  <- valueType.token
+    _ <- string(":").token
+    t <- valueType.token
   } yield Scalar(Metadata(id) + ("type" -> t))
 
   private def scalarWithoutType: Parser[DataType] = for {
