@@ -1,13 +1,13 @@
 ThisBuild / organization := "io.latis-data"
-ThisBuild / scalaVersion := "2.13.5"
+ThisBuild / scalaVersion := "2.13.6"
 
-val attoVersion       = "0.9.4"
+val attoVersion       = "0.9.5"
 val catsVersion       = "2.6.1"
 val catsEffectVersion = "2.5.1"
 val coursierVersion   = "2.0.16"
-val fs2Version        = "2.5.5"
-val http4sVersion     = "0.21.22"
-val log4catsVersion   = "1.3.0"
+val fs2Version        = "2.5.6"
+val http4sVersion     = "0.21.23"
+val log4catsVersion   = "1.3.1"
 val log4jVersion      = "2.14.1"
 val netcdfVersion     = "5.4.1"
 val pureconfigVersion = "0.14.1"
@@ -19,11 +19,11 @@ lazy val commonSettings = Seq(
     "co.fs2"        %% "fs2-core"    % fs2Version,
     "co.fs2"        %% "fs2-io"      % fs2Version,
     "com.typesafe"   % "config"      % "1.4.1",
-    "org.scalatest" %% "scalatest"   % "3.2.8" % Test
+    "org.scalatest" %% "scalatest"   % "3.2.9" % Test
   ),
   Test / fork := true,
   scalacOptions -= "-Xfatal-warnings",
-  addCompilerPlugin("org.typelevel" % "kind-projector" % "0.12.0" cross CrossVersion.full)
+  addCompilerPlugin("org.typelevel" % "kind-projector" % "0.13.0" cross CrossVersion.full)
 )
 
 lazy val dockerSettings = Seq(
@@ -88,14 +88,14 @@ lazy val core = project
   .settings(
     name := "latis3-core",
     libraryDependencies ++= Seq(
-      "org.scala-lang.modules" %% "scala-xml"           % "2.0.0",
-      "io.circe"               %% "circe-core"          % "0.13.0",
-      "org.scodec"             %% "scodec-core"         % "1.11.7",
-      "org.scodec"             %% "scodec-stream"       % "2.0.1",
+      "org.scala-lang.modules" %% "scala-xml"           % "1.3.0",
+      "io.circe"               %% "circe-core"          % "0.14.0",
+      "org.scodec"             %% "scodec-core"         % "1.11.8",
+      "org.scodec"             %% "scodec-stream"       % "2.0.2",
       "org.http4s"             %% "http4s-blaze-client" % http4sVersion,
       "com.github.regis-leray" %% "fs2-ftp"             % "0.7.0",
       "junit"                   % "junit"               % "4.13.2"  % Test,
-      "org.scalatestplus"      %% "junit-4-13"          % "3.2.8.0" % Test
+      "org.scalatestplus"      %% "junit-4-13"          % "3.2.9.0" % Test
     )
   )
 
@@ -113,8 +113,8 @@ lazy val `dap2-parser` = project
     name := "dap2-parser",
     libraryDependencies ++= Seq(
       "org.tpolecat"   %% "atto-core"  % attoVersion,
-      "org.scalacheck" %% "scalacheck" % "1.14.3" % Test,
-      "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.5" % Test
+      "org.scalacheck" %% "scalacheck" % "1.15.4" % Test,
+      "com.github.alexarchambault" %% "scalacheck-shapeless_1.15" % "1.3.0" % Test
     )
   )
 
@@ -207,7 +207,7 @@ lazy val jdbc = project
   .settings(
     name := "latis3-jdbc",
     libraryDependencies ++= Seq(
-      "org.tpolecat"             %% "doobie-core" % "0.13.2",
+      "org.tpolecat"             %% "doobie-core" % "0.13.4",
       "com.h2database"            % "h2"          % "1.4.200" % Test,
     )
   )
