@@ -35,8 +35,8 @@ package object dsl {
     def groupByVariable(ids: Identifier*): Dataset = dataset.withOperation(GroupByVariable(ids: _*))
     def groupByBin(set: DomainSet, agg: Aggregation = DefaultAggregation()): Dataset =
       dataset.withOperation(GroupByBin(set, agg))
-    def substitute(df: Dataset): Dataset = dataset.withOperation(Substitution(df))
-    def compose(df: Dataset): Dataset    = dataset.withOperation(Composition(df))
+    def substitute(df: Dataset): Dataset           = dataset.withOperation(Substitution(df))
+    def compose(df: Dataset): Dataset              = dataset.withOperation(Composition(df))
     def contains(id: Identifier, values: String*): Dataset =
       dataset.withOperation(Contains(id, values: _*))
     def rename(id: Identifier, newId: Identifier): Dataset =
@@ -83,7 +83,7 @@ package object dsl {
         .unsafeRunSync()
       //case "nc"  => //TODO: need to be able to dynamically load dependendies
       case Some(ext) => throw new RuntimeException(s"Unsupported file extension: $ext")
-      case None => throw new RuntimeException("No file extension.")
+      case None      => throw new RuntimeException("No file extension.")
     }
   }
 }
