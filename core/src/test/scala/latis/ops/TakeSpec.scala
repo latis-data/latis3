@@ -36,4 +36,10 @@ class TakeSpec extends AnyFlatSpec {
     )
     samples should be(List(Sample(DomainData(0), Seq(sf))))
   }
+
+  it should "treat a negative number as 0" in {
+    Take(-1) match {
+      case Take(n) => assert(n == 0)
+    }
+  }
 }

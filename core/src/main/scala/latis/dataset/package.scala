@@ -35,7 +35,7 @@ package object dataset {
     def first(): Dataset = dataset.withOperation(Head())
     def last(): Dataset = dataset.withOperation(Last())
     def tail(): Dataset = dataset.withOperation(Tail())
-    def take(n: Long): Dataset = dataset.withOperation(Take(n))
+    def take(n: Int): Dataset = dataset.withOperation(Take(n))
     def takeRight(n: Int): Dataset = dataset.withOperation(TakeRight(n))
 
     def filter(predicate: Sample => Boolean): Dataset = dataset.withOperation(Filter(predicate))
