@@ -3,6 +3,7 @@ package latis.input
 import java.io.File
 import java.net.URI
 
+import cats.effect.ContextShift
 import cats.effect.IO
 import cats.syntax.all._
 import doobie._
@@ -11,18 +12,15 @@ import org.scalatest.Inside._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 
-import latis.data.Data
+import latis.data._
 import latis.data.Data.DoubleValue
-import latis.data.DomainData
-import latis.data.RangeData
-import latis.dataset.AdaptedDataset
-import latis.metadata.Metadata
 import latis.model.ModelParser.parse
-import latis.util.Identifier.IdentifierStringContext
+import latis.ops.Projection
+import latis.ops.Selection
 
 class JdbcAdapterSpec extends AnyFlatSpec {
 
-  implicit val cs = IO.contextShift(ExecutionContexts.synchronous)
+  implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContexts.synchronous)
 
   "The JdbcAdapter" should "read data from a database table" in
     withDatabase { uri =>
@@ -63,14 +61,16 @@ class JdbcAdapterSpec extends AnyFlatSpec {
           ("password", "")
         )
       )
-      lazy val actualFirstSample = adapter.getData(uri).samples.take(1).compile.last.unsafeRunSync().getOrElse {
-        fail("Empty Dataset")
-      }
-      inside(actualFirstSample) {
-        case (dd, rd) =>
-          assert(dd == DomainData(Data.IntValue(1)))
-          assert(rd == RangeData("foo"))
-      }
+
+      val ops = List(
+        Selection.makeSelection("message = bar").toTry.get,
+        Projection.fromExpression("message").toTry.get
+      )
+      adapter.getData(uri, ops).samples.compile.toList.unsafeRunSync() //.foreach(println)
+        .head match {
+          case Sample(DomainData(), RangeData(Text(msg))) =>
+            assert(msg == "bar")
+        }
     }
 
   it should "capture exceptions in the stream" in
