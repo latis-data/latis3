@@ -51,13 +51,8 @@ class AdaptedDataset(
     // Separate leading operation that the adapter can handle
     // from the rest. Note that we must preserve the order for safety.
     //TODO: "compile" the Operations to optimize the order of application
-    //val adapterOps = operations.takeWhile(adapter.canHandleOperation(_))
-    //val otherOps   = operations.drop(adapterOps.length)
-
-    // Hack to allow smart adapter to handle any operation without concern
-    // about order. Otherwise, simple processing instructions could prevent
-    // other optimizations.
-    val (adapterOps, otherOps) = operations.partition(adapter.canHandleOperation(_))
+    val adapterOps = operations.takeWhile(adapter.canHandleOperation(_))
+    val otherOps   = operations.drop(adapterOps.length)
 
     //TODO: add prov for adapter handled ops
 
