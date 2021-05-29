@@ -19,6 +19,10 @@ case class Selection(id: Identifier, operator: ast.SelectionOp, value: String) e
   //TODO: enable IndexedFunction to use binary search...
   //TODO: support nested functions, all or none?
   //TODO: allow value to have units
+  //TODO: nearest (~) is not a filter
+  //      makes sense only for variable in Cartesian domain
+  //      transform "x ~ v" to another operation
+  //TODO: support matches (=~)
 
   def getValue(model: DataType): Either[LatisException, Datum] = for {
     scalar <- getScalar(model)

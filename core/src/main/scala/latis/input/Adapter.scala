@@ -11,6 +11,7 @@ import latis.ops.Operation
  */
 trait Adapter {
   //TODO: add SmartAdapter that takes ops?
+  //TODO: require UnaryOperations
 
   def canHandleOperation(op: Operation): Boolean = false
 
