@@ -19,6 +19,7 @@ case class Projection(ids: Identifier*) extends MapOperation {
   //TODO: if Cartesian keep separate Index variable for each dimension
   //TODO: support partial domain projection:
   // if not Cartesian, move vars to range and replace domain with Index
+  //TODO: reorder ids to be consistent with model (after we have model validation...)
 
   override def applyToModel(model: DataType): Either[LatisException, DataType] =
     applyToVariable(model).toRight(LatisException("Nothing projected"))
