@@ -8,7 +8,7 @@ import latis.data.Sample
 import latis.model.DataType
 import latis.util.LatisException
 
-case class Take(n: Long) extends StreamOperation {
+class Take private (val n: Int) extends StreamOperation {
 
   def pipe(model: DataType): Pipe[IO, Sample, Sample] = in => in.take(n)
 
@@ -17,9 +17,21 @@ case class Take(n: Long) extends StreamOperation {
 }
 
 object Take {
+
+  /**
+   * Constructs a Take operation.
+   * A negative number will be treated as zero.
+   */
+  def apply(n: Int): Take = {
+    if (n < 0) new Take(0)
+    else new Take(n)
+  }
+
   def fromArgs(args: List[String]): Either[LatisException, Take] = args match {
-    case n :: Nil => Either.catchOnly[NumberFormatException](Take(n.toLong))
+    case n :: Nil => Either.catchOnly[NumberFormatException](Take(n.toInt))
       .leftMap(LatisException(_))
     case _ => Left(LatisException("Take requires one argument"))
   }
+
+  def unapply(t: Take): Option[Int] = Option(t.n)
 }
