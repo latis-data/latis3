@@ -1,5 +1,7 @@
 package latis.time
 
+import cats.syntax.all._
+
 import latis.data.Data
 import latis.data.Datum
 import latis.data.Text
@@ -8,6 +10,7 @@ import latis.model.Scalar
 import latis.model.StringValueType
 import latis.units.UnitConverter
 import latis.util.Identifier
+import latis.util.LatisException
 
 /**
  * Time is a Scalar that provides special behavior for formated time values.
@@ -84,23 +87,36 @@ class Time(metadata: Metadata) extends Scalar(metadata) {
 
   /**
    * Overrides value conversion to support formatted time strings.
-   * This expects a numeric string or ISO format.
+   *
+   * This will try to interpret the value in this Time's units (numeric or format)
+   * or then as an ISO string.
+   *
+   * This method is intended for lightweight use such as parsing time selections.
+   * Construct a reusable TimeFormat or UnitConverter for bigger conversion tasks.
    */
   override def convertValue(value: String): Either[Exception, Datum] =
-    TimeFormat.parseIso(value).map { time => //time in default units
-      timeFormat.map { format =>
-        // this represents a formatted time string
-        Data.StringValue(format.format(time))
-      }.getOrElse {
-        // this represents a numeric time value
-        // Convert value to our TimeScale
-        val t2 = UnitConverter(TimeScale.Default, timeScale)
-          .convert(time.toDouble)
-        valueType.convertDouble(t2).getOrElse {
-          ??? //Bug: if this type supports unit conversions
-          // then we should be able to convert back from a double
-        }
-      }
+    (valueType match {
+      case StringValueType =>
+        //Try to match this Time's format or else ISO
+        val format = timeFormat.get //safe since this has type string
+        format.parse(value)
+          .recoverWith(_ => TimeFormat.parseIso(value))
+          .map(t => Data.StringValue(format.format(t)))
+      case _ =>
+        //Try to interpret as this value type then as ISO.
+        super.parseValue(value)
+          .recoverWith { _ =>
+            TimeFormat.parseIso(value).flatMap { t =>
+              val t2 = UnitConverter(TimeScale.Default, timeScale)
+                .convert(t.toDouble)
+              Either.fromOption(
+                valueType.convertDouble(t2),
+                LatisException(s"Failed to convert time value: $value")
+              )
+            }
+          }
+    }).leftMap { le =>
+      LatisException(s"Failed to interpret time value: $value", le)
     }
 
 }
