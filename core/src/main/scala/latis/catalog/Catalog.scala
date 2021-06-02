@@ -1,6 +1,7 @@
 package latis.catalog
 
 import cats.Monoid
+import cats.data.OptionT
 import cats.effect.IO
 import cats.syntax.all._
 import fs2.Stream
@@ -39,7 +40,7 @@ object Catalog {
       override val datasets: Stream[IO, Dataset] = x.datasets ++ y.datasets
 
       override def findDataset(name: Identifier): IO[Option[Dataset]] =
-        x.findDataset(name) <+> y.findDataset(name)
+        (OptionT(x.findDataset(name)) <+> OptionT(y.findDataset(name))).value
     }
   }
 }
