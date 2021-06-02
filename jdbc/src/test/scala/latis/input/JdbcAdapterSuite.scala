@@ -2,6 +2,7 @@ package latis.input
 
 import org.scalatest.funsuite.AnyFunSuite
 
+import latis.dsl._
 import latis.metadata.Metadata
 import latis.model._
 import latis.ops._
