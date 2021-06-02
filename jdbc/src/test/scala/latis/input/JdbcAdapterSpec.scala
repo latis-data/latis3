@@ -14,7 +14,7 @@ import org.scalatest.matchers.should.Matchers._
 
 import latis.data._
 import latis.data.Data.DoubleValue
-import latis.model.ModelParser.parse
+import latis.dsl.ModelParser.parse
 import latis.ops.Projection
 import latis.ops.Selection
 

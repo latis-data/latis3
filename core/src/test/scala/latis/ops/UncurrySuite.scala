@@ -4,8 +4,8 @@ import org.scalatest.Inside._
 import org.scalatest.funsuite.AnyFunSuite
 
 import latis.data._
+import latis.dsl._
 import latis.model._
-import latis.util.DatasetGenerator
 import latis.util.Identifier.IdentifierStringContext
 
 class UncurrySuite extends AnyFunSuite {
