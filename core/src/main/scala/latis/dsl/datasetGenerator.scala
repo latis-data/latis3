@@ -41,15 +41,18 @@ object DatasetGenerator {
    * ("b", 2) -> (10.0, 11.0)
    *
    */
-  def apply(typeSig: String): MemoizedDataset = {
+  def apply(typeSig: String, name: Identifier): MemoizedDataset = {
     val model = modelFromString(typeSig)
     val ds = new MemoizedDataset(
-      Metadata(makeDatasetID()),
+      Metadata(name),
       model,
       generateData(model)
     )
     ds
   }
+
+  def apply(typeSig: String): MemoizedDataset =
+    DatasetGenerator(typeSig, makeDatasetID())
 
   private def modelFromString(s: String): DataType =
     ModelParser.parse(s).fold(throw _, identity)
