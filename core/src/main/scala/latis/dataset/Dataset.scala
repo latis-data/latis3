@@ -12,6 +12,7 @@ import latis.metadata.MetadataLike
 import latis.model.DataType
 import latis.ops.UnaryOperation
 import latis.util.CacheManager
+import latis.util.Identifier
 
 /**
  * Defines the interface for a LaTiS Dataset.
@@ -40,6 +41,11 @@ trait Dataset extends MetadataLike {
    * applied to this one.
    */
   def withOperation(op: UnaryOperation): Dataset
+
+  /**
+   * Makes a copy of this dataset with a new name.
+   */
+  def rename(id: Identifier): Dataset
 
   /**
    * Returns a new Dataset with the given Operations *logically*

@@ -9,6 +9,7 @@ import latis.data._
 import latis.metadata.Metadata
 import latis.model.DataType
 import latis.ops.UnaryOperation
+import latis.util.Identifier
 import latis.util.LatisException
 
 /**
@@ -46,6 +47,14 @@ class TappedDataset(
       _model,
       _data,
       operations :+ operation
+    )
+
+  def rename(newId: Identifier): Dataset =
+    new TappedDataset(
+      _metadata + ("id" -> newId.asString),
+      _model,
+      _data,
+      operations
     )
 
   /**

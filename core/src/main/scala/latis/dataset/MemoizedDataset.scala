@@ -4,6 +4,7 @@ import latis.data._
 import latis.metadata.Metadata
 import latis.model.DataType
 import latis.ops.UnaryOperation
+import latis.util.Identifier
 
 /**
  * Defines a Dataset whose data is not connected
@@ -26,6 +27,14 @@ class MemoizedDataset(
       _model,
       _data,
       operations :+ operation
+    )
+
+  override def rename(newId: Identifier): Dataset =
+    new MemoizedDataset(
+      _metadata + ("id" -> newId.asString),
+      _model,
+      _data,
+      operations
     )
 
   /**

@@ -77,5 +77,9 @@ class DatasetSpec extends AnyFlatSpec {
     }
     matrixDs shouldBe a [Dataset]
   }
+
+  it should "support rename" in {
+    assert(dataset.rename(id"newName").id.get.asString == "newName")
+  }
   
 }

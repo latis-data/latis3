@@ -11,6 +11,7 @@ import latis.input.Adapter
 import latis.metadata.Metadata
 import latis.model.DataType
 import latis.ops.UnaryOperation
+import latis.util.Identifier
 import latis.util.LatisException
 
 /**
@@ -39,6 +40,15 @@ class AdaptedDataset(
       adapter: Adapter,
       uri: URI,
       operations :+ operation
+    )
+
+  def rename(newId: Identifier): Dataset =
+    new AdaptedDataset(
+      _metadata + ("id" -> newId.asString),
+      _model,
+      adapter: Adapter,
+      uri: URI,
+      operations
     )
 
   /**

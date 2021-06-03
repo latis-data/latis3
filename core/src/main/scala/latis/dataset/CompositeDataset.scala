@@ -14,6 +14,7 @@ import latis.model.DataType
 import latis.ops.Append
 import latis.ops.BinaryOperation
 import latis.ops.UnaryOperation
+import latis.util.Identifier
 import latis.util.LatisException
 
 /**
@@ -50,6 +51,13 @@ class CompositeDataset(
       _metadata,
       datasets,
       operations :+ op
+    )
+
+  def rename(newId: Identifier): Dataset =
+    new CompositeDataset(
+      _metadata + ("id" -> newId.asString),
+      datasets,
+      operations
     )
 
   /**
