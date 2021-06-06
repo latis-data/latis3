@@ -53,12 +53,22 @@ class BinaryEncoder extends Encoder[IO, BitVector] {
     case LongValueType    => codecs.int64.xmap[LongValue](LongValue(_), _.value).upcast[Data]
     case FloatValueType   => codecs.float.xmap[FloatValue](FloatValue(_), _.value).upcast[Data]
     case DoubleValueType  => codecs.double.xmap[DoubleValue](DoubleValue(_), _.value).upcast[Data]
-    case StringValueType =>
-      val size = s.metadata.getProperty("size").get.toLong * 8
-      scodec.codecs.paddedFixedSizeBits(size,
-                                        codecs.utf8,
-                                        codecs.literals.constantBitVectorCodec(BitVector(hex"00")))
-        .xmap[StringValue](StringValue(_), _.value).upcast[Data]
-    case _ => codecs.fail(Err("No encoder found for given datatype."))
+    case StringValueType if (s("size").nonEmpty) =>
+      val size = s("size").get.toLong * 8
+      codecs.paddedFixedSizeBits(
+        size,
+        codecs.utf8,
+        codecs.literals.constantBitVectorCodec(BitVector(hex"00"))
+      ).xmap[StringValue](StringValue(_), _.value).upcast[Data]
+    case StringValueType  => codecs.fail(Err("BinaryEncoder does not support String without a size defined."))
+    case BinaryValueType  =>
+      codecs.bytes.xmap[BinaryValue](
+        bytVec => BinaryValue(bytVec.toArray),
+        binVal => ByteVector(binVal.value)
+      ).upcast[Data]
+    //Note that there is no standard binary encoding for Char, BigInt, or BigDecimal
+    case CharValueType       => codecs.fail(Err("BinaryEncoder does not support Char."))
+    case BigIntValueType     => codecs.fail(Err("BinaryEncoder does not support BigInt."))
+    case BigDecimalValueType => codecs.fail(Err("BinaryEncoder does not support BigDecimal."))
   }
 }

@@ -6,9 +6,9 @@ import scodec._
 import scodec.bits._
 import scodec.codecs.implicits._
 import scodec.{Encoder => SEncoder}
-
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
+import org.scalatest.Inside.inside
 import scodec.bits.BitVector
 
 import latis.catalog.FdmlCatalog
@@ -117,5 +117,18 @@ class BinaryEncoderSpec extends AnyFlatSpec {
     scalars.zip(dataToEncode).map {
     case (s, d) => enc.dataCodec(s).encode(d)
   } should be(expected)
+  }
+
+  it should "encode a binary value" in {
+    val scalar = Scalar(Metadata(
+      "id" -> "a",
+      "type" -> "binary"
+    ))
+    val codec = enc.dataCodec(scalar)
+    val bin = BinaryValue("foo".getBytes)
+    inside(codec.encode(bin)) {
+      case Attempt.Successful(bv: BitVector) =>
+        bv.toByteArray.map(_.toChar).mkString should be("foo")
+    }
   }
 }
