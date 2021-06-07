@@ -19,10 +19,21 @@ class TextEncoder extends Encoder[IO, String] {
   private var functionIndent: Int = 0
 
   /**
+   *  Supports incrementing index values.
+   *  This will be replaced with a fresh generator with each call to
+   *  encode(dataset).
+   */
+  //TODO: use cats.effect.Ref
+  private var indexGenerator: IndexGenerator = new IndexGenerator()
+
+  /**
    * Encodes the Stream of Samples from the given Dataset as a Stream
    * of Strings.
    */
   override def encode(dataset: Dataset): Stream[IO, String] = {
+    // Makes a fresh index generator
+    indexGenerator = new IndexGenerator()
+
     // Create a Stream with the header
     val header: Stream[IO, String] =
       Stream.emit(dataset.model.toString + lineSeparator)
@@ -38,7 +49,7 @@ class TextEncoder extends Encoder[IO, String] {
   /**
    * Given a Sample and its data model, creates a Stream of Strings.
    */
-  def encodeSample(model: DataType, sample: Sample): String =
+  private[output] def encodeSample(model: DataType, sample: Sample): String =
     (model, sample) match {
       case (Function(domain, range), Sample(ds, rs)) =>
         " " * functionIndent +
@@ -47,7 +58,7 @@ class TextEncoder extends Encoder[IO, String] {
         encodeData(model, rs)
     }
 
-  def encodeData(model: DataType, data: Seq[Data]): String = {
+  private[output] def encodeData(model: DataType, data: Seq[Data]): String = {
     val ds = scala.collection.mutable.Stack(data: _*)
 
     def go(dt: DataType): String = dt match {
@@ -55,7 +66,7 @@ class TextEncoder extends Encoder[IO, String] {
 
       case i: latis.model.Index =>
         // No data in Sample, generate index
-        IndexGenerator.nextIndex(i.id.get).toString
+        indexGenerator.nextIndex(i.id.get).toString
 
       case s: Scalar =>
         ds.pop() match {
@@ -78,7 +89,7 @@ class TextEncoder extends Encoder[IO, String] {
   }
 
   // Nested function
-  def encodeFunction(ftype: Function, function: MemoizedFunction): String = {
+  private[output] def encodeFunction(ftype: Function, function: MemoizedFunction): String = {
     val head: String = "{" + lineSeparator
     functionIndent += 2
 
@@ -95,7 +106,7 @@ class TextEncoder extends Encoder[IO, String] {
 /**
  * Provides incrementing index values based on id.
  */
-private object IndexGenerator {
+private class IndexGenerator {
   val indexMap = scala.collection.mutable.Map[Identifier, Long]()
   def nextIndex(id: Identifier): Long = {
     val index = indexMap.getOrElse(id, 0L)
