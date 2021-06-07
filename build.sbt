@@ -93,7 +93,7 @@ lazy val core = project
       "org.scodec"             %% "scodec-core"         % "1.11.8",
       "org.scodec"             %% "scodec-stream"       % "2.0.2",
       "org.http4s"             %% "http4s-blaze-client" % http4sVersion,
-      "com.github.regis-leray" %% "fs2-ftp"             % "0.7.0",
+      "com.github.regis-leray" %% "fs2-ftp"             % "0.8.0",
       "junit"                   % "junit"               % "4.13.2"  % Test,
       "org.scalatestplus"      %% "junit-4-13"          % "3.2.9.0" % Test
     )
