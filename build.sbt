@@ -4,7 +4,6 @@ ThisBuild / scalaVersion := "2.13.6"
 val attoVersion       = "0.9.5"
 val catsVersion       = "2.6.1"
 val catsEffectVersion = "2.5.1"
-val coursierVersion   = "2.0.16"
 val fs2Version        = "2.5.6"
 val http4sVersion     = "0.21.24"
 val log4catsVersion   = "1.3.1"
@@ -152,8 +151,6 @@ lazy val server = project
   .settings(
     name := "latis3-server",
     libraryDependencies ++= Seq(
-      "io.get-coursier"       %% "coursier"               % coursierVersion,
-      "io.get-coursier"       %% "coursier-cats-interop"  % coursierVersion,
       "org.http4s"            %% "http4s-blaze-server"    % http4sVersion,
       "org.http4s"            %% "http4s-core"            % http4sVersion,
       "org.http4s"            %% "http4s-dsl"             % http4sVersion,
