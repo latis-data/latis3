@@ -1,13 +1,11 @@
 package latis.lambda
 
 import java.net.URLDecoder
-import java.util.concurrent.Executors
 
-import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters._
 
-import cats.effect.ContextShift
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import cats.syntax.all._
 import com.amazonaws.services.lambda.runtime.Context
 import com.amazonaws.services.lambda.runtime.RequestHandler
@@ -34,11 +32,6 @@ import latis.util.dap2.parser.ast.ConstraintExpression
 final class LatisLambdaHandler extends RequestHandler[APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse] {
 
   private val catalog: Catalog = Catalog.empty
-
-  private implicit val cs: ContextShift[IO] = {
-    val ec = ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor())
-    IO.contextShift(ec)
-  }
 
   def handleRequest(
     req: APIGatewayV2HTTPEvent,

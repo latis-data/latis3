@@ -3,13 +3,13 @@ ThisBuild / scalaVersion := "2.13.6"
 
 val attoVersion       = "0.9.5"
 val catsVersion       = "2.6.1"
-val catsEffectVersion = "2.5.1"
-val fs2Version        = "2.5.6"
-val http4sVersion     = "0.21.24"
-val log4catsVersion   = "1.3.1"
+val catsEffectVersion = "3.1.1"
+val fs2Version        = "3.0.4"
+val http4sVersion     = "0.23.0-RC1"
+val log4catsVersion   = "2.1.1"
 val log4jVersion      = "2.14.1"
 val netcdfVersion     = "5.4.1"
-val pureconfigVersion = "0.14.1"
+val pureconfigVersion = "0.15.0"
 
 lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
@@ -90,9 +90,9 @@ lazy val core = project
       "org.scala-lang.modules" %% "scala-xml"           % "1.3.0",
       "io.circe"               %% "circe-core"          % "0.14.1",
       "org.scodec"             %% "scodec-core"         % "1.11.8",
-      "org.scodec"             %% "scodec-stream"       % "2.0.2",
+      "org.scodec"             %% "scodec-stream"       % "3.0.1",
       "org.http4s"             %% "http4s-blaze-client" % http4sVersion,
-      "com.github.regis-leray" %% "fs2-ftp"             % "0.7.0",
+      "com.github.regis-leray" %% "fs2-ftp"             % "0.8.0",
       "junit"                   % "junit"               % "4.13.2"  % Test,
       "org.scalatestplus"      %% "junit-4-13"          % "3.2.9.0" % Test
     )
@@ -204,7 +204,7 @@ lazy val jdbc = project
   .settings(
     name := "latis3-jdbc",
     libraryDependencies ++= Seq(
-      "org.tpolecat"             %% "doobie-core" % "0.13.4",
+      "org.tpolecat"             %% "doobie-core" % "1.0.0-M5",
       "com.h2database"            % "h2"          % "1.4.200" % Test,
     )
   )

@@ -3,6 +3,7 @@ package latis.input
 import java.io.FileNotFoundException
 import java.net.URI
 
+import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 
 import latis.util.LatisException

@@ -2,6 +2,7 @@ package latis.dataset
 
 import java.nio.file.Paths
 
+import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 

@@ -3,6 +3,7 @@ package latis
 import java.nio.file.Paths
 
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import fs2.text
 
 import latis.data.DomainSet
@@ -15,7 +16,6 @@ import latis.output.OutputStreamWriter
 import latis.output.TextEncoder
 import latis.util.FileUtils
 import latis.util.Identifier
-import latis.util.StreamUtils._
 
 package object dsl {
 
@@ -77,7 +77,7 @@ package object dsl {
       case Some("csv") => CsvEncoder()
         .encode(dataset)
         .through(text.utf8Encode)
-        .through(fs2.io.file.writeAll(Paths.get(file), blocker))
+        .through(fs2.io.file.writeAll(Paths.get(file)))
         .compile
         .drain
         .unsafeRunSync()

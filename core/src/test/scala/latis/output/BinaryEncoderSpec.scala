@@ -2,14 +2,15 @@ package latis.output
 
 import java.nio.file.Paths
 
+import cats.effect.unsafe.implicits.global
+import org.scalatest.Inside.inside
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 import scodec._
+import scodec.bits.BitVector
 import scodec.bits._
 import scodec.codecs.implicits._
 import scodec.{Encoder => SEncoder}
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers._
-import org.scalatest.Inside.inside
-import scodec.bits.BitVector
 
 import latis.catalog.FdmlCatalog
 import latis.data.Data._

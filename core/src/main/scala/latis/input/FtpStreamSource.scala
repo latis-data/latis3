@@ -9,7 +9,6 @@ import fs2.ftp.UnsecureFtp._
 
 import latis.util.LatisException
 import latis.util.NetUtils._
-import latis.util.StreamUtils._
 
 /**
  * Creates an StreamSource from a "ftp" or "ftps" URI.

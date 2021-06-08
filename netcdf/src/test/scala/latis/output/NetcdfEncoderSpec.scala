@@ -4,6 +4,7 @@ import java.io.File
 import java.nio.DoubleBuffer
 import java.nio.IntBuffer
 
+import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import ucar.ma2.{DataType => NcDataType}

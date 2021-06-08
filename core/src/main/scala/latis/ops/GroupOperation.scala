@@ -4,6 +4,7 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import fs2.Pipe
 import fs2.Stream
 

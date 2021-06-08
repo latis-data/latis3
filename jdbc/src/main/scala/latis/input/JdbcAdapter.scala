@@ -19,8 +19,6 @@ import latis.model._
 import latis.ops._
 import latis.util.ConfigLike
 import latis.util.LatisException
-import latis.util.StreamUtils
-import latis.util.StreamUtils.contextShift
 import latis.util.dap2.parser.ast
 import latis.util.SqlBuilder
 
@@ -216,8 +214,7 @@ case class JdbcAdapter(
       config.driver,
       baseUri.toString,
       config.user,
-      config.password,
-      StreamUtils.blocker
+      config.password
     )
 
     val sql = SqlBuilder.buildQuery(config.table, model, uops, config.predicate)

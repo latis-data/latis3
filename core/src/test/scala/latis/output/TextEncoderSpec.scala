@@ -2,9 +2,11 @@ package latis.output
 
 import java.nio.file.Paths
 
+import scala.util.Properties.lineSeparator
+
+import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
-import scala.util.Properties.lineSeparator
 
 import latis.catalog.FdmlCatalog
 import latis.dataset.Dataset

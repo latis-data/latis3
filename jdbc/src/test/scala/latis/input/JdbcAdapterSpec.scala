@@ -3,8 +3,8 @@ package latis.input
 import java.io.File
 import java.net.URI
 
-import cats.effect.ContextShift
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import cats.syntax.all._
 import doobie._
 import doobie.implicits._
@@ -18,8 +18,6 @@ import latis.ops._
 import latis.util.Identifier.IdentifierStringContext
 
 class JdbcAdapterSpec extends AnyFlatSpec {
-
-  implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContexts.synchronous)
 
   "The JdbcAdapter" should "read data from a database table" in
     withDatabase { uri =>

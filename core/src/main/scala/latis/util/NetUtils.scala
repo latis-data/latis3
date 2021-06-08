@@ -5,6 +5,7 @@ import java.net.URLDecoder
 import java.nio.file.Path
 import java.nio.file.Paths
 
+import cats.effect.unsafe.implicits.global
 import cats.syntax.all._
 import fs2.text
 

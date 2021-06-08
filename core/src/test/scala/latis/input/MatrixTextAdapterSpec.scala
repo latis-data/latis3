@@ -11,6 +11,7 @@ import latis.data.{DomainData, RangeData, Sample}
 import latis.dataset.AdaptedDataset
 import latis.input
 import latis.util.NetUtils.resolveUri
+import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 

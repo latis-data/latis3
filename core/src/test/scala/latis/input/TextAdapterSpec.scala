@@ -7,6 +7,7 @@ import java.net.URI
 
 import latis.data.{DomainData, RangeData, Sample}
 import latis.dataset.AdaptedDataset
+import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 

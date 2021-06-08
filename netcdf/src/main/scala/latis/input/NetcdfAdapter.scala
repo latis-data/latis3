@@ -8,6 +8,7 @@ import scala.math.max
 import scala.math.min
 
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import cats.syntax.all._
 import fs2.Stream
 import ucar.ma2.Section

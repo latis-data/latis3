@@ -9,8 +9,6 @@ import fs2.Stream
 
 import latis.util.LatisException
 import latis.util.NetUtils
-import latis.util.StreamUtils.blocker
-import latis.util.StreamUtils.contextShift
 
 /**
  * Creates a StreamSource from a relative or absolute file URI.
@@ -34,7 +32,7 @@ class FileStreamSource extends StreamSource {
         case Right(u) =>
           val fis: IO[InputStream] = IO(u.toURL.openStream) //TODO: handle exception, wrap as LatisException
           val chunkSize: Int = 4096 //TODO: tune? config option?
-          Option(readInputStream[IO](fis, chunkSize, blocker))
+          Option(readInputStream[IO](fis, chunkSize))
       }
 
 }

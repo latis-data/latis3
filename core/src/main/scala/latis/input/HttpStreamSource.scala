@@ -8,9 +8,7 @@ import cats.effect.IO
 import fs2.Stream
 import org.http4s.Request
 import org.http4s.Uri
-import org.http4s.client.blaze.BlazeClientBuilder
-
-import latis.util.StreamUtils.contextShift
+import org.http4s.blaze.client.BlazeClientBuilder
 
 /**
  * Creates an StreamSource from a "http" or "https" URI.

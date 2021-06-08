@@ -1,31 +1,13 @@
 package latis.util
 
-import java.util.concurrent.Executors
-
-import scala.concurrent.ExecutionContext
-
-import cats.effect.Blocker
-import cats.effect.ContextShift
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import fs2.Stream
 
 /**
  * Utilities for working with fs2 Streams.
  */
 object StreamUtils {
-
-  /**
-   * An execution context for blocking operations.
-   */
-  val blocker: Blocker =
-    Blocker.liftExecutorService(Executors.newCachedThreadPool())
-
-  /**
-   * Provide an implicit ContextShift for use with
-   * fs2.io.readInputStream (e.g. UrlStreamSource).
-   */
-  implicit val contextShift: ContextShift[IO] =
-    IO.contextShift(ExecutionContext.global)
 
   /**
    * Put a Seq of some type into a Stream (in IO).

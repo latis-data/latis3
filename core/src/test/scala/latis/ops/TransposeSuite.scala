@@ -1,5 +1,6 @@
 package latis.ops
 
+import cats.effect.unsafe.implicits.global
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.Inside.inside
 

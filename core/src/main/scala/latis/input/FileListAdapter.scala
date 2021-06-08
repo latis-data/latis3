@@ -6,9 +6,8 @@ import java.nio.file.Path
 
 import scala.util.matching.Regex
 
-import cats.effect.ContextShift
 import cats.effect.IO
-import cats.implicits._
+import cats.syntax.all._
 import fs2.Stream
 import fs2.io.file
 
@@ -21,7 +20,6 @@ import latis.model.Scalar
 import latis.util.ConfigLike
 import latis.util.LatisException
 import latis.util.NetUtils
-import latis.util.StreamUtils
 import FileListAdapter.FileInfo
 import latis.util.Identifier
 import latis.util.Identifier.IdentifierStringContext
@@ -73,8 +71,6 @@ class FileListAdapter(
   config: FileListAdapter.Config
 ) extends StreamingAdapter[FileInfo] {
 
-  implicit private val cs: ContextShift[IO] = StreamUtils.contextShift
-
   override def recordStream(uri: URI): Stream[IO, FileInfo] =
     for {
       root  <- Stream.fromEither[IO](NetUtils.getFilePath(uri))
@@ -103,13 +99,13 @@ class FileListAdapter(
    */
   private def listFiles(path: Path): Stream[IO, FileInfo] = {
     val files: Stream[IO, Path] =
-      file.walk[IO](StreamUtils.blocker, path).filter(Files.isRegularFile(_))
+      file.walk[IO](path).filter(Files.isRegularFile(_))
 
     // Get the size if there is a variable named "size."
     model match {
       case Function(_, rs) if rs.findVariable(id"size").isDefined =>
         files.evalMap { p =>
-          file.size[IO](StreamUtils.blocker, p).map(s => FileInfo(p, s.some))
+          file.size[IO](p).map(s => FileInfo(p, s.some))
         }
       case _ => files.map(FileInfo(_, None))
     }

@@ -1,14 +1,11 @@
 package latis.service.dap2
 
 import java.net.URLDecoder
-import java.nio.file.Paths
-
-import scala.util.Properties
 
 import cats.effect._
 import cats.syntax.all._
 import fs2.Stream
-import fs2.io
+import fs2.io.file.Files
 import fs2.text
 import org.http4s.headers.`Content-Type`
 import org.http4s.HttpRoutes
@@ -24,7 +21,6 @@ import latis.output._
 import latis.server.ServiceInterface
 import latis.service.dap2.error._
 import latis.util.Identifier
-import latis.util.StreamUtils
 import latis.util.dap2.parser.ConstraintParser
 import latis.util.dap2.parser.ast
 import latis.util.dap2.parser.ast.ConstraintExpression
@@ -91,14 +87,10 @@ class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4
     case "jsonl" => new JsonEncoder().encode(ds).map(_.noSpaces).intersperse("\n").through(text.utf8Encode).asRight
       .map((_, `Content-Type`(MediaType.unsafeParse("application/jsonl"))))
     case "nc"   =>
-      implicit val cs = StreamUtils.contextShift
       (for {
-        tmpFile <- io.file.tempFileStream[IO](
-          StreamUtils.blocker,
-          Paths.get(Properties.tmpDir)
-        )
+        tmpFile <- Stream.resource(Files[IO].tempFile(None))
         file    <- new NetcdfEncoder(tmpFile.toFile()).encode(ds)
-        bytes   <- io.file.readAll[IO](file.toPath(), StreamUtils.blocker, 4096)
+        bytes   <- Files[IO].readAll(file.toPath(), 4096)
       } yield bytes).asRight.map((_, `Content-Type`(MediaType.application.`x-netcdf`)))
     case "txt"  => new TextEncoder().encode(ds).through(text.utf8Encode).asRight
       .map((_,`Content-Type`(MediaType.text.plain)))

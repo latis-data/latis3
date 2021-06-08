@@ -2,6 +2,7 @@ package latis.input
 
 import java.net.URI
 
+import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 

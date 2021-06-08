@@ -2,9 +2,9 @@ package latis.output
 
 import java.nio.file.Paths
 
+import cats.effect.unsafe.implicits.global
 import io.circe._
 import io.circe.syntax._
-
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 

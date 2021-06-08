@@ -1,5 +1,6 @@
 package latis.catalog
 
+import cats.effect.unsafe.implicits.global
 import cats.syntax.all._
 import org.scalatest.funsuite.AnyFunSuite
 

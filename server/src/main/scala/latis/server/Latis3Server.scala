@@ -1,6 +1,5 @@
 package latis.server
 
-import cats.effect.Blocker
 import cats.effect.ExitCode
 import cats.effect.IO
 import cats.effect.IOApp
@@ -18,20 +17,19 @@ object Latis3Server extends IOApp {
   private val loader: ServiceInterfaceLoader =
     new ServiceInterfaceLoader()
 
-  private def getServiceConf(blocker: Blocker): IO[ServiceConf] =
-    latisConfigSource.loadF[IO, ServiceConf](blocker)
+  private val getServiceConf: IO[ServiceConf] =
+    latisConfigSource.loadF[IO, ServiceConf]()
 
   def run(args: List[String]): IO[ExitCode] =
     (for {
       logger      <- Resource.eval(Slf4jLogger.create[IO])
-      blocker     <- Blocker[IO]
-      serverConf  <- Resource.eval(getServerConf(blocker))
-      catalogConf <- Resource.eval(getCatalogConf(blocker))
+      serverConf  <- Resource.eval(getServerConf)
+      catalogConf <- Resource.eval(getCatalogConf)
       catalog      = FdmlCatalog.fromDirectory(
         catalogConf.dir,
         catalogConf.validate
       )
-      serviceConf <- Resource.eval(getServiceConf(blocker))
+      serviceConf <- Resource.eval(getServiceConf)
       interfaces  <- Resource.eval(loader.loadServices(serviceConf, catalog))
       server      <- mkServer(serverConf, interfaces, logger)
     } yield server)

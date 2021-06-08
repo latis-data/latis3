@@ -7,13 +7,10 @@ import java.nio.file.Paths
 import cats.effect.IO
 import cats.syntax.all._
 import fs2.Stream
-import fs2.io.file.directoryStream
+import fs2.io.file.Files
 
 import latis.dataset.Dataset
 import latis.input.fdml.FdmlReader
-import latis.util.StreamUtils
-
-import StreamUtils.contextShift
 
 object FdmlCatalog {
 
@@ -55,7 +52,7 @@ object FdmlCatalog {
   }
 
   private def dirDatasetStream(dir: Path, validate: Boolean): Stream[IO, Dataset] =
-    directoryStream[IO](StreamUtils.blocker, dir, "*.fdml").flatMap { f =>
+    Files[IO].directoryStream(dir, "*.fdml").flatMap { f =>
       // TODO: Log failures to read datasets.
       pathToDataset(f, validate).fold(_ => Stream.empty, Stream.emit)
     }

@@ -8,6 +8,7 @@ import java.nio.file.Paths
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
 
+import cats.effect.unsafe.implicits.global
 import org.scalactic.Equality
 import org.scalatest.EitherValues._
 import org.scalatest.flatspec.AnyFlatSpec
@@ -17,7 +18,6 @@ import latis.data._
 import latis.metadata.Metadata
 import latis.model._
 import latis.util.LatisException
-import latis.util.StreamUtils
 import FileListAdapter.Config
 
 class FileListAdapterSpec extends AnyFlatSpec {

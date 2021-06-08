@@ -2,6 +2,8 @@ package latis.input
 
 import java.net.URI
 
+import cats.effect.unsafe.implicits.global
+
 import latis.data._
 import latis.model._
 import latis.ops.Operation
