@@ -43,10 +43,10 @@ case class MatrixTextAdapter(
         .map {
           _.split(config.delimiter) //delimited values unparsed: List[Array[String]]
             .map { v =>
-              scalar.parseValue(v) match {
+              (scalar.parseValue(v) match {
                 case Right(d) => d
                 case Left(_) => scalar.fillValue //TODO: improve API
-              }
+              }).asInstanceOf[Data] //safe hack since Arrays are not polymorphic
             } //parsed row: List[Array[Data]]
         }
         .toArray //convert List of rows to Array of rows
