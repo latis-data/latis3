@@ -14,6 +14,7 @@ import fs2.Stream.bracket
 import fs2.Stream.eval
 
 import latis.data._
+import latis.data.Data._
 import latis.model._
 import latis.ops._
 import latis.time.Time
@@ -197,29 +198,67 @@ case class JdbcAdapter(
     // This escapes to raw JDBC for efficiency.
     def getNextChunkSamples(chunkSize: Int): ResultSetIO[Seq[Sample]] =
       FRS.raw { rs =>
-        val md           = rs.getMetaData
-        val ks           = (1 to md.getColumnCount).map(md.getColumnLabel).toList
         var n            = chunkSize
         val rowBuilder   = Vector.newBuilder[Seq[Datum]]
         val datumBuilder = Vector.newBuilder[Datum]
         while (n > 0 && rs.next) {
-          ks.zip(getAllProjectedScalars(ops)).foreach { case (k, s) =>
-            datumBuilder += Data.fromValue(s.valueType match {
-              //TODO: deal with java.sql.Types.TIMESTAMP
-              //      rs.getTimestamp(name, gmtCalendar).getTime will be native ms
-              //TODO: deals with null, in latis2 we use rs.wasNull then make fill value
-              case BooleanValueType => rs.getBoolean(k)
-              case ByteValueType => rs.getByte(k)
-              case CharValueType => rs.getByte(k).toChar
-              case ShortValueType => rs.getShort(k)
-              case IntValueType => rs.getInt(k)
-              case LongValueType => rs.getLong(k)
-              case FloatValueType => rs.getFloat(k)
-              case DoubleValueType => rs.getDouble(k)
-              case BinaryValueType => rs.getBytes(k)
-              case StringValueType => rs.getString(k)
-              case BigDecimalValueType => BigDecimal(rs.getBigDecimal(k))  // convert java BigDecimal to Scala BigDecimal
-            }).fold(throw _, identity)
+          getAllProjectedScalars(ops).zipWithIndex.foreach {
+            case (scalar, index) =>
+              val colIndex = index + 1 //ResultSet uses 1-based index
+              val datum: Datum = scalar.valueType match {
+                //TODO: deal with java.sql.Types.TIMESTAMP
+                //      rs.getTimestamp(name, gmtCalendar).getTime will be native ms
+                case BooleanValueType =>
+                  val v = rs.getBoolean(colIndex)
+                  if (rs.wasNull()) scalar.fillValue
+                  else BooleanValue(v)
+                case ByteValueType =>
+                  val v = rs.getByte(colIndex)
+                  if (rs.wasNull()) scalar.fillValue
+                  else ByteValue(v)
+                case CharValueType =>
+                  val v = rs.getByte(colIndex)
+                  if (rs.wasNull()) scalar.fillValue
+                  else CharValue(v.toChar) //TODO: but java char is 2 bytes
+                case ShortValueType =>
+                  val v = rs.getShort(colIndex)
+                  if (rs.wasNull()) scalar.fillValue
+                  else ShortValue(v)
+                case IntValueType =>
+                  val v = rs.getInt(colIndex)
+                  if (rs.wasNull()) scalar.fillValue
+                  else IntValue(v)
+                case LongValueType =>
+                  val v = rs.getLong(colIndex)
+                  if (rs.wasNull()) scalar.fillValue
+                  else LongValue(v)
+                case FloatValueType =>
+                  val v = rs.getFloat(colIndex)
+                  if (rs.wasNull()) scalar.fillValue
+                  else FloatValue(v)
+                case DoubleValueType =>
+                  val v = rs.getDouble(colIndex)
+                  if (rs.wasNull()) scalar.fillValue
+                  else DoubleValue(v)
+                case BinaryValueType =>
+                  val v = rs.getBytes(colIndex)
+                  if (rs.wasNull()) scalar.fillValue
+                  else BinaryValue(v)
+                case StringValueType =>
+                  val v = rs.getString(colIndex)
+                  if (rs.wasNull()) scalar.fillValue
+                  else StringValue(v)
+                case BigIntValueType =>
+                  //Use Long in lieu of direct support for BigInt
+                  val v = rs.getLong(colIndex)
+                  if (rs.wasNull()) scalar.fillValue
+                  else BigIntValue(v)
+                case BigDecimalValueType =>
+                  val v = rs.getBigDecimal(colIndex)
+                  if (rs.wasNull()) scalar.fillValue
+                  else BigDecimalValue(v)
+              }
+              datumBuilder += datum
           }
           rowBuilder += datumBuilder.result()
           datumBuilder.clear()
