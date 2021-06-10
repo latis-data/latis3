@@ -194,11 +194,10 @@ sealed trait DataType extends MetadataLike with Serializable {
   }
 
   //TODO: beef up
-  //TODO: use missingValue in metadata, scalar.parseValue(s)
   def fillValue: Data = Data.fromSeq(getFillValue(this, Seq.empty))
 
   private def getFillValue(dt: DataType, acc: Seq[Data]): Seq[Data] = dt match {
-    case s: Scalar      => acc :+ s.valueType.fillValue
+    case s: Scalar      => acc :+ s.fillValue
     case Tuple(es @ _*) => es.flatMap(getFillValue(_, acc))
     case _: Function =>
       val msg = "Can't make fill values for Function, yet."
@@ -230,6 +229,18 @@ class Scalar(val metadata: Metadata) extends DataType {
     val msg = s"No value type defined for Scalar: $id"
     throw new RuntimeException(msg)
   }
+
+  /**
+   * Constructs a Datum to be used as a fill value for this Scalar.
+   *
+   * This will attempt to use the missingValue property in the metadata.
+   * If not defined, it will use the default fill value based on the value type
+   * which could be a NullDatum.
+   */
+  override val fillValue: Datum =
+    metadata.getProperty("missingValue").map { mv =>
+      parseValue(mv).fold(throw _, identity)  //TODO: validate metadata missingValue earlier
+    }.getOrElse(valueType.fillValue)
 
   /**
    * Converts a string value into the appropriate Datum type for this Scalar.
