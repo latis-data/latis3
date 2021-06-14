@@ -6,7 +6,7 @@ package latis.util
  * It enforces that the upper bound is strictly greater than
  * the lower bound.
  */
-class Bounds[T] private (val lower: T, val upper: T)(ord: Ordering[T]) {
+final class Bounds[T] private (val lower: T, val upper: T)(ord: Ordering[T]) {
 
   /**
    * Tests whether the given value falls within this [[Bounds]].
