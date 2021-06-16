@@ -125,10 +125,10 @@ object SqlBuilder {
     // We must do it here before they are projected away.
     val order = model match {
       case Function(domain, _) =>
-        domain.getScalars
-          .filterNot(_.isInstanceOf[Index])
-          .map(_.id.get.asString)
-          .mkString(" ORDER BY ", ", ", " ASC")
+        domain.getScalars.filterNot(_.isInstanceOf[Index]).map(_.id.get.asString) match {
+          case Nil  => ""
+          case list => list.mkString(" ORDER BY ", ", ", " ASC")
+        }
       case _ => ""  //not a Function, nothing to order by
     }
 

@@ -67,6 +67,13 @@ class SqlBuilderSuite extends AnyFunSuite {
     assert(sql.contains("SELECT a AS z"))
   }
 
+  test("no order clause for index domain") {
+    val scalar = ModelParser.unsafeParse("a")
+    val model = Function(Index(id"_i"), scalar)
+    val sql = SqlBuilder.buildQuery(table, model)
+    assert(!sql.contains("ORDER"))
+  }
+
   //---- SQL with Time selections ----//
 
   val modelWithNumericTime = Function(
