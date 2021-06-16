@@ -13,10 +13,9 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 
 import latis.data._
-import latis.data.Data.DoubleValue
 import latis.dsl.ModelParser.parse
-import latis.ops.Projection
-import latis.ops.Selection
+import latis.ops._
+import latis.util.Identifier.IdentifierStringContext
 
 class JdbcAdapterSpec extends AnyFlatSpec {
 
@@ -36,14 +35,19 @@ class JdbcAdapterSpec extends AnyFlatSpec {
           ("password", "")
         )
       )
-      lazy val actualFirstSample = adapter.getData(uri).samples.take(1).compile.last.unsafeRunSync().getOrElse {
-        fail("Empty Dataset")
-      }
-      inside(actualFirstSample) {
-        case (dd, rd) =>
-          assert(dd == DomainData(Data.IntValue(1), 1.1))
-          assert(rd == RangeData(2.1, 0.1))
-      }
+      val ops = List(
+        Take(1) //apparently "FETCH FIRST n ROWS ONLY" works for h2
+      )
+      adapter.getData(uri, ops).samples.compile.toList.map { samples =>
+        //samples.foreach(println)
+        inside(samples.head) {
+          case Sample(DomainData(Integer(t), Real(w)), RangeData(Real(f), Real(e))) =>
+            assert(t == 1)
+            assert(w == 1.1)
+            assert(f == 2.1)
+            assert(e == 0.1)
+        }
+      }.unsafeRunSync()
     }
 
   it should "read data from joined database tables" in
@@ -63,8 +67,9 @@ class JdbcAdapterSpec extends AnyFlatSpec {
       )
 
       val ops = List(
-        Selection.makeSelection("message = bar").toTry.get,
-        Projection.fromExpression("message").toTry.get
+        Rename(id"message", id"messagez"),
+        Selection.makeSelection("messagez = bar").toTry.get,
+        Projection.fromExpression("messagez").toTry.get
       )
       adapter.getData(uri, ops).samples.compile.toList.unsafeRunSync() //.foreach(println)
         .head match {
