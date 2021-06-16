@@ -1,4 +1,4 @@
-package latis.input
+package latis.util
 
 import org.scalatest.funsuite.AnyFunSuite
 
@@ -9,24 +9,16 @@ import latis.ops._
 import latis.time._
 import latis.util.Identifier._
 
-class JdbcAdapterSuite extends AnyFunSuite {
+class SqlBuilderSuite extends AnyFunSuite {
 
-  val config = JdbcAdapter.Config(
-    "driver" -> "myDriver",
-    "table" -> "myTable",
-    "user" -> "myUser",
-    "password" -> "myPassword"
-  )
-
+  val table = "myTable"
   val model = ModelParser.unsafeParse("(x, y) -> (a, b, c)")
-
-  val adapter = JdbcAdapter(model, config)
 
   //---- SQL from Operations ----//
 
   test("make sql with no operations") {
     val ops = List()
-    val sql = adapter.buildQuery(ops)
+    val sql = SqlBuilder.buildQuery(table, model, ops)
     assert(sql == "SELECT x, y, a, b, c FROM myTable ORDER BY x, y ASC")
   }
 
@@ -36,7 +28,7 @@ class JdbcAdapterSuite extends AnyFunSuite {
       Selection.makeSelection("a >= 2").toTry.get,
       Projection.fromExpression("b, c").toTry.get
     )
-    val sql = adapter.buildQuery(ops)
+    val sql = SqlBuilder.buildQuery(table, model, ops)
     assert(sql == "SELECT b, c FROM myTable WHERE x > 1 AND a >= 2 ORDER BY x, y ASC")
   }
 
@@ -44,19 +36,35 @@ class JdbcAdapterSuite extends AnyFunSuite {
     val ops = List(
       Projection.fromExpression("b, a").toTry.get
     )
-    val sql = adapter.buildQuery(ops)
+    val sql = SqlBuilder.buildQuery(table, model, ops)
     assert(sql.contains("a, b"))
   }
 
-  test("rename some with duplicate") {
+  test("rename twice") {
     val ops = List (
       Rename(id"b", id"B"),
-      Rename(id"x", id"X"),
-      Rename(id"b", id"Z"),
+      Rename(id"B", id"Z"),
     )
-    val sql = adapter.buildQuery(ops)
-    assert(sql.contains("x AS X"))
-    assert(sql.contains("b AS Z")) //last rename wins
+    val sql = SqlBuilder.buildQuery(table, model, ops)
+    assert(sql.contains("b AS Z"))
+  }
+
+  test("select after rename uses original name") {
+    val ops = List (
+      Rename(id"x", id"z"),
+      Selection.makeSelection("z = 1").toTry.get
+    )
+    val sql = SqlBuilder.buildQuery(table, model, ops)
+    assert(sql == "SELECT x AS z, y, a, b, c FROM myTable WHERE x = 1 ORDER BY x, y ASC")
+  }
+
+  test("project after rename") {
+    val ops = List (
+      Rename(id"a", id"z"),
+      Projection(id"z")
+    )
+    val sql = SqlBuilder.buildQuery(table, model, ops)
+    assert(sql.contains("SELECT a AS z"))
   }
 
   //---- SQL with Time selections ----//
@@ -75,7 +83,7 @@ class JdbcAdapterSuite extends AnyFunSuite {
     val ops = List(
       Selection.makeSelection("t > 1").toTry.get
     )
-    val sql = JdbcAdapter(modelWithNumericTime, config).buildQuery(ops)
+    val sql = SqlBuilder.buildQuery(table, modelWithNumericTime, ops)
     assert(sql.contains("t > 1"))
   }
 
@@ -83,7 +91,7 @@ class JdbcAdapterSuite extends AnyFunSuite {
     val ops = List(
       Selection.makeSelection("t > 1970-01-02").toTry.get
     )
-    val sql = JdbcAdapter(modelWithNumericTime, config).buildQuery(ops)
+    val sql = SqlBuilder.buildQuery(table, modelWithNumericTime, ops)
     assert(sql.contains("t > 1"))
   }
 
@@ -91,40 +99,45 @@ class JdbcAdapterSuite extends AnyFunSuite {
     val ops = List(
       Selection.makeSelection("t > 1970002").toTry.get
     )
-    val sql = JdbcAdapter(modelWithTextTime, config).buildQuery(ops)
+    val sql = SqlBuilder.buildQuery(table, modelWithTextTime, ops)
     assert(sql.contains("t > '1970-01-02'"))
   }
 
-  //---- Test getLimit ----//
+  //---- Test Limit ----//
 
   test("no limit") {
     val ops = List()
-    assert(adapter.getLimit(ops).isEmpty)
+    val sql = SqlBuilder.buildQuery(table, model, ops)
+    assert(!sql.contains("FETCH"))
   }
 
   test("limit with take") {
     val ops = List(Take(10))
-    assert(adapter.getLimit(ops).contains(10))
+    val sql = SqlBuilder.buildQuery(table, model, ops)
+    assert(sql.contains("10 ROWS"))
   }
 
   test("limit with head") {
     val ops = List(Head())
-    assert(adapter.getLimit(ops).contains(1))
+    val sql = SqlBuilder.buildQuery(table, model, ops)
+    assert(sql.contains("1 ROWS"))
   }
 
   test("limit with take and head") {
     val ops = List(Take(10), Head())
-    assert(adapter.getLimit(ops).contains(1))
+    val sql = SqlBuilder.buildQuery(table, model, ops)
+    assert(sql.contains("1 ROWS"))
   }
 
   test("limit with head and take") {
     val ops = List(Head(), Take(10))
-    assert(adapter.getLimit(ops).contains(1))
+    val sql = SqlBuilder.buildQuery(table, model, ops)
+    assert(sql.contains("1 ROWS"))
   }
 
   test("limit with 0 then head") {
     val ops = List(Take(0), Head())
-    assert(adapter.getLimit(ops).contains(0))
+    val sql = SqlBuilder.buildQuery(table, model, ops)
+    assert(sql.contains("0 ROWS")) //yes, oracle does allow this
   }
-
 }
