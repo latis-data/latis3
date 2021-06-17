@@ -10,6 +10,7 @@ val log4catsVersion   = "2.1.1"
 val log4jVersion      = "2.14.1"
 val netcdfVersion     = "5.4.1"
 val pureconfigVersion = "0.15.0"
+val scalaTestVersion  = "3.2.9"
 
 lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
@@ -18,7 +19,7 @@ lazy val commonSettings = Seq(
     "co.fs2"        %% "fs2-core"    % fs2Version,
     "co.fs2"        %% "fs2-io"      % fs2Version,
     "com.typesafe"   % "config"      % "1.4.1",
-    "org.scalatest" %% "scalatest"   % "3.2.9" % Test
+    "org.scalatest" %% "scalatest"   % scalaTestVersion % Test
   ),
   Test / fork := true,
   scalacOptions -= "-Xfatal-warnings",
@@ -185,7 +186,6 @@ lazy val macros = project
 
 lazy val netcdf = project
   .dependsOn(core)
-  .dependsOn(core % "test -> test")
   .settings(commonSettings)
   .settings(
     name := "latis3-netcdf",
@@ -199,7 +199,6 @@ lazy val netcdf = project
 
 lazy val jdbc = project
   .dependsOn(core)
-  .dependsOn(core % "test -> test")
   .settings(commonSettings)
   .settings(
     name := "latis3-jdbc",
@@ -207,4 +206,14 @@ lazy val jdbc = project
       "org.tpolecat"             %% "doobie-core" % "1.0.0-M5",
       "com.h2database"            % "h2"          % "1.4.200" % Test,
     )
+  )
+
+lazy val `test-utils` = project
+  .dependsOn(core)
+  .settings(commonSettings)
+  .settings(
+    name := "latis3-test-utils",
+    libraryDependencies ++= Seq(
+      "org.scalatest" %% "scalatest" % scalaTestVersion
+    ),
   )
