@@ -14,7 +14,7 @@ case class NearestNeighborAggregation(domain: DomainData) extends Aggregation {
   def aggregateFunction(model: DataType): Iterable[Sample] => Data = {
     (samples: Iterable[Sample]) =>
       if (samples.isEmpty) model match {
-        case Function(_, r) => r.fillValue
+        case Function(_, r) => r.fillData
         case _ => ??? //TODO: error, model must be a Function
       } else {
         val sample = samples.minBy {

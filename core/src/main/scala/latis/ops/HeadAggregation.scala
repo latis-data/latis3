@@ -16,7 +16,7 @@ case class HeadAggregation() extends Aggregation {
     (samples: Iterable[Sample]) =>
       if (samples.isEmpty) applyToModel(model).fold(throw _, identity) match {
         case f: Function => SeqFunction(Seq.empty) //can't fill Function, use empty
-        case dt => dt.fillValue
+        case dt => dt.fillData
       }
       else Data.fromSeq(samples.head.range)
 

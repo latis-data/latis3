@@ -5,7 +5,7 @@ import scala.util.Properties.lineSeparator
 import cats.effect.IO
 import fs2.Stream
 
-import latis.data.Datum
+import latis.data.Data
 import latis.data.Sample
 import latis.dataset.Dataset
 import latis.model.DataType
@@ -39,7 +39,7 @@ class CsvEncoder(header: Dataset => Stream[IO, String]) extends Encoder[IO, Stri
         scalars
           .zip(datas)
           .map {
-            case (s: Scalar, d: Datum) =>
+            case (s: Scalar, d: Data) =>
               s.formatValue(d)
             case _ => ???
           }

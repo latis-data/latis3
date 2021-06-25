@@ -23,11 +23,6 @@ object DefaultDatumOrdering extends PartialOrdering[Datum] {
       else Some(Ordering[Double].compare(d1, d2))
     case (Text(s1), Text(s2)) =>
       Some(String.compare(s1, s2))
-    // Make NullDatum larger than any other
-    // Unlike NaN, allow NullDatum == NullDatum
-    case (NullDatum, NullDatum) => Some(0)
-    case (NullDatum, _)         => Some(1)
-    case (_, NullDatum)         => Some(-1)
     case _                      => None
   }
 

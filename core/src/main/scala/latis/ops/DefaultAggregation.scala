@@ -27,7 +27,7 @@ case class DefaultAggregation() extends Aggregation {
       (samples: Iterable[Sample]) => SeqFunction(samples.toIndexedSeq)
     case _ =>
       // Not a function implies a single range value
-      //TODO: error is samples is empty? NullData?
+      //TODO: error if samples is empty? currently NullData
       (samples: Iterable[Sample]) => Data.fromSeq(samples.head.range)
   }
 }
