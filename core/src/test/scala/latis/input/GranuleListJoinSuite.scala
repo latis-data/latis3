@@ -1,7 +1,7 @@
 package latis.input
 
-import org.junit.Assert.assertEquals
-import org.junit.Test
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers._
 
 import latis.data._
 import latis.dataset._
@@ -13,11 +13,9 @@ import latis.util.Identifier.IdentifierStringContext
 import latis.util.StreamUtils
 import latis.util.dap2.parser.ast
 
-class TestGranuleListJoin {
-  //TODO: ScalaTest flat spec?
-  
-  @Test
-  def test() = {
+class GranuleListJoinSuite extends AnyFunSuite {
+
+  test("granule list join") {
     //granule list dataset: i -> uri
     val gl: Dataset = {
       val md = Metadata(id"test_dataset")
@@ -44,7 +42,7 @@ class TestGranuleListJoin {
     )
     
     val config: AdapterConfig = AdapterConfig {
-      "className" -> "latis.input.TextAdapter"
+      "class" -> "latis.input.TextAdapter"
     }    
     //val adapter = TextAdapter(model)
     
@@ -67,20 +65,20 @@ class TestGranuleListJoin {
     //val out = System.out //new FileOutputStream("/data/tmp/data3.txt")
     //val samples = ds.data.unsafeForce.samples
     val samples = StreamUtils.unsafeStreamToSeq(ds.samples)
-    assertEquals(2, samples.length)
-    samples(0) match {
+    assert(samples.length == 2)
+    samples.head match {
       case Sample(DomainData(Integer(a)), RangeData(Integer(b), Real(c), Text(d))) =>
-        assertEquals(2, a)
-        assertEquals(4, b)
-        assertEquals(3.3f, c, 0)
-        assertEquals("c", d)
+        assert(a == 2)
+        assert(b == 4)
+        c should be(3.3 +- 0.001)
+        assert(d == "c")
     }
     samples(1) match {
       case Sample(DomainData(Integer(a)), RangeData(Integer(b), Real(c), Text(d))) =>
-        assertEquals(3, a)
-        assertEquals(6, b)
-        assertEquals(4.4f, c, 0)
-        assertEquals("d", d)
+        assert(a == 3)
+        assert(b == 6)
+        c should be(4.4 +- 0.001)
+        assert(d == "d")
     }
   }
 }

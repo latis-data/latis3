@@ -1,10 +1,8 @@
 package latis.metadata
 
-import org.junit._
-import org.junit.Assert._
-import org.scalatestplus.junit.JUnitSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-class TestMetadata extends JUnitSuite {
+class MetadataSuite extends AnyFunSuite {
   
   /**
    * Instance of Metadata for testing.
@@ -19,26 +17,23 @@ class TestMetadata extends JUnitSuite {
   val mlike = new MetadataLike {
     def metadata = testmd
   }
-  
-  @Test
-  def get_metadata_property(): Unit = {
+
+  test("get metadata property") {
     testmd.getProperty("id") match {
-      case Some(id) => assertEquals("testds", id)
+      case Some(id) => assert(id == "testds")
       case _ => fail
     }
   }
   
-  @Test
-  def get_metadata_like_property(): Unit = {
+  test("get metadata like property") {
     mlike("id") match {
-      case Some(id) => assertEquals("testds", id)
+      case Some(id) => assert(id == "testds")
       case _ => fail
     }
   }
   
-  @Test
-  def get_metadata_like_invalid_property(): Unit = {
+  test("get_metadata_like_invalid_property") {
     val result = mlike("invalid")
-    assertTrue(result.isEmpty)
+    assert(result.isEmpty)
   }
 }

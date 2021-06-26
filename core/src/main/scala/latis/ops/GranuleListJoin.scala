@@ -51,7 +51,7 @@ case class GranuleListJoin(
         p <- pos
         v <- sample.getValue(p).toRight(LatisException("URI not found in sample"))
         uri <- Either
-          .catchOnly[java.net.URISyntaxException](new URI(v.toString))
+          .catchOnly[java.net.URISyntaxException](new URI(v.asInstanceOf[Datum].asString))
           .leftMap(LatisException(_))
       } yield granuleAdapter.getData(uri) //TODO: delegate ops?
 
