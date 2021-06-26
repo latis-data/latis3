@@ -199,8 +199,8 @@ sealed trait DataType extends MetadataLike with Serializable {
   /** Recursive helper function */
   private def getFillData(dt: DataType, acc: Seq[Data]): Seq[Data] = dt match {
     case s: Scalar => acc :+
-      metadata.getProperty("fillValue").orElse {
-        metadata.getProperty("missingValue")
+      s.metadata.getProperty("fillValue").orElse {
+        s.metadata.getProperty("missingValue")
       }.map { fv =>
         s.parseValue(fv).fold(throw _, identity)  //TODO: validate earlier
       }.getOrElse(NullData)

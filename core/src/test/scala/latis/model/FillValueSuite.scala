@@ -32,25 +32,25 @@ class FillValueSuite extends AnyFunSuite {
   }
 
   test("fill non-nullable Scalar with null") {
-    inside(nonNullableScalar.fillValue) {
+    inside(nonNullableScalar.fillData) {
       case NullData => assert(true)
     }
   }
 
   test("fill Scalar with fill value") {
-    inside(scalarWithFill.fillValue) {
+    inside(scalarWithFill.fillData) {
       case Integer(fv) => assert(fv == -1)
     }
   }
 
   test("fill Scalar with missing value") {
-    inside(scalarWithMissing.fillValue) {
+    inside(scalarWithMissing.fillData) {
       case Integer(fv) => assert(fv == -9)
     }
   }
 
   test("fill Scalar with fill value over missing") {
-    inside(scalarWithFillAndMissing.fillValue) {
+    inside(scalarWithFillAndMissing.fillData) {
       case Integer(fv) => assert(fv == -1)
     }
   }
