@@ -28,7 +28,10 @@ import latis.util.NetUtils
 final class GranuleListAppendAdapter(granules: Dataset, template: URI => Dataset) {
 
   /** Gets data using this adapter. */
-  def getData(ops: Seq[Operation]): SampledFunction = {
+  def getData(
+    @annotation.nowarn("msg=never used")
+    ops: Seq[Operation]
+  ): SampledFunction = {
     val samples: Stream[IO, Sample] = for {
       sample <- granules.samples
       pos    <- Stream.fromEither[IO] {
