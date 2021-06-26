@@ -19,6 +19,7 @@ import latis.util.LatisException
  */
 trait DatasetReader {
   def model: DataType
+  @annotation.nowarn("msg=never used")
   def canRead(uri: URI): Boolean = false
   def read(uri: URI): Dataset
 }

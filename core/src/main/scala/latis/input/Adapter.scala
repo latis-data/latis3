@@ -13,6 +13,7 @@ trait Adapter {
   //TODO: add SmartAdapter that takes ops?
   //TODO: require UnaryOperations
 
+  @annotation.nowarn("msg=never used")
   def canHandleOperation(op: Operation): Boolean = false
 
   def getData(baseUri: URI, ops: Seq[Operation] = Seq.empty): Data

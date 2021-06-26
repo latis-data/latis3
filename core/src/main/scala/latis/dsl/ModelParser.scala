@@ -28,8 +28,8 @@ object ModelParser {
   def apply(exp: String): Either[LatisException, DataType] =
     ModelParser.parse(exp)
 
-  private def variable: Parser[String] =
-    sepBy1(identifier, char('.')).map(_.toList.mkString("."))
+  //private def variable: Parser[String] =
+  //  sepBy1(identifier, char('.')).map(_.toList.mkString("."))
 
   private def dataType: Parser[DataType] =
     function | tuple | scalar
