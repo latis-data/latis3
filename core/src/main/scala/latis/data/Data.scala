@@ -130,7 +130,7 @@ trait Datum extends Any with Data {
  * Defines Data that can be used as a placeholder for
  * missing or otherwise invalid data.
  */
-object NullData extends Data {
+object NullData extends Data with Serializable {
   //TODO: does Data really need these?
   def samples: Stream[IO, (DomainData, RangeData)] = ???
   def eval(data: DomainData): Either[LatisException, RangeData] = ???
