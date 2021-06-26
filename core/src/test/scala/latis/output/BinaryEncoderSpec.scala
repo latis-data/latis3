@@ -1,7 +1,5 @@
 package latis.output
 
-import java.nio.file.Paths
-
 import cats.effect.unsafe.implicits.global
 import org.scalatest.Inside.inside
 import org.scalatest.flatspec.AnyFlatSpec
@@ -12,52 +10,36 @@ import scodec.bits._
 import scodec.codecs.implicits._
 import scodec.{Encoder => SEncoder}
 
-import latis.catalog.FdmlCatalog
 import latis.data.Data._
 import latis.data.DomainData
 import latis.data.RangeData
 import latis.data.Sample
 import latis.dataset.Dataset
+import latis.dsl.DatasetGenerator
 import latis.metadata.Metadata
 import latis.model.Function
 import latis.model.Scalar
 import latis.model.Tuple
-import latis.util.Identifier.IdentifierStringContext
 
 class BinaryEncoderSpec extends AnyFlatSpec {
 
-  /**
-   * Instance of BinaryEncoder for testing.
-   */
+  /** Instance of BinaryEncoder for testing. */
   val enc = new BinaryEncoder
-  val ds: Dataset = {
-    val catalog = FdmlCatalog.fromClasspath(
-      getClass().getClassLoader(),
-      Paths.get("datasets"),
-      validate = false
-    )
-
-    catalog.findDataset(id"data2").unsafeRunSync().getOrElse {
-      fail("Unable to find dataset")
-    }
-  }
 
   "A Binary encoder" should "encode a dataset to binary" in {
+    val ds: Dataset = DatasetGenerator("x -> (a: int, b: double)")
     val encodedList = enc.encode(ds).compile.toList.unsafeRunSync()
 
     val expected = List(
-      SEncoder.encode(3).require ++
-        SEncoder.encode(6).require ++
-        SEncoder.encode(4.4).require ++
-        BitVector(hex"64"),
-      SEncoder.encode(4).require ++
-        SEncoder.encode(8).require ++
-        SEncoder.encode(5.5).require ++
-        BitVector(hex"65"),
-      SEncoder.encode(5).require ++
-        SEncoder.encode(10).require ++
-        SEncoder.encode(6.6).require ++
-        BitVector(hex"66")
+      SEncoder.encode(0).require ++
+        SEncoder.encode(0).require ++
+        SEncoder.encode(0.0).require,
+      SEncoder.encode(1).require ++
+        SEncoder.encode(1).require ++
+        SEncoder.encode(1.0).require,
+      SEncoder.encode(2).require ++
+        SEncoder.encode(2).require ++
+        SEncoder.encode(2.0).require
     )
 
     encodedList should be(expected)
