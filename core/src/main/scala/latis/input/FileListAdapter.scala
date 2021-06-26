@@ -1,7 +1,7 @@
 package latis.input
 
 import java.net.URI
-import java.nio.file.Files
+import java.nio.file.{Files => JFiles}
 import java.nio.file.Path
 
 import scala.util.matching.Regex
@@ -9,7 +9,7 @@ import scala.util.matching.Regex
 import cats.effect.IO
 import cats.syntax.all._
 import fs2.Stream
-import fs2.io.file
+import fs2.io.file.Files
 
 import latis.data.Data
 import latis.data.RangeData
@@ -21,7 +21,6 @@ import latis.util.ConfigLike
 import latis.util.LatisException
 import latis.util.NetUtils
 import FileListAdapter.FileInfo
-import latis.util.Identifier
 import latis.util.Identifier.IdentifierStringContext
 
 /**
@@ -99,13 +98,13 @@ class FileListAdapter(
    */
   private def listFiles(path: Path): Stream[IO, FileInfo] = {
     val files: Stream[IO, Path] =
-      file.walk[IO](path).filter(Files.isRegularFile(_))
+      Files[IO].walk(path).filter(JFiles.isRegularFile(_))
 
     // Get the size if there is a variable named "size."
     model match {
       case Function(_, rs) if rs.findVariable(id"size").isDefined =>
         files.evalMap { p =>
-          file.size[IO](p).map(s => FileInfo(p, s.some))
+          Files[IO].size(p).map(s => FileInfo(p, s.some))
         }
       case _ => files.map(FileInfo(_, None))
     }

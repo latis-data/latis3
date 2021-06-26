@@ -4,6 +4,7 @@ import java.nio.file.Paths
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
+import fs2.io.file.Files
 import fs2.text
 
 import latis.data.DomainSet
@@ -77,7 +78,7 @@ package object dsl {
       case Some("csv") => CsvEncoder()
         .encode(dataset)
         .through(text.utf8Encode)
-        .through(fs2.io.file.writeAll(Paths.get(file)))
+        .through(Files[IO].writeAll(Paths.get(file)))
         .compile
         .drain
         .unsafeRunSync()
