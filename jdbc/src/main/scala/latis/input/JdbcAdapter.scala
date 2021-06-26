@@ -110,13 +110,16 @@ case class JdbcAdapter(
     // Pair variables with column index and data to try to use for nulls.
     // Note that a ResultSet uses 1-based indexing.
     // If a database column is nullable, the missingValue in the metadata
-    // should be set to "null". Otherwise a null will result in an exception.
+    // should be set to "null". We can use fillValue as an alternative until
+    // we have ReplaceMissing support (which could be handled here).
+    // Otherwise a null will result in an exception.
     // This prevents NullData from sneaking into the dataset.
     val scalarsWithColumnAndTryFill: Seq[(Scalar, Int, Try[Data])] =
       scalars.zipWithIndex.map { case (scalar, index) =>
         val fill: Try[Data] = scalar.metadata.getProperty("missingValue") match {
-          case Some("null") => Success(NullData)
-          case _            => Failure(LatisException("Unexpected null value"))
+          case Some("null")             => Success(NullData)
+          case _ if (scalar.isFillable) => Success(scalar.fillData) //TODO: require ReplaceMissing?
+          case _                        => Failure(LatisException("Unexpected null value"))
         }
         (scalar, index + 1, fill)
       }
