@@ -25,12 +25,12 @@ class GranuleListJoinSuite extends AnyFunSuite {
       )
       val data = SampledFunction(Seq(
         //TODO: generate test data files
-        Sample(DomainData(0), RangeData(s"file://${System.getProperty("user.home")}/git/latis3/core/src/test/resources/data/data.txt")),
-        Sample(DomainData(1), RangeData(s"file://${System.getProperty("user.home")}/git/latis3/core/src/test/resources/data/data2.txt"))
+        Sample(DomainData(0), RangeData(s"file://${System.getProperty("user.dir")}/core/src/test/resources/data/data.txt")),
+        Sample(DomainData(1), RangeData(s"file://${System.getProperty("user.dir")}/core/src/test/resources/data/data2.txt"))
       ))
       new TappedDataset(md, model, data)
     }
-    
+
     //model for granule: a -> (b, c, d)
     def model: DataType = Function(
       Scalar(Metadata("id" -> "a", "type" -> "short")),
