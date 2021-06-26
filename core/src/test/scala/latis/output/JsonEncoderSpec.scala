@@ -1,47 +1,28 @@
 package latis.output
 
-import java.nio.file.Paths
-
 import cats.effect.unsafe.implicits.global
 import io.circe._
 import io.circe.syntax._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 
-import latis.catalog.FdmlCatalog
-import latis.data.Data
-import latis.data.Sample
-import latis.data.RangeData
-import latis.data.DomainData
-import latis.data.NullData
+import latis.data._
 import latis.dataset.Dataset
-import latis.util.Identifier.IdentifierStringContext
+import latis.dsl.DatasetGenerator
 
 class JsonEncoderSpec extends AnyFlatSpec {
 
-  /**
-   * Instance of TextEncoder for testing.
-   */
+  /** Instance of TextEncoder for testing.  */
   val enc = new JsonEncoder
-  val ds: Dataset = {
-    val catalog = FdmlCatalog.fromClasspath(
-      getClass().getClassLoader(),
-      Paths.get("datasets"),
-      validate = false
-    )
-
-    catalog.findDataset(id"data").unsafeRunSync().getOrElse {
-      fail("Unable to find dataset")
-    }
-  }
 
   "A JSON encoder" should "encode a dataset to JSON" in {
+    val ds: Dataset = DatasetGenerator("x -> (a: int, b: double, c: string)")
     val encodedList = enc.encode(ds).compile.toList.unsafeRunSync()
 
     val expected = List(
-      Json.arr(0.asJson, 1.asJson, 1.1.asJson, "a".asJson),
-      Json.arr(1.asJson, 2.asJson, 2.2.asJson, "b".asJson),
-      Json.arr(2.asJson, 4.asJson, 3.3.asJson, "c".asJson),
+      Json.arr(0.asJson, 0.asJson, 0.0.asJson, "a".asJson),
+      Json.arr(1.asJson, 1.asJson, 1.0.asJson, "b".asJson),
+      Json.arr(2.asJson, 2.asJson, 2.0.asJson, "c".asJson),
     )
 
     encodedList should be(expected)
