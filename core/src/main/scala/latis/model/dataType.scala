@@ -194,12 +194,17 @@ sealed trait DataType extends MetadataLike with Serializable {
   }
 
   /** Makes fill data for this data type. */
-  def fillData: Data = Data.fromSeq(getFillValues(this, Seq.empty))
+  def fillData: Data = Data.fromSeq(getFillData(this, Seq.empty))
 
   /** Recursive helper function */
-  private def getFillValues(dt: DataType, acc: Seq[Data]): Seq[Data] = dt match {
-    case s: Scalar => acc :+ s.fillValue
-    case Tuple(es @ _*) => es.flatMap(getFillValues(_, acc))
+  private def getFillData(dt: DataType, acc: Seq[Data]): Seq[Data] = dt match {
+    case s: Scalar => acc :+
+      metadata.getProperty("fillValue").orElse {
+        metadata.getProperty("missingValue")
+      }.map { fv =>
+        s.parseValue(fv).fold(throw _, identity)  //TODO: validate earlier
+      }.getOrElse(NullData)
+    case Tuple(es @ _*) => es.flatMap(getFillData(_, acc))
     case _: Function => acc :+ NullData
   }
 }
@@ -227,42 +232,19 @@ class Scalar(val metadata: Metadata) extends DataType {
     throw new RuntimeException(msg)
   }
 
-  /** Specifies if fill values can be used to replace invalid data. */
+  /** Specifies if fillData can be used to replace invalid data. */
   def isFillable: Boolean = metadata.getProperty("fillValue").nonEmpty
 
   /**
-   * Constructs Data to be used as a fill value for this Scalar.
-   *
-   * This will use the fillValue or missingValue property in the metadata
-   * if defined. Otherwise it will return NullData.
-   */
-  val fillValue: Data =
-    metadata.getProperty("fillValue").orElse {
-      metadata.getProperty("missingValue")
-    }.map { fv =>
-      parseValue(fv).fold(throw _, identity)  //TODO: validate earlier
-    }.getOrElse(NullData)
-
-//  /** Interprets the missing value eagerly. */
-//  val missingValue: Option[Data] = metadata.getProperty("missingValue") match {
-//    case Some("null") => NullData.some
-//    case Some(mv)     => parseValue(mv) match {
-//      case Right(d) => d.some
-//      case _        => throw LatisException(s"Invalid missingValue: $mv") //TODO: validate earlier
-//    }
-//  }
-
-  /**
    * Converts a string value into the appropriate Datum type for this Scalar.
-   * If the value fails to parse and a fillValue is defined, the resulting
-   * Datum will encode that fill value. Because this returns a Datum,
-   * NullData ("null") may not be used for an explicit fillValue.
-   * Note that an explicit fillValue in the metadata, as opposed to the fillValue
-   * derived here, is used only for the purpose of overriding a parse error here.
+   *
+   * If the value fails to parse and a fillValue is explicitly defined in the metadata,
+   * the resulting Datum will encode that fill value. Because this returns a Datum,
+   * NullData ("null") may not be used for fillValue metadata.
    */
   def parseValue(value: String): Either[LatisException, Datum] =
     valueType.parseValue(value).recoverWith { ex =>
-      if (isFillable) fillValue match {
+      if (isFillable) fillData match {
         // Make sure fill value is not NullData
         case fv: Datum => fv.asRight
         case fv => LatisException(s"Invalid fillValue: $fv").asLeft //TODO: validate earlier
