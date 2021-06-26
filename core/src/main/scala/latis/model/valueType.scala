@@ -28,8 +28,19 @@ sealed trait ValueType extends Serializable {
    */
   def parseValue(value: String): Either[LatisException, Datum]
 
-  /** Supports returning to this value type after unit conversion which assumes doubles. */
+  /**
+   * Supports returning to this value type after unit conversion which assumes doubles.
+   *
+   * NaN will be converted to 0 for many value types.
+   */
   def convertDouble(value: Double): Option[Datum] = None
+  //TODO: beware silent truncation for overflow
+  //  e.g. Double.MaxValue.toShort = -1
+  //  Int, Long will yield their max value
+  //TODO: consider fill value or null for invalid conversions
+  //TODO: do in Scalar which has more context?
+  //TODO: consider NumericType which can safely be used for math
+
 }
 
 object BooleanValueType extends ValueType {
@@ -214,8 +225,10 @@ object BigDecimalValueType extends ValueType {
     BigDecimalValue(BigDecimal(value))
   }.toEither.leftMap { t => LatisException(t.getMessage) }
 
-  override def convertDouble(value: Double): Option[Datum] =
-    Some(BigDecimalValue(BigDecimal(value)))
+  override def convertDouble(value: Double): Option[Datum] = {
+    if (value.isNaN) None
+    else Some(BigDecimalValue(BigDecimal(value)))
+  }
 
   override def toString: String = "bigDecimal"
 }
