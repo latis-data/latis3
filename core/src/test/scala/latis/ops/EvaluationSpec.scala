@@ -1,7 +1,9 @@
 package latis.ops
 
+import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
+import org.scalatest.Inside.inside
 
 import latis.data._
 import latis.dsl._
@@ -15,7 +17,8 @@ class EvaluationSpec extends AnyFlatSpec {
     ).withOperation(Evaluation("1")).samples.head.map {
       case Sample(_, RangeData(Number(d))) =>
         d should be (20)
-    }
+      case _ => ???
+    }.compile.drain.unsafeRunSync()
   }
 
   "Evaluation" should "evaluate a nested dataset" in {
@@ -29,7 +32,7 @@ class EvaluationSpec extends AnyFlatSpec {
       )
     ).curry(1)
      .eval("1")
-    ds.unsafeForce().data.sampleSeq.head match {
+    inside(ds.unsafeForce().data.sampleSeq.head) {
       case Sample(DomainData(Number(x)), RangeData(Number(a))) =>
         x should be (100)
         a should be (12)

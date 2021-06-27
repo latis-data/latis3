@@ -19,7 +19,7 @@ class NetUtilsSpec extends AnyFlatSpec {
   }
 
   it should "return left if the host can't be parsed" in {
-    getHost(uri2) shouldBe a [Left[LatisException, String]]
+    getHost(uri2) shouldBe a [Left[_, _]]
   }
 
   "getPort" should "parse the port from a URI" in {
@@ -27,7 +27,7 @@ class NetUtilsSpec extends AnyFlatSpec {
   }
 
   it should "return left if the port can't be parsed" in {
-    getPort(uri2) shouldBe a [Left[LatisException, Int]]
+    getPort(uri2) shouldBe a [Left[_, _]]
   }
 
   "getPortOrDefault" should "return a default port if port can't be parsed" in {
@@ -43,6 +43,6 @@ class NetUtilsSpec extends AnyFlatSpec {
   }
 
   it should "return left if user info can't be parsed" in {
-    getUserInfo(uri2) shouldBe a [Left[LatisException, (String, String)]]
+    getUserInfo(uri2) shouldBe a [Left[_, _]]
   }
 }

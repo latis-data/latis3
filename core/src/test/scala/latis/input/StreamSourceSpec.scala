@@ -16,8 +16,8 @@ class StreamSourceSpec extends AnyFlatSpec {
       s.compile.toList.unsafeRunSync()
       fail("Exception not thrown")
     } catch {
-      case e: FileNotFoundException => //pass
-      case t => fail(s"Unexpected exception: $t")
+      case _: FileNotFoundException => //pass
+      case t: Throwable => fail(s"Unexpected exception: $t")
     }
   }
 
@@ -27,8 +27,8 @@ class StreamSourceSpec extends AnyFlatSpec {
       s.compile.toList.unsafeRunSync()
       fail("Exception not thrown")
     } catch {
-      case e: LatisException => //pass
-      case t => fail(s"Unexpected exception: $t")
+      case _: LatisException => //pass
+      case t: Throwable => fail(s"Unexpected exception: $t")
     }
   }
 }

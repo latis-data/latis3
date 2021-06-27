@@ -1,7 +1,6 @@
 package latis.time
 
 import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should
 import org.scalatest.matchers.should.Matchers._
 
 class TimeFormatSpec extends AnyFlatSpec {
@@ -11,7 +10,7 @@ class TimeFormatSpec extends AnyFlatSpec {
   }
   
   it should "provide a default ISO string" in {
-    val time = 1000l * (86400 + 3600 + 61)
+    val time = 1000L * (86400 + 3600 + 61)
     TimeFormat.formatIso(time) should be ("1970-01-02T01:01:01.000Z")
   }
   
@@ -26,7 +25,7 @@ class TimeFormatSpec extends AnyFlatSpec {
   
   it should "use a specified century for 2-digit years" in {
     val time: Long =  TimeFormat.fromExpression("yyMMdd")
-      .flatMap(_.setCenturyStart("3000").parse("330501")).getOrElse(0l)
+      .flatMap(_.setCenturyStart("3000").parse("330501")).getOrElse(0L)
     TimeFormat.fromExpression("yyyy-MM-dd").map(_.format(time)) should be (Right("3033-05-01"))
   }
 

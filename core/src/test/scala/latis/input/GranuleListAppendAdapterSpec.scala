@@ -29,12 +29,12 @@ final class GranuleListAppendAdapterSpec extends AnyFlatSpec {
         .samples
         .compile
         .toList
-        .unsafeRunSync
+        .unsafeRunSync()
 
       val gSamples = (g1.samples ++ g2.samples ++ g3.samples)
         .compile
         .toList
-        .unsafeRunSync
+        .unsafeRunSync()
 
       glaSamples should equal (gSamples)
   }

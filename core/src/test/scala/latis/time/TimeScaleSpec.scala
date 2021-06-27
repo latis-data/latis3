@@ -12,7 +12,7 @@ class TimeScaleSpec extends AnyFlatSpec {
   val timeScaleFromFormat = TimeScale.fromExpression("yyyy-MM-dd").toTry.get
   
   "A time scale from a format" should "have the default epoch" in {
-    timeScaleFromFormat.epoch should be (new Date(0l))
+    timeScaleFromFormat.epoch should be (new Date(0L))
   }
   
   it should "have the default time unit" in {

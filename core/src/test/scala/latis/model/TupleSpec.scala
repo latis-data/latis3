@@ -18,6 +18,7 @@ class TupleSpec extends AnyFlatSpec {
     )
     val n = nestedTuple.flatten match {
       case Tuple(es @ _*) => es.length
+      case _ => fail()
     }
     n should be (3)
   }

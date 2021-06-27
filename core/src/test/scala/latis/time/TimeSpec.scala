@@ -2,6 +2,7 @@ package latis.time
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
+import org.scalatest.Inside.inside
 
 import latis.data.Data
 import latis.metadata.Metadata
@@ -28,7 +29,7 @@ class TimeSpec extends AnyFlatSpec {
   
   "A numeric time" should "convert a string to a number" in {
     //Note that this is interpreted as a number rather than ISO yyMMdd
-    numericTime.convertValue("864000") match {
+    inside(numericTime.convertValue("864000")) {
       case Right(d: Data.DoubleValue) =>
         d.value should be (864000D)
     }
@@ -36,7 +37,7 @@ class TimeSpec extends AnyFlatSpec {
 
   "A numeric time" should "convert an ISO time" in {
     //Note that this fails the numeric check then tries ISO
-    numericTime.convertValue("2000-001") match {
+    inside(numericTime.convertValue("2000-001")) {
       case Right(d: Data.DoubleValue) =>
         d.value should be (0D)
     }
@@ -44,7 +45,7 @@ class TimeSpec extends AnyFlatSpec {
 
   "A formatted time" should "convert a time with matching format" in {
     //Note that this uses the time's format rather than ISO
-    formattedTime.convertValue("Jan 01, 2000") match {
+    inside(formattedTime.convertValue("Jan 01, 2000")) {
       case Right(d: Data.StringValue) =>
         d.value should be("Jan 01, 2000")
     }
@@ -53,7 +54,7 @@ class TimeSpec extends AnyFlatSpec {
   "A formatted time" should "convert a numeric looking ISO time" in {
     //Note that this fails to match the current format then tries ISO.
     //Seven digits are interpreted as yyyyDDD.
-    formattedTime.convertValue("2000001") match {
+    inside(formattedTime.convertValue("2000001")) {
       case Right(d: Data.StringValue) =>
         d.value should be("Jan 01, 2000")
     }

@@ -14,7 +14,7 @@ class ProjectionSuite extends AnyFunSuite with EitherValues with Inside {
 
   test("Project two from Tuple") {
     ModelParser.parse("(a, b, c)").foreach { model =>
-      inside (Projection.fromExpression("a,b").right.value.applyToModel(model)) {
+      inside (Projection.fromExpression("a,b").toTry.get.applyToModel(model)) {
         case Right(Tuple(a: Scalar, b: Scalar)) =>
           assert(a.id.get == id"a")
           assert(b.id.get == id"b")
@@ -25,7 +25,7 @@ class ProjectionSuite extends AnyFunSuite with EitherValues with Inside {
   test("Project one from Tuple") {
     //Note: Tuple reduced to Scalar
     ModelParser.parse("(a, b, c)").foreach { model =>
-      inside (Projection.fromExpression("b").right.value.applyToModel(model)) {
+      inside (Projection.fromExpression("b").toTry.get.applyToModel(model)) {
         case Right(b: Scalar) =>
           assert(b.id.get == id"b")
       }
@@ -34,7 +34,7 @@ class ProjectionSuite extends AnyFunSuite with EitherValues with Inside {
 
   test("Reduce nested tuple") {
     ModelParser.parse("(a, (b, c))").foreach { model =>
-      inside (Projection.fromExpression("a,b").right.value.applyToModel(model)) {
+      inside (Projection.fromExpression("a,b").toTry.get.applyToModel(model)) {
         case Right(Tuple(a: Scalar, b: Scalar)) =>
           assert(a.id.get == id"a")
           assert(b.id.get == id"b")
@@ -44,7 +44,7 @@ class ProjectionSuite extends AnyFunSuite with EitherValues with Inside {
 
   test("Project named nested tuple") {
     ModelParser.parse("(a, t:(b, c))").foreach { model =>
-      inside (Projection.fromExpression("t").right.value.applyToModel(model)) {
+      inside (Projection.fromExpression("t").toTry.get.applyToModel(model)) {
         case Right(t: Tuple) =>
           assert(t.id.get == id"t")
       }

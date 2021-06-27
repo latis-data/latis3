@@ -17,7 +17,7 @@ class TextAdapterSpec extends AnyFlatSpec {
 
   "A TextAdapter" should "read text data" in {
     val ds = {
-      def uri: URI = resolveUri("data/data.txt").right.get
+      def uri: URI = resolveUri("data/data.txt").toTry.get
       val metadata = Metadata(id"data")
       val model: DataType = Function(
         Scalar(Metadata("id" -> "a", "type" -> "int")),

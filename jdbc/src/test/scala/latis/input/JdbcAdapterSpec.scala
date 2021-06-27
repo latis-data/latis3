@@ -69,11 +69,12 @@ class JdbcAdapterSpec extends AnyFlatSpec {
         Selection.makeSelection("messagez = bar").toTry.get,
         Projection.fromExpression("messagez").toTry.get
       )
-      adapter.getData(uri, ops).samples.compile.toList.unsafeRunSync() //.foreach(println)
-        .head match {
+      adapter.getData(uri, ops).samples.compile.toList.map { ss =>
+        inside(ss.head) {
           case Sample(DomainData(), RangeData(Text(msg))) =>
             assert(msg == "bar")
         }
+      }.unsafeRunSync()
     }
 
   it should "capture exceptions in the stream" in
@@ -106,7 +107,7 @@ class JdbcAdapterSpec extends AnyFlatSpec {
       case None => cancel("Could not create temporary database file for testing.")
     }
 
-  private def createMockDatabase(url: String): Unit = {
+  private def createMockDatabase(url: String): Any = {
     val xa = Transactor.fromDriverManager[IO]("org.h2.Driver", url)
 
     val drop =
@@ -134,6 +135,6 @@ class JdbcAdapterSpec extends AnyFlatSpec {
        INSERT INTO tab2 VALUES (1, 'foo');
        INSERT INTO tab2 VALUES (1, 'bar');
      """.update.run
-    (drop, create, insert).mapN(_ + _ + _).transact(xa).unsafeRunSync
+    (drop, create, insert).mapN(_ + _ + _).transact(xa).unsafeRunSync()
   }
 }

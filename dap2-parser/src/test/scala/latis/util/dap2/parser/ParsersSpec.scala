@@ -20,7 +20,7 @@ class ParsersSpec extends AnyFlatSpec {
    * Partially apply with a parser to get a function that takes the string you
    * want to parse and the thing you expect to get back
    */
-  private def testParser[A](p: Parser[A])(s: String, d: A): Unit = p.parseOnly(s) match {
+  private def testParser[A](p: Parser[A])(s: String, d: A): Any = p.parseOnly(s) match {
     case ParseResult.Done(_, result) => result should be (d)
     case ParseResult.Fail(_, _, m) => fail(s"$m in $s")
     // parseOnly will never return anything but Done or Fail, but the types don't

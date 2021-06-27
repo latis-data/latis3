@@ -2,6 +2,7 @@ package latis.ops
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
+import org.scalatest.Inside.inside
 
 import latis.data._
 import latis.dataset.MemoizedDataset
@@ -83,12 +84,12 @@ class TimeTupleToTimeSpec extends AnyFlatSpec {
   "The TimeTupleToTime operation" should "convert a time tuple to a time scalar" in {
     val ds = mockDataset.withOperation(TimeTupleToTime())
 
-    ds.model match {
+    inside(ds.model) {
       case Function(t: Time, _: Scalar) =>
         t.units should be ("yyyy MM dd")
     }
 
-    StreamUtils.unsafeHead(ds.samples) match {
+    inside(StreamUtils.unsafeHead(ds.samples)) {
       case Sample(DomainData(Text(time)), RangeData(Number(f))) =>
         time should be ("1945 1 1")
         f should be (10)
@@ -98,13 +99,13 @@ class TimeTupleToTimeSpec extends AnyFlatSpec {
   it should "convert a nested time tuple to a time scalar" in {
     val ds = mockDataset2.withOperation(TimeTupleToTime())
 
-    ds.model match {
-      case Function(Tuple(es @ _*), _: Scalar) => es(1) match {
+    inside(ds.model) {
+      case Function(Tuple(es @ _*), _: Scalar) => inside(es(1)) {
         case t: Time => t.units should be ("yyyy MM")
       }
     }
 
-    StreamUtils.unsafeHead(ds.samples) match {
+    inside(StreamUtils.unsafeHead(ds.samples)) {
       case Sample(DomainData(Number(a), Text(time)), RangeData(Number(f))) =>
         a should be (1)
         time should be ("1945 1")
@@ -115,11 +116,11 @@ class TimeTupleToTimeSpec extends AnyFlatSpec {
   it should "convert a time tuple in the range to a time scalar" in {
     val ds = mockDataset3.withOperation(TimeTupleToTime())
 
-    ds.model match {
+    inside(ds.model) {
       case Function(_: Scalar, t: Time) => t.units should be ("yyyy MM")
     }
 
-    StreamUtils.unsafeHead(ds.samples) match {
+    inside(StreamUtils.unsafeHead(ds.samples)) {
       case Sample(DomainData(Number(a)), RangeData(Text(time))) =>
         a should be (10)
         time should be ("1945 1")

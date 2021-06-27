@@ -5,6 +5,7 @@ import java.nio.file.Paths
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
+import org.scalatest.Inside.inside
 
 import latis.catalog.FdmlCatalog
 import latis.data.Data._
@@ -34,8 +35,8 @@ class DatasetSpec extends AnyFlatSpec {
     
     val data = {
       val samples = List(
-        Sample(DomainData(1l), RangeData(1.2d)),
-        Sample(DomainData(2l), RangeData(2.4d))
+        Sample(DomainData(1L), RangeData(1.2D)),
+        Sample(DomainData(2L), RangeData(2.4D))
       )
       SampledFunction(samples)
     }
@@ -48,20 +49,20 @@ class DatasetSpec extends AnyFlatSpec {
   }
   
   it should "provide a sample" in {
-    StreamUtils.unsafeHead(dataset.samples) match {
+    inside(StreamUtils.unsafeHead(dataset.samples)) {
       case Sample(DomainData(lv: Data.LongValue), RangeData(dv: Data.DoubleValue)) =>
-        lv.value should be (1l)
-        dv.value should be (1.2d)
+        lv.value should be (1L)
+        dv.value should be (1.2D)
     }
   }
   
   it should "apply an operation" in {
     val select = Selection(id"time", ast.Gt, "1")
     val ds2 = dataset.withOperation(select)
-    StreamUtils.unsafeHead(ds2.samples) match {
+    inside(StreamUtils.unsafeHead(ds2.samples)) {
       case Sample(DomainData(lv: Data.LongValue), RangeData(dv: Data.DoubleValue)) =>
-        lv.value should be (2l)
-        dv.value should be (2.4d)
+        lv.value should be (2L)
+        dv.value should be (2.4D)
     }
   }
 

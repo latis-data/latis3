@@ -1,6 +1,7 @@
 package latis.model
 
 import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.Inside.inside
 
 import latis.data._
 import latis.metadata.Metadata
@@ -114,16 +115,16 @@ class GetPathSuite extends AnyFunSuite {
   }
 
   test("getPath to lone Scalar") {
-    Scalar(Metadata(id"a") + ("type" -> "int")).getPath(id"a") match {
+    inside(Scalar(Metadata(id"a") + ("type" -> "int")).getPath(id"a")) {
       case Some(RangePosition(p) :: Nil) => assert(p == 0)
     }
   }
 
   ignore("getPath to Scalar in lone Tuple") {
-    Tuple(
+    inside(Tuple(
       Scalar(Metadata(id"a") + ("type" -> "int")),
       Scalar(Metadata(id"b") + ("type" -> "int"))
-    ).getPath(id"b") match {
+    ).getPath(id"b")) {
       case Some(RangePosition(p) :: Nil) => assert(p == 1)
     }
   }
@@ -138,10 +139,10 @@ class GetPathSuite extends AnyFunSuite {
 
   test("getPath ignoring Index variable") {
     // (i, y) -> a
-    Function(
+    inside(Function(
       Tuple(Index(id"i"), Scalar(Metadata(id"y") + ("type" -> "int"))),
       Scalar(Metadata(id"a") + ("type" -> "int"))
-    ).getPath(id"y") match {
+    ).getPath(id"y")) {
       case Some(DomainPosition(p) :: Nil) =>
         assert(p == 0)
     }
@@ -240,7 +241,7 @@ class TupleFlattenSuite extends AnyFunSuite {
 
     val flattened = func.flatten
 
-    flattened match {
+    inside(flattened) {
       case Function(d, r) =>
         assert(d.toString == expectedTuple1.toString)
         assert(r.toString == expectedTuple2.toString)
@@ -258,7 +259,7 @@ class ParseValueSuite extends AnyFunSuite {
       "type" -> "double",
       "fillValue" -> "NaN"
     ))
-    s.parseValue("word") match {
+    inside(s.parseValue("word")) {
       case Right(d: Data.DoubleValue) =>
         assert(d.value.isNaN)
     }
