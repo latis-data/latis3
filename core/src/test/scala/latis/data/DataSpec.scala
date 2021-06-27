@@ -2,6 +2,7 @@ package latis.data
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
+import org.scalatest.Inside.inside
 
 class DataSpec extends AnyFlatSpec {
 
@@ -30,7 +31,7 @@ class DataSpec extends AnyFlatSpec {
   
   "Implicitly constructed Boolean Data" should "be extractable through pattern matching" in {
     val tup = TupleData(true, false)
-    tup match {
+    inside(tup) {
       case TupleData(BooleanDatum(t), BooleanDatum(f)) =>
         t should be(true)
         f should be(false)
@@ -39,7 +40,7 @@ class DataSpec extends AnyFlatSpec {
   
   "BooleanValues" should "be represented properly as Strings" in {
     val tup = TupleData(true, false)
-    tup match {
+    inside(tup) {
       case TupleData(t: Data.BooleanValue, f: Data.BooleanValue) =>
         t.asString should be("true")
         f.asString should be("false")

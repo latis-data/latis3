@@ -30,7 +30,7 @@ class MatrixTextAdapterSpec extends AnyFlatSpec {
     )
     val config = new input.TextAdapter.Config(("delimiter", ","))
     val adapter = new MatrixTextAdapter(model, config)
-    val uri: URI = resolveUri("data/matrixData.txt").right.get
+    val uri: URI = resolveUri("data/matrixData.txt").toTry.get
     new AdaptedDataset(metadata, model, adapter, uri)
   }
 

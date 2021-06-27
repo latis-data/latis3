@@ -3,6 +3,7 @@ package latis.ops
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
+import org.scalatest.Inside.inside
 
 import latis.data._
 import latis.dataset.Dataset
@@ -36,7 +37,7 @@ class TakeSpec extends AnyFlatSpec {
   }
 
   it should "treat a negative number as 0" in {
-    Take(-1) match {
+    inside(Take(-1)) {
       case Take(n) => assert(n == 0)
     }
   }

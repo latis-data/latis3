@@ -26,7 +26,7 @@ class FdmlReaderSpec extends AnyFlatSpec {
       }
     }
 
-    StreamUtils.unsafeHead(ds.samples) match {
+    inside(StreamUtils.unsafeHead(ds.samples)) {
       case Sample(DomainData(Number(t)), RangeData(Integer(b), Real(c), Text(d))) =>
         assert(t == 0)
         assert(b == 1)
@@ -46,12 +46,12 @@ class FdmlReaderSpec extends AnyFlatSpec {
   it should "apply operations to the returned dataset" in {
     val ds = FdmlReader.read(new URI("datasets/dataWithOperations.fdml"), true)
 
-    StreamUtils.unsafeHead(ds.samples) match {
+    inside(StreamUtils.unsafeHead(ds.samples)) {
       case Sample(DomainData(), RangeData(Integer(b), Real(c))) =>
         assert(b == 2)
         assert(c == 2.2)
     }
-    ds.model match {
+    inside(ds.model) {
       case Function(_, range) =>
         assert(range.getScalars.map(_.id.get.asString) == List("b", "Istanbul"))
     }

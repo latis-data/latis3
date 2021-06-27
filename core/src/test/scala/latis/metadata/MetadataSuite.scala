@@ -21,14 +21,14 @@ class MetadataSuite extends AnyFunSuite {
   test("get metadata property") {
     testmd.getProperty("id") match {
       case Some(id) => assert(id == "testds")
-      case _ => fail
+      case _ => fail()
     }
   }
   
   test("get metadata like property") {
     mlike("id") match {
       case Some(id) => assert(id == "testds")
-      case _ => fail
+      case _ => fail()
     }
   }
   

@@ -43,7 +43,7 @@ class FileListAdapterSpec extends AnyFlatSpec {
     }
 
     val samples: List[Sample] =
-      adapter.getData(root.toUri()).samples.compile.toList.unsafeRunSync
+      adapter.getData(root.toUri()).samples.compile.toList.unsafeRunSync()
 
     val expected: List[Sample] = List(
       Sample(DomainData("2010"), RangeData(root.resolve("2010-a").toUri().toString())),
@@ -75,7 +75,7 @@ class FileListAdapterSpec extends AnyFlatSpec {
     }
 
     val samples: List[Sample] =
-      adapter.getData(root.toUri()).samples.compile.toList.unsafeRunSync
+      adapter.getData(root.toUri()).samples.compile.toList.unsafeRunSync()
 
     val expected: List[Sample] = List(
       Sample(DomainData("2010"), RangeData(root.resolve("a/2010-a").toUri().toString())),
@@ -113,7 +113,7 @@ class FileListAdapterSpec extends AnyFlatSpec {
     )
 
     val samples: List[Sample] =
-      adapter.getData(root.toUri()).samples.compile.toList.unsafeRunSync
+      adapter.getData(root.toUri()).samples.compile.toList.unsafeRunSync()
 
     samples should contain theSameElementsAs (expected)
   }
@@ -145,12 +145,12 @@ class FileListAdapterSpec extends AnyFlatSpec {
     }
 
     val samples: List[Sample] =
-      adapter.getData(root.toUri()).samples.compile.toList.unsafeRunSync
+      adapter.getData(root.toUri()).samples.compile.toList.unsafeRunSync()
 
     val expected: List[Sample] = List(
-      Sample(DomainData("2010"), RangeData(root.resolve("2010-a").toUri().toString(), 0l)),
-      Sample(DomainData("2011"), RangeData(root.resolve("2011-b").toUri().toString(), 0l)),
-      Sample(DomainData("2012"), RangeData(root.resolve("2012-c").toUri().toString(), 0l))
+      Sample(DomainData("2010"), RangeData(root.resolve("2010-a").toUri().toString(), 0L)),
+      Sample(DomainData("2011"), RangeData(root.resolve("2011-b").toUri().toString(), 0L)),
+      Sample(DomainData("2012"), RangeData(root.resolve("2012-c").toUri().toString(), 0L))
     )
 
     samples should contain theSameElementsAs (expected)
@@ -183,7 +183,7 @@ class FileListAdapterSpec extends AnyFlatSpec {
     )
 
     val samples: List[Sample] =
-      adapter.getData(root.toUri()).samples.compile.toList.unsafeRunSync
+      adapter.getData(root.toUri()).samples.compile.toList.unsafeRunSync()
 
     samples should contain theSameElementsAs (expected)
   }
@@ -221,7 +221,7 @@ class FileListAdapterSpec extends AnyFlatSpec {
     )
 
     val samples: List[Sample] =
-      adapter.getData(root.toUri()).samples.compile.toList.unsafeRunSync
+      adapter.getData(root.toUri()).samples.compile.toList.unsafeRunSync()
 
     samples should contain theSameElementsAs (expected)
   }
@@ -263,7 +263,7 @@ class FileListAdapterSpec extends AnyFlatSpec {
     )
 
     val samples: List[Sample] =
-      adapter.getData(root.toUri()).samples.compile.toList.unsafeRunSync
+      adapter.getData(root.toUri()).samples.compile.toList.unsafeRunSync()
 
     samples should contain theSameElementsAs (expected)
   }
@@ -312,7 +312,7 @@ class FileListAdapterSpec extends AnyFlatSpec {
     // Run the test.
     withTmpDir(root) { dir =>
       val samples: List[Sample] =
-        adapter.getData(dir.toUri()).samples.compile.toList.unsafeRunSync
+        adapter.getData(dir.toUri()).samples.compile.toList.unsafeRunSync()
 
       samples should contain theSameElementsAs (expected)
     }
@@ -388,6 +388,7 @@ class FileListAdapterSpec extends AnyFlatSpec {
     }
 
     Files.walkFileTree(tmp, visitor)
+    () //return Unit to keep the compiler happy
   }
 
   private def withFlatDir(f: Path => Any): Any = {

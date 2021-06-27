@@ -4,7 +4,6 @@ import cats.effect.unsafe.implicits.global
 import cats.syntax.all._
 import org.scalatest.funsuite.AnyFunSuite
 
-import latis.data.RangeData
 import latis.data._
 import latis.dsl._
 import latis.model.DataType
@@ -20,6 +19,7 @@ class MapOperationSuite extends AnyFunSuite {
           (sample: Sample) => sample match {
             case s@Sample(DomainData(Integer(a)), _) =>
               if (a != 1) s else throw new LatisException("skip")
+            case _ => fail()
           }
         def applyToModel(model: DataType) = model.asRight
       }

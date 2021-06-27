@@ -14,7 +14,7 @@ class PropertiesLikeSuite extends AnyFunSuite {
   test ("get property") {
     plike.getProperty("foo") match {
       case Some(s) => assert(s == "bar")
-      case _ => fail
+      case _ => fail()
     }
   }
 

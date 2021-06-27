@@ -2,6 +2,7 @@ package latis.ops
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
+import org.scalatest.Inside.inside
 
 import latis.data._
 import latis.metadata.Metadata
@@ -43,7 +44,7 @@ class ConvertTimeSpec extends AnyFlatSpec {
   it should "convert a numeric time variable" in {
     val f = convertTime.mapFunction(numericTime)
     val sample = Sample(DomainData(), RangeData(14))
-    f(sample) match {
+    inside(f(sample)) {
       case Sample(_, RangeData(Number(t))) =>
         t should be(1.0)
     }
@@ -52,7 +53,7 @@ class ConvertTimeSpec extends AnyFlatSpec {
   it should "convert a text time variable" in {
     val f = convertTime.mapFunction(textTime)
     val sample = Sample(DomainData(), RangeData("2020-01-15"))
-    f(sample) match {
+    inside(f(sample)) {
       case Sample(_, RangeData(Number(t))) =>
         t should be(1.0 +- 1e-9)
     }
@@ -65,7 +66,7 @@ class ConvertTimeSpec extends AnyFlatSpec {
     )
     val f = convertTime.mapFunction(model)
     val sample = Sample(DomainData("2020-01-15"), RangeData(14))
-    f(sample) match {
+    inside(f(sample)) {
       case Sample(DomainData(Number(t1)), RangeData(Number(t2))) =>
         t1 should be(1.0 +- 1e-9)
         t2 should be(1.0)

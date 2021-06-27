@@ -25,6 +25,7 @@ class UncurrySuite extends AnyFunSuite {
     //Test all "a" to make sure order is preserved
     val as = ds.samples.map {
       case Sample(DomainData(_, _), RangeData(Integer(a))) => a
+      case _ => fail()
     }.compile.toList.unsafeRunSync()
     assert(as == List(0,1,2,3,4,5))
   }

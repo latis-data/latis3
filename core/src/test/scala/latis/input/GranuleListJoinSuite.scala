@@ -2,6 +2,7 @@ package latis.input
 
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers._
+import org.scalatest.Inside.inside
 
 import latis.data._
 import latis.dataset._
@@ -67,14 +68,14 @@ class GranuleListJoinSuite extends AnyFunSuite {
     //val samples = ds.data.unsafeForce.samples
     val samples = StreamUtils.unsafeStreamToSeq(ds.samples)
     assert(samples.length == 2)
-    samples.head match {
+    inside(samples.head) {
       case Sample(DomainData(Integer(a)), RangeData(Integer(b), Real(c), Text(d))) =>
         assert(a == 2)
         assert(b == 4)
         c should be(3.3 +- 0.001)
         assert(d == "c")
     }
-    samples(1) match {
+    inside(samples(1)) {
       case Sample(DomainData(Integer(a)), RangeData(Integer(b), Real(c), Text(d))) =>
         assert(a == 3)
         assert(b == 6)

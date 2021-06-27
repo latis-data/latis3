@@ -18,7 +18,7 @@ class ConstraintParserSpec extends AnyFlatSpec {
    * @param expr expression to parse
    * @param assertion assertion for a successful parse
    */
-  private def testParse(expr: String)(assertion: ConstraintExpression => Unit): Unit =
+  private def testParse(expr: String)(assertion: ConstraintExpression => Any): Any =
     ConstraintParser.parse(expr).fold(fail(_), assertion)
 
   "A DAP 2 constraint parser" should "accept no constraints" in

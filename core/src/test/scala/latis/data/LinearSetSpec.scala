@@ -2,20 +2,21 @@ package latis.data
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
+import org.scalatest.Inside.inside
 
 class LinearSetSpec extends AnyFlatSpec {
 
   val set1D = LinearSet1D(0.0, 1.0, 10)
 
   "A 1D linear set" should "have a min" in {
-    set1D.min match {
+    inside(set1D.min) {
       case DomainData(Number(d)) =>
         d should be(0.0)
     }
   }
 
   it should "have a max" in {
-    set1D.max match {
+    inside(set1D.max) {
       case DomainData(Number(d)) =>
         d should be(9.0)
     }
@@ -37,7 +38,7 @@ class LinearSetSpec extends AnyFlatSpec {
   val set2D = LinearSet2D(set1D, set1D)
 
   "A 2D linear set" should "have a min" in {
-    set2D.min match {
+    inside(set2D.min) {
       case DomainData(Number(d1), Number(d2)) =>
         d1 should be (0.0)
         d2 should be (0.0)
@@ -45,7 +46,7 @@ class LinearSetSpec extends AnyFlatSpec {
   }
 
   "A 2D linear set" should "have a max" in {
-    set2D.max match {
+    inside(set2D.max) {
       case DomainData(Number(d1), Number(d2)) =>
         d1 should be (9.0)
         d2 should be (9.0)

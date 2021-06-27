@@ -2,6 +2,7 @@ package latis.dsl
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
+import org.scalatest.Inside.inside
 
 import latis.data._
 import latis.data.Data._
@@ -16,13 +17,13 @@ class DatasetGeneratorSpec extends AnyFlatSpec {
 
     val ds = DatasetGenerator.generate1DDataset(xs, as, bs)
     ds.model.toString should be ("_1 -> (a, b)")
-    ds.model match {
+    inside(ds.model) {
       case Function(x: Scalar, Tuple(a: Scalar, b: Scalar)) =>
         x.valueType should be (IntValueType)
         a.valueType should be (StringValueType)
         b.valueType should be (DoubleValueType)
     }
-    ds.data.sampleSeq.head match {
+    inside(ds.data.sampleSeq.head) {
       case Sample(DomainData(x: IntValue), RangeData(a: StringValue, b: DoubleValue)) =>
         x.value should be (1)
         a.value should be ("a")
@@ -38,14 +39,14 @@ class DatasetGeneratorSpec extends AnyFlatSpec {
 
     val ds = DatasetGenerator.generate2DDataset(xs, ys, as, bs)
     ds.model.toString should be ("(_1, _2) -> (a, b)")
-    ds.model match {
+    inside(ds.model) {
       case Function(Tuple(x: Scalar, y: Scalar), Tuple(a: Scalar, b: Scalar)) =>
         x.valueType should be (CharValueType)
         y.valueType should be (IntValueType)
         a.valueType should be (StringValueType)
         b.valueType should be (DoubleValueType)
     }
-    ds.data.sampleSeq.head match {
+    inside(ds.data.sampleSeq.head) {
       case Sample(DomainData(x: CharValue, y: IntValue), RangeData(a: StringValue, b: DoubleValue)) =>
         x.value should be ('a')
         y.value should be (1)
@@ -69,7 +70,7 @@ class DatasetGeneratorSpec extends AnyFlatSpec {
 
     val ds = DatasetGenerator.generate3DDataset(xs, ys, zs, as, bs)
     ds.model.toString should be ("(_1, _2, _3) -> (a, b)")
-    ds.model match {
+    inside(ds.model) {
       case Function(Tuple(x: Scalar, y: Scalar, z: Scalar), Tuple(a: Scalar, b: Scalar)) =>
         x.valueType should be (CharValueType)
         y.valueType should be (IntValueType)

@@ -35,6 +35,7 @@ class OrderingSpec extends AnyFlatSpec {
 
     samples.sorted(totalOrdering).map {
       case Sample(_, RangeData(Integer(x))) => x
+      case _ => fail()
     } should be (List(1,2,3,4))
   }
 
@@ -44,9 +45,11 @@ class OrderingSpec extends AnyFlatSpec {
     val smap = mutable.SortedMap[DomainData, RangeData]()(ordering)
     samples.foreach {
       case Sample(dd, rd) => smap += (dd -> rd)
+      case _ => fail()
     }
     smap.map {
       case Sample(_, RangeData(Integer(x))) => x
+      case _ => fail()
     } should be (List(1,2,3,4))
   }
 }

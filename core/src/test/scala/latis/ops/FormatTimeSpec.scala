@@ -2,6 +2,7 @@ package latis.ops
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
+import org.scalatest.Inside.inside
 
 import latis.data._
 import latis.metadata.Metadata
@@ -41,7 +42,7 @@ class FormatTimeSpec extends AnyFlatSpec {
   it should "format a numeric time variable" in {
     val f = formatTime.mapFunction(numericTime)
     val sample = Sample(DomainData(), RangeData(14))
-    f(sample) match {
+    inside(f(sample)) {
       case Sample(_, RangeData(Text(t))) =>
         t should be("2020-015")
     }
@@ -50,7 +51,7 @@ class FormatTimeSpec extends AnyFlatSpec {
   it should "format a text time variable" in {
     val f = formatTime.mapFunction(textTime)
     val sample = Sample(DomainData(), RangeData("2020-01-15"))
-    f(sample) match {
+    inside(f(sample)) {
       case Sample(_, RangeData(Text(t))) =>
         t should be("2020-015")
     }
@@ -63,7 +64,7 @@ class FormatTimeSpec extends AnyFlatSpec {
     )
     val f = formatTime.mapFunction(model)
     val sample = Sample(DomainData("2020-01-15"), RangeData(14))
-    f(sample) match {
+    inside(f(sample)) {
       case Sample(DomainData(Text(t1)), RangeData(Text(t2))) =>
         t1 should be("2020-015")
         t2 should be("2020-015")

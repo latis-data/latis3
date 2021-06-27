@@ -19,7 +19,7 @@ final class FdmlParserSpec extends AnyFlatSpec {
 
   "An FDML parser" should "parse a valid FDML file" in
     withFdmlFile("fdml-parser/valid.fdml") { fdml =>
-      inside(fdml.right.value) { case DatasetFdml(metadata, source, adapter, model, operations) =>
+      inside(fdml.fold(throw _, identity)) { case DatasetFdml(metadata, source, adapter, model, operations) =>
         metadata.properties should contain ("id" -> "valid")
         metadata.properties should contain ("title" -> "Valid Dataset")
         metadata.properties should not contain key ("xsi:noNamespaceSchemaLocation")
@@ -51,18 +51,18 @@ final class FdmlParserSpec extends AnyFlatSpec {
             inside(domain) { case FTuple(fst, snd, rest, attrs) =>
               attrs should contain ("id" -> "inner_domain")
 
-              inside(fst) { case FScalar(id, ty, attrs) =>
+              inside(fst) { case FScalar(id, ty, _) =>
                 id should equal (id"a")
                 ty should equal (IntValueType)
               }
 
-              inside(snd) { case FScalar(id, ty, attrs) =>
+              inside(snd) { case FScalar(id, ty, _) =>
                 id should equal (id"b")
                 ty should equal (DoubleValueType)
               }
 
               rest should have length 1
-              inside(rest) { case FScalar(id, ty, attrs) :: Nil =>
+              inside(rest) { case FScalar(id, ty, _) :: Nil =>
                 id should equal (id"c")
                 ty should equal (StringValueType)
               }
@@ -71,18 +71,18 @@ final class FdmlParserSpec extends AnyFlatSpec {
             inside(range) { case FTuple(fst, snd, rest, attrs) =>
               attrs should contain ("id" -> "inner_range")
 
-              inside(fst) { case FScalar(id, ty, attrs) =>
+              inside(fst) { case FScalar(id, ty, _) =>
                 id should equal (id"d")
                 ty should equal (IntValueType)
               }
 
-              inside(snd) { case FScalar(id, ty, attrs) =>
+              inside(snd) { case FScalar(id, ty, _) =>
                 id should equal (id"e")
                 ty should equal (DoubleValueType)
               }
 
               rest should have length 1
-              inside(rest) { case FScalar(id, ty, attrs) :: Nil =>
+              inside(rest) { case FScalar(id, ty, _) :: Nil =>
                 id should equal (id"f")
                 ty should equal (StringValueType)
               }
@@ -192,11 +192,11 @@ final class FdmlParserSpec extends AnyFlatSpec {
     withFdmlFile("fdml-parser/granule-append.fdml") {
       case Left(err)   => fail(err.message)
       case Right(fdml) =>
-        inside(fdml) { case GranuleAppendFdml(metadata, source, adapter, model, ops) =>
+        inside(fdml) { case GranuleAppendFdml(metadata, source, adapter, model, _) =>
           metadata.properties should contain ("id" -> "granuleAppend")
 
           inside(source) { case FdmlSource(granuleFdml) =>
-            inside(granuleFdml) { case DatasetFdml(metadata, source, adapter, model, _) =>
+            inside(granuleFdml) { case DatasetFdml(_, source, adapter, model, _) =>
               inside(source) { case UriSource(uri) =>
                 uri.toString() should equal ("file:///source")
               }

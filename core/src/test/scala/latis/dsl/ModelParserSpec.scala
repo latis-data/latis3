@@ -5,6 +5,7 @@ import atto.Atto._
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
+import org.scalatest.Inside.inside
 
 import latis.metadata.Metadata
 import latis.model.DataType
@@ -51,7 +52,7 @@ class ModelParserSpec extends AnyFlatSpec {
   }
 
   it should "parse a nested tuple" in {
-    ModelParser.unsafeParse("(a, (b, c))") match {
+    inside(ModelParser.unsafeParse("(a, (b, c))")) {
       case Tuple(a: Scalar, Tuple(b: Scalar, c: Scalar)) =>
         a.id.get should be (id"a")
         b.id.get should be (id"b")
@@ -60,7 +61,7 @@ class ModelParserSpec extends AnyFlatSpec {
   }
 
   ignore should "parse a function in a tuple" in {
-    ModelParser.unsafeParse("(a, b -> c)") match {
+    inside(ModelParser.unsafeParse("(a, b -> c)")) {
       case Tuple(a: Scalar, Function(b: Scalar, c: Scalar)) =>
         a.id.get should be (id"a")
         b.id.get should be (id"b")
@@ -121,7 +122,7 @@ class ModelParserSpec extends AnyFlatSpec {
   }
 
   it should "make an exception for an invalid model expression" in {
-    ModelParser.parse("a <- b") match {
+    inside(ModelParser.parse("a <- b")) {
       case Left(le: LatisException) =>
         le.message.take(6) should be("Failed")
     }
@@ -148,7 +149,7 @@ class ModelParserSpec extends AnyFlatSpec {
    * Partially apply with a parser to get a function that takes the string you
    * want to parse and the thing you expect to get back
    */
-  private def testParser[A](p: Parser[A])(s: String, d: A): Unit = p.parseOnly(s) match {
+  private def testParser[A](p: Parser[A])(s: String, d: A): Any = p.parseOnly(s) match {
     case ParseResult.Done(_, result: DataType) => result should equal(d)
     case ParseResult.Done(_, result)           => result should be(d)
     case ParseResult.Fail(_, _, m)             => fail(s"$m in $s")
