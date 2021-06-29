@@ -4,6 +4,8 @@ import java.net.URI
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 
+import scala.util._
+
 import cats.effect.IO
 import cats.syntax.all._
 import doobie._
@@ -34,6 +36,7 @@ case class JdbcAdapter(
   //TODO: Support timestamp (and other non-numeric time) database column type.
   //      The query builder can handle this but not the result parsing.
   //TODO: disallow custom ordering for JDBC datasets, except descending
+  //TODO: lift exceptions into error channel so we can decide to drop or fail later
 
   override def canHandleOperation(op: Operation): Boolean = op match {
     // Assumes operation has already been deemed valid for the model
@@ -96,86 +99,110 @@ case class JdbcAdapter(
 
 
   def getData(baseUri: URI, ops: Seq[Operation]): Data = {
+    // Need UnaryOperations, TODO: fix Adapter definition
     val uops: List[UnaryOperation] = ops.toList.collect {
       case uop: UnaryOperation => uop
     }
 
+    // Get the projected Scalars
+    val scalars = getAllProjectedScalars(uops)
+
+    // Pair variables with column index and data to try to use for nulls.
+    // Note that a ResultSet uses 1-based indexing.
+    // If a database column is nullable, the missingValue in the metadata
+    // should be set to "null". We can use fillValue as an alternative until
+    // we have ReplaceMissing support (which could be handled here).
+    // Otherwise a null will result in an exception.
+    // This prevents NullData from sneaking into the dataset.
+    val scalarsWithColumnAndTryFill: Seq[(Scalar, Int, Try[Data])] =
+      scalars.zipWithIndex.map { case (scalar, index) =>
+        val fill: Try[Data] = scalar.metadata.getProperty("missingValue") match {
+          case Some("null")             => Success(NullData)
+          case _ if (scalar.isFillable) => Success(scalar.fillData) //TODO: require ReplaceMissing?
+          case _                        => Failure(LatisException("Unexpected null value"))
+        }
+        (scalar, index + 1, fill)
+      }
+
+    // Get the number of domain variables to help construct Sample later.
+    val domainCount = getProjectedDomainCount(uops)
+
     // This escapes to raw JDBC for efficiency.
     def getNextChunkSamples(chunkSize: Int): ResultSetIO[Seq[Sample]] =
       FRS.raw { rs =>
-        var n            = chunkSize
-        val rowBuilder   = Vector.newBuilder[Seq[Datum]]
-        val datumBuilder = Vector.newBuilder[Datum]
+        var n           = chunkSize
+        val rowBuilder  = Vector.newBuilder[Seq[Data]]
+        val dataBuilder = Vector.newBuilder[Data]
         while (n > 0 && rs.next) {
-          getAllProjectedScalars(uops).zipWithIndex.foreach {
-            case (scalar, index) =>
-              val colIndex = index + 1 //ResultSet uses 1-based index
-              val datum: Datum = scalar.valueType match {
-                //TODO: deal with java.sql.Types.TIMESTAMP
-                //      rs.getTimestamp(name, gmtCalendar).getTime will be native ms
+          scalarsWithColumnAndTryFill.foreach {
+            case (scalar, colIndex, fill) =>
+              //TODO: deal with java.sql.Types.TIMESTAMP
+              //      rs.getTimestamp(name, gmtCalendar).getTime will be native ms
+              val data: Data = scalar.valueType match {
                 case BooleanValueType =>
                   val v = rs.getBoolean(colIndex)
-                  if (rs.wasNull()) scalar.fillValue
+                  if (rs.wasNull()) fill.get
                   else BooleanValue(v)
                 case ByteValueType =>
                   val v = rs.getByte(colIndex)
-                  if (rs.wasNull()) scalar.fillValue
+                  if (rs.wasNull()) fill.get
                   else ByteValue(v)
                 case CharValueType =>
                   val v = rs.getByte(colIndex)
-                  if (rs.wasNull()) scalar.fillValue
+                  if (rs.wasNull()) fill.get
                   else CharValue(v.toChar) //TODO: but java char is 2 bytes
                 case ShortValueType =>
                   val v = rs.getShort(colIndex)
-                  if (rs.wasNull()) scalar.fillValue
+                  if (rs.wasNull()) fill.get
                   else ShortValue(v)
                 case IntValueType =>
                   val v = rs.getInt(colIndex)
-                  if (rs.wasNull()) scalar.fillValue
+                  if (rs.wasNull()) fill.get
                   else IntValue(v)
                 case LongValueType =>
                   val v = rs.getLong(colIndex)
-                  if (rs.wasNull()) scalar.fillValue
+                  if (rs.wasNull()) fill.get
                   else LongValue(v)
                 case FloatValueType =>
                   val v = rs.getFloat(colIndex)
-                  if (rs.wasNull()) scalar.fillValue
+                  if (rs.wasNull()) fill.get
                   else FloatValue(v)
                 case DoubleValueType =>
                   val v = rs.getDouble(colIndex)
-                  if (rs.wasNull()) scalar.fillValue
+                  if (rs.wasNull()) fill.get
                   else DoubleValue(v)
                 case BinaryValueType =>
                   val v = rs.getBytes(colIndex)
-                  if (rs.wasNull()) scalar.fillValue
+                  if (rs.wasNull()) fill.get
                   else BinaryValue(v)
                 case StringValueType =>
                   val v = rs.getString(colIndex)
-                  if (rs.wasNull()) scalar.fillValue
+                  if (rs.wasNull()) fill.get
                   else StringValue(v)
                 case BigIntValueType =>
                   //Use Long in lieu of direct support for BigInt
                   val v = rs.getLong(colIndex)
-                  if (rs.wasNull()) scalar.fillValue
+                  if (rs.wasNull()) fill.get
                   else BigIntValue(v)
                 case BigDecimalValueType =>
                   val v = rs.getBigDecimal(colIndex)
-                  if (rs.wasNull()) scalar.fillValue
+                  if (rs.wasNull()) fill.get
                   else BigDecimalValue(v)
               }
-              datumBuilder += datum
+              dataBuilder += data
           }
-          rowBuilder += datumBuilder.result()
-          datumBuilder.clear()
+          rowBuilder += dataBuilder.result()
+          dataBuilder.clear()
           n -= 1
         }
 
-        // Build Samples, account for projections
-        val domainCount = getProjectedDomainCount(uops)
+        // Build Samples
         rowBuilder.result().map { row =>
-          //Apply operations to model then count non-Index domain variables
-          val (dd, rd) = row.splitAt(domainCount)
-          Sample(dd, rd)
+          val (domain, range) = row.splitAt(domainCount) match { case (ds, rs) =>
+            val domainDatums = ds.collect { case d: Datum => d} //Should have no NullData in domain
+            (DomainData(domainDatums), RangeData(rs))
+          }
+          Sample(domain, range)
         }
       }
 

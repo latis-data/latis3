@@ -193,15 +193,19 @@ sealed trait DataType extends MetadataLike with Serializable {
     go(this.flatten, id.asString, List.empty)
   }
 
-  //TODO: beef up
-  def fillValue: Data = Data.fromSeq(getFillValue(this, Seq.empty))
+  /** Makes fill data for this data type. */
+  def fillData: Data = Data.fromSeq(getFillData(this, Seq.empty))
 
-  private def getFillValue(dt: DataType, acc: Seq[Data]): Seq[Data] = dt match {
-    case s: Scalar      => acc :+ s.fillValue
-    case Tuple(es @ _*) => es.flatMap(getFillValue(_, acc))
-    case _: Function =>
-      val msg = "Can't make fill values for Function, yet."
-      throw LatisException(msg)
+  /** Recursive helper function */
+  private def getFillData(dt: DataType, acc: Seq[Data]): Seq[Data] = dt match {
+    case s: Scalar => acc :+
+      s.metadata.getProperty("fillValue").orElse {
+        s.metadata.getProperty("missingValue")
+      }.map { fv =>
+        s.parseValue(fv).fold(throw _, identity)  //TODO: validate earlier
+      }.getOrElse(NullData)
+    case Tuple(es @ _*) => es.flatMap(getFillData(_, acc))
+    case _: Function => acc :+ NullData
   }
 }
 
@@ -216,8 +220,6 @@ class Scalar(val metadata: Metadata) extends DataType {
   //TODO: construct with type ..., use smart constructor to build from Metadata,
   //      or type safe Metadata
 
-  //import scala.math.Ordering._
-
   // Note, this will fail eagerly if constructing a Scalar
   // with an invalid value type.
   val valueType: ValueType = this("type").map {
@@ -230,50 +232,42 @@ class Scalar(val metadata: Metadata) extends DataType {
     throw new RuntimeException(msg)
   }
 
-  /**
-   * Constructs a Datum to be used as a fill value for this Scalar.
-   *
-   * This will attempt to use the missingValue property in the metadata.
-   * If not defined, it will use the default fill value based on the value type
-   * which could be a NullDatum.
-   */
-  override val fillValue: Datum =
-    metadata.getProperty("missingValue").map { mv =>
-      parseValue(mv).fold(throw _, identity)  //TODO: validate metadata missingValue earlier
-    }.getOrElse(valueType.fillValue)
+  /** Specifies if fillData can be used to replace invalid data. */
+  def isFillable: Boolean = metadata.getProperty("fillValue").nonEmpty
 
   /**
    * Converts a string value into the appropriate Datum type for this Scalar.
-   * If the value fails to parse and a missingValue is defined, the resulting
-   * Datum will encode that missing value.
-   * TODO: reconcile with DataType.fillValue, NullDatum
-   *   https://github.com/latis-data/latis3/issues/146
+   *
+   * If the value fails to parse and a fillValue is explicitly defined in the metadata,
+   * the resulting Datum will encode that fill value. Because this returns a Datum,
+   * NullData ("null") may not be used for fillValue metadata.
    */
   def parseValue(value: String): Either[LatisException, Datum] =
     valueType.parseValue(value).recoverWith { ex =>
-      metadata.getProperty("missingValue")
-        .map(parseValue(_))
-        .getOrElse(Left(ex))
+      if (isFillable) fillData match {
+        // Make sure fill value is not NullData
+        case fv: Datum => fv.asRight
+        case fv => LatisException(s"Invalid fillValue: $fv").asLeft //TODO: validate earlier
+      } else {
+        ex.asLeft
+      }
     }
 
   /**
-   * Returns a string representation of the given Datum.
+   * Returns a string representation of the given Data.
    * This should be used to get a string representation of a Datum
    * instead of Datum.asString so properties of the Scalar, such as
    * precision, can be applied to an otherwise agnostic data value.
    */
-  def formatValue(data: Datum): String = {
+  def formatValue(data: Data): String =
     //TODO: disallow construction of non-real Scalar with precision metadata
     //TODO: validate construction with precision as int >= 0
-    metadata.getProperty("precision").map { p =>
-      data match {
-        case Real(d) => (s"%.${p}f").format(d)
-        case _ => data.asString
-      }
-    }.getOrElse {
-      data.asString
+    (data, metadata.getProperty("precision")) match {
+      case (Real(d), Some(p)) => (s"%.${p}f").format(d)
+      case (d: Datum, _)      => d.asString
+      case (NullData, _)      => "null"
+      case _ => "error" //Tuple and Function data should not show up here
     }
-  }
 
   /**
    * Converts a string value into the appropriate type and units

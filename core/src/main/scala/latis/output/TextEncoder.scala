@@ -70,7 +70,7 @@ class TextEncoder extends Encoder[IO, String] {
 
       case s: Scalar =>
         ds.pop() match {
-          case d: Datum => s.formatValue(d)
+          case d: Data => s.formatValue(d)
           case _ => ??? //bug, inconsistent data
         }
 

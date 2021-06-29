@@ -256,7 +256,7 @@ class ParseValueSuite extends AnyFunSuite {
     val s = Scalar(Metadata(
       "id" -> "a",
       "type" -> "double",
-      "missingValue" -> "NaN"
+      "fillValue" -> "NaN"
     ))
     s.parseValue("word") match {
       case Right(d: Data.DoubleValue) =>

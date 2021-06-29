@@ -13,6 +13,7 @@ import latis.model._
 import latis.ops.Uncurry
 
 class BinaryEncoder extends Encoder[IO, BitVector] {
+  //TODO: deal with NullData, require replaceMissing?
 
   /**
    * Encodes the Stream of Samples from the given Dataset as a Stream

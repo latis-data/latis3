@@ -18,6 +18,7 @@ package object output {
   /** Instance of io.circe.Encoder for Data. */
   implicit val encodeData: CEncoder[Data] = new CEncoder[Data] {
     final def apply(value: Data): Json = value match {
+      case NullData       => Json.Null
       case x: ShortValue  => x.value.asJson
       case x: IntValue    => x.value.asJson
       case x: LongValue   => x.value.asJson

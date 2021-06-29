@@ -9,9 +9,11 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 
 import latis.catalog.FdmlCatalog
+import latis.data.Data
 import latis.data.Sample
 import latis.data.RangeData
 import latis.data.DomainData
+import latis.data.NullData
 import latis.dataset.Dataset
 import latis.util.Identifier.IdentifierStringContext
 
@@ -50,5 +52,14 @@ class JsonEncoderSpec extends AnyFlatSpec {
     val expected = Json.arr(0.asJson, 1.asJson, 1.1.asJson, "a".asJson)
 
     sample should be(expected)
+  }
+
+  it should "encode a NaN as null" in {
+    Double.NaN.asJson.toString() should be("null")
+  }
+
+  it should "encode NullData as null" in {
+    val data: Data = NullData
+    data.asJson.toString() should be("null")
   }
 }

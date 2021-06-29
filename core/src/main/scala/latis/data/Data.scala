@@ -48,6 +48,7 @@ class TupleData private (val elements: Seq[Data]) extends Data {
 
 object TupleData {
   //TODO: prevent tuple of 0 or 1?
+  //TODO: allow construction via fromSeq only?
   //Note, flatten prevents nested TupleData
   def apply(ds: Seq[Data]): TupleData = new TupleData(Data.flatten(ds))
   def apply(d: Data, ds: Data*): TupleData = TupleData(d +: ds)
@@ -125,10 +126,16 @@ trait Datum extends Any with Data {
   def asString: String = value.toString
 }
 
-// Used for default fillValue, bad RDD key
-object NullDatum extends Datum with Serializable {
-  def value = null
-  override def asString: String = "null"
+/**
+ * Defines Data that can be used as a placeholder for
+ * missing or otherwise invalid data.
+ */
+object NullData extends Data with Serializable {
+  //TODO: does Data really need these?
+  def samples: Stream[IO, (DomainData, RangeData)] = ???
+  def eval(data: DomainData): Either[LatisException, RangeData] = ???
+
+  override def toString: String = "null"
 }
 
 /**
@@ -214,7 +221,7 @@ object Data {
   def fromSeq(ds: Seq[Data]): Data = {
     val flatData = flatten(ds)
     flatData.length match {
-      case 0 => NullDatum //TODO: ok that this is a Datum?
+      case 0 => NullData
       case 1 => ds.head
       case _ => TupleData(ds)
     }

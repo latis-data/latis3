@@ -9,6 +9,7 @@ import latis.dataset._
 import latis.ops.Uncurry
 
 class JsonEncoder extends Encoder[IO, Json] {
+  //TODO: use Scalar.formatValue so we can apply precision...
 
   /**
    * Encodes the Stream of Samples from the given Dataset as a Stream

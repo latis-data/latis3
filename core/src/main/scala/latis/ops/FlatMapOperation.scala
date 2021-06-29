@@ -10,7 +10,7 @@ import latis.model._
 /**
  * Defines an Operation that maps a function of Sample => MemoizedFunction
  * over the data of a Dataset to generate a new Dataset.
- * The MemoizedFunction resulting freom each Sample will be flattened
+ * The MemoizedFunction resulting from each Sample will be flattened
  * into a stream of Samples.
  */
 trait FlatMapOperation extends StreamOperation {

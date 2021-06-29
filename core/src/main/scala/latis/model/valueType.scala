@@ -5,19 +5,42 @@ import scala.util.Try
 
 import latis.data.Data._
 import latis.data.Datum
-import latis.data.NullDatum
 import latis.util.LatisException
 
-// Note, the parsing happens on the type side (as opposed to data)
-// so special Scalar types can override.
-
-//TODO: NumericType...?
-
+/**
+ * A ValueType represents the underlying Scala data type that is
+ * wrapped as a Datum.
+ */
 sealed trait ValueType extends Serializable {
-  def makeDatum(v: Any): Either[LatisException, Datum]
+  /**
+   * Tries to make data of this value type from any value.
+   *
+   * This requires that the value match the value type.
+   * TODO: consider allowing any convertible type.
+   */
+  def makeDatum(value: Any): Either[LatisException, Datum]
+
+  /**
+   * Tries to interpret the given string value as this value type.
+   *
+   * This is used by Scalar.parseValue which should be used
+   * in general for data parsing.
+   */
   def parseValue(value: String): Either[LatisException, Datum]
+
+  /**
+   * Supports returning to this value type after unit conversion which assumes doubles.
+   *
+   * NaN will be converted to 0 for many value types.
+   */
   def convertDouble(value: Double): Option[Datum] = None
-  def fillValue: Datum = NullDatum
+  //TODO: beware silent truncation for overflow
+  //  e.g. Double.MaxValue.toShort = -1
+  //  Int, Long will yield their max value
+  //TODO: consider fill value or null for invalid conversions
+  //TODO: do in Scalar which has more context?
+  //TODO: consider NumericType which can safely be used for math
+
 }
 
 object BooleanValueType extends ValueType {
@@ -30,7 +53,7 @@ object BooleanValueType extends ValueType {
     BooleanValue(value.toBoolean)
   }.toEither.leftMap { t => LatisException(t.getMessage) }
 
-  override def toString: String = "Boolean"
+  override def toString: String = "boolean"
 }
 
 object ByteValueType extends ValueType {
@@ -47,7 +70,7 @@ object ByteValueType extends ValueType {
   override def convertDouble(value: Double): Option[Datum] =
     Some(ByteValue(value.toByte))
 
-  override def toString: String = "Byte"
+  override def toString: String = "byte"
 }
 
 object CharValueType extends ValueType {
@@ -60,7 +83,7 @@ object CharValueType extends ValueType {
     CharValue(value.head)
   }.toEither.leftMap { t => LatisException(t.getMessage) }
 
-  override def toString: String = "Char"
+  override def toString: String = "char"
 }
 
 object ShortValueType extends ValueType {
@@ -77,7 +100,7 @@ object ShortValueType extends ValueType {
   override def convertDouble(value: Double): Option[Datum] =
     Some(ShortValue(value.toShort))
 
-  override def toString: String = "Short"
+  override def toString: String = "short"
 }
 
 object IntValueType extends ValueType {
@@ -94,9 +117,7 @@ object IntValueType extends ValueType {
   override def convertDouble(value: Double): Option[Datum] =
     Some(IntValue(value.toInt))
 
-  override def fillValue: IntValue = IntValue(Int.MaxValue)
-
-  override def toString: String = "Int"
+  override def toString: String = "int"
 }
 
 object LongValueType extends ValueType {
@@ -113,9 +134,7 @@ object LongValueType extends ValueType {
   override def convertDouble(value: Double): Option[Datum] =
     Some(LongValue(value.toLong))
 
-  override def fillValue: LongValue = LongValue(Long.MaxValue)
-
-  override def toString: String = "Long"
+  override def toString: String = "long"
 }
 
 object FloatValueType extends ValueType {
@@ -132,9 +151,7 @@ object FloatValueType extends ValueType {
   override def convertDouble(value: Double): Option[Datum] =
     Some(FloatValue(value.toFloat))
 
-  override def fillValue: FloatValue = FloatValue(Float.NaN)
-
-  override def toString: String = "Float"
+  override def toString: String = "float"
 }
 
 object DoubleValueType extends ValueType {
@@ -151,9 +168,7 @@ object DoubleValueType extends ValueType {
   override def convertDouble(value: Double): Option[Datum] =
     Some(DoubleValue(value))
 
-  override def fillValue: DoubleValue = DoubleValue(Double.NaN)
-
-  override def toString: String = "Double"
+  override def toString: String = "double"
 }
 
 object BinaryValueType extends ValueType {
@@ -166,7 +181,7 @@ object BinaryValueType extends ValueType {
     ??? //TODO: uudecode?
   }.toEither.leftMap { t => LatisException(t.getMessage) }
 
-  override def toString: String = "Binary"
+  override def toString: String = "binary"
 }
 
 object StringValueType extends ValueType {
@@ -180,9 +195,7 @@ object StringValueType extends ValueType {
     StringValue(value)
   }.toEither.leftMap { t => LatisException(t.getMessage) }
 
-  override def fillValue: StringValue = StringValue("")
-
-  override def toString: String = "String"
+  override def toString: String = "string"
 }
 
 object BigIntValueType extends ValueType {
@@ -199,7 +212,7 @@ object BigIntValueType extends ValueType {
   override def convertDouble(value: Double): Option[Datum] =
     Some(BigIntValue(BigInt(value.toLong)))
 
-  override def toString: String = "BigInt"
+  override def toString: String = "bigInt"
 }
 
 object BigDecimalValueType extends ValueType {
@@ -212,10 +225,12 @@ object BigDecimalValueType extends ValueType {
     BigDecimalValue(BigDecimal(value))
   }.toEither.leftMap { t => LatisException(t.getMessage) }
 
-  override def convertDouble(value: Double): Option[Datum] =
-    Some(BigDecimalValue(BigDecimal(value)))
+  override def convertDouble(value: Double): Option[Datum] = {
+    if (value.isNaN) None
+    else Some(BigDecimalValue(BigDecimal(value)))
+  }
 
-  override def toString: String = "BigDecimal"
+  override def toString: String = "bigDecimal"
 }
 
 //ComplexValueType? could use Tuple, but arithmetic would fail;

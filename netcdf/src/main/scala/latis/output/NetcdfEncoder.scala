@@ -42,6 +42,7 @@ import latis.util.LatisException
  * @param file location to write to.
  */
 class NetcdfEncoder(file: File) extends Encoder[IO, File] {
+  //TODO: deal with NullData, require replaceMissing?
   import NetcdfEncoder._
   private val path = file.getAbsolutePath
   private val ncFileWriter: Resource[IO, NetcdfFileWriter] =
