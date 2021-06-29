@@ -387,8 +387,7 @@ class FileListAdapterSpec extends AnyFlatSpec {
       }
     }
 
-    Files.walkFileTree(tmp, visitor)
-    () //return Unit to keep the compiler happy
+    val _ = Files.walkFileTree(tmp, visitor)
   }
 
   private def withFlatDir(f: Path => Any): Any = {

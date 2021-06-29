@@ -35,7 +35,7 @@ case class ConvertTime(scale: TimeScale) extends TimeOperation {
         (d : Datum) => d match {
           case Text(s) =>
             format.parse(s)
-              .map(converter.convert(_))
+              .map(t => converter.convert(t.toDouble))
               .flatMap(Data.fromValue(_))
               .fold(throw _, identity)
           case _ => throw new LatisException(s"Data does not match string value type: $d")

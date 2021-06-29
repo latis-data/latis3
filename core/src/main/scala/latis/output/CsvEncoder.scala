@@ -33,6 +33,7 @@ class CsvEncoder(header: Dataset => Stream[IO, String]) extends Encoder[IO, Stri
    */
   def encodeSample(model: DataType, sample: Sample): String =
     (model, sample) match {
+      //TODO: not exhaustive: See https://github.com/latis-data/latis3/issues/304
       case (Function(domain, range), Sample(ds, rs)) =>
         val scalars = (domain.getScalars ++ range.getScalars).filterNot(_.isInstanceOf[Index])
         val datas   = ds ++ rs
@@ -61,6 +62,7 @@ object CsvEncoder {
 
   def withColumnName: CsvEncoder = {
     def header(dataset: Dataset): String = dataset.model match {
+      //TODO: not exhaustive: See https://github.com/latis-data/latis3/issues/304
       case Function(domain, range) =>
         (domain.getScalars ++ range.getScalars)
           .filterNot(_.isInstanceOf[Index])

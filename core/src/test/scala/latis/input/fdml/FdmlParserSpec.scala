@@ -4,6 +4,7 @@ import org.scalatest.EitherValues._
 import org.scalatest.Inside._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
+import org.scalatest.Assertion
 
 import latis.model.DoubleValueType
 import latis.model.IntValueType
@@ -245,7 +246,7 @@ final class FdmlParserSpec extends AnyFlatSpec {
         }
     }
 
-  private def withFdmlFile(uriStr: String)(f: Either[LatisException, Fdml] => Any): Any =
+  private def withFdmlFile(uriStr: String)(f: Either[LatisException, Fdml] => Assertion): Assertion =
     NetUtils.resolveUri(uriStr) match {
       case Right(uri) => f(FdmlParser.parseUri(uri, false))
       case Left(err)  => cancel(err.getMessage)

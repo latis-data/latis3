@@ -15,7 +15,8 @@ case class HeadAggregation() extends Aggregation {
   def aggregateFunction(model: DataType): Iterable[Sample] => Data =
     (samples: Iterable[Sample]) =>
       if (samples.isEmpty) applyToModel(model).fold(throw _, identity) match {
-        case f: Function => SeqFunction(Seq.empty) //can't fill Function, use empty
+        //can't fill Function, use empty //TODO: NullData? not for outer function?
+        case _: Function => SeqFunction(Seq.empty)
         case dt => dt.fillData
       }
       else Data.fromSeq(samples.head.range)

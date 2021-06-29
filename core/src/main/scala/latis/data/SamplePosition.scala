@@ -7,9 +7,9 @@ package latis.data
  * Positions in the range can point to a nested SampledFunction so we need a
  * SamplePath (Seq[SamplePosition]) to locate a variable in the model.
  */
-trait SamplePosition
+sealed trait SamplePosition
 
 //TODO: enforce no negative values
-case class DomainPosition(i: Int) extends SamplePosition
+final case class DomainPosition(i: Int) extends SamplePosition
 
-case class RangePosition(i: Int) extends SamplePosition
+final case class RangePosition(i: Int) extends SamplePosition

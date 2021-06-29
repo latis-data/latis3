@@ -26,6 +26,7 @@ case class Projection(ids: Identifier*) extends MapOperation {
 
   /** Recursive method to apply the projection. */
   private def applyToVariable(v: DataType): Option[DataType] = v match {
+    //TODO: make exhaustive (https://github.com/latis-data/latis3/issues/304)
     case s: Scalar =>
       if (s.id.exists(id => ids.contains(id))) Some(s) else None
     case Tuple(vars @ _*) =>
@@ -47,7 +48,7 @@ case class Projection(ids: Identifier*) extends MapOperation {
             case None => Some(Function(makeIndex(domain), domain))
           }
         // Not all domain variables projected.
-        case Some(d) =>
+        case Some(_) =>
           //TODO: Move remaining vars to range and replace domain with single index.
           throw LatisException("Partial domain projection not yet supported.")
         // No domain variable projected
@@ -64,7 +65,7 @@ case class Projection(ids: Identifier*) extends MapOperation {
     // Get the sample positions of the projected variables.
     // Assumes Scalar projection only, for now.
     // Does not support nested Function, for now.
-    val (dpos, rpos): (List[SamplePosition], List[SamplePosition]) = model
+    val positions = model
       .getScalars                //start here so we preserve variable order
       .map(_.id.get)
       .filter(ids.contains(_))   //keep the projected ids
@@ -73,7 +74,15 @@ case class Projection(ids: Identifier*) extends MapOperation {
         case p :: Nil => p
         case _ :: _   => throw LatisException("Can't project within nested Function.")
         case _        => ??? //shouldn't happen
-      }.partition(_.isInstanceOf[DomainPosition])
+      }
+    // Separate domain and range positions
+    val (dpos, rpos): (List[DomainPosition], List[RangePosition]) =
+      positions.foldLeft((List[DomainPosition](), List[RangePosition]())) {
+        (p, pos) => pos match {
+          case dp: DomainPosition => ((p._1 :+ dp), p._2)
+          case rp: RangePosition => (p._1, (p._2 :+ rp))
+        }
+      }
 
     val domainIndices: List[Int] = dpos.map {
       case DomainPosition(i) => i
@@ -83,13 +92,11 @@ case class Projection(ids: Identifier*) extends MapOperation {
     }
 
     if (rangeIndices.isEmpty) {
-      (sample: Sample) => sample match {
-        case Sample(ds, rs) => Sample(DomainData(), domainIndices.map(ds))
-      }
+      (sample: Sample) =>
+        Sample(DomainData(), domainIndices.map(sample.domain))
     } else {
-      (sample: Sample) => sample match {
-        case Sample(ds, rs) => Sample(domainIndices.map(ds), rangeIndices.map(rs))
-      }
+      (sample: Sample) =>
+        Sample(domainIndices.map(sample.domain), rangeIndices.map(sample.range))
     }
   }
 

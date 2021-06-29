@@ -1,5 +1,7 @@
 package latis.model
 
+import scala.annotation.nowarn
+
 import cats.syntax.all._
 import scala.util.Try
 
@@ -33,7 +35,7 @@ sealed trait ValueType extends Serializable {
    *
    * NaN will be converted to 0 for many value types.
    */
-  def convertDouble(value: Double): Option[Datum] = None
+  def convertDouble(@nowarn("cat=unused") value: Double): Option[Datum] = None
   //TODO: beware silent truncation for overflow
   //  e.g. Double.MaxValue.toShort = -1
   //  Int, Long will yield their max value

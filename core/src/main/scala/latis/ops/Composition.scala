@@ -34,6 +34,7 @@ case class Composition(dataset: Dataset) extends MapRangeOperation {
         case mds: MemoizedDataset => DomainData.fromData(data).flatMap { dd =>
           mds.data.eval(dd).map(Data.fromSeq(_))
         }
+        case _ => throw LatisException("Invalid dataset for composition")
     }
     (input: Data) =>
       f(input) match {

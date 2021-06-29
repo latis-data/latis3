@@ -25,11 +25,13 @@ case class Uncurry() extends FlatMapOperation {
 
     // Recursive helper function to restructure the model
     def go(dt: DataType): Unit = dt match {
+      //TODO: not exhaustive: See https://github.com/latis-data/latis3/issues/304
       case dt: Scalar     => rs += dt
       case Tuple(es @ _*) => es.foreach(go)
       case Function(d, r) =>
         //flatten tuples, instead of recursing on domain (no nested functions)
         d match {
+          //TODO: not exhaustive: See https://github.com/latis-data/latis3/issues/304
           case Tuple(es @ _*) => ds ++= es
           case _: Scalar      => ds += d
         }
@@ -66,16 +68,16 @@ case class Uncurry() extends FlatMapOperation {
    * Functions are not within a Tuple.
    */
   def flatMapFunction(model: DataType): Sample => MemoizedFunction = {
-    case s @ Sample(ds, rs) =>
+    (sample: Sample) =>
       //TODO: recurse for deeper nested functions
       //TODO: allow function in tuple
-      rs match {
+      sample.range match {
         case ((sf: MemoizedFunction) :: Nil) => //one function in range
-          val samples = sf.sampleSeq.map {
-            case Sample(ds2, rs2) => Sample(ds ++ ds2, rs2)
+          val samples = sf.sampleSeq.map { s =>
+            Sample(sample.domain ++ s.domain, s.range)
           }
           SampledFunction(samples)
-        case _ => SampledFunction(Seq(s)) //no-op if range is not a Function
+        case _ => SampledFunction(Seq(sample)) //no-op if range is not a Function
       }
   }
 

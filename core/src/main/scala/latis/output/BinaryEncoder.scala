@@ -6,8 +6,9 @@ import scodec.{Encoder => SEncoder, _}
 import scodec.Codec
 import scodec.bits._
 import scodec.stream.StreamEncoder
-import latis.data.Data._
+
 import latis.data._
+import latis.data.Data._
 import latis.dataset._
 import latis.model._
 import latis.ops.Uncurry
@@ -32,6 +33,7 @@ class BinaryEncoder extends Encoder[IO, BitVector] {
   def sampleEncoder(model: DataType): SEncoder[Sample] = new SEncoder[(DomainData, RangeData)] {
     def encode(sample: (DomainData, RangeData)): Attempt[BitVector] =
     (model, sample) match {
+      //TODO: not exhaustive: See https://github.com/latis-data/latis3/issues/304
       case (Function(domain, range), Sample(ds, rs)) =>
         val scalars = (domain.getScalars ++ range.getScalars).filterNot(_.isInstanceOf[Index])
         val datas   = ds ++ rs

@@ -13,7 +13,7 @@ case class Stride(stride: Seq[Int]) extends Filter {
 
   def predicate(model: DataType): Sample => Boolean = {
     var count = -1
-    (sample: Sample) => {
+    (_: Sample) => {
       count = count + 1
       if (count % stride.head == 0) true
       else false

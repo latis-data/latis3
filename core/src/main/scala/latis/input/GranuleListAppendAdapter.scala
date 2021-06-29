@@ -2,6 +2,8 @@ package latis.input
 
 import java.net.URI
 
+import scala.annotation.nowarn
+
 import cats.implicits._
 import cats.effect.IO
 import fs2.Stream
@@ -29,8 +31,7 @@ final class GranuleListAppendAdapter(granules: Dataset, template: URI => Dataset
 
   /** Gets data using this adapter. */
   def getData(
-    @annotation.nowarn("msg=never used")
-    ops: Seq[Operation]
+    @nowarn("cat=unused") ops: Seq[Operation]
   ): SampledFunction = {
     val samples: Stream[IO, Sample] = for {
       sample <- granules.samples

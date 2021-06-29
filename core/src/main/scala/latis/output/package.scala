@@ -10,9 +10,7 @@ package object output {
 
   /** Instance of io.circe.Encoder for Sample. */
   implicit val encodeSample: CEncoder[Sample] = new CEncoder[Sample] {
-    final def apply(s: Sample): Json = s match {
-      case Sample(ds, rs) => (ds ++ rs).asJson
-    }
+    final def apply(s: Sample): Json = (s.domain ++ s.range).asJson
   }
 
   /** Instance of io.circe.Encoder for Data. */

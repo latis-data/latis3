@@ -30,6 +30,7 @@ case class ComputationalDataset(
    */
   override def toString: String = model match {
     case Function(domain, range) => s"$id: $domain => $range"
+    case _ => throw LatisException("ComputationalDataset model must be a Function")
   }
 
   //TODO: need SampledDataset to do things this can't

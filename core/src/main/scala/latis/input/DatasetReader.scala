@@ -3,6 +3,7 @@ package latis.input
 import java.net.URI
 import java.util.ServiceLoader
 
+import scala.annotation.nowarn
 import scala.jdk.CollectionConverters._
 
 import latis.dataset.Dataset
@@ -18,9 +19,11 @@ import latis.util.LatisException
  * the ServiceProvider mechanism (with an entry in META-INF/services).
  */
 trait DatasetReader {
+
   def model: DataType
-  @annotation.nowarn("msg=never used")
-  def canRead(uri: URI): Boolean = false
+
+  def canRead(@nowarn("cat=unused") uri: URI): Boolean = false
+
   def read(uri: URI): Dataset
 }
 
