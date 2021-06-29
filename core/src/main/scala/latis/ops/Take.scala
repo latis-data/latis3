@@ -10,7 +10,7 @@ import latis.util.LatisException
 
 class Take private (val n: Int) extends StreamOperation {
 
-  def pipe(model: DataType): Pipe[IO, Sample, Sample] = in => in.take(n)
+  def pipe(model: DataType): Pipe[IO, Sample, Sample] = in => in.take(n.toLong)
 
   def applyToModel(model: DataType): Either[LatisException, DataType] =
     model.asRight

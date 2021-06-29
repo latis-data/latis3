@@ -59,8 +59,8 @@ abstract class DatasetTestSuite extends AnyFunSuite {
         .samples.compile.toList
     } yield {
       samples.headOption match {
-        case Some(Sample(domain, range)) =>
-          (domain ++ range).collect {
+        case Some(sample) =>
+          (sample.domain ++ sample.range).collect {
             case d: Datum => d
             case _: SampledFunction => fail("Equality test on Function not supported")
           }.map(_.value) should be (values)

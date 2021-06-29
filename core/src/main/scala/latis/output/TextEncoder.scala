@@ -50,18 +50,19 @@ class TextEncoder extends Encoder[IO, String] {
    * Given a Sample and its data model, creates a Stream of Strings.
    */
   private[output] def encodeSample(model: DataType, sample: Sample): String =
-    (model, sample) match {
-      case (Function(domain, range), Sample(ds, rs)) =>
+    model match {
+      case Function(domain, range) =>
         " " * functionIndent +
-          s"${encodeData(domain, ds)} -> ${encodeData(range, rs)}"
-      case (_, Sample(_, rs)) =>
-        encodeData(model, rs)
+          s"${encodeData(domain, sample.domain)} -> ${encodeData(range, sample.range)}"
+      case _ =>
+        encodeData(model, sample.range)
     }
 
   private[output] def encodeData(model: DataType, data: Seq[Data]): String = {
     val ds = scala.collection.mutable.Stack(data: _*)
 
     def go(dt: DataType): String = dt match {
+      //TODO: not exhaustive: See https://github.com/latis-data/latis3/issues/304
       //TODO: error if ds is empty
 
       case i: latis.model.Index =>

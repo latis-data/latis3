@@ -5,6 +5,7 @@ import atto.Atto._
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
+import org.scalatest.Assertion
 import org.scalatest.Inside.inside
 
 import latis.metadata.Metadata
@@ -149,7 +150,7 @@ class ModelParserSpec extends AnyFlatSpec {
    * Partially apply with a parser to get a function that takes the string you
    * want to parse and the thing you expect to get back
    */
-  private def testParser[A](p: Parser[A])(s: String, d: A): Any = p.parseOnly(s) match {
+  private def testParser[A](p: Parser[A])(s: String, d: A): Assertion = p.parseOnly(s) match {
     case ParseResult.Done(_, result: DataType) => result should equal(d)
     case ParseResult.Done(_, result)           => result should be(d)
     case ParseResult.Fail(_, _, m)             => fail(s"$m in $s")

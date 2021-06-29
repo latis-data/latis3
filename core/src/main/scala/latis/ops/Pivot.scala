@@ -54,6 +54,7 @@ case class Pivot(values: Seq[String], vids: Seq[String]) extends MapOperation {
     case Sample(domain, RangeData(mf: MemoizedFunction)) =>
       val scalar = model match {
         case Function(_, Function(s: Scalar, _)) => s
+        case _ => throw LatisException("Invalid DataType for Pivot")
       }
       // Eval nested Function at each requested value.
       val range = values.flatMap { value =>
@@ -64,6 +65,7 @@ case class Pivot(values: Seq[String], vids: Seq[String]) extends MapOperation {
         rangeValues.fold(throw _, identity)
       }
       Sample(domain, RangeData(range))
+    case _ => throw LatisException("Invalid Sample for Pivot")
     //TODO: deal with errors?
     //TODO: use Fill interpolation? or nearest-neighbor so users don't need to know exact values
   }

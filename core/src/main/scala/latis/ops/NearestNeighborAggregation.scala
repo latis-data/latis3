@@ -17,8 +17,8 @@ case class NearestNeighborAggregation(domain: DomainData) extends Aggregation {
         case Function(_, r) => r.fillData
         case _ => ??? //TODO: error, model must be a Function
       } else {
-        val sample = samples.minBy {
-          case Sample(dd, _) => DomainData.distance(domain, dd)
+        val sample = samples.minBy { sample =>
+          DomainData.distance(domain, sample.domain)
         }
         Data.fromSeq(sample.range)
       }

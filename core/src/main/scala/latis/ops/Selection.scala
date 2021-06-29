@@ -56,6 +56,7 @@ case class Selection(id: Identifier, operator: ast.SelectionOp, value: String) e
 
     (sample: Sample) =>
       sample.getValue(pos) match {
+        //TODO: not exhaustive: Some(Data) See https://github.com/latis-data/latis3/issues/305
         case Some(d: Datum) =>
           ordering
             .tryCompare(d, cdata)

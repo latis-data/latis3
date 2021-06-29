@@ -25,6 +25,7 @@ case class PartiallyAppliedBinaryOperation(
     (dataset match {
       case ad: AdaptedDataset => ad.tap().map(_.data)
       case td: TappedDataset  => td.data.asRight
+      case _ => throw LatisException("Invalid dataset for PartiallyAppliedBinaryOperation")
     }).flatMap(binOp.applyToData(_, data))
   }
 }

@@ -23,7 +23,7 @@ case class StreamFunction(samples: Stream[IO, Sample]) extends SampledFunction {
     val ord: PartialOrdering[DomainData] = ordering.getOrElse(DefaultDomainOrdering)
     //TODO: avoid unsafe run
     StreamUtils.unsafeStreamToSeq(samples.find(s => ord.equiv(s.domain, data))).headOption match {
-      case Some(Sample(_, rd)) => Right(rd)
+      case Some(sample) => Right(sample.range)
       case None =>
         val msg = s"No sample found matching $data"
         Left(LatisException(msg))

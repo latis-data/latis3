@@ -43,13 +43,13 @@ case class Curry(arity: Int = 1) extends GroupOperation {
         case ss => Tuple(ss)
       }
     //case Function(Tuple(es @ _*), _) => Tuple(es.take(arity))
+    case _ => throw LatisException("Invalid DataType for Curry")
   }
 
   def aggregation: Aggregation = {
     val mapOp = new MapOperation {
-      override def mapFunction(model: DataType): Sample => Sample = {
-          case Sample(d, r) => Sample(d.drop(arity), r)
-        }
+      override def mapFunction(model: DataType): Sample => Sample =
+        (sample: Sample) => Sample(sample.domain.drop(arity), sample.range)
 
       // takes the model for the dataset and returns the range of the curried dataset
       override def applyToModel(model: DataType): Either[LatisException, DataType] = model match {
