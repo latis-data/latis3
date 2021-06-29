@@ -14,7 +14,7 @@ import latis.dataset.Dataset
 import latis.model.DataType
 import latis.ops._
 
-abstract class DatasetTestUtils extends AnyFunSuite {
+abstract class DatasetTestSuite extends AnyFunSuite {
 
   val catalog: Catalog
 
