@@ -13,9 +13,9 @@ import latis.model._
 import latis.ops._
 import latis.util.Identifier.IdentifierStringContext
 
-class TestUtilsSuite extends AnyFunSuite {
+class DatasetTestUtilsSuite extends AnyFunSuite {
 
-  val testUtils = new DatasetTestUtils {
+  val testSuite = new DatasetTestSuite {
     val catalog: Catalog = new Catalog {
       def datasets: Stream[IO, Dataset] = Stream.emits{
         List(
@@ -27,28 +27,28 @@ class TestUtilsSuite extends AnyFunSuite {
   }
 
   test("dataset") {
-    testUtils.withDataset(id"foo") { ds =>
+    testSuite.withDataset(id"foo") { ds =>
       assert(ds.id.get.asString == "foo")
     }
   }
 
   test("dataset not found") {
     val x = intercept[TestFailedException]{
-      testUtils.withDataset(id"bar")(_ => ???)
+      testSuite.withDataset(id"bar")(_ => ???)
     }
     assert(x.getMessage == "Dataset not found: bar")
   }
 
   test("dataset with operation") {
     val ops = List(Take(2))
-    testUtils.withDataset(id"foo", ops) { ds =>
+    testSuite.withDataset(id"foo", ops) { ds =>
       val h = ds.metadata.getProperty("history").getOrElse(fail("No history found"))
       assert(h.contains("Take"))
     }
   }
 
   test("match model") {
-    testUtils.matchModel(id"foo") {
+    testSuite.matchModel(id"foo") {
       case Function(x: Scalar, a: Scalar) =>
         assert(x.id.get.asString == "x")
         assert(a.id.get.asString == "a")
@@ -57,7 +57,7 @@ class TestUtilsSuite extends AnyFunSuite {
 
   test("match model with operation") {
     val ops = List(Rename(id"a", id"b"))
-    testUtils.matchModel(id"foo", ops) {
+    testSuite.matchModel(id"foo", ops) {
       case Function(x: Scalar, a: Scalar) =>
         assert(x.id.get.asString == "x")
         assert(a.id.get.asString == "b")
@@ -65,7 +65,7 @@ class TestUtilsSuite extends AnyFunSuite {
   }
 
   test("match first sample") {
-    testUtils.matchFirstSample(id"foo") {
+    testSuite.matchFirstSample(id"foo") {
       case Sample(DomainData(Integer(x)), RangeData(Integer(a))) =>
         assert(x == 0)
         assert(a == 0)
@@ -74,7 +74,7 @@ class TestUtilsSuite extends AnyFunSuite {
 
   test("match first sample with operation") {
     val ops = List(Drop(1))
-    testUtils.matchFirstSample(id"foo", ops) {
+    testSuite.matchFirstSample(id"foo", ops) {
       case Sample(DomainData(Integer(x)), RangeData(Integer(a))) =>
         assert(x == 1)
         assert(a == 1)
@@ -84,7 +84,7 @@ class TestUtilsSuite extends AnyFunSuite {
   test("empty dataset") {
     val ops = List(Drop(10))
     val x = intercept[TestFailedException] {
-      testUtils.matchFirstSample(id"foo", ops)(_ => ???)
+      testSuite.matchFirstSample(id"foo", ops)(_ => ???)
     }
     assert(x.getMessage == "Empty dataset")
   }
@@ -92,13 +92,13 @@ class TestUtilsSuite extends AnyFunSuite {
   test("equals first sample") {
     val ops = List(Drop(1))
     val values = List(1, 1)
-    testUtils.equalsFirstSample(id"foo", ops)(values)
+    testSuite.equalsFirstSample(id"foo", ops)(values)
   }
 
   test("equals fails for nested function") {
     val values = List(0, 0, 0)
     val x = intercept[TestFailedException] {
-      testUtils.equalsFirstSample(id"bar2D")(values)
+      testSuite.equalsFirstSample(id"bar2D")(values)
     }
     assert(x.getMessage() == "Equality test on Function not supported")
   }
