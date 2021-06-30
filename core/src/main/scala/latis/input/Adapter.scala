@@ -2,7 +2,7 @@ package latis.input
 
 import java.net.URI
 
-import scala.annotation.nowarn
+import scala.annotation.unused
 
 import latis.data.Data
 import latis.ops.Operation
@@ -15,7 +15,7 @@ trait Adapter {
   //TODO: add SmartAdapter that takes ops?
   //TODO: require UnaryOperations
 
-  def canHandleOperation(@nowarn("cat=unused") op: Operation): Boolean = false
+  def canHandleOperation(@unused op: Operation): Boolean = false
 
   def getData(baseUri: URI, ops: Seq[Operation] = Seq.empty): Data
 }
