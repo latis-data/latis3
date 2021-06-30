@@ -96,7 +96,7 @@ class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4
         file    <- new NetcdfEncoder(tmpFile.toFile()).encode(ds)
         bytes   <- Files[IO].readAll(file.toPath(), 4096)
       } yield bytes).asRight.map((_, `Content-Type`(MediaType.application.`x-netcdf`)))
-    case "txt"   => new CsvEncoder(_ => Stream()).encode(ds).through(text.utf8Encode).asRight
+    case "txt"   => CsvEncoder().encode(ds).through(text.utf8Encode).asRight
       .map((_, `Content-Type`(MediaType.text.plain)))
     case _       => UnknownExtension(s"Unknown extension: $ext").asLeft
   }
