@@ -79,6 +79,8 @@ class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4
 
   private def encode(ext: String, ds: Dataset): Either[Dap2Error, (Stream[IO, Byte], `Content-Type`)] = ext match {
     case ""     => encode("html", ds)
+    case "asc"  => new TextEncoder().encode(ds).through(text.utf8Encode).asRight
+      .map((_,`Content-Type`(MediaType.text.plain)))
     case "bin"  => new BinaryEncoder().encode(ds).flatMap {
       bits => Stream.emits(bits.toByteArray)
     }.asRight.map((_, `Content-Type`(MediaType.application.`octet-stream`)))
@@ -86,16 +88,15 @@ class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4
       .map((_, `Content-Type`(MediaType.text.csv)))
     case "jsonl" => new JsonEncoder().encode(ds).map(_.noSpaces).intersperse("\n").through(text.utf8Encode).asRight
       .map((_, `Content-Type`(MediaType.unsafeParse("application/jsonl"))))
+    case "meta" => new MetadataEncoder().encode(ds).map(_.noSpaces).through(text.utf8Encode).asRight
+      .map((_,`Content-Type`(MediaType.application.json)))
     case "nc"   =>
       (for {
         tmpFile <- Stream.resource(Files[IO].tempFile(None))
         file    <- new NetcdfEncoder(tmpFile.toFile()).encode(ds)
         bytes   <- Files[IO].readAll(file.toPath(), 4096)
       } yield bytes).asRight.map((_, `Content-Type`(MediaType.application.`x-netcdf`)))
-    case "txt"  => new TextEncoder().encode(ds).through(text.utf8Encode).asRight
-      .map((_,`Content-Type`(MediaType.text.plain)))
-    case "meta" => new MetadataEncoder().encode(ds).map(_.noSpaces).through(text.utf8Encode).asRight
-      .map((_,`Content-Type`(MediaType.application.json)))
+    //TODO: "txt" => headerless CSV
     case _      => UnknownExtension(s"Unknown extension: $ext").asLeft
   }
 
