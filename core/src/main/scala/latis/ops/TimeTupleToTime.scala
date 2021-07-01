@@ -21,7 +21,7 @@ case class TimeTupleToTime(id: Identifier = id"time") extends MapOperation {
     Either.catchOnly[LatisException](model.map {
     case t @ Tuple(es @ _*) if t.id.contains(id) => //TODO: support aliases with hasName?
       //build up format string
-      val format: String = es.toList.traverse(_("units"))
+      val format: String = es.toList.traverse(_.metadata.getProperty("units"))
         .fold(throw LatisException("A time Tuple must have units defined for each element."))(_.mkString(" "))
       //make the time Scalar
       val metadata = t.metadata + ("units" -> format) + ("type" -> "string")

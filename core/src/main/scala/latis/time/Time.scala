@@ -25,7 +25,7 @@ class Time(metadata: Metadata) extends Scalar(metadata) {
   /**
    * Returns the units from the metadata.
    */
-  val units: String = this("units").getOrElse {
+  val units: String = metadata.getProperty("units").getOrElse {
     val msg = "A Time variable must have units."
     throw new RuntimeException(msg)
   }

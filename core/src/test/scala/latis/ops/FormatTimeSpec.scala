@@ -35,8 +35,8 @@ class FormatTimeSpec extends AnyFlatSpec {
   "The FormatTime Operation" should "update the metadata of the time variable" in {
     val newModel = formatTime.applyToModel(numericTime).toTry.get
     //println(newModel.metadata.properties)
-    newModel("type") should be(Some("string"))
-    newModel("units") should be(Some("yyyy-DDD"))
+    newModel.metadata.getProperty("type") should be(Some("string"))
+    newModel.metadata.getProperty("units") should be(Some("yyyy-DDD"))
   }
 
   it should "format a numeric time variable" in {
