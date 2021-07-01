@@ -222,7 +222,7 @@ class Scalar(val metadata: Metadata) extends DataType {
 
   // Note, this will fail eagerly if constructing a Scalar
   // with an invalid value type.
-  val valueType: ValueType = this("type").map {
+  val valueType: ValueType = metadata.getProperty("type").map {
     ValueType.fromName(_) match {
       case Right(v) => v
       case Left(e)  => throw e

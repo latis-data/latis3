@@ -45,7 +45,7 @@ case class NetcdfAdapter(
   override def canHandleOperation(op: Operation): Boolean = op match {
     case Stride(stride) if stride.length == model.arity => true
     case s@Selection(v, _, _) => model.getVariable(v).exists(
-      v => v("cadence").nonEmpty && v("start").nonEmpty) &&
+      v => v.metadata.getProperty("cadence").nonEmpty && v.metadata.getProperty("start").nonEmpty) &&
       (s.operator match {
         case Gt | Lt | GtEq | LtEq | Eq | EqEq | Tilde => true
         case _ => false
@@ -301,7 +301,7 @@ object NetcdfAdapter extends AdapterFactory {
 
     /** Gets a scalar's metadata and converts it to a double. */
     def getMetadataAsDouble(s: Scalar, key: String): Either[LatisException, Double] =
-      s(key) match {
+      s.metadata.getProperty(key) match {
         case Some(v) => Either.catchOnly[NumberFormatException](v.toDouble)
           .leftMap(_ => LatisException(s"$v could not be converted to a double"))
         case _ => Left(LatisException(s"scalar $s does not have $key metadata"))
@@ -398,7 +398,7 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
     def getNcVar(id: Identifier): Option[NcVariable] = {
       val validId = makeValidPathName(
         model.findVariable(id)
-        .flatMap(_("sourceId"))
+        .flatMap(_.metadata.getProperty("sourceId"))
         .getOrElse(id.asString)
       )
       Option(ncDataset.findVariable(validId))

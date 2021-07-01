@@ -56,8 +56,8 @@ class BinaryEncoder extends Encoder[IO, BitVector] {
     case LongValueType    => codecs.int64.xmap[LongValue](LongValue(_), _.value).upcast[Data]
     case FloatValueType   => codecs.float.xmap[FloatValue](FloatValue(_), _.value).upcast[Data]
     case DoubleValueType  => codecs.double.xmap[DoubleValue](DoubleValue(_), _.value).upcast[Data]
-    case StringValueType if (s("size").nonEmpty) =>
-      val size = s("size").get.toLong * 8
+    case StringValueType if (s.metadata.getProperty("size").nonEmpty) =>
+      val size = s.metadata.getProperty("size").get.toLong * 8
       codecs.paddedFixedSizeBits(
         size,
         codecs.utf8,

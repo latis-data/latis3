@@ -36,9 +36,9 @@ class ConvertTimeSpec extends AnyFlatSpec {
   "The ConvertTime Operation" should "update the metadata of the time variable" in {
     val newModel = convertTime.applyToModel(numericTime).toTry.get
     //println(newModel.metadata.properties)
-    newModel("type") should be(Some("double"))
+    newModel.metadata.getProperty("type") should be(Some("double"))
     //Note TimeScale.toString uses default ISO format
-    newModel("units") should be(Some("weeks since 2020-01-08T00:00:00.000Z"))
+    newModel.metadata.getProperty("units") should be(Some("weeks since 2020-01-08T00:00:00.000Z"))
   }
 
   it should "convert a numeric time variable" in {
