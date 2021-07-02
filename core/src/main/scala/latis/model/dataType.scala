@@ -132,7 +132,7 @@ sealed trait DataType extends MetadataLike with Serializable {
     val types = go(this, Seq())
     types.length match {
       case 1 => types.head
-      case _ => 
+      case _ =>
         if (tupIds.split('.').isEmpty) Tuple(types)
         else if (tupIds.split('.').head.isEmpty) Tuple(types)
         else {
@@ -384,20 +384,20 @@ object Function {
    * Tuple only if the Seq has more that one element.
    */
   //TODO: Use Index if one is empty, error if both are empty?
-  def apply(ds: Seq[DataType], rs: Seq[DataType]): Function = {
-    val domain = ds.length match {
-      case 0 => ??? //TODO: Index
-      case 1 => ds.head
-      case _ => Tuple(ds)
-    }
-    val range = rs.length match {
-      case 0 => ??? //TODO: no range, make domain a function of Index
-      case 1 => rs.head
-      case _ => Tuple(rs)
-    }
-
-    Function(domain, range)
-  }
+//  def apply(ds: Seq[DataType], rs: Seq[DataType]): Function = {
+//    val domain = ds.length match {
+//      case 0 => ??? //TODO: Index
+//      case 1 => ds.head
+//      case _ => Tuple(ds)
+//    }
+//    val range = rs.length match {
+//      case 0 => ??? //TODO: no range, make domain a function of Index
+//      case 1 => rs.head
+//      case _ => Tuple(rs)
+//    }
+//
+//    Function(domain, range)
+//  }
 
   /**
    * Extract the domain and range types from a Function as a pair.
