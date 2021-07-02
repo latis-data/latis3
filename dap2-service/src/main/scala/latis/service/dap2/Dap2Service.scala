@@ -42,9 +42,8 @@ class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4
           bytes     = encoding._1
           content   = encoding._2
           response <- Ok(bytes).map(_.withContentType(content))
-        } yield response).handleErrorWith {
+        } yield response).recoverWith {
           case err: Dap2Error => handleDap2Error(err)
-          case _              => InternalServerError()
         }
     }
 
