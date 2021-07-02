@@ -45,6 +45,8 @@ sealed trait ValueType extends Serializable {
 
 }
 
+//TODO: ValueType.Boolean...?
+
 object BooleanValueType extends ValueType {
   def makeDatum(v: Any): Either[LatisException, Datum] = v match {
     case b: Boolean => Right(BooleanValue(b))

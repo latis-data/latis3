@@ -38,7 +38,7 @@ case class Curry(arity: Int = 1) extends GroupOperation {
   def domainType(model: DataType): DataType = model match {
     // Ignore nested tuples
     case Function(d, _) =>
-      d.getScalars.take(arity) match {
+      d.getScalars.take(arity) match { //TODO: fails for nested Tuples in domain
         case s1 :: Nil => s1
         case ss => Tuple(ss)
       }
@@ -55,7 +55,7 @@ case class Curry(arity: Int = 1) extends GroupOperation {
       override def applyToModel(model: DataType): Either[LatisException, DataType] = model match {
         // Ignore nested tuples
         case Function(d, range) =>
-          (d.getScalars.drop(arity) match {
+          (d.getScalars.drop(arity) match { //TODO: fails for nested Tuples in domain
             case Nil => range  // this happens when the arity is not changed
             case s1 :: Nil => Function(s1, range)
             case ss => Function(Tuple(ss), range)
