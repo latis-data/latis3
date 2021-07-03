@@ -19,7 +19,7 @@ class GetPathSuite extends AnyFunSuite {
       Function(d, r)
     }
 
-    assert(func.getPath(id"tup") == Some(List(DomainPosition(0))))
+    assert(func.getPath(id"tup").contains(List(DomainPosition(0))))
   }
 
   test("getPath to nested Tuple in domain") {
@@ -37,7 +37,7 @@ class GetPathSuite extends AnyFunSuite {
       Function(d, r)
     }
 
-    assert(func.getPath(id"tup") == Some(List(DomainPosition(2))))
+    assert(func.getPath(id"tup").contains(List(DomainPosition(2))))
   }
 
   test("getPath to Tuple in range") {
@@ -51,7 +51,7 @@ class GetPathSuite extends AnyFunSuite {
       Function(d, r)
     }
 
-    assert(func.getPath(id"tup") == Some(List(RangePosition(0))))
+    assert(func.getPath(id"tup").contains(List(RangePosition(0))))
   }
 
   test("getPath to nested Tuple in range") {
@@ -69,7 +69,7 @@ class GetPathSuite extends AnyFunSuite {
       Function(d, r)
     }
 
-    assert(func.getPath(id"tup") == Some(List(RangePosition(2))))
+    assert(func.getPath(id"tup").contains(List(RangePosition(2))))
   }
 
   test("getPath to Scalar in nested Tuple in range") {
@@ -87,7 +87,7 @@ class GetPathSuite extends AnyFunSuite {
       Function(d, r)
     }
 
-    assert(func.getPath(id"e") == Some(List(RangePosition(3))))
+    assert(func.getPath(id"e").contains(List(RangePosition(3))))
   }
 
   test("getPath to Scalar in nested Tuple, searching fully qualified ID") {
@@ -105,7 +105,7 @@ class GetPathSuite extends AnyFunSuite {
       Function(d, r)
     }
 
-    assert(func.getPath(id"tup.e") == Some(List(RangePosition(3))))
+    assert(func.getPath(id"tup.e").contains(List(RangePosition(3))))
   }
   
   test("getPath to nonexistent variable") {

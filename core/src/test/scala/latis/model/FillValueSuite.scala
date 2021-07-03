@@ -6,6 +6,7 @@ import org.scalatest.Inside.inside
 import latis.data._
 import latis.metadata.Metadata
 
+//TODO: FillDataSuite
 class FillValueSuite extends AnyFunSuite {
 
   val nonNullableScalar = Scalar(Metadata("id" -> "nns", "type" -> "int"))
