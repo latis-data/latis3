@@ -24,7 +24,7 @@ case class Resample(dset: DomainSet) extends UnaryOperation {
         Left(LatisException("Function domain and domain set must have same dimensions"))
       else Right(f)
     //Data that is not a Function needs domain added to it
-    case d => Right(Function(dset.model, d))
+    case d => Right(Function.from(dset.model, d).fold(throw _, identity))
   }
 
   /**

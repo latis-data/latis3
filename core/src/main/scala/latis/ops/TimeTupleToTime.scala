@@ -31,7 +31,9 @@ case class TimeTupleToTime(id: Identifier = id"time") extends MapOperation {
         "units" -> format,
         "type" -> "string"
       )
-      Time(metadata)
+      //Time(metadata)
+      //TODO: other properties
+      Time(t.id.get, StringValueType)
     case v => v
     })
 
