@@ -1,4 +1,4 @@
-package latis.model
+package latis.modelORIG
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._

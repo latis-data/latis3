@@ -66,7 +66,7 @@ object CsvEncoder {
       case Function(domain, range) =>
         (domain.getScalars ++ range.getScalars)
           .filterNot(_.isInstanceOf[Index])
-          .map(_.id.fold("")(_.asString))
+          .map(_.id.asString)
           .mkString(",")
     }
     CsvEncoder.withHeader(header)

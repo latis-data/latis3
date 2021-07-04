@@ -1,7 +1,7 @@
 package latis.data
 
-import latis.metadata._
 import latis.model._
+import latis.util.Identifier.IdentifierStringContext
 import latis.util.LatisException
 
 //Experimental Int version of LinearSet
@@ -21,8 +21,7 @@ case class IndexSet1D(start: Int, increment: Int, count: Int)
    * Define the model of this DomainSet assuming double value types
    * and a 1-based "_#" naming scheme for variable identifiers.
    */
-  def model: DataType =
-    Scalar(Metadata("id" -> "_1", "type" -> "int"))
+  def model: DataType = Scalar(id"_1", IntValueType)
 
   /**
    * Return the number of values in this DomainSet.

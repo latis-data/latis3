@@ -14,13 +14,13 @@ import latis.util.LatisException
 case class Rename(origId: Identifier, newId: Identifier) extends UnaryOperation {
 
   def applyToModel(model: DataType): Either[LatisException, DataType] = {
-    // TODO: support renaming tuples and functions (findVariable instead of getVariable?)
-    model.getVariable(origId) match {
+    // TODO: support renaming tuples and functions
+    model.findVariable(origId) match {
       case None => Left(LatisException(s"Variable '${origId.asString}' not found"))
-      case _ => Right(model.map { s =>
-        if (s.id.contains(origId)) s.rename(newId)
-        else s
-        //TODO: support aliases with hasName
+      case _ => Right(model.map {
+        //TODO: works for scalars only
+        case s: Scalar => s.rename(newId)
+        case dt => dt
       })
     }
   }

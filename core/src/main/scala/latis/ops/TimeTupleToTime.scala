@@ -3,6 +3,7 @@ package latis.ops
 import cats.syntax.all._
 
 import latis.data._
+import latis.metadata.Metadata
 import latis.model._
 import latis.time.Time
 import latis.util.Identifier
@@ -21,10 +22,15 @@ case class TimeTupleToTime(id: Identifier = id"time") extends MapOperation {
     Either.catchOnly[LatisException](model.map {
     case t @ Tuple(es @ _*) if t.id.contains(id) => //TODO: support aliases with hasName?
       //build up format string
-      val format: String = es.toList.traverse(_.metadata.getProperty("units"))
+      val format: String = es.collect{case s: Scalar => s}.toList.traverse(_.otherProperties.get("units"))
         .fold(throw LatisException("A time Tuple must have units defined for each element."))(_.mkString(" "))
       //make the time Scalar
-      val metadata = t.metadata + ("units" -> format) + ("type" -> "string")
+      //assumes time tuple has id
+      val metadata = Metadata(
+        "id" -> t.id.get.asString,
+        "units" -> format,
+        "type" -> "string"
+      )
       Time(metadata)
     case v => v
     })
@@ -39,7 +45,7 @@ case class TimeTupleToTime(id: Identifier = id"time") extends MapOperation {
       .getOrElse {
         throw new LatisException(s"Cannot find variable: ${id.asString}")
       } match {
-          case t: Tuple => t.flatten match {
+          case t: Tuple => t match { //TODO: was t.flatten
             case tf: Tuple => tf.elements.length //TODO: is this "dimensionality"? Should it be a first class citizen?
             case _ => throw LatisException("Tuple did not flatten to a tuple.")
           }

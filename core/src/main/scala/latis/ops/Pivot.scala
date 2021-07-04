@@ -80,14 +80,14 @@ case class Pivot(values: Seq[String], vids: Seq[String]) extends MapOperation {
         vid <- vids
         s <- r.getScalars
       } yield s.rename({
-          val sId = s.id.fold("")(_.asString)
+          val sId = s.id.asString
           Identifier.fromString(vid ++ "_" ++ sId).getOrElse {
             throw LatisException(s"Could not rename Scalar with invalid identifier: $sId")
           }
         })
       (ranges match {
-        case s1 :: Nil => Function(domain, s1)
-        case ss => Function(domain, Tuple(ss))
+        case s1 :: Nil => Function.from(domain, s1).fold(throw _, identity)
+        case ss => Function.from(domain, Tuple.fromSeq(ss).fold(throw _, identity)).fold(throw _, identity)
       }).asRight
     case _ => Left(LatisException("Invalid DataType"))
   }

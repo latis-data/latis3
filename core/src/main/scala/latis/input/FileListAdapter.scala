@@ -144,10 +144,10 @@ class FileListAdapter(
     }
 
     range match {
-      case (u: Scalar) :: Nil if u.id.contains(id"uri") =>
+      case (u: Scalar) :: Nil if u.id == id"uri" =>
         u.parseValue(uri.toString).map(RangeData(_))
       case (u: Scalar) :: (s: Scalar) :: Nil
-          if u.id.contains(id"uri") && s.id.contains(id"size") => for {
+          if u.id == id"uri" && s.id == id"size" => for {
             uriDatum  <- u.parseValue(uri.toString)
             sizeLong  <- size.toRight {
               // This shouldn't happen. If we have the size scalar in

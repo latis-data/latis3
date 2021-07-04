@@ -8,6 +8,7 @@ import latis.data.Text
 import latis.metadata.Metadata
 import latis.model.Scalar
 import latis.model.StringValueType
+import latis.model.ValueType
 import latis.units.UnitConverter
 import latis.util.Identifier
 import latis.util.LatisException
@@ -15,12 +16,14 @@ import latis.util.LatisException
 /**
  * Time is a Scalar that provides special behavior for formated time values.
  */
-class Time(metadata: Metadata) extends Scalar(metadata) {
+//class Time(metadata: Metadata) extends Scalar(metadata) {
   //TODO: make sure this has the id or alias "time"
   //TODO: validate units eagerly
 
+class Time(id: Identifier, valueType: ValueType) extends Scalar(id, valueType) {
+
   /** Override to preserve type */
-  override def rename(id: Identifier): Time = Time(metadata + ("id" -> id.asString))
+  //override def rename(id: Identifier): Time = Time(metadata + ("id" -> id.asString))
 
   /**
    * Returns the units from the metadata.

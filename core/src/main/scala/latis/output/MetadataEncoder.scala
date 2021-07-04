@@ -41,7 +41,8 @@ object MetadataEncoder {
     new JEncoder[MetadataOnly] {
       def apply(md: MetadataOnly): Json = {
         val datasetMetadata = md.ds.metadata.properties.asJsonObject
-        val variableMetadata = md.ds.model.getScalars.map(_.metadata.properties).asJson
+ //TODO: generate json from scalar properties
+        val variableMetadata = md.ds.model.getScalars.map(_.otherProperties).asJson
         Json.fromJsonObject(
           datasetMetadata
             .add("model", md.ds.model.toString().asJson)

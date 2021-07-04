@@ -114,6 +114,6 @@ trait GroupOperation extends StreamOperation { self =>
    * Aggregation.
    */
   override def applyToModel(model: DataType): Either[LatisException, DataType] =
-    aggregation.applyToModel(model).map(Function(domainType(model), _))
+    aggregation.applyToModel(model).map(Function.from(domainType(model), _).fold(throw _, identity))
     // TODO: preserve metadata from the original function
 }

@@ -1,4 +1,4 @@
-package latis.model2
+package latis.model
 
 import org.scalatest.funsuite.AnyFunSuite
 

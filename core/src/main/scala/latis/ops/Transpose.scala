@@ -27,7 +27,10 @@ class Transpose extends UnaryOperation {
       // Note that special subclasses of the affected Function (e.g. Image) or
       // Tuple (e.g. GeoLocation) will not be preserved.
       //TODO: do we need to munge metadata? e.g. Function shape
-      Function(f.metadata, Tuple(t.metadata, y, x), range).asRight
+      for {
+        tup <- Tuple.fromElements(t.id, y, x)
+        f   <- Function.from(f.id, tup, range)
+      } yield f
     case _ => LatisException("Transpose requires a 2D Function.").asLeft
   }
 
