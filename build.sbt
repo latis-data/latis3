@@ -119,7 +119,7 @@ lazy val `dap2-parser` = project
 lazy val `dap2-service` = project
   .dependsOn(core)
   .dependsOn(`dap2-parser`)
-  .dependsOn(netcdf)
+  //.dependsOn(netcdf)
   .dependsOn(`service-interface`)
   .settings(commonSettings)
   .settings(
@@ -182,18 +182,18 @@ lazy val macros = project
     scalacOptions += "-language:experimental.macros"
   )
 
-lazy val netcdf = project
-  .dependsOn(core)
-  .settings(commonSettings)
-  .settings(
-    name := "latis3-netcdf",
-    libraryDependencies ++= Seq(
-      "edu.ucar"            % "netcdf4"          % netcdfVersion,
-    ),
-    resolvers ++= Seq(
-      "Unidata" at "https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases"
-    )
-  )
+//lazy val netcdf = project
+//  .dependsOn(core)
+//  .settings(commonSettings)
+//  .settings(
+//    name := "latis3-netcdf",
+//    libraryDependencies ++= Seq(
+//      "edu.ucar"            % "netcdf4"          % netcdfVersion,
+//    ),
+//    resolvers ++= Seq(
+//      "Unidata" at "https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases"
+//    )
+//  )
 
 lazy val jdbc = project
   .dependsOn(core)

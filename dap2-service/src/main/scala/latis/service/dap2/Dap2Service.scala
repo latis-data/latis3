@@ -86,12 +86,12 @@ class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4
       .map((_, `Content-Type`(MediaType.text.csv)))
     case "jsonl" => new JsonEncoder().encode(ds).map(_.noSpaces).intersperse("\n").through(text.utf8Encode).asRight
       .map((_, `Content-Type`(MediaType.unsafeParse("application/jsonl"))))
-    case "nc"   =>
-      (for {
-        tmpFile <- Stream.resource(Files[IO].tempFile(None))
-        file    <- new NetcdfEncoder(tmpFile.toFile()).encode(ds)
-        bytes   <- Files[IO].readAll(file.toPath(), 4096)
-      } yield bytes).asRight.map((_, `Content-Type`(MediaType.application.`x-netcdf`)))
+//    case "nc"   =>
+//      (for {
+//        tmpFile <- Stream.resource(Files[IO].tempFile(None))
+//        file    <- new NetcdfEncoder(tmpFile.toFile()).encode(ds)
+//        bytes   <- Files[IO].readAll(file.toPath(), 4096)
+//      } yield bytes).asRight.map((_, `Content-Type`(MediaType.application.`x-netcdf`)))
     case "txt"  => new TextEncoder().encode(ds).through(text.utf8Encode).asRight
       .map((_,`Content-Type`(MediaType.text.plain)))
     case "meta" => new MetadataEncoder().encode(ds).map(_.noSpaces).through(text.utf8Encode).asRight

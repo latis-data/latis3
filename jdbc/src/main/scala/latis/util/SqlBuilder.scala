@@ -45,7 +45,7 @@ case class SqlBuilder(
       val newModel = op.applyToModel(model).fold(throw _, identity)
       val newColumns = {
         //Need to preserve renames
-        val projected = newModel.getScalars.filterNot(_.isInstanceOf[Index]).map(_.id.get.asString)
+        val projected = newModel.getScalars.filterNot(_.isInstanceOf[Index]).map(_.id.asString)
         columns.filter { col =>
           projected.contains(col.rename.getOrElse(col.name))
         }
@@ -125,7 +125,7 @@ object SqlBuilder {
     // We must do it here before they are projected away.
     val order = model match {
       case Function(domain, _) =>
-        domain.getScalars.filterNot(_.isInstanceOf[Index]).map(_.id.get.asString) match {
+        domain.getScalars.filterNot(_.isInstanceOf[Index]).map(_.id.asString) match {
           case Nil  => ""
           case list => list.mkString(" ORDER BY ", ", ", " ASC")
         }
@@ -135,7 +135,7 @@ object SqlBuilder {
     // Define initial SqlBuilder with no operations applied.
     val init: SqlBuilder = SqlBuilder(
       table = table,
-      columns = model.getScalars.filterNot(_.isInstanceOf[Index]).map(s => Column(s.id.get.asString)),
+      columns = model.getScalars.filterNot(_.isInstanceOf[Index]).map(s => Column(s.id.asString)),
       selections = List.empty,
       otherPredicate = otherPredicate,
       limit = None,

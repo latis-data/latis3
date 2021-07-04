@@ -116,8 +116,8 @@ case class JdbcAdapter(
     // This prevents NullData from sneaking into the dataset.
     val scalarsWithColumnAndTryFill: Seq[(Scalar, Int, Try[Data])] =
       scalars.zipWithIndex.map { case (scalar, index) =>
-        val fill: Try[Data] = scalar.metadata.getProperty("missingValue") match {
-          case Some("null")             => Success(NullData)
+        val fill: Try[Data] = scalar.missingValue match {
+          case Some(NullData)           => Success(NullData)
           case _ if (scalar.isFillable) => Success(scalar.fillData) //TODO: require ReplaceMissing?
           case _                        => Failure(LatisException("Unexpected null value"))
         }
