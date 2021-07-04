@@ -1,7 +1,7 @@
 package latis.data
 
-import latis.metadata.Metadata
 import latis.model._
+import latis.util.Identifier.IdentifierStringContext
 import latis.util.LatisException
 
 /**
@@ -58,8 +58,8 @@ object LinearSet2D {
    * Define the model of this DomainSet assuming double value types
    * and a 1-based "_#" naming scheme for variable identifiers.
    */
-  def defaultModel: DataType = Tuple(
-    Scalar(Metadata("id" -> "_1", "type" -> "double")),
-    Scalar(Metadata("id" -> "_2", "type" -> "double"))
-  )
+  def defaultModel: DataType = Tuple.fromElements(
+    Scalar(id"_1", DoubleValueType),
+    Scalar(id"_2", DoubleValueType)
+  ).fold(throw _, identity)
 }

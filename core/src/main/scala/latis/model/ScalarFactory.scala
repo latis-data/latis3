@@ -1,4 +1,4 @@
-package latis.model2
+package latis.model
 
 import cats.syntax.all._
 

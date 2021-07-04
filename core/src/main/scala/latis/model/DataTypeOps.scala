@@ -1,4 +1,4 @@
-package latis.model2
+package latis.model
 
 import cats.syntax.all._
 
@@ -6,6 +6,53 @@ import latis.data._
 import latis.util.Identifier
 
 class DataTypeOps(dataType: DataType) {
+
+  /** Recursively apply f to this DataType. */
+  @deprecated
+  def map(f: DataType => DataType): DataType = this match {
+    case s: Scalar => f(s)
+    case t @ Tuple(es @ _*) => f(Tuple.fromSeq(t.id, es.map(f)).fold(throw _, identity))
+    case func @ Function(d, r) => f(Function.from(func.id, d.map(f), r.map(f)).fold(throw _, identity))
+  }
+
+  /**
+   * Returns a List of Scalars in the (depth-first) order
+   * that they appear in the model.
+   */
+  //TODO: review usage and assumptions about no nested tuples or functions in tuples
+  @deprecated
+  def getScalars: List[Scalar] = {
+    def go(dt: DataType): List[Scalar] = dt match {
+      case s: Scalar      => List(s)
+      case Tuple(es @ _*) => es.flatMap(go).toList
+      case Function(d, r) => go(d) ++ go(r)
+    }
+    go(dataType)
+  }
+
+  // Used by Rename Operation, Pivot Operation, and this.flatten
+  @deprecated
+  def rename(id: Identifier): DataType = dataType match {
+    case s: Scalar      => Scalar(id, s.valueType) //TODO: copy other properties
+    case Tuple(es @ _*) => Tuple.fromSeq(id, es).fold(throw _, identity)
+    case Function(d, r) => Function.from(id, d, r).fold(throw _, identity)
+  }
+
+  /**
+   * Returns the arity of this DataType.
+   *
+   * For a Function, this is the number of top level types (non-flattened)
+   * in the domain. For Scalar and Tuple, there is no domain so the arity is 0.
+   */
+  def arity: Int = dataType match {
+    case Function(domain, _) =>
+      domain match {
+        case _: Scalar   => 1
+        case t: Tuple    => t.elements.length
+        case _: Function => ??? //bug, Function not allowed in domain
+      }
+    case _ => 0
+  }
 
   /** Makes fill data for this data type. */
   def fillData: Data = {

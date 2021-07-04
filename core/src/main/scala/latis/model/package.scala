@@ -1,6 +1,6 @@
 package latis
 
-package object model2 {
+package object model {
 
   implicit def dataTypeOps(dataType: DataType): DataTypeOps =
     new DataTypeOps(dataType)

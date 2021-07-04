@@ -67,7 +67,7 @@ class TextEncoder extends Encoder[IO, String] {
 
       case i: latis.model.Index =>
         // No data in Sample, generate index
-        indexGenerator.nextIndex(i.id.get).toString
+        indexGenerator.nextIndex(i.id).toString
 
       case s: Scalar =>
         ds.pop() match {

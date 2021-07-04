@@ -46,7 +46,7 @@ case class ReaderOperation(reader: DatasetReader, ops: Seq[UnaryOperation] = Seq
   }
 
   def applyToModel(model: DataType): Either[LatisException, DataType] = model match {
-    case Function(d, _) => Right(Function(d, reader.model))
+    case Function(d, _) => Right(Function.from(d, reader.model).fold(throw _, identity))
     case _ => Left(LatisException("Model is not a function."))
   }
 }

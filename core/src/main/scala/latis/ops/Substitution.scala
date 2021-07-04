@@ -20,7 +20,7 @@ case class Substitution(dataset: Dataset) extends MapOperation {
     // Get the paths to the substitution variables in the target Dataset
     //TODO: error if not consecutive
     val paths = modelScalars._1.toList.traverse { s =>
-      val sId = s.id.getOrElse(throw LatisException("Found an unnamed Scalar"))
+      val sId = s.id
       model.getPath(sId)
     }.getOrElse {
       val msg = s"Failed to find substitution domain in target Dataset"
@@ -123,22 +123,22 @@ case class Substitution(dataset: Dataset) extends MapOperation {
     def go(dt: DataType): DataType = dt match {
       //TODO: not exhaustive: Some(Data) See https://github.com/latis-data/latis3/issues/304
       case s: Scalar =>
-        if ((domainVariableIDs.length == 1) && s.id.contains(domainVariableIDs.head)) subScalars.head
+        if ((domainVariableIDs.length == 1) && s.id == domainVariableIDs.head) subScalars.head
         else s
       case Tuple(es @ _*) =>
-        //TODO: support aliases
-        es.map(_.id).indexOfSlice(domainVariableIDs) match {
-          case -1 => Tuple(es.map(go)) //no match, keep recursing
+        //TODO: assumes scalars only
+        es.collect{case s: Scalar => s}.map(_.id).indexOfSlice(domainVariableIDs) match {
+          case -1 => Tuple.fromSeq(es.map(go)).fold(throw _, identity) //no match, keep recursing
           case index =>
             es.splitAt(index) match {
               // Splice in the new variable types
               case (p1, p3) =>
                 val dts = p1 ++ subScalars ++ p3.drop(domainVariableIDs.length)
                 if (dts.length == 1) dts.head //Reduce 1-Tuple
-                else Tuple(dts)
+                else Tuple.fromSeq(dts).fold(throw _, identity)
             }
         }
-      case Function(d, r) => Function(go(d), go(r))
+      case Function(d, r) => Function.from(go(d), go(r)).fold(throw _, identity)
     }
 
     Right(go(model))
@@ -156,8 +156,6 @@ case class Substitution(dataset: Dataset) extends MapOperation {
   /**
    * Extracts the variable IDs from the domain of the Substitution Dataset.
    */
-  private val domainVariableIDs: Seq[Identifier] = modelScalars._1.map(
-    _.id.getOrElse(throw LatisException("Found an unnamed Scalar"))
-  )
+  private val domainVariableIDs: Seq[Identifier] = modelScalars._1.map(_.id)
 
 }

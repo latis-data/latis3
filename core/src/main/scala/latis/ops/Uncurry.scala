@@ -44,12 +44,12 @@ case class Uncurry() extends FlatMapOperation {
     // Reconstruct the model from the new domain and range types
     val rtype = rs.length match {
       case 1 => rs.head
-      case _ => Tuple(rs.toSeq)
+      case _ => Tuple.fromSeq(rs.toSeq).fold(throw _, identity)
     }
     Right(ds.length match {
       case 0 => rtype
-      case 1 => Function(ds.head, rtype)
-      case _ => Function(Tuple(ds.toSeq), rtype)
+      case 1 => Function.from(ds.head, rtype).fold(throw _, identity)
+      case _ => Function.from(Tuple.fromSeq(ds.toSeq).fold(throw _, identity), rtype).fold(throw _, identity)
       //TODO: flatten domain, Traversable builder not working
     })
   }

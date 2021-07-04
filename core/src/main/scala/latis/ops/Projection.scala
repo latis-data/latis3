@@ -28,13 +28,13 @@ case class Projection(ids: Identifier*) extends MapOperation {
   private def applyToVariable(v: DataType): Option[DataType] = v match {
     //TODO: make exhaustive (https://github.com/latis-data/latis3/issues/304)
     case s: Scalar =>
-      if (s.id.exists(id => ids.contains(id))) Some(s) else None
+      if (ids.contains(s.id)) Some(s) else None
     case Tuple(vars @ _*) =>
       val vs = vars.flatMap(applyToVariable)
       vs.length match {
         case 0 => None // drop empty Tuple
         case 1 => Some(vs.head) // reduce Tuple of one
-        case _ => Some(Tuple(vs))
+        case _ => Some(Tuple.fromSeq(vs).fold(throw _, identity))
       }
     case Function(domain, range) =>
       // Behavior depends on whether domain variables are projected
@@ -43,9 +43,9 @@ case class Projection(ids: Identifier*) extends MapOperation {
         // Domain unchanged
         case Some(d) if (d == domain) =>
           applyToVariable(range) match {
-            case Some(r) => Some(Function(domain, r))
+            case Some(r) => Some(Function.from(domain, r).fold(throw _, identity))
             // If no range variables projected, put domain in range and make index domain
-            case None => Some(Function(makeIndex(domain), domain))
+            case None => Some(Function.from(makeIndex(domain), domain).fold(throw _, identity))
           }
         // Not all domain variables projected.
         case Some(_) =>
@@ -56,7 +56,7 @@ case class Projection(ids: Identifier*) extends MapOperation {
           // Replace domain with Index
           // None if no variables projected
           applyToVariable(range).map { r =>
-            Function(makeIndex(domain), r)
+            Function.from(makeIndex(domain), r).fold(throw _, identity)
           }
       }
   }
@@ -67,7 +67,7 @@ case class Projection(ids: Identifier*) extends MapOperation {
     // Does not support nested Function, for now.
     val positions = model
       .getScalars                //start here so we preserve variable order
-      .map(_.id.get)
+      .map(_.id)
       .filter(ids.contains(_))   //keep the projected ids
       .map(model.getPath(_).get) //getPath should be safe since we just got the id from the model
       .map {
@@ -110,14 +110,16 @@ case class Projection(ids: Identifier*) extends MapOperation {
    * Note that no other metadata is preserved.
    */
   private def makeIndex(v: DataType): Index = v match {
-    case i: Index => i //no-op if already an Index
-    case _ => v.id.map { id =>
-      Index(Identifier.fromString("_i" + id.asString).get)
+    case i: Index  => i //no-op if already an Index
+    case s: Scalar => Index(Identifier.fromString("_i" + s.id.asString).get)
+    case t: Tuple  => t.id.map { id =>
+      Index(Identifier.fromString("_i" + id.asString).get) //safely valid
     }.getOrElse {
       // Derive Id
-      Index(Identifier.fromString("_i" + v.getScalars.map(_.id.get.asString).mkString("_")).get)
+      Index(Identifier.fromString("_i" + v.getScalars.map(_.id.asString).mkString("_")).get)
     }
   }
+
 }
 
 object Projection {

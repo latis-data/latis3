@@ -24,7 +24,7 @@ case class Composition(dataset: Dataset) extends MapRangeOperation {
       case _ => Left(LatisException("Composed dataset must be a function"))
       // TODO: check this in a smart constructor
     }
-    (domain, range).mapN(Function(_, _))
+    (domain, range).mapN(Function.from(_, _).fold(throw _, identity))
   }
 
   override def mapFunction(model: DataType): Data => Data = {
