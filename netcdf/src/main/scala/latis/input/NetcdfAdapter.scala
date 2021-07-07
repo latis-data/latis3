@@ -11,20 +11,22 @@ import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import cats.syntax.all._
 import fs2.Stream
-import ucar.ma2.Section
 import ucar.ma2.{Array => NcArray}
 import ucar.ma2.{Range => URange}
-import ucar.nc2.util.EscapeStrings.backslashEscape
-import ucar.nc2.dataset.NetcdfDataset
+import ucar.ma2.Section
 import ucar.nc2.{Variable => NcVariable}
+import ucar.nc2.dataset.NetcdfDataset
+import ucar.nc2.dataset.NetcdfDatasets
+import ucar.nc2.util.EscapeStrings.backslashEscape
 
 import latis.data._
 import latis.model._
+import latis.ops.Head
 import latis.ops.Operation
 import latis.ops.Selection
 import latis.ops.Stride
-import latis.util.dap2.parser.ast._
 import latis.util._
+import latis.util.dap2.parser.ast._
 
 /**
  * Defines an Adapter for NetCDF data sources.
@@ -43,6 +45,7 @@ case class NetcdfAdapter(
    * Specifies which operations that this adapter will handle.
    */
   override def canHandleOperation(op: Operation): Boolean = op match {
+    case _: Head => true
     case Stride(stride) if stride.length == model.arity => true
     case s@Selection(v, _, _) => model.getVariable(v).exists(
       v => v("cadence").nonEmpty && v("start").nonEmpty) &&
@@ -167,7 +170,7 @@ object NetcdfAdapter extends AdapterFactory {
     }
 
     Stream.bracket(IO {
-      NetcdfDataset.openDataset(path)
+      NetcdfDatasets.openDataset(path)
     })(nc => IO(nc.close()))
   }
 
@@ -182,7 +185,23 @@ object NetcdfAdapter extends AdapterFactory {
     // TODO: revisit logic in each operation for multiple sections
     case Stride(stride) => NetcdfAdapter.applyStride(sections, model, stride.toArray)
     case sel: Selection => NetcdfAdapter.applySelection(sections, model, sel)
+    case _: Head => NetcdfAdapter.applyHead(sections, model)
   }
+
+  /**
+   * Applies a head operation by modifying Sections to include only
+   * the first of each URange.
+   */
+  def applyHead(sections: List[Section], dataType: DataType): Either[LatisException, List[Section]] =
+    Either.catchNonFatal {
+      sections.map { sec =>
+        val rs: List[URange] = sec.getRanges().asScala.toList.map { r =>
+          val i = r.first()
+          URange.make(i, i)
+        }
+        new Section(rs: _*)
+      }
+    }.leftMap(t => LatisException("Failed to apply head operation to sections.", t))
 
   /**
    * Applies the given stride to the given sections. The length of the stride
@@ -350,8 +369,10 @@ object NetcdfAdapter extends AdapterFactory {
     ): Either[LatisException, Section] = {
       val ranges = sec.getRanges.asScala.toList
       ranges.zipWithIndex.find { case (r, _) => r == oldRange} match {
+        //TODO: relying on matching oldRange by eq seems risky.
+          //also used to match URange in nD range Section
         case Some((_, n)) =>
-          val newRanges = ranges.take(n) ++ List(newRange) ++ ranges.drop(n + 1)
+          val newRanges = ranges.take(n) ++ List(newRange) ++ ranges.drop(n + 1) //TODO: use updated?
           Right(new Section(newRanges: _*))
         case _ => Left(LatisException("Could not find viable range to apply selection."))
       }
