@@ -3,12 +3,13 @@ package latis.model
 import cats.syntax.all._
 
 import latis.data.Data
+import latis.metadata.Metadata
 import latis.model.ValueType
+import latis.units.MeasurementScale
 import latis.util.Identifier
 import latis.util.LatisException
 
-// See DataTypeOps
-sealed trait DataType
+sealed trait DataType extends DataTypeAlgebra
   //TODO: enforce uniqueness
   //TODO: support qualified identifiers
   //TODO: no Index in stand-alone (constant) Scalar or Tuple
@@ -65,25 +66,21 @@ object DataType {
 
 //---- Scalar ----//
 
-/*
-TODO: consider other extension mechanisms
-  can't make construction private since Time extends it
-  clunky to deal with all args
- */
-class Scalar (
-         val id: Identifier,
-         val valueType: ValueType,
-         //val units: Option[String] = None, //TODO: MeasurementScale? still need to support string for now
-         val missingValue: Option[Data] = None,
-         val fillValue: Option[Data] = None,
-         val precision: Option[Int] = None,
-         val ascending: Boolean = true,
-         val otherProperties: Map[String, String] = Map.empty //or keep all for easy to string?
-       ) extends DataType {
+//TODO: limit construction
+//  protected so Time can extend it
+//  private[model] so ScalarFactory can construct it
+class Scalar(
+  val metadata: Metadata,
+  val id: Identifier,
+  val valueType: ValueType,
+  val units: Option[String] = None,
+  val scale: Option[MeasurementScale] = None,
+  val missingValue: Option[Data] = None,
+  val fillValue: Option[Data] = None,
+  val precision: Option[Int] = None,
+  val ascending: Boolean = true
+) extends DataType with ScalarAlgebra
   //TODO: coverage, cadence, resolution, start, end,... (see fdml schema)
-
-  override def toString: String = id.asString
-}
 
 object Scalar extends ScalarFactory
 
@@ -91,12 +88,14 @@ object Scalar extends ScalarFactory
 
 class Tuple private[model](val id: Option[Identifier], e1: DataType, e2: DataType, es: DataType*) extends DataType {
 
-  // Guaranteed to have at least two elements //TODO: at least use NonEmptyList?
+  /**
+   * Returns a list of the Tuple elements which is guaranteed to have at least two elements.
+   */
   def elements: List[DataType] = e1 +: (e2 +: es.toList)
 
   /** Returns a list of Tuple elements with no nested Tuples. */
   def flatElements: List[DataType] = elements.flatMap {
-    case Tuple(es @ _*) => es
+    case Tuple(es @ _*) => es //TODO: recurse
     case dt => List(dt)
   }
 
@@ -126,11 +125,6 @@ object Function extends FunctionFactory {
 
 
 /*
-case classes?
-  can't extend
-  no need to pattern match to extract scalar properties
-  copy might be handy, but still needs validation
-
 Real?
   require units, support precision, ...
 
@@ -140,6 +134,4 @@ InvalidStructure extends LatisException?
 
 Serialize?
 
-def metadata: Metadata to reconstruct Metadata (including class)
-  e.g. Rename operation needed to ensure uniqueness but need to be able to remake Time
  */

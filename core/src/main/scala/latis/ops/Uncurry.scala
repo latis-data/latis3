@@ -25,15 +25,14 @@ case class Uncurry() extends FlatMapOperation {
 
     // Recursive helper function to restructure the model
     def go(dt: DataType): Unit = dt match {
-      //TODO: not exhaustive: See https://github.com/latis-data/latis3/issues/304
       case dt: Scalar     => rs += dt
-      case Tuple(es @ _*) => es.foreach(go)
+      case t: Tuple       => t.elements.foreach(go)
       case Function(d, r) =>
         //flatten tuples, instead of recursing on domain (no nested functions)
         d match {
-          //TODO: not exhaustive: See https://github.com/latis-data/latis3/issues/304
-          case Tuple(es @ _*) => ds ++= es
-          case _: Scalar      => ds += d
+          case _: Scalar => ds += d
+          case t: Tuple  => ds ++= t.elements
+          case _: Function => ??? //Function ont allowed in domain
         }
         go(r)
     }

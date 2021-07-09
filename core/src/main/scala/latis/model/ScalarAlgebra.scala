@@ -5,8 +5,8 @@ import cats.syntax.all._
 import latis.data._
 import latis.util.DefaultDatumOrdering
 import latis.util.LatisException
-@deprecated("extend ScalarAlgebra")
-class ScalarOps(scalar: Scalar) {
+
+trait ScalarAlgebra { scalar: Scalar =>
 
   /** Specifies if fillData can be used to replace invalid data. */
   def isFillable: Boolean = scalar.fillValue.nonEmpty
@@ -62,4 +62,6 @@ class ScalarOps(scalar: Scalar) {
     if (scalar.ascending) DefaultDatumOrdering
     else DefaultDatumOrdering.reverse
 
+  /** Defines the string representation as the Scalar id. */
+  override def toString: String = id.asString
 }

@@ -54,7 +54,9 @@ case class ConvertTime(scale: TimeScale) extends TimeOperation {
    */
   def applyToModel(model: DataType): Either[LatisException, DataType] =
     model.map {
-      case t: Time => ??? //Time(t.metadata + ("units" -> scale.toString) + ("type" -> "double"))
+      case t: Time =>
+        Time.fromMetadata(t.metadata + ("units" -> scale.toString) + ("type" -> "double"))
+          .fold(throw _, identity)
       case dt => dt
     }.asRight
 }

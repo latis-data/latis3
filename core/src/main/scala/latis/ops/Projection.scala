@@ -118,6 +118,7 @@ case class Projection(ids: Identifier*) extends MapOperation {
       // Derive Id
       Index(Identifier.fromString("_i" + v.getScalars.map(_.id.asString).mkString("_")).get)
     }
+    case _: Function => ??? //Function not allowed in domain
   }
 
 }

@@ -1,5 +1,7 @@
 package latis.units
 
+//TODO: See squants
+
 /**
  * A MeasurementScale defines how values of physical
  * quantities should be interpreted. This term was chosen over

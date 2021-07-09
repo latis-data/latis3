@@ -1,10 +1,15 @@
 package latis.model
 
-import latis.model.LongValueType
+import latis.metadata.Metadata
 import latis.util.Identifier
 
-class Index(id: Identifier) extends Scalar(id, LongValueType)
+class Index private (md: Metadata, id: Identifier)
+  extends Scalar(md, id, LongValueType)
+//TODO: override rename to preserve subclass type?
 
 object Index {
-  def apply(id: Identifier): Index = new Index(id)
+  def apply(id: Identifier): Index = {
+    val md = Metadata("id" -> id.asString, "type" -> "long")
+    new Index(md, id)
+  }
 }

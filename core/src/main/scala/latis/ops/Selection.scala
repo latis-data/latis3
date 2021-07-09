@@ -47,7 +47,7 @@ case class Selection(id: Identifier, operator: ast.SelectionOp, value: String) e
             val msg = "Selection does not support values in nested Functions."
             throw new UnsupportedOperationException(msg)
         }
-      case None => ??? //shouldn't happen due to earlier check
+      case None => ??? //shouldn't happen due to earlier check TODO: happened with selection on nonpresent ert in latis3-packets
     }
 
     val cdata = getValue(model).fold(throw _, identity)

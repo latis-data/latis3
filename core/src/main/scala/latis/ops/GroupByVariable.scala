@@ -108,11 +108,10 @@ case class RemoveGroupedVariables(ids: Seq[Identifier]) extends MapOperation {
       case RangePosition(i)  => i
     }.sorted
 
-    (sample: Sample) => sample match {
-      case Sample(ds, rs) =>
-        val domain = domainIndices.map(ds(_))
-        val range = rangeIndices.map(rs(_))
-        Sample(domain, range)
+    (sample: Sample) => {
+      val domain = domainIndices.map(sample.domain(_))
+      val range = rangeIndices.map(sample.range(_))
+      Sample(domain, range)
     }
   }
 }
