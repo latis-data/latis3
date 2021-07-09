@@ -5,11 +5,11 @@ import cats.syntax.all._
 import latis.data._
 import latis.util.Identifier
 
-class DataTypeOps(dataType: DataType) {
+trait DataTypeAlgebra { dataType: DataType =>
 
   /** Recursively apply f to this DataType. */
-  @deprecated
-  def map(f: DataType => DataType): DataType = this match {
+  @deprecated("Not safe if the type changes?")
+  def map(f: DataType => DataType): DataType = dataType match {
     case s: Scalar => f(s)
     case t @ Tuple(es @ _*) => f(Tuple.fromSeq(t.id, es.map(f)).fold(throw _, identity))
     case func @ Function(d, r) => f(Function.from(func.id, d.map(f), r.map(f)).fold(throw _, identity))
@@ -19,8 +19,7 @@ class DataTypeOps(dataType: DataType) {
    * Returns a List of Scalars in the (depth-first) order
    * that they appear in the model.
    */
-  //TODO: review usage and assumptions about no nested tuples or functions in tuples
-  @deprecated
+  @deprecated("Risk of overlooking tuples and functions nested in tuples and being inconsistent with arity vs dimensionality")
   def getScalars: List[Scalar] = {
     def go(dt: DataType): List[Scalar] = dt match {
       case s: Scalar      => List(s)
@@ -31,9 +30,16 @@ class DataTypeOps(dataType: DataType) {
   }
 
   // Used by Rename Operation, Pivot Operation, and this.flatten
+  // Time overrides this so we can preserve the subtype.
+  /*
+  TODO: Does this need to be deprecated?
+    seemed like uniqueness risk but this makes a new scalar, a new model has to be rebuilt and validated
+    should use Operation to do this but need to be able to preserve subclass type
+    general copy constructor?
+   */
   @deprecated
   def rename(id: Identifier): DataType = dataType match {
-    case s: Scalar      => Scalar(id, s.valueType) //TODO: copy other properties
+    case s: Scalar      => Scalar.fromMetadata(s.metadata + ("id" -> id.asString)).fold(throw _, identity)
     case Tuple(es @ _*) => Tuple.fromSeq(id, es).fold(throw _, identity)
     case Function(d, r) => Function.from(id, d, r).fold(throw _, identity)
   }

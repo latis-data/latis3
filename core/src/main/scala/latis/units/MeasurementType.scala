@@ -1,5 +1,7 @@
 package latis.units
 
+//TODO: See squants Dimension: https://www.javadoc.io/doc/org.typelevel/squants_2.13/1.6.0/squants/Dimension.html
+
 /**
  * Defines the types of measurement.
  * These are used to categorize convertible units.

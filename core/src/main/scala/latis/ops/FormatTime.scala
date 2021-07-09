@@ -55,7 +55,9 @@ case class FormatTime(format: TimeFormat) extends TimeOperation {
    */
   def applyToModel(model: DataType): Either[LatisException, DataType] =
     model.map {
-      case t: Time => ??? //Time(t.metadata + ("units" -> format.toString) + ("type" -> "string"))
+      case t: Time =>
+        Time.fromMetadata( t.metadata + ("units" -> format.toString) + ("type" -> "string"))
+          .fold(throw _, identity)
       case dt => dt
     }.asRight
 }

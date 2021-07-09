@@ -1,39 +1,51 @@
 package latis.model
 
+import scala.annotation.unused
+
 import cats.syntax.all._
 
 import latis.data.Data
 import latis.data.NullData
 import latis.metadata.Metadata
-import latis.model.BigDecimalValueType
-import latis.model.DoubleValueType
-import latis.model.FloatValueType
-import latis.model.ValueType
+import latis.units.MeasurementScale
 import latis.util.Identifier
 import latis.util.LatisException
 
 trait ScalarFactory {
 
-  def apply(id: Identifier, valueType: ValueType): Scalar = new Scalar(id, valueType)
+  def apply(id: Identifier, valueType: ValueType): Scalar = {
+    val md = Metadata("id" -> id.asString, "type" -> valueType.toString)
+    new Scalar(md, id, valueType)
+  }
 
-  //TODO!: construct subclass for "class"
-  def fromMetadata(metadata: Metadata): Either[LatisException, Scalar] = for {
-    id           <- getId(metadata)
-    valueType    <- getValueType(metadata)
-    missingValue <- getMissingValue(metadata, valueType)
-    fillValue    <- getFillValue(metadata, valueType)
-    precision    <- getPrecision(metadata, valueType)
-    ascending    <- getAscending(metadata)
-    other         = metadata.properties.filterNot(p => List("id", "type", "missingValue", "fillValue").contains(p._1))
-  } yield new Scalar(
-    id,
-    valueType,
-    missingValue = missingValue,
-    fillValue = fillValue,
-    precision = precision,
-    ascending = ascending,
-    otherProperties = other
-  ) //TODO: other properties
+  def fromMetadata(metadata: Metadata): Either[LatisException, Scalar] =
+    metadata.getProperty("class").map { cls =>
+      //TODO: construct dynamically? ReflectionUtils.callMethodOnCompanionObject(cls, fromMetadata, md)
+      if (cls == "latis.time.Time") ??? //TODO: Time.fromMetadata(md)
+      else Left(LatisException(s"Scalar class not found: $cls"))
+    }.getOrElse {
+      for {
+        id        <- getId(metadata)
+        valueType <- getValueType(metadata)
+        units     <- getUnits(metadata)
+        scale     <- getScale(metadata)
+        missValue <- getMissingValue(metadata, valueType)
+        fillValue <- getFillValue(metadata, valueType)
+        precision <- getPrecision(metadata, valueType)
+        ascending <- getAscending(metadata)
+      } yield new Scalar(
+        metadata,
+        id,
+        valueType,
+        units = units,
+        scale = scale,
+        missingValue = missValue,
+        fillValue = fillValue,
+        precision = precision,
+        ascending = ascending
+      )
+    } //TODO: other properties
+
 
   protected def getId(metadata: Metadata): Either[LatisException, Identifier] =
     metadata.getProperty("id")
@@ -44,6 +56,12 @@ trait ScalarFactory {
     metadata.getProperty("type")
       .toRight(LatisException("No type defined"))
       .flatMap(ValueType.fromName)
+
+  protected def getUnits(metadata: Metadata): Either[LatisException, Option[String]] =
+    metadata.getProperty("units").traverse(_.asRight)
+
+  protected def getScale(@unused metadata: Metadata): Either[LatisException, Option[MeasurementScale]] =
+    None.asRight //only supported for Time, so far
 
   protected def getMissingValue(metadata: Metadata, valueType: ValueType): Either[LatisException, Option[Data]] =
     metadata.getProperty("missingValue").traverse { mv =>

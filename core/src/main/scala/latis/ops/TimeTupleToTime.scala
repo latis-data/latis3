@@ -22,7 +22,7 @@ case class TimeTupleToTime(id: Identifier = id"time") extends MapOperation {
     Either.catchOnly[LatisException](model.map {
     case t @ Tuple(es @ _*) if t.id.contains(id) => //TODO: support aliases with hasName?
       //build up format string
-      val format: String = es.collect{case s: Scalar => s}.toList.traverse(_.otherProperties.get("units"))
+      val format: String = es.collect{case s: Scalar => s}.toList.traverse(_.units)
         .fold(throw LatisException("A time Tuple must have units defined for each element."))(_.mkString(" "))
       //make the time Scalar
       //assumes time tuple has id
@@ -31,9 +31,7 @@ case class TimeTupleToTime(id: Identifier = id"time") extends MapOperation {
         "units" -> format,
         "type" -> "string"
       )
-      //Time(metadata)
-      //TODO: other properties
-      Time(t.id.get, StringValueType)
+      Time.fromMetadata(metadata).fold(throw _, identity)
     case v => v
     })
 
@@ -52,23 +50,22 @@ case class TimeTupleToTime(id: Identifier = id"time") extends MapOperation {
             case _ => throw LatisException("Tuple did not flatten to a tuple.")
           }
           case _ => throw LatisException(s"Variable '${id.asString}' must be a Tuple.")
-        }
+      }
 
-    { case Sample(dd, rd) =>
+    (sample: Sample) =>
       //extract text values and join with space
       //TODO: join with delimiter, problem when we use regex?
       timePos match {
         case DomainPosition(n) =>
-          val domain = DomainData.fromData(convertTimeTuple(dd, n, timeLen)) match {
+          val domain = DomainData.fromData(convertTimeTuple(sample.domain, n, timeLen)) match {
             case Right(d) => d
             case Left(ex) => throw ex
           }
-          Sample(domain, rd)
+          Sample(domain, sample.range)
         case RangePosition(n) =>
-          val range = convertTimeTuple(rd, n, timeLen)
-          Sample(dd, range)
+          val range = convertTimeTuple(sample.range, n, timeLen)
+          Sample(sample.domain, range)
       }
-    }
   }
 
   /**

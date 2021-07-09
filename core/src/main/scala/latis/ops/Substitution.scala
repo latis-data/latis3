@@ -56,7 +56,7 @@ case class Substitution(dataset: Dataset) extends MapOperation {
                 rd match {
                   //TODO: not exhaustive: Some(Data) See https://github.com/latis-data/latis3/issues/305
                   case d: Datum => List(d)
-                  case TupleData(ds @ _*) => ds.toList.map {
+                  case td: TupleData => td.elements.toList.map {
                     case d: Datum => d
                     case _ =>
                       throw LatisException("Domain substitution includes Function")
@@ -86,10 +86,10 @@ case class Substitution(dataset: Dataset) extends MapOperation {
             }
             // Evaluate the substitution Dataset with the values to be replaced
             val sub: List[Data] = f(Data.fromSeq(slice)) match {
-              //TODO: not exhaustive: Some(Data) See https://github.com/latis-data/latis3/issues/305
               case Right(d: Datum) => List(d)
-              case Right(TupleData(ds @ _*)) => ds.toList
+              case Right(td: TupleData) => td.elements.toList
               case Left(le) => throw le
+              case _ => ???
             }
             // Substitute the new values into the range
             val range: RangeData = vals.splitAt(i) match {
