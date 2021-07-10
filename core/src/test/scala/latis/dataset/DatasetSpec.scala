@@ -10,8 +10,8 @@ import org.scalatest.Inside.inside
 import latis.catalog.FdmlCatalog
 import latis.data.Data._
 import latis.data._
+import latis.dsl.ModelParser
 import latis.metadata.Metadata
-import latis.model._
 import latis.ops.Selection
 import latis.util.Identifier.IdentifierStringContext
 import latis.util.StreamUtils
@@ -27,11 +27,8 @@ class DatasetSpec extends AnyFlatSpec {
 
   val dataset = {
     val metadata = Metadata(id"test")
-    
-    val model = Function(
-      Scalar(Metadata("id" -> "time", "type" -> "long")),
-      Scalar(Metadata("id" -> "flux", "type" -> "double"))
-    )
+
+    val model = ModelParser.unsafeParse("time: long -> flux: double")
     
     val data = {
       val samples = List(

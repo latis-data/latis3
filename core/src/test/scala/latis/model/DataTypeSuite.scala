@@ -1,5 +1,6 @@
 package latis.model
 
+import org.scalatest.EitherValues._
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.Inside.inside
 
@@ -19,21 +20,21 @@ class DataTypeSuite extends AnyFunSuite {
   //  make sure we can get matching path
   //  https://www.scalatest.org/user_guide/generator_driven_property_checks
 
-  val i = Index(id"_i")
-  val x = Scalar(id"x", IntValueType)
-  val y = Scalar(id"y", IntValueType)
-  val z = Scalar(id"z", IntValueType)
-  val a = Scalar(id"a", IntValueType)
-  val b = Scalar(id"b", DoubleValueType)
-  val c = Scalar(id"c", StringValueType)
-  val namedTup  = Tuple.fromElements(id"t", a, b).toTry.get       // t: (a, b)
-  val anonTup   = Tuple.fromElements(a, b).toTry.get              // (a, b)
-  val nestedTup = Tuple.fromElements(namedTup, c).toTry.get       // (t: (a, b), c)
-  val f = Function.from(id"f", x, a).toTry.get                    // f: x -> a
-  val fWithTup = Function.from(id"f", x, namedTup).toTry.get      // f: x -> t: (a, b)
-  val tupWithF = Tuple.fromElements(a, fWithTup).toTry.get        // (a, f: x -> t: (a, b))
-  val nestedF = Function.from(id"g", z, f).toTry.get              // g: z -> f: x -> a
-  val nestedFInTup = Function.from(id"g", i, tupWithF).toTry.get  // g: _i -> (a, f: x -> t: (a, b))
+  private val i = Index(id"_i")
+  private val x = Scalar(id"x", IntValueType)
+  //private val y = Scalar(id"y", IntValueType)
+  private val z = Scalar(id"z", IntValueType)
+  private val a = Scalar(id"a", IntValueType)
+  private val b = Scalar(id"b", DoubleValueType)
+  private val c = Scalar(id"c", StringValueType)
+  private val namedTup  = Tuple.fromElements(id"t", a, b).value       // t: (a, b)
+  //private val anonTup   = Tuple.fromElements(a, b).value              // (a, b)
+  private val nestedTup = Tuple.fromElements(namedTup, c).value       // (t: (a, b), c)
+  private val f = Function.from(id"f", x, a).value                    // f: x -> a
+  private val fWithTup = Function.from(id"f", x, namedTup).value      // f: x -> t: (a, b)
+  private val tupWithF = Tuple.fromElements(a, fWithTup).value        // (a, f: x -> t: (a, b))
+  private val nestedF = Function.from(id"g", z, f).value              // g: z -> f: x -> a
+  private val nestedFInTup = Function.from(id"g", i, tupWithF).value  // g: _i -> (a, f: x -> t: (a, b))
 
   test("to string") {
     assert(nestedFInTup.toString == "g: _i -> (a, f: x -> t: (a, b))")

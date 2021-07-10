@@ -3,7 +3,6 @@ package latis.ops
 import cats.effect.unsafe.implicits.global
 import org.scalatest.Inside._
 import org.scalatest.funsuite.AnyFunSuite
-import org.scalatest.matchers.should.Matchers._
 
 import latis.data._
 import latis.dataset.Dataset
@@ -39,20 +38,14 @@ class CurrySuite extends AnyFunSuite {
 
     assert(curriedDs.model.toString == "_1 -> _2 -> (a, b)")
     inside(curriedDs.model) { case Function(domain, range) =>
-      domain shouldBe a[Scalar]
-      assert(domain.id.get.asString == "_1")
-      range shouldBe a[Function]
+      inside(domain) { case s: Scalar => assert(s.id.asString == "_1") }
 
       inside(range) { case Function(d, r) =>
-        d shouldBe a[Scalar]
-        assert(d.id.get.asString == "_2")
-        r shouldBe a[Tuple]
+        inside(d) { case s: Scalar => assert(s.id.asString == "_2") }
 
         inside(r) { case Tuple(s1, s2) =>
-          s1 shouldBe a[Scalar]
-          assert(s1.id.get.asString == "a")
-          s2 shouldBe a[Scalar]
-          assert(s2.id.get.asString == "b")
+          inside(s1) { case s: Scalar => assert(s.id.asString == "a") }
+          inside(s2) { case s: Scalar => assert(s.id.asString == "b") }
         }
       }
     }
@@ -70,22 +63,15 @@ class CurrySuite extends AnyFunSuite {
     }
 
     assert(curriedDs.model.toString == "(_1, _2) -> (a, b)")
+
     inside(curriedDs.model) { case Function(domain, range) =>
-      domain shouldBe a [Tuple]
-      range shouldBe a [Tuple]
-
-      inside(domain) { case Tuple(d1, d2) =>
-        d1 shouldBe a [Scalar]
-        assert(d1.id.get.asString == "_1")
-        d2 shouldBe a [Scalar]
-        assert(d2.id.get.asString == "_2")
+      inside(domain) { case Tuple(s1, s2) =>
+        inside(s1) { case s: Scalar => assert(s.id.asString == "_1") }
+        inside(s2) { case s: Scalar => assert(s.id.asString == "_2") }
       }
-
-      inside(range) { case Tuple(r1, r2) =>
-        r1 shouldBe a [Scalar]
-        assert(r1.id.get.asString == "a")
-        r2 shouldBe a [Scalar]
-        assert(r2.id.get.asString == "b")
+      inside(range) { case Tuple(s1, s2) =>
+        inside(s1) { case s: Scalar => assert(s.id.asString == "a") }
+        inside(s2) { case s: Scalar => assert(s.id.asString == "b") }
       }
     }
   }
@@ -115,22 +101,15 @@ class CurrySuite extends AnyFunSuite {
     }
 
     assert(curriedDs.model.toString == "(_1, _2) -> _3 -> a")
+
     inside(curriedDs.model) { case Function(domain, range) =>
-      domain shouldBe a [Tuple]
-      range shouldBe a [Function]
-
-      inside(domain) { case Tuple(d1, d2) =>
-        d1 shouldBe a [Scalar]
-        assert(d1.id.get.asString == "_1")
-        d2 shouldBe a [Scalar]
-        assert(d2.id.get.asString == "_2")
+      inside(domain) { case Tuple(s1, s2) =>
+        inside(s1) { case s: Scalar => assert(s.id.asString == "_1") }
+        inside(s2) { case s: Scalar => assert(s.id.asString == "_2") }
       }
-
       inside(range) { case Function(d, r) =>
-        d shouldBe a [Scalar]
-        assert(d.id.get.asString == "_3")
-        r shouldBe a [Scalar]
-        assert(r.id.get.asString == "a")
+        inside(d) { case s: Scalar => assert(s.id.asString == "_3") }
+        inside(r) { case s: Scalar => assert(s.id.asString == "a") }
       }
     }
   }

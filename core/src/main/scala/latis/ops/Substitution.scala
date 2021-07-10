@@ -54,7 +54,6 @@ case class Substitution(dataset: Dataset) extends MapOperation {
               case Right(rd) =>
                 // Make sure these range data can be used for a domain, i.e. all Datum, no SF
                 rd match {
-                  //TODO: not exhaustive: Some(Data) See https://github.com/latis-data/latis3/issues/305
                   case d: Datum => List(d)
                   case td: TupleData => td.elements.toList.map {
                     case d: Datum => d
@@ -63,6 +62,7 @@ case class Substitution(dataset: Dataset) extends MapOperation {
                   }
                   case _: SampledFunction =>
                     throw LatisException("Domain substitution includes Function")
+                  case NullData => ???
                 }
               case Left(le) => throw le
             }
@@ -76,13 +76,13 @@ case class Substitution(dataset: Dataset) extends MapOperation {
             val vals: List[Data] = sample.range
             // Extract the values to be replaced; can't include Function
             val slice: List[Datum] = vals.slice(i, i + domainVariableIDs.length).map {
-              //TODO: not exhaustive: Some(Data) See https://github.com/latis-data/latis3/issues/305
               case d: Datum => d
               // Note, there should be no TupleData in a Sample
               case _: TupleData =>
                 throw LatisException("Substitution includes TupleData")
               case _: SampledFunction =>
                 throw LatisException("Substitution includes Function")
+              case NullData => ???
             }
             // Evaluate the substitution Dataset with the values to be replaced
             val sub: List[Data] = f(Data.fromSeq(slice)) match {

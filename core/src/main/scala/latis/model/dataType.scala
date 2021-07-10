@@ -94,9 +94,12 @@ class Tuple private[model](val id: Option[Identifier], e1: DataType, e2: DataTyp
   def elements: List[DataType] = e1 +: (e2 +: es.toList)
 
   /** Returns a list of Tuple elements with no nested Tuples. */
-  def flatElements: List[DataType] = elements.flatMap {
-    case Tuple(es @ _*) => es //TODO: recurse
-    case dt => List(dt)
+  def flatElements: List[DataType] = {
+    def go(dt: DataType): List[DataType] = dt match {
+      case t: Tuple => t.elements.flatMap(go)
+      case _        => List(dt)
+    }
+    go(this)
   }
 
   override def toString: String = id.map(_.asString +": ").getOrElse("") + elements.mkString("(", ", ", ")")

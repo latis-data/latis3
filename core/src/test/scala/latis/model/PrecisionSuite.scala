@@ -1,5 +1,6 @@
 package latis.model
 
+import org.scalatest.EitherValues._
 import org.scalatest.funsuite.AnyFunSuite
 
 import latis.data.Data
@@ -7,8 +8,8 @@ import latis.metadata.Metadata
 
 class PrecisionSuite extends AnyFunSuite {
 
-  val md = Metadata("id" -> "a", "type" -> "double", "precision" -> "2")
-  val scalar: Scalar = Scalar.fromMetadata(md).toTry.get
+  private val md = Metadata("id" -> "a", "type" -> "double", "precision" -> "2")
+  private val scalar: Scalar = Scalar.fromMetadata(md).value
 
   test("format with precision") {
     assert(scalar.formatValue(Data.DoubleValue(1.234)) == "1.23")
@@ -20,7 +21,7 @@ class PrecisionSuite extends AnyFunSuite {
 
   test("format with 0 precision") {
     val md = Metadata("id" -> "a", "type" -> "double", "precision" -> "0")
-    val scalar: Scalar = Scalar.fromMetadata(md).toTry.get
+    val scalar: Scalar = Scalar.fromMetadata(md).value
     assert(scalar.formatValue(Data.DoubleValue(1.235)) == "1")
   }
 

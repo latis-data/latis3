@@ -1,6 +1,7 @@
 package latis.ops
 
 import cats.effect.unsafe.implicits.global
+import org.scalatest.EitherValues._
 import org.scalatest.Inside._
 import org.scalatest.funsuite.AnyFunSuite
 
@@ -17,10 +18,10 @@ class UncurrySuite extends AnyFunSuite {
   test("uncurry nested dataset") {
     val ds = dataset2D.uncurry()
     inside(ds.model) {
-      case Function(Tuple(x, y), a) =>
-        assert(x.id.get == id"x")
-        assert(y.id.get == id"y")
-        assert(a.id.get == id"a")
+      case Function(Tuple(x: Scalar, y: Scalar), a: Scalar) =>
+        assert(x.id == id"x")
+        assert(y.id == id"y")
+        assert(a.id == id"a")
     }
     //Test all "a" to make sure order is preserved
     val as = ds.samples.map {
@@ -35,13 +36,10 @@ class UncurrySuite extends AnyFunSuite {
   //TODO: prevent 2D domain with one Index until we support Cartesian
   ignore("uncurry with index") {
     // _i -> y -> a
-    val model = Function(
+    val model = Function.from(
       Index(id"_i"),
-      Function(
-        ModelParser.unsafeParse("y"),
-        ModelParser.unsafeParse("a")
-      )
-    )
+      ModelParser.unsafeParse("y -> a")
+    ).value
     Uncurry().applyToModel(model).map {
       println(_)
     }

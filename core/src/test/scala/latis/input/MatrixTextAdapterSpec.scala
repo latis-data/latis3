@@ -2,35 +2,37 @@ package latis.input
 
 import java.net.URI
 
-import latis.metadata.Metadata
-import latis.model.DataType
-import latis.model.Function
-import latis.model.Scalar
-import latis.model.Tuple
-import latis.data.{DomainData, RangeData, Sample}
-import latis.dataset.AdaptedDataset
-import latis.input
-import latis.util.NetUtils.resolveUri
 import cats.effect.unsafe.implicits.global
+import org.scalatest.EitherValues._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 
+import latis.data.DomainData
+import latis.data.RangeData
+import latis.data.Sample
+import latis.dataset.AdaptedDataset
+import latis.dsl.ModelParser
+import latis.input
+import latis.metadata.Metadata
+import latis.model.DataType
 import latis.util.Identifier.IdentifierStringContext
+import latis.util.NetUtils.resolveUri
 
 class MatrixTextAdapterSpec extends AnyFlatSpec {
 
   val ds = {
     val metadata = Metadata(id"matrixData")
-    val model: DataType = Function(
-      Tuple(
-        Scalar(Metadata("id" -> "row", "type" -> "int")),
-        Scalar(Metadata("id" -> "column", "type" -> "int"))
-      ),
-      Scalar(Metadata("id" -> "v", "type" -> "double"))
-    )
+    val model: DataType = ModelParser.unsafeParse("(row: int, col: int) -> v: double")
+//      Function(
+//      Tuple(
+//        Scalar(Metadata("id" -> "row", "type" -> "int")),
+//        Scalar(Metadata("id" -> "column", "type" -> "int"))
+//      ),
+//      Scalar(Metadata("id" -> "v", "type" -> "double"))
+//    )
     val config = new input.TextAdapter.Config(("delimiter", ","))
     val adapter = new MatrixTextAdapter(model, config)
-    val uri: URI = resolveUri("data/matrixData.txt").toTry.get
+    val uri: URI = resolveUri("data/matrixData.txt").value
     new AdaptedDataset(metadata, model, adapter, uri)
   }
 

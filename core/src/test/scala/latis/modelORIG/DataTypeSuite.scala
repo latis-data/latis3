@@ -8,6 +8,7 @@ import latis.metadata.Metadata
 import latis.util.Identifier.IdentifierStringContext
 
 class GetPathSuite extends AnyFunSuite {
+
   test("getPath to Tuple in domain") {
     val func = {
       val d = Tuple(Metadata(id"tup"),
