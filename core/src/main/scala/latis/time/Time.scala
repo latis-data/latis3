@@ -40,11 +40,6 @@ class Time protected (
   ascending = ascending
 ) {
 
-  /** Override to preserve type */
-  @deprecated
-  override def rename(id: Identifier): Time =
-    Time.fromMetadata(metadata + ("id" -> id.asString)).fold(throw _, identity)
-
   /** Provides safe access to Time's MeasurementScale. */
   def timeScale: TimeScale = scale.get.asInstanceOf[TimeScale]
 
@@ -116,34 +111,33 @@ object Time extends ScalarFactory {
 //      "valueType" -> valueType.toString),
 //    id, valueType
 //  )
+  //def apply(id: Identifier, valueType: ValueType, units: String): Time = but units could  be invalid
 
 
   override def fromMetadata(metadata: Metadata): Either[LatisException, Time] = {
-    if (metadata.getProperty("class").contains("latis.time.Time")) {
-      for {
-        id        <- getId(metadata)
-        valueType <- getValueType(metadata)
-        units     <- getUnits(metadata)
-        reqUnits  <- getRequiredUnits(units)
-        format    <- getTimeFormat(reqUnits, valueType)
-        scale     <- getTimeScale(reqUnits, valueType)
-        missValue <- getMissingValue(metadata, valueType)
-        fillValue <- getFillValue(metadata, valueType)
-        precision <- getPrecision(metadata, valueType)
-        ascending <- getAscending(metadata)
-      } yield new Time(
-        metadata,
-        id,
-        valueType,
-        units = units,
-        scale = scale,
-        timeFormat = format,
-        missingValue = missValue,
-        fillValue = fillValue,
-        precision = precision,
-        ascending = ascending
-      )
-    } else LatisException("Time metadata has wrong class").asLeft
+    for {
+      id <- getId(metadata)
+      valueType <- getValueType(metadata)
+      units <- getUnits(metadata)
+      reqUnits <- getRequiredUnits(units)
+      format <- getTimeFormat(reqUnits, valueType)
+      scale <- getTimeScale(reqUnits, valueType)
+      missValue <- getMissingValue(metadata, valueType)
+      fillValue <- getFillValue(metadata, valueType)
+      precision <- getPrecision(metadata, valueType)
+      ascending <- getAscending(metadata)
+    } yield new Time(
+      metadata + ("class" -> "latis.time.Time"),
+      id,
+      valueType,
+      units = units,
+      scale = scale,
+      timeFormat = format,
+      missingValue = missValue,
+      fillValue = fillValue,
+      precision = precision,
+      ascending = ascending
+    )
   }
 
   /** Enforces that a Time variable has units defined. */

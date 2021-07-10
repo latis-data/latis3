@@ -7,6 +7,7 @@ import cats.syntax.all._
 import latis.data.Data
 import latis.data.NullData
 import latis.metadata.Metadata
+import latis.time.Time
 import latis.units.MeasurementScale
 import latis.util.Identifier
 import latis.util.LatisException
@@ -19,10 +20,11 @@ trait ScalarFactory {
   }
 
   def fromMetadata(metadata: Metadata): Either[LatisException, Scalar] =
-    metadata.getProperty("class").map { cls =>
+    metadata.getProperty("class").map {
       //TODO: construct dynamically? ReflectionUtils.callMethodOnCompanionObject(cls, fromMetadata, md)
-      if (cls == "latis.time.Time") ??? //TODO: Time.fromMetadata(md)
-      else Left(LatisException(s"Scalar class not found: $cls"))
+      case "latis.model.Index" => getId(metadata).map(Index(_))
+      case "latis.time.Time"   => Time.fromMetadata(metadata)
+      case cls                 => Left(LatisException(s"Scalar class not found: $cls"))
     }.getOrElse {
       for {
         id        <- getId(metadata)

@@ -1,5 +1,6 @@
 package latis.model
 
+import org.scalatest.EitherValues._
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.Inside.inside
 
@@ -137,5 +138,12 @@ class ScalarFactorySuite extends AnyFunSuite {
     inside(Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int", "order" -> "foo"))) {
       case Left(le) => assert(le.message == "Order must be 'asc' or 'des'")
     }
+  }
+
+  //---- time ----//
+
+  test("construct time") {
+    val md = Metadata("id" -> "a", "type" -> "string", "units" -> "yyyy", "class" -> "latis.time.Time")
+    Scalar.fromMetadata(md).value.isInstanceOf[latis.time.Time]
   }
 }

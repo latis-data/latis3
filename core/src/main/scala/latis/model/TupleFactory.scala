@@ -18,7 +18,7 @@ trait TupleFactory {
     fromElements(None, e1, e2, es: _*)
 
   def fromSeq(id: Option[Identifier], dts: Seq[DataType]): Either[LatisException, Tuple] =
-    dts match {
+    dts.toList match {
       case e1 :: e2 :: es => fromElements(id, e1, e2, es: _*)
       case _ => LatisException("Tuple must have at least two elements").asLeft
     }

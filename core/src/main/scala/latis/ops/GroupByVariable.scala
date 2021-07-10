@@ -50,7 +50,12 @@ case class GroupByVariable(ids: Identifier*) extends GroupOperation {
           throw LatisException(msg)
       }
     }
-    Tuple.fromSeq(scalars).fold(throw _, identity)  //TODO: .flatten?
+
+    scalars.length match {
+      case 0 => ???
+      case 1 => scalars.head
+      case 2 => Tuple.fromSeq(scalars).fold(throw _, identity)  //TODO: .flatten?
+    }
   }
 
   def groupByFunction(model: DataType): Sample => Option[DomainData] =

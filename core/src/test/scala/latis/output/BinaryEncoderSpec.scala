@@ -2,6 +2,7 @@ package latis.output
 
 import cats.effect.unsafe.implicits.global
 import org.scalatest.Inside.inside
+import org.scalatest.EitherValues._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import scodec._
@@ -17,9 +18,8 @@ import latis.data.Sample
 import latis.dataset.Dataset
 import latis.dsl.DatasetGenerator
 import latis.metadata.Metadata
-import latis.model.Function
-import latis.model.Scalar
-import latis.model.Tuple
+import latis.model._
+import latis.util.Identifier.IdentifierStringContext
 
 class BinaryEncoderSpec extends AnyFlatSpec {
 
@@ -47,12 +47,14 @@ class BinaryEncoderSpec extends AnyFlatSpec {
 
   it should "encode a Sample to binary" in {
     val sample = Sample(DomainData(0), RangeData(1, 1.1, "a"))
-    val model = Function(
-        Scalar(Metadata("id" -> "d", "type" -> "int")),
-      Tuple(Scalar(Metadata("id" -> "r0", "type" -> "int")),
-        Scalar(Metadata("id" -> "r1", "type" -> "double")),
-        Scalar(Metadata("id" -> "r2", "type" -> "string", "size" -> "2")))
-      )
+    val model = Function.from(
+        Scalar(id"d", IntValueType),
+      Tuple.fromElements(
+        Scalar(id"r1", IntValueType),
+        Scalar(id"r2", DoubleValueType),
+        Scalar.fromMetadata(Metadata("id" -> "r2", "type" -> "string", "size" -> "2")).value
+      ).value
+    ).value
 
     val expected = Attempt.successful(
       SEncoder.encode(0).require ++
@@ -76,14 +78,14 @@ class BinaryEncoderSpec extends AnyFlatSpec {
     "foo": StringValue
   )
     val scalars = List(
-    Scalar(Metadata("id" -> "a", "type" -> "boolean")),
-    Scalar(Metadata("id" -> "a", "type" -> "byte")),
-    Scalar(Metadata("id" -> "a", "type" -> "short")),
-    Scalar(Metadata("id" -> "a", "type" -> "int")),
-    Scalar(Metadata("id" -> "a", "type" -> "long")),
-    Scalar(Metadata("id" -> "a", "type" -> "float")),
-    Scalar(Metadata("id" -> "a", "type" -> "double")),
-    Scalar(Metadata("id" -> "a", "type" -> "string", "size" -> "4"))
+      Scalar(id"a", BooleanValueType),
+      Scalar(id"a", ByteValueType),
+      Scalar(id"a", ShortValueType),
+      Scalar(id"a", IntValueType),
+      Scalar(id"a", LongValueType),
+      Scalar(id"a", FloatValueType),
+      Scalar(id"a", DoubleValueType),
+      Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "string", "size" -> "4")).value
   )
 
     val expected = List(
@@ -103,10 +105,7 @@ class BinaryEncoderSpec extends AnyFlatSpec {
   }
 
   it should "encode a binary value" in {
-    val scalar = Scalar(Metadata(
-      "id" -> "a",
-      "type" -> "binary"
-    ))
+    val scalar = Scalar(id"a", BinaryValueType)
     val codec = enc.dataCodec(scalar)
     val bin = BinaryValue("foo".getBytes)
     inside(codec.encode(bin)) {

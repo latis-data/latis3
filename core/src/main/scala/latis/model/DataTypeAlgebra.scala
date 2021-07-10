@@ -7,8 +7,11 @@ import latis.util.Identifier
 
 trait DataTypeAlgebra { dataType: DataType =>
 
-  /** Recursively apply f to this DataType. */
-  @deprecated("Not safe if the type changes?")
+  /** Recursively apply a function to this DataType. */
+  //TODO: review dangeers and potential misuse,
+  // make a safer option?
+  // Scalar => Scalar? but TimeTuple => Time?
+  //@deprecated("Not safe if the type changes?")
   def map(f: DataType => DataType): DataType = dataType match {
     case s: Scalar => f(s)
     case t @ Tuple(es @ _*) => f(Tuple.fromSeq(t.id, es.map(f)).fold(throw _, identity))
@@ -19,28 +22,25 @@ trait DataTypeAlgebra { dataType: DataType =>
    * Returns a List of Scalars in the (depth-first) order
    * that they appear in the model.
    */
-  @deprecated("Risk of overlooking tuples and functions nested in tuples and being inconsistent with arity vs dimensionality")
+  //TODO: deprecate to find potential unsafe
+  //  Risk of overlooking tuples and functions nested in tuples
+  //  Risk of being inconsistent with arity vs dimensionality
+  // use "scalars", "nonIndexScalars" to migrate from getScalars?
   def getScalars: List[Scalar] = {
     def go(dt: DataType): List[Scalar] = dt match {
       case s: Scalar      => List(s)
-      case Tuple(es @ _*) => es.flatMap(go).toList
+      case t: Tuple       => t.elements.flatMap(go)
       case Function(d, r) => go(d) ++ go(r)
     }
     go(dataType)
   }
 
-  // Used by Rename Operation, Pivot Operation, and this.flatten
-  // Time overrides this so we can preserve the subtype.
-  /*
-  TODO: Does this need to be deprecated?
-    seemed like uniqueness risk but this makes a new scalar, a new model has to be rebuilt and validated
-    should use Operation to do this but need to be able to preserve subclass type
-    general copy constructor?
-   */
-  @deprecated
+  /** Replaces the identifier of this DataType. */
   def rename(id: Identifier): DataType = dataType match {
-    case s: Scalar      => Scalar.fromMetadata(s.metadata + ("id" -> id.asString)).fold(throw _, identity)
-    case Tuple(es @ _*) => Tuple.fromSeq(id, es).fold(throw _, identity)
+    case s: Scalar      =>
+      // Note that this will preserve subclass via "class" metadata
+      Scalar.fromMetadata(s.metadata + ("id" -> id.asString)).fold(throw _, identity)
+    case t: Tuple       => Tuple.fromSeq(id, t.elements).fold(throw _, identity)
     case Function(d, r) => Function.from(id, d, r).fold(throw _, identity)
   }
 
@@ -49,6 +49,9 @@ trait DataTypeAlgebra { dataType: DataType =>
    *
    * For a Function, this is the number of top level types (non-flattened)
    * in the domain. For Scalar and Tuple, there is no domain so the arity is 0.
+   *
+   * Beware that this is not the same as dimensionality since a nested tuple
+   * counts as one towards arity.
    */
   def arity: Int = dataType match {
     case Function(domain, _) =>
@@ -104,7 +107,9 @@ trait DataTypeAlgebra { dataType: DataType =>
       case _: Index  => List.empty //Index not represented in Sample
       case s: Scalar => List((s.id, path :+ position(tdr, index)))
       case t: Tuple  =>
-        // TupleData is not allowed in a Sample, so no path for a Tuple.
+        //TODO: path to tuple should be path to first element
+        //  so we can't simply flatten named nested tuples away
+        // --TupleData is not allowed in a Sample, so no path for a Tuple.--
         // Top level Tuple shows up in Sample range.
         val newTdr = if (tdr == "t") "r" else tdr
         // Samples do not preserve tuple nesting.

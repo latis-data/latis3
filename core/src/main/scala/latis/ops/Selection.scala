@@ -56,7 +56,6 @@ case class Selection(id: Identifier, operator: ast.SelectionOp, value: String) e
 
     (sample: Sample) =>
       sample.getValue(pos) match {
-        //TODO: not exhaustive: Some(Data) See https://github.com/latis-data/latis3/issues/305
         case Some(d: Datum) =>
           ordering
             .tryCompare(d, cdata)
@@ -71,6 +70,8 @@ case class Selection(id: Identifier, operator: ast.SelectionOp, value: String) e
           throw LatisException("Should not find SampledFunction at this position")
         case Some(_: TupleData) =>
           throw LatisException("Should not find TupleData at this position")
+        case Some(NullData) =>
+          throw LatisException("Should not find NullData at this position")
         case None =>
           // Bug: There should be a Datum at this position
           throw LatisException("Should find Datum at this position")

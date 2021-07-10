@@ -19,7 +19,7 @@ case class Rename(origId: Identifier, newId: Identifier) extends UnaryOperation 
       case None => Left(LatisException(s"Variable '${origId.asString}' not found"))
       case _ => Right(model.map {
         //TODO: works for scalars only
-        case s: Scalar => s.rename(newId)
+        case s: Scalar if (s.id == origId) => s.rename(newId)
         case dt => dt
       })
     }

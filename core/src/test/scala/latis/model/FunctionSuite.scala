@@ -1,17 +1,17 @@
 package latis.model
 
+import org.scalatest.EitherValues._
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.Inside.inside
 
-import latis.model.IntValueType
 import latis.util.Identifier.IdentifierStringContext
 
 class FunctionSuite extends AnyFunSuite {
 
-  val i = Index(id"_i")
-  val x = Scalar(id"x", IntValueType)
-  val a = Scalar(id"a", IntValueType)
-  val f = Function.from(id"f", x, a).toTry.get
+  private val i = Index(id"_i")
+  private val x = Scalar(id"x", IntValueType)
+  private val a = Scalar(id"a", IntValueType)
+  private val f = Function.from(id"f", x, a).value
 
   test("function with id") {
     Function.from(id"f", x, a).map { f =>

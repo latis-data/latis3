@@ -1,5 +1,6 @@
 package latis.util
 
+import org.scalatest.EitherValues._
 import org.scalatest.funsuite.AnyFunSuite
 
 import latis.dsl._
@@ -11,8 +12,8 @@ import latis.util.Identifier._
 
 class SqlBuilderSuite extends AnyFunSuite {
 
-  val table = "myTable"
-  val model = ModelParser.unsafeParse("(x, y) -> (a, b, c)")
+  private val table = "myTable"
+  private val model = ModelParser.unsafeParse("(x, y) -> (a, b, c)")
 
   //---- SQL from Operations ----//
 
@@ -69,22 +70,22 @@ class SqlBuilderSuite extends AnyFunSuite {
 
   test("no order clause for index domain") {
     val scalar = ModelParser.unsafeParse("a")
-    val model = Function(Index(id"_i"), scalar)
+    val model = Function.from(Index(id"_i"), scalar).value
     val sql = SqlBuilder.buildQuery(table, model)
     assert(!sql.contains("ORDER"))
   }
 
   //---- SQL with Time selections ----//
 
-  val modelWithNumericTime = Function(
-    Time(Metadata("id" -> "t", "type" -> "int", "units" -> "days since 1970-01-01")),
-    Scalar(Metadata("id" -> "a", "type" -> "int"))
-  )
+  private val modelWithNumericTime = Function.from(
+    Time.fromMetadata(Metadata("id" -> "t", "type" -> "int", "units" -> "days since 1970-01-01")).value,
+    Scalar(id"a", IntValueType)
+  ).value
 
-  val modelWithTextTime = Function(
-    Time(Metadata("id" -> "t", "type" -> "string", "units" -> "yyyy-MM-dd")),
-    Scalar(Metadata("id" -> "a", "type" -> "int"))
-  )
+  private val modelWithTextTime = Function.from(
+    Time.fromMetadata(Metadata("id" -> "t", "type" -> "string", "units" -> "yyyy-MM-dd")).value,
+    Scalar(id"a", IntValueType)
+  ).value
 
   test("numeric time selection with numeric time") {
     val ops = List(

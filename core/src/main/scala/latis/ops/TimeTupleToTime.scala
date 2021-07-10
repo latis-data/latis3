@@ -27,9 +27,9 @@ case class TimeTupleToTime(id: Identifier = id"time") extends MapOperation {
       //make the time Scalar
       //assumes time tuple has id
       val metadata = Metadata(
-        "id" -> t.id.get.asString,
+        "id"    -> t.id.get.asString,
         "units" -> format,
-        "type" -> "string"
+        "type"  -> "string"
       )
       Time.fromMetadata(metadata).fold(throw _, identity)
     case v => v

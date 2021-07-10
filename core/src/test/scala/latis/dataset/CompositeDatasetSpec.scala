@@ -22,10 +22,7 @@ class CompositeDatasetSpec extends AnyFlatSpec {
   private val ds1 = {
     val metadata = Metadata(id"test1")
 
-    val model = Function(
-      Scalar(Metadata("id" -> "time", "type" -> "int")),
-      Scalar(Metadata("id" -> "flux", "type" -> "double"))
-    )
+    val model = ModelParser.unsafeParse("time: int -> flux: double")
 
     val data = {
       val samples = List(
@@ -40,10 +37,7 @@ class CompositeDatasetSpec extends AnyFlatSpec {
   private val ds2 = {
     val metadata = Metadata(id"test2")
 
-    val model = Function(
-      Scalar(Metadata("id" -> "time", "type" -> "int")),
-      Scalar(Metadata("id" -> "flux", "type" -> "double"))
-    )
+    val model = ModelParser.unsafeParse("time: int -> flux: double")
 
     val data = {
       val samples = List(
@@ -62,9 +56,9 @@ class CompositeDatasetSpec extends AnyFlatSpec {
     inside(compDs.model) {
       case Function(t: Scalar, f: Scalar) =>
         assert(t.valueType == IntValueType)
-        assert(t.id.get.asString == "time")
+        assert(t.id.asString == "time")
         assert(f.valueType == DoubleValueType)
-        assert(f.id.get.asString == "flux")
+        assert(f.id.asString == "flux")
     }
   }
 

@@ -50,8 +50,8 @@ class DatasetTestUtilsSuite extends AnyFunSuite {
   test("match model") {
     testSuite.matchModel(id"foo") {
       case Function(x: Scalar, a: Scalar) =>
-        assert(x.id.get.asString == "x")
-        assert(a.id.get.asString == "a")
+        assert(x.id.asString == "x")
+        assert(a.id.asString == "a")
     }
   }
 
@@ -59,8 +59,8 @@ class DatasetTestUtilsSuite extends AnyFunSuite {
     val ops = List(Rename(id"a", id"b"))
     testSuite.matchModel(id"foo", ops) {
       case Function(x: Scalar, a: Scalar) =>
-        assert(x.id.get.asString == "x")
-        assert(a.id.get.asString == "b")
+        assert(x.id.asString == "x")
+        assert(a.id.asString == "b")
     }
   }
 

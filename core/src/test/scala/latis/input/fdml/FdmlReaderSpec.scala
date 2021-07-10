@@ -53,7 +53,7 @@ class FdmlReaderSpec extends AnyFlatSpec {
     }
     inside(ds.model) {
       case Function(_, range) =>
-        assert(range.getScalars.map(_.id.get.asString) == List("b", "Istanbul"))
+        assert(range.getScalars.map(_.id.asString) == List("b", "Istanbul"))
     }
   }
 }

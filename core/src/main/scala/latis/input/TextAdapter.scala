@@ -66,6 +66,7 @@ class TextAdapter(model: DataType, config: TextAdapter.Config = new TextAdapter.
    * Return None if the record is invalid.
    */
   def parseRecord(record: String): Option[Sample] = {
+    //TODO: return Either with explanation? e.g. Failed to parse IntValue: 1.1
     // We assume one value for each scalar in the model.
     // Note that Samples don't capture nested tuple structure.
     // Assume uncurried model (no nested function), for now.
