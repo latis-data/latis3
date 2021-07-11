@@ -9,9 +9,24 @@ trait FunctionFactory {
 
   def from(id: Option[Identifier], domain: DataType, range: DataType): Either[LatisException, Function] = {
     //TODO: assert unique ids
-    //TODO: assert no functions in domain, including within tuples
-    //TODO: no Index in range
-    new Function(id, domain, range).asRight
+
+    // No functions in domain, including within tuples
+    val fInDomain: Boolean = domain match {
+      case _: Function => true
+      case t: Tuple    => t.flatElements.exists(_.isInstanceOf[Function])
+      case _           => false
+    }
+
+    // No Index in range
+    val indexInRange: Boolean = range match {
+      case _: Index => true
+      case t: Tuple => t.flatElements.exists(_.isInstanceOf[Index])
+      case _        => false
+    }
+
+    if (fInDomain) LatisException("Function in Function domain not allowed").asLeft
+    else if (indexInRange) LatisException("Index in Function range not allowed").asLeft
+    else new Function(id, domain, range).asRight
   }
 
   def from(id: Identifier, domain: DataType, range: DataType): Either[LatisException, Function] =

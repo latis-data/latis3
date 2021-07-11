@@ -39,7 +39,7 @@ case class GranuleListJoin(
   def applyToData(data: Data, model: DataType): Either[LatisException, Data] = {
 
     // Get the position of the "uri" value within a Sample
-    val pos: Either[LatisException, SamplePosition] = model.getPath(id"uri") match {
+    val pos: Either[LatisException, SamplePosition] = model.findPath(id"uri") match {
       case Some(path) if path.length == 1 => path.head.asRight
       case _ => LatisException("uri not found.").asLeft
     }

@@ -39,7 +39,7 @@ case class Selection(id: Identifier, operator: ast.SelectionOp, value: String) e
     //TODO: support aliases
 
     // Determine the Sample position of the selected variable
-    val pos: SamplePosition = model.getPath(id) match {
+    val pos: SamplePosition = model.findPath(id) match {
       case Some(p) =>
         p.length match {
           case 1 => p.head

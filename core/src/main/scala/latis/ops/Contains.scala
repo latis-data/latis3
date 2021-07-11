@@ -14,7 +14,7 @@ case class Contains(id: Identifier, values: String*) extends Filter {
 
   def predicate(model: DataType): Sample => Boolean = {
     // Determine the path to the selected variable
-    val path: SamplePosition = model.getPath(id) match {
+    val path: SamplePosition = model.findPath(id) match {
       case Some(p) => p.head //assume no nested functions for now
       case None => ???    //TODO: invalid path or vname
     }

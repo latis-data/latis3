@@ -38,7 +38,7 @@ abstract class TimeOperation extends MapOperation {
   private def makeConverters(model: DataType): List[(SamplePosition, Datum => Datum)] =
     model.getScalars.collect {
       case t: Time =>
-        val path = model.getPath(t.id).get //bug if path not found
+        val path = model.findPath(t.id).get //bug if path not found
         val pos = path.length match {
           case 0 => RangePosition(0) //hack for ConstantFunction
           case 1 => path.head

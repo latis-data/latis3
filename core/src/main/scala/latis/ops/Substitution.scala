@@ -21,7 +21,7 @@ case class Substitution(dataset: Dataset) extends MapOperation {
     //TODO: error if not consecutive
     val paths = modelScalars._1.toList.traverse { s =>
       val sId = s.id
-      model.getPath(sId)
+      model.findPath(sId)
     }.getOrElse {
       val msg = s"Failed to find substitution domain in target Dataset"
       throw LatisException(msg)
