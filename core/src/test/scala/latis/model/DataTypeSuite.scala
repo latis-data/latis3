@@ -8,9 +8,6 @@ import latis.data.DomainPosition
 import latis.data.NullData
 import latis.data.RangePosition
 import latis.data.TupleData
-import latis.model.DoubleValueType
-import latis.model.IntValueType
-import latis.model.StringValueType
 import latis.util.Identifier.IdentifierStringContext
 
 class DataTypeSuite extends AnyFunSuite {
@@ -48,48 +45,63 @@ class DataTypeSuite extends AnyFunSuite {
     assert(f.findVariable(id"nope").isEmpty)
   }
 
-  //---- getPath ----//
+  //---- findPath ----//
 
   test("path to constant scalar") {
-    assert(a.getPath(id"a").contains(List(RangePosition(0))))
+    assert(a.findPath(id"a").contains(List(RangePosition(0))))
   }
 
   test("path to scalar in constant tuple") {
-    assert(namedTup.getPath(id"b").contains(List(RangePosition(1))))
+    assert(namedTup.findPath(id"b").contains(List(RangePosition(1))))
   }
 
   test("path to scalar in nested tuple") {
-    assert(nestedTup.getPath(id"c").contains(List(RangePosition(2))))
+    assert(nestedTup.findPath(id"c").contains(List(RangePosition(2))))
   }
 
   test("path to function in top level tuple") {
-    assert(tupWithF.getPath(id"f").contains(List(RangePosition(1))))
+    assert(tupWithF.findPath(id"f").contains(List(RangePosition(1))))
   }
 
   test("no path to index") {
     assert(nestedFInTup.findVariable(id"_i").nonEmpty)
-    assert(nestedFInTup.getPath(id"_i").isEmpty)
+    assert(nestedFInTup.findPath(id"_i").isEmpty)
   }
 
-  test("no path to tuple") {
-    assert(fWithTup.findVariable(id"t").nonEmpty)
-    assert(fWithTup.getPath(id"t").isEmpty)
+  test("path to tuple") {
+    // t: (a, b)
+    assert(fWithTup.findPath(id"t").contains(List(RangePosition(0))))
+    assert(fWithTup.findPath(id"a").contains(List(RangePosition(0))))
+    assert(fWithTup.findPath(id"b").contains(List(RangePosition(1))))
+  }
+
+  test("path to nested tuple") {
+    // (t: (a, b), c)
+    assert(nestedTup.findPath(id"t").contains(List(RangePosition(0))))
+    assert(nestedTup.findPath(id"c").contains(List(RangePosition(2))))
+  }
+
+  test("path in nested tuple with function") {
+    // (z, t: (f: x -> a, b), c)
+    //  0  1   1  0    0  2   3
+    val model = Tuple.fromElements(z, Tuple.fromElements(id"t", f, b).value, c).value
+    assert(model.findPath(id"c").contains(List(RangePosition(3))))
   }
 
   test("path to scalar in function domain") {
-    assert(fWithTup.getPath(id"x").contains(List(DomainPosition(0))))
+    assert(fWithTup.findPath(id"x").contains(List(DomainPosition(0))))
   }
 
   test("path to scalar in function range") {
-    assert(fWithTup.getPath(id"b").contains(List(RangePosition(1))))
+    assert(fWithTup.findPath(id"b").contains(List(RangePosition(1))))
   }
 
   test("path to scalar in nested function") {
-    assert(nestedF.getPath(id"a").contains(List(RangePosition(0),RangePosition(0))))
+    assert(nestedF.findPath(id"a").contains(List(RangePosition(0),RangePosition(0))))
   }
 
   test("path to scalar in nested function in tuple") {
-    assert(nestedFInTup.getPath(id"b").contains(List(RangePosition(1),RangePosition(1))))
+    assert(nestedFInTup.findPath(id"b").contains(List(RangePosition(1),RangePosition(1))))
   }
 
   //---- fillData ----//

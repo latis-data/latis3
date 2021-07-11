@@ -69,7 +69,7 @@ case class Projection(ids: Identifier*) extends MapOperation {
       .getScalars                //start here so we preserve variable order
       .map(_.id)
       .filter(ids.contains(_))   //keep the projected ids
-      .map(model.getPath(_).get) //getPath should be safe since we just got the id from the model
+      .map(model.findPath(_).get) //findPath should be safe since we just got the id from the model
       .map {
         case p :: Nil => p
         case _ :: _   => throw LatisException("Can't project within nested Function.")

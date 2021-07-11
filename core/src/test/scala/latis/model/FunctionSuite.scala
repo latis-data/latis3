@@ -13,6 +13,10 @@ class FunctionSuite extends AnyFunSuite {
   private val a = Scalar(id"a", IntValueType)
   private val f = Function.from(id"f", x, a).value
 
+  test("to string") {
+    assert(f.toString == "f: x -> a") //TODO: add parens?
+  }
+
   test("function with id") {
     Function.from(id"f", x, a).map { f =>
       assert(f.id.contains(id"f"))
@@ -25,6 +29,18 @@ class FunctionSuite extends AnyFunSuite {
     }
   }
 
+  test("no function in domain") {
+    assert(Function.from(f, a).isLeft)
+  }
+
+  test("no index in range") {
+    assert(Function.from(x, i).isLeft)
+  }
+
+  ignore("no duplicate") {
+    assert(Function.from(x, x).isLeft)
+  }
+
   test("extract domain and range") {
     inside(f) {
       case Function(d: Scalar, r: Scalar) =>
@@ -32,17 +48,4 @@ class FunctionSuite extends AnyFunSuite {
         assert(r.id == id"a")
     }
   }
-
-  ignore("no duplicate") {
-    assert(Function.from(x, x).isLeft)
-  }
-
-  ignore("no function in domain") {
-    assert(Function.from(f, a).isLeft)
-  }
-
-  ignore("no index in range") {
-    assert(Function.from(x, i).isLeft)
-  }
-
 }

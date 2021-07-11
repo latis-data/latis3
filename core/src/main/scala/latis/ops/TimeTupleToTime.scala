@@ -36,7 +36,7 @@ case class TimeTupleToTime(id: Identifier = id"time") extends MapOperation {
     })
 
   override def mapFunction(model: DataType): Sample => Sample = {
-    val timePos: SamplePosition = model.getPath(id) match {
+    val timePos: SamplePosition = model.findPath(id) match {
       case Some(List(sp)) => sp
       case None => throw LatisException(s"Cannot find path to variable: ${id.asString}")
       case _ => throw LatisException(s"Variable '${id.asString}' must not be in a nested Function.")

@@ -28,7 +28,7 @@ case class GroupByVariable(ids: Identifier*) extends GroupOperation {
    * Gets the SamplePosition for each group-by variable.
    */
   def samplePositions(model: DataType): List[SamplePosition] = ids.toList.map { id =>
-    model.getPath(id) match {
+    model.findPath(id) match {
       case Some(path) =>
         if (path.length > 1)
           throw LatisException(s"Group-by variable must not be in a nested Function: ${id.asString}")
@@ -105,7 +105,7 @@ case class RemoveGroupedVariables(ids: Seq[Identifier]) extends MapOperation {
 
     // Get the paths of the variables to be removed from each Sample.
     // Sort to maintain the original order of variables.
-    val samplePositions = vnames.flatMap(model.getPath).map(_.head)
+    val samplePositions = vnames.flatMap(model.findPath).map(_.head)
     val domainIndices: Seq[Int] = samplePositions.collect {
       case DomainPosition(i) => i
     }.sorted

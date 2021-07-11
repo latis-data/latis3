@@ -8,9 +8,22 @@ import latis.util.Identifier
 trait DataTypeAlgebra { dataType: DataType =>
 
   /** Recursively apply a function to this DataType. */
-  //TODO: review dangeers and potential misuse,
-  // make a safer option?
-  // Scalar => Scalar? but TimeTuple => Time?
+  /*
+  TODO: review dangers and potential misuse
+   Current usage:
+   ConvertTime.scala:56
+    Time => Time
+   FormatTime.scala:57
+    Time => Time
+   Rename.scala:20
+    any DT to same type
+   TimeTupleToTime.scala:21
+    Tuple => Time
+   not generally safe for any type mapping, changes structure that we are traversing over
+   limit to Scalar => Scalar? TimeTextToTime is on its own?
+   substitution use case? uri => Function
+   special cases don't need general solution here, but might be handy abstraction that opens doors?
+ */
   //@deprecated("Not safe if the type changes?")
   def map(f: DataType => DataType): DataType = dataType match {
     case s: Scalar => f(s)
@@ -87,45 +100,7 @@ trait DataTypeAlgebra { dataType: DataType =>
   }
 
   /** Gets the path to the given variable in a Sample. */
-  def getPath(id: Identifier): Option[SamplePath] = {
-    // Helper function to make SamplePosition.
-    // tdr: "t"op, "d"omain, or "r"ange
-    def position(tdr: String, index: Int): SamplePosition = tdr match {
-      case "t" => RangePosition(index)
-      case "d" => DomainPosition(index)
-      case "r" => RangePosition(index)
-      //TODO: nowarn annotation
-    }
+  def findPath(id: Identifier): Option[SamplePath] =
+    PathFinder.findPath(this, id)
 
-    // Build list of id, path pairs
-    def accumulateIdPathPairs(
-      dt: DataType,
-      path: SamplePath,
-      tdr: String, // top, domain, or range
-      index: Int
-    ): List[(Identifier, SamplePath)] = dt match {
-      case _: Index  => List.empty //Index not represented in Sample
-      case s: Scalar => List((s.id, path :+ position(tdr, index)))
-      case t: Tuple  =>
-        //TODO: path to tuple should be path to first element
-        //  so we can't simply flatten named nested tuples away
-        // --TupleData is not allowed in a Sample, so no path for a Tuple.--
-        // Top level Tuple shows up in Sample range.
-        val newTdr = if (tdr == "t") "r" else tdr
-        // Samples do not preserve tuple nesting.
-        t.flatElements.zipWithIndex.flatMap { case (e, i) =>
-          accumulateIdPathPairs(e, path, newTdr, i)
-        }
-      case f: Function =>
-        // Top level function has no position in a Sample.
-        val newPath = if (tdr == "t") List.empty else path :+ position(tdr, index)
-        f.id.map((_, newPath)).toList ++ //empty if id not defined
-          accumulateIdPathPairs(f.domain, newPath, "d", 0) ++
-          accumulateIdPathPairs(f.range,  newPath, "r", 0)
-    }
-
-    // Find the path for the given id
-    //TODO: short circuit
-    accumulateIdPathPairs(dataType, List.empty, "t", 0).find(_._1 == id).map(_._2)
-  }
 }
