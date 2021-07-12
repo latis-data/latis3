@@ -1,29 +1,30 @@
-package latis.modelORIG
+package latis.model
 
+import org.scalatest.EitherValues._
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.Inside.inside
 
 import latis.data._
 import latis.metadata.Metadata
+import latis.util.Identifier.IdentifierStringContext
 
-//TODO: FillDataSuite
-class FillValueSuite extends AnyFunSuite {
+class FillDataSuite extends AnyFunSuite {
 
-  val nonNullableScalar = Scalar(Metadata("id" -> "nns", "type" -> "int"))
-  val scalarWithFill    = Scalar(Metadata("id" -> "swf", "type" -> "int", "fillValue" -> "-1"))
-  val scalarWithMissing = Scalar(Metadata("id" -> "swm", "type" -> "int", "missingValue" -> "-9"))
-  val scalarWithFillAndMissing =
-    Scalar(Metadata("id" -> "swfm", "type" -> "int", "fillValue" -> "-1", "missingValue" -> "-9"))
+  private val nonNullableScalar = Scalar(id"nns", IntValueType)
+  private val scalarWithFill    = Scalar.fromMetadata(Metadata("id" -> "swf", "type" -> "int", "fillValue" -> "-1")).value
+  private val scalarWithMissing = Scalar.fromMetadata(Metadata("id" -> "swm", "type" -> "int", "missingValue" -> "-9")).value
+  private val scalarWithFillAndMissing =
+    Scalar.fromMetadata(Metadata("id" -> "swfm", "type" -> "int", "fillValue" -> "-1", "missingValue" -> "-9")).value
 
-  val tuple = Tuple(
+  private val tuple: Tuple = Tuple.fromElements(
     nonNullableScalar,
     scalarWithFill,
-    Tuple(
+    Tuple.fromElements(
       scalarWithMissing,
       scalarWithFillAndMissing
-    ),
-    Function(nonNullableScalar, scalarWithFill)
-  )
+    ).value,
+    Function.from(nonNullableScalar, scalarWithFill).value
+  ).value
 
   test("fillable only if fillValue is defined") {
     assert(!nonNullableScalar.isFillable)

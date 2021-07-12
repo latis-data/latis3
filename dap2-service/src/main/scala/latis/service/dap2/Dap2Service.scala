@@ -5,7 +5,6 @@ import java.net.URLDecoder
 import cats.effect._
 import cats.syntax.all._
 import fs2.Stream
-import fs2.io.file.Files
 import fs2.text
 import org.http4s.headers.`Content-Type`
 import org.http4s.HttpRoutes

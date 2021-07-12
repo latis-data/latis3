@@ -17,7 +17,7 @@ class DataTypeSuite extends AnyFunSuite {
   //  make sure we can get matching path
   //  https://www.scalatest.org/user_guide/generator_driven_property_checks
 
-  private val i = Index(id"_i")
+  private val i = Index()
   private val x = Scalar(id"x", IntValueType)
   //private val y = Scalar(id"y", IntValueType)
   private val z = Scalar(id"z", IntValueType)
