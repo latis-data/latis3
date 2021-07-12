@@ -49,11 +49,14 @@ object Latis3ServerBuilder {
     BlazeServerBuilder[IO](executionContext)
       .bindHttp(conf.port, "0.0.0.0")
       .withHttpApp {
-        LatisServiceLogger(
-          Router(conf.mapping -> CORS(
-            constructRoutes(interfaces),
-            CORSConfig.default
-          )).orNotFound,
+        LatisErrorHandler(
+          LatisServiceLogger(
+            Router(conf.mapping -> CORS(
+              constructRoutes(interfaces),
+              CORSConfig.default
+            )).orNotFound,
+            logger
+          ),
           logger
         )
       }
