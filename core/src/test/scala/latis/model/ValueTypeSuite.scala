@@ -1,4 +1,4 @@
-package latis.modelORIG
+package latis.model
 
 import org.scalatest.EitherValues._
 import org.scalatest.funsuite.AnyFunSuite

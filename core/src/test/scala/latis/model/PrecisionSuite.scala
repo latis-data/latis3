@@ -25,4 +25,16 @@ class PrecisionSuite extends AnyFunSuite {
     assert(scalar.formatValue(Data.DoubleValue(1.235)) == "1")
   }
 
+  test("no precision for int") {
+    val md = Metadata("id" -> "a", "type" -> "int", "precision" -> "2")
+    assert(Scalar.fromMetadata(md).isLeft)
+  }
+
+  test("preserve a NaN") {
+    assert(scalar.formatValue(Data.DoubleValue(Double.NaN)) == "NaN")
+  }
+
+  test("expand scientific notation") {
+    assert(scalar.formatValue(Data.DoubleValue(1e10)) == "10000000000.00")
+  }
 }
