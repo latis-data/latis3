@@ -13,7 +13,7 @@ import latis.time.TimeFormat
 
 class FormatTimeSpec extends AnyFlatSpec {
 
-  private val numericTime = Time.fromMetadata(
+  private lazy val numericTime = Time.fromMetadata(
     Metadata(
       "id" -> "t1",
       "type" -> "int",
@@ -21,7 +21,7 @@ class FormatTimeSpec extends AnyFlatSpec {
     )
   ).value
 
-  private val textTime = Time.fromMetadata(
+  private lazy val textTime = Time.fromMetadata(
     Metadata(
       "id" -> "t2",
       "type" -> "string",
@@ -29,7 +29,7 @@ class FormatTimeSpec extends AnyFlatSpec {
     )
   ).value
 
-  private val formatTime = FormatTime(TimeFormat.fromExpression("yyyy-DDD").value)
+  private lazy val formatTime = FormatTime(TimeFormat.fromExpression("yyyy-DDD").value)
 
   "The FormatTime Operation" should "update the metadata of the time variable" in {
     inside(formatTime.applyToModel(numericTime)) {

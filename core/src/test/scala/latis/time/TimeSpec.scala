@@ -19,7 +19,7 @@ class TimeSpec extends AnyFlatSpec {
     )
   ).value
 
-  private val numericTime = Time.fromMetadata(
+  private lazy val numericTime = Time.fromMetadata(
     Metadata(
       "id"    -> "time",
       "type"  -> "double",

@@ -10,13 +10,13 @@ import latis.util.Identifier.IdentifierStringContext
 
 class FillDataSuite extends AnyFunSuite {
 
-  private val nonNullableScalar = Scalar(id"nns", IntValueType)
-  private val scalarWithFill    = Scalar.fromMetadata(Metadata("id" -> "swf", "type" -> "int", "fillValue" -> "-1")).value
-  private val scalarWithMissing = Scalar.fromMetadata(Metadata("id" -> "swm", "type" -> "int", "missingValue" -> "-9")).value
-  private val scalarWithFillAndMissing =
+  private lazy val nonNullableScalar = Scalar(id"nns", IntValueType)
+  private lazy val scalarWithFill    = Scalar.fromMetadata(Metadata("id" -> "swf", "type" -> "int", "fillValue" -> "-1")).value
+  private lazy val scalarWithMissing = Scalar.fromMetadata(Metadata("id" -> "swm", "type" -> "int", "missingValue" -> "-9")).value
+  private lazy val scalarWithFillAndMissing =
     Scalar.fromMetadata(Metadata("id" -> "swfm", "type" -> "int", "fillValue" -> "-1", "missingValue" -> "-9")).value
 
-  private val tuple: Tuple = Tuple.fromElements(
+  private lazy val tuple: Tuple = Tuple.fromElements(
     nonNullableScalar,
     scalarWithFill,
     Tuple.fromElements(

@@ -115,7 +115,7 @@ class CurrySuite extends AnyFunSuite {
   }
 
   // (_1, _2) -> (a, b)
-  private val mock2d: Dataset =
+  private lazy val mock2d: Dataset =
     DatasetGenerator.generate2DDataset(
       Seq(1,2,3),
       Seq("Fe", "Mg"),
@@ -123,7 +123,7 @@ class CurrySuite extends AnyFunSuite {
       Seq(Seq(0.1, 0.2, 0.3, 0.4, 0.5, 0.6)))
 
   // (_1, _2, _3) -> a
-  private val mock3d: MemoizedDataset =
+  private lazy val mock3d: MemoizedDataset =
     DatasetGenerator.generate3DDataset(
       Seq(1,2),
       Seq(1,2),

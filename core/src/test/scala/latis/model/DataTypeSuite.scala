@@ -17,21 +17,21 @@ class DataTypeSuite extends AnyFunSuite {
   //  make sure we can get matching path
   //  https://www.scalatest.org/user_guide/generator_driven_property_checks
 
-  private val i = Index()
-  private val x = Scalar(id"x", IntValueType)
-  //private val y = Scalar(id"y", IntValueType)
-  private val z = Scalar(id"z", IntValueType)
-  private val a = Scalar(id"a", IntValueType)
-  private val b = Scalar(id"b", DoubleValueType)
-  private val c = Scalar(id"c", StringValueType)
-  private val namedTup  = Tuple.fromElements(id"t", a, b).value       // t: (a, b)
-  //private val anonTup   = Tuple.fromElements(a, b).value              // (a, b)
-  private val nestedTup = Tuple.fromElements(namedTup, c).value       // (t: (a, b), c)
-  private val f = Function.from(id"f", x, a).value                    // f: x -> a
-  private val fWithTup = Function.from(id"f", x, namedTup).value      // f: x -> t: (a, b)
-  private val tupWithF = Tuple.fromElements(a, fWithTup).value        // (a, f: x -> t: (a, b))
-  private val nestedF = Function.from(id"g", z, f).value              // g: z -> f: x -> a
-  private val nestedFInTup = Function.from(id"g", i, tupWithF).value  // g: _i -> (a, f: x -> t: (a, b))
+  private lazy val i = Index()
+  private lazy val x = Scalar(id"x", IntValueType)
+  //private lazy val y = Scalar(id"y", IntValueType)
+  private lazy val z = Scalar(id"z", IntValueType)
+  private lazy val a = Scalar(id"a", IntValueType)
+  private lazy val b = Scalar(id"b", DoubleValueType)
+  private lazy val c = Scalar(id"c", StringValueType)
+  private lazy val namedTup  = Tuple.fromElements(id"t", a, b).value       // t: (a, b)
+  //private lazy val anonTup   = Tuple.fromElements(a, b).value              // (a, b)
+  private lazy val nestedTup = Tuple.fromElements(namedTup, c).value       // (t: (a, b), c)
+  private lazy val f = Function.from(id"f", x, a).value                    // f: x -> a
+  private lazy val fWithTup = Function.from(id"f", x, namedTup).value      // f: x -> t: (a, b)
+  private lazy val tupWithF = Tuple.fromElements(a, fWithTup).value        // (a, f: x -> t: (a, b))
+  private lazy val nestedF = Function.from(id"g", z, f).value              // g: z -> f: x -> a
+  private lazy val nestedFInTup = Function.from(id"g", i, tupWithF).value  // g: _i -> (a, f: x -> t: (a, b))
 
   test("to string") {
     assert(nestedFInTup.toString == "g: _i -> (a, f: x -> t: (a, b))")

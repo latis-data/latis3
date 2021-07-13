@@ -8,10 +8,10 @@ import latis.util.Identifier.IdentifierStringContext
 
 class FunctionSuite extends AnyFunSuite {
 
-  private val i = Index(id"_i")
-  private val x = Scalar(id"x", IntValueType)
-  private val a = Scalar(id"a", IntValueType)
-  private val f = Function.from(id"f", x, a).value
+  private lazy val i = Index(id"_i")
+  private lazy val x = Scalar(id"x", IntValueType)
+  private lazy val a = Scalar(id"a", IntValueType)
+  private lazy val f = Function.from(id"f", x, a).value
 
   test("to string") {
     assert(f.toString == "f: x -> a") //TODO: add parens?

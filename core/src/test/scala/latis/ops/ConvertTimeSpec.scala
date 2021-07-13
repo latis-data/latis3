@@ -13,7 +13,7 @@ import latis.time.TimeScale
 
 class ConvertTimeSpec extends AnyFlatSpec {
 
-  private val numericTime = Time.fromMetadata(
+  private lazy val numericTime = Time.fromMetadata(
     Metadata(
       "id" -> "t1",
       "type" -> "int",
@@ -21,7 +21,7 @@ class ConvertTimeSpec extends AnyFlatSpec {
     )
   ).value
 
-  private val textTime = Time.fromMetadata(
+  private lazy val textTime = Time.fromMetadata(
     Metadata(
       "id" -> "t2",
       "type" -> "string",
@@ -29,7 +29,7 @@ class ConvertTimeSpec extends AnyFlatSpec {
     )
   ).value
 
-  private val convertTime = TimeScale.fromExpression("weeks since 2020-01-08")
+  private lazy val convertTime = TimeScale.fromExpression("weeks since 2020-01-08")
     .map(ConvertTime(_)).value
 
   "The ConvertTime Operation" should "update the metadata of the time variable" in {

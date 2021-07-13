@@ -121,7 +121,6 @@ case class Substitution(dataset: Dataset) extends MapOperation {
     // substitution Dataset's domain with the types from its range.
     // Recursive helper function
     def go(dt: DataType): DataType = dt match {
-      //TODO: not exhaustive: Some(Data) See https://github.com/latis-data/latis3/issues/304
       case s: Scalar =>
         if ((domainVariableIDs.length == 1) && s.id == domainVariableIDs.head) subScalars.head
         else s

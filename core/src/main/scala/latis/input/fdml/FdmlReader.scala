@@ -93,7 +93,8 @@ object FdmlReader {
       domain <- makeDataType(function.domain)
       range  <- makeDataType(function.range)
       id     <- getId(function.attributes)
-    } yield Function.from(id, domain, range).fold(throw _, identity) //TODO: other function.attributes?
+      f      <- Function.from(id, domain, range)
+    } yield f
 
   private def makeTuple(tuple: FTuple): Either[LatisException, Tuple] =
     for {

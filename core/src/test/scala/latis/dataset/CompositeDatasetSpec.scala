@@ -19,7 +19,7 @@ import latis.util.dap2.parser.ast
 
 class CompositeDatasetSpec extends AnyFlatSpec {
 
-  private val ds1 = {
+  private lazy val ds1 = {
     val metadata = Metadata(id"test1")
 
     val model = ModelParser.unsafeParse("time: int -> flux: double")
@@ -34,7 +34,7 @@ class CompositeDatasetSpec extends AnyFlatSpec {
 
     new MemoizedDataset(metadata, model, data)
   }
-  private val ds2 = {
+  private lazy val ds2 = {
     val metadata = Metadata(id"test2")
 
     val model = ModelParser.unsafeParse("time: int -> flux: double")
@@ -49,7 +49,7 @@ class CompositeDatasetSpec extends AnyFlatSpec {
 
     new MemoizedDataset(metadata, model, data)
   }
-  private val compDs =
+  private lazy val compDs =
     new CompositeDataset(ds1.metadata, NonEmptyList(ds1, List(ds2)))
 
   "A dataset" should "provide a composite model" in {

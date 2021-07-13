@@ -8,17 +8,7 @@ import latis.dsl.ModelParser
 
 class RegexAdapterSpec extends AnyFlatSpec {
 
-  private val model = ModelParser.unsafeParse("time: string -> (myInt: int, myDouble: double, myString: string)")
-//  private val model = Function(
-//    Tuple(
-//      Scalar(Metadata(id"time") + ("type" -> "string") + ("units" -> "yyyy MM dd"))
-//    ),
-//    Tuple(
-//      Scalar(Metadata(id"myInt") + ("type"    -> "int")),
-//      Scalar(Metadata(id"myDouble") + ("type" -> "double")),
-//      Scalar(Metadata(id"myString") + ("type" -> "string"))
-//    )
-//  )
+  private lazy val model = ModelParser.unsafeParse("time: string -> (myInt: int, myDouble: double, myString: string)")
 
   "A RegexAdapter" should "parse a record given a pattern" in {
     val config = new RegexAdapter.Config(

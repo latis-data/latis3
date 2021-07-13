@@ -17,7 +17,7 @@ import latis.util.Identifier.IdentifierStringContext
 
 class OrderingSpec extends AnyFlatSpec {
 
-  private val time = Time.fromMetadata(
+  private lazy val time = Time.fromMetadata(
     Metadata(
       "id" -> "time",
       "type" -> "string",

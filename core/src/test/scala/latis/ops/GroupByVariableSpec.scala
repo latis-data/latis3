@@ -12,16 +12,16 @@ import latis.util.Identifier.IdentifierStringContext
 class GroupByVariableSpec extends AnyFlatSpec {
 
   // (x, y) -> a
-  private val model = ModelParser.unsafeParse("(x, y) -> a")
+  private lazy val model = ModelParser.unsafeParse("(x, y) -> a")
 
-  private val data = SeqFunction(Seq(
+  private lazy val data = SeqFunction(Seq(
     Sample(DomainData(0, 10), RangeData(1)),
     Sample(DomainData(0, 11), RangeData(2)),
     Sample(DomainData(1, 10), RangeData(3)),
     Sample(DomainData(1, 11), RangeData(4)),
   ))
 
-  private val ds = new MemoizedDataset(Metadata(id"test"), model, data)
+  private lazy val ds = new MemoizedDataset(Metadata(id"test"), model, data)
       .withOperation(GroupByVariable(id"y"))
       .unsafeForce()
 

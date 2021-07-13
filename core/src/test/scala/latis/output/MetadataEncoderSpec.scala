@@ -16,7 +16,7 @@ import latis.util.Identifier.IdentifierStringContext
 
 final class MetadataEncoderSpec extends AnyFlatSpec {
 
-  private val dataset: Dataset = {
+  private lazy val dataset: Dataset = {
     val metadata = Metadata(id"dataset")
 
     val model = Function.from(id"function",

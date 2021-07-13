@@ -23,13 +23,6 @@ class MatrixTextAdapterSpec extends AnyFlatSpec {
   val ds = {
     val metadata = Metadata(id"matrixData")
     val model: DataType = ModelParser.unsafeParse("(row: int, col: int) -> v: double")
-//      Function(
-//      Tuple(
-//        Scalar(Metadata("id" -> "row", "type" -> "int")),
-//        Scalar(Metadata("id" -> "column", "type" -> "int"))
-//      ),
-//      Scalar(Metadata("id" -> "v", "type" -> "double"))
-//    )
     val config = new input.TextAdapter.Config(("delimiter", ","))
     val adapter = new MatrixTextAdapter(model, config)
     val uri: URI = resolveUri("data/matrixData.txt").value

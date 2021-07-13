@@ -26,7 +26,6 @@ case class Projection(ids: Identifier*) extends MapOperation {
 
   /** Recursive method to apply the projection. */
   private def applyToVariable(v: DataType): Option[DataType] = v match {
-    //TODO: make exhaustive (https://github.com/latis-data/latis3/issues/304)
     case s: Scalar =>
       if (ids.contains(s.id)) Some(s) else None
     case t: Tuple =>

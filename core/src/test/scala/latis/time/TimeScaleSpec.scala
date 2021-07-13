@@ -10,7 +10,7 @@ import latis.units.UnitConverter
 
 class TimeScaleSpec extends AnyFlatSpec {
   
-  private val timeScaleFromFormat = TimeScale.fromExpression("yyyy-MM-dd").value
+  private lazy val timeScaleFromFormat = TimeScale.fromExpression("yyyy-MM-dd").value
   
   "A time scale from a format" should "have the default epoch" in {
     timeScaleFromFormat.epoch should be (new Date(0L))
@@ -25,7 +25,7 @@ class TimeScaleSpec extends AnyFlatSpec {
   }
 
 
-  private val numericTimeScale = TimeScale.fromExpression("hours since 1970-002").value
+  private lazy val numericTimeScale = TimeScale.fromExpression("hours since 1970-002").value
   
   "A numeric time scale" should "have the correct units" in {
     numericTimeScale.timeUnit should be (TimeUnit(3600))
@@ -36,7 +36,7 @@ class TimeScaleSpec extends AnyFlatSpec {
   }
 
 
-  private val timeConverter = UnitConverter(
+  private lazy val timeConverter = UnitConverter(
     TimeScale.fromExpression("seconds since 2000-01-01T00:00:01").value,
     TimeScale.fromExpression("milliseconds since 2000-01-01").value
   )
