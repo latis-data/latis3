@@ -129,14 +129,14 @@ class ScalarFactorySuite extends AnyFunSuite {
   }
 
   test("descending") {
-    inside(Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int", "order" -> "des"))) {
+    inside(Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int", "order" -> "desc"))) {
       case Right(s) => assert(!s.ascending)
     }
   }
 
   test("invalid order") {
     inside(Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int", "order" -> "foo"))) {
-      case Left(le) => assert(le.message == "Order must be 'asc' or 'des'")
+      case Left(le) => assert(le.message == "Order must be 'asc' or 'desc'")
     }
   }
 
