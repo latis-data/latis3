@@ -111,11 +111,12 @@ case class Projection(ids: Identifier*) extends MapOperation {
    */
   private def makeIndex(v: DataType): Index = v match {
     case i: Index  => i //no-op if already an Index
-    case s: Scalar => Index(Identifier.fromString("_i" + s.id.asString).get)
+    case s: Scalar =>
+      Index(Identifier.fromString("_i" + s.id.asString).get) //safely valid
     case t: Tuple  => t.id.map { id =>
       Index(Identifier.fromString("_i" + id.asString).get) //safely valid
     }.getOrElse {
-      // Derive Id
+      // Derive id by combining scalar ids with "_"
       Index(Identifier.fromString("_i" + v.getScalars.map(_.id.asString).mkString("_")).get)
     }
     case _: Function => ??? //Function not allowed in domain
