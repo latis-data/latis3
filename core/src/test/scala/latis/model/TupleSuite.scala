@@ -9,13 +9,13 @@ import latis.util.Identifier.IdentifierStringContext
 
 class TupleSuite extends AnyFunSuite {
 
-  private val a = Scalar(id"a",  IntValueType)
-  private val b = Scalar(id"b",  IntValueType)
-  private val c = Scalar(id"c",  IntValueType)
-  private val d = Scalar(id"d",  IntValueType)
-  private val t = Tuple.fromElements(a,  b).value
-  private val nestedTuple = Tuple.fromElements(t, c).value
-  private val doubleNestedTuple = Tuple.fromElements(nestedTuple, d).value
+  private lazy val a = Scalar(id"a",  IntValueType)
+  private lazy val b = Scalar(id"b",  IntValueType)
+  private lazy val c = Scalar(id"c",  IntValueType)
+  private lazy val d = Scalar(id"d",  IntValueType)
+  private lazy val t = Tuple.fromElements(a,  b).value
+  private lazy val nestedTuple = Tuple.fromElements(t, c).value
+  private lazy val doubleNestedTuple = Tuple.fromElements(nestedTuple, d).value
 
 
   test("nested tuple length") {
@@ -65,7 +65,9 @@ class TupleSuite extends AnyFunSuite {
     assert(Tuple.fromElements(a, b, c).value.elements.length == 3)
   }
 
-  //Note: Tuple.fromElements(a) won't compile
+  test("tuple from 1 element won't compile") {
+    assertDoesNotCompile("Tuple.fromElements(a)")
+  }
 
   test("tuple from Seq with id") {
     assert(Tuple.fromSeq(id"t", Seq(a, b)).value.id.value == id"t")

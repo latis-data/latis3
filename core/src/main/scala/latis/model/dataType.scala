@@ -1,29 +1,15 @@
 package latis.model
 
-import cats.syntax.all._
-
 import latis.data.Data
 import latis.metadata.Metadata
 import latis.units.MeasurementScale
 import latis.util.Identifier
-import latis.util.LatisException
 
 sealed trait DataType extends DataTypeAlgebra
   //TODO: enforce uniqueness
   //TODO: support qualified identifiers
   //TODO: no Index in stand-alone (constant) Scalar or Tuple
   //  can only know when assigned to a Dataset?
-
-object DataType {
-
-  // Deal with Tuple arity < 2 complications
-  def fromSeq(dts: Seq[DataType]): Either[LatisException, DataType] =
-    dts.length match {
-      case 0 => LatisException("Empty DataType not supported").asLeft
-      case 1 => dts.head.asRight
-      case _ => Tuple.fromSeq(dts) //this will prevent duplicates, TODO: eventually
-    }
-}
 
 //---- Scalar ----//
 

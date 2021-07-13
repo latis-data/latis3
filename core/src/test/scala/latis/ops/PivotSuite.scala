@@ -73,7 +73,7 @@ class PivotSuite extends AnyFunSuite {
   }
 
   // (_1, _2) -> (a, b)
-  private val mock2d: Dataset =
+  private lazy val mock2d: Dataset =
     DatasetGenerator.generate2DDataset(
       Seq(1,2,3),
       Seq("Fe", "Mg"),
@@ -81,14 +81,14 @@ class PivotSuite extends AnyFunSuite {
       Seq(Seq(0.1, 0.2, 0.3, 0.4, 0.5, 0.6)))
 
   // (_1, _2) -> a
-  private val mock2d2: Dataset =
+  private lazy val mock2d2: Dataset =
     DatasetGenerator.generate2DDataset(
       Seq(1,2,3),
       Seq(0.1, 0.2),
       Seq(Seq(1.1, 1.2, 2.1, 2.2, 3.1, 3.2)))
 
   // (_1, _2) -> a
-  private val small2d: Dataset =
+  private lazy val small2d: Dataset =
     DatasetGenerator.generate2DDataset(
       Seq(1,2,3),
       Seq("Fe", "Mg"),

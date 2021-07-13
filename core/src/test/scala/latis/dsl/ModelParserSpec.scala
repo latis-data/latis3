@@ -16,14 +16,14 @@ import latis.util.LatisException
 
 class ModelParserSpec extends AnyFlatSpec {
 
-  private val testScalar   = testParser(ModelParser.scalar)(_, _)
-  private val testTuple    = testParser(ModelParser.tuple)(_, _)
-  private val testFunction = testParser(ModelParser.function)(_, _)
+  private lazy val testScalar   = testParser(ModelParser.scalar)(_, _)
+  private lazy val testTuple    = testParser(ModelParser.tuple)(_, _)
+  private lazy val testFunction = testParser(ModelParser.function)(_, _)
 
-  private val a = Scalar(id"a", DoubleValueType)
-  private val b = Scalar(id"b", IntValueType)
-  private val c = Scalar(id"c", StringValueType)
-  private val d = Scalar(id"d", LongValueType)
+  private lazy val a = Scalar(id"a", DoubleValueType)
+  private lazy val b = Scalar(id"b", IntValueType)
+  private lazy val c = Scalar(id"c", StringValueType)
+  private lazy val d = Scalar(id"d", LongValueType)
 
   "The ModelParser" should "parse a scalar" in {
     testScalar("b", b)

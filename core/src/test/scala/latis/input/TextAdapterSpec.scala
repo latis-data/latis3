@@ -24,14 +24,6 @@ class TextAdapterSpec extends AnyFlatSpec {
       def uri: URI = resolveUri("data/data.txt").value
       val metadata = Metadata(id"data")
       val model: DataType = ModelParser.unsafeParse("a: int -> (b: int, c: double, d: string)")
-//        Function(
-//        Scalar(Metadata("id" -> "a", "type" -> "int")),
-//        Tuple(
-//          Scalar(Metadata("id" -> "b", "type" -> "int")),
-//          Scalar(Metadata("id" -> "c", "type" -> "double")),
-//          Scalar(Metadata("id" -> "d", "type" -> "string"))
-//        )
-//      )
       val config = new TextAdapter.Config()
       val adapter = new TextAdapter(model, config)
       new AdaptedDataset(metadata, model, adapter, uri)

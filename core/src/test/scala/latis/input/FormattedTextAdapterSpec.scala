@@ -8,17 +8,7 @@ import latis.dsl.ModelParser
 
 class FormattedTextAdapterSpec extends AnyFlatSpec {
 
-  private val model = ModelParser.unsafeParse("time: string -> (myInt: int, myDouble: double, myString: string)")
-//    Function(
-//    Tuple(
-//      Scalar(Metadata(id"time") + ("type" -> "string") + ("units" -> "yyyyMMdd"))
-//    ),
-//    Tuple(
-//      Scalar(Metadata(id"myInt") + ("type"    -> "int")),
-//      Scalar(Metadata(id"myDouble") + ("type" -> "double")),
-//      Scalar(Metadata(id"myString") + ("type" -> "string"))
-//    )
-//  )
+  private lazy val model = ModelParser.unsafeParse("time: string -> (myInt: int, myDouble: double, myString: string)")
 
   "A FormattedTextAdapter" should "parse a record given a format" in {
     val config = FormattedTextAdapter.Config(

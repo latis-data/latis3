@@ -8,13 +8,13 @@ import latis.dsl.ModelParser
 
 class SubstringAdapterSpec extends AnyFlatSpec {
 
-  private val config = new SubstringAdapter.Config(
+  private lazy val config = new SubstringAdapter.Config(
     ("substring", "0,4;5,8;9,10;11,12")
   )
 
-  private val model = ModelParser.unsafeParse("time: string -> (myDouble: double, myString: string, myInt: int)")
+  private lazy val model = ModelParser.unsafeParse("time: string -> (myDouble: double, myString: string, myInt: int)")
 
-  private val subStrAdapter = new SubstringAdapter(model, config)
+  private lazy val subStrAdapter = new SubstringAdapter(model, config)
 
   "A SubstringAdapter" should "parse a record given substring indices" in {
     val record         = "1970 1.1 A 1"

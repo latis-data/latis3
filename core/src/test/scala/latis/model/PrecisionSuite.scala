@@ -8,8 +8,8 @@ import latis.metadata.Metadata
 
 class PrecisionSuite extends AnyFunSuite {
 
-  private val md = Metadata("id" -> "a", "type" -> "double", "precision" -> "2")
-  private val scalar: Scalar = Scalar.fromMetadata(md).value
+  private lazy val md = Metadata("id" -> "a", "type" -> "double", "precision" -> "2")
+  private lazy val scalar: Scalar = Scalar.fromMetadata(md).value
 
   test("format with precision") {
     assert(scalar.formatValue(Data.DoubleValue(1.234)) == "1.23")

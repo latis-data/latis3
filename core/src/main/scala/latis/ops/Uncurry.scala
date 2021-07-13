@@ -32,7 +32,7 @@ case class Uncurry() extends FlatMapOperation {
         d match {
           case _: Scalar => ds += d
           case t: Tuple  => ds ++= t.elements
-          case _: Function => ??? //Function ont allowed in domain
+          case _: Function => ??? //Function not allowed in domain
         }
         go(r)
     }
