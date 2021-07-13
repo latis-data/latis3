@@ -91,8 +91,8 @@ trait ScalarFactory {
 
   protected def getAscending(metadata: Metadata): Either[LatisException, Boolean] =
     metadata.getProperty("order", "asc").toLowerCase match {
-      case "asc" => true.asRight
-      case "des" => false.asRight
-      case _     => LatisException("Order must be 'asc' or 'des'").asLeft
+      case "asc"  => true.asRight
+      case "desc" => false.asRight
+      case _      => LatisException("Order must be 'asc' or 'desc'").asLeft
     }
 }
