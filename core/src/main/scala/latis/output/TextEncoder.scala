@@ -75,8 +75,8 @@ class TextEncoder extends Encoder[IO, String] {
           case _ => ??? //bug, inconsistent data
         }
 
-      case Tuple(es @ _*) =>
-        es.map(go).mkString("(", ", ", ")")
+      case t: Tuple =>
+        t.elements.map(go).mkString("(", ", ", ")")
 
       // Nested Function
       case f: Function =>

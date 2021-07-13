@@ -20,9 +20,9 @@ case class TimeTupleToTime(id: Identifier = id"time") extends MapOperation {
 
   def applyToModel(model: DataType): Either[LatisException, DataType] =
     Either.catchOnly[LatisException](model.map {
-    case t @ Tuple(es @ _*) if t.id.contains(id) => //TODO: support aliases with hasName?
+    case t: Tuple if t.id.contains(id) => //TODO: support aliases with hasName?
       //build up format string
-      val format: String = es.collect{case s: Scalar => s}.toList.traverse(_.units)
+      val format: String = t.elements.collect{case s: Scalar => s}.toList.traverse(_.units)
         .fold(throw LatisException("A time Tuple must have units defined for each element."))(_.mkString(" "))
       //make the time Scalar
       //assumes time tuple has id
