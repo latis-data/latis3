@@ -93,35 +93,14 @@ class Time protected (
 
 object Time extends ScalarFactory {
 
-  /*
-  TODO: convenient constructor, for testing only?
-    must be consistent
-    various flavors? fromUnits, ...?
-  TODO: separable Time API? squants?
-   */
-//  def apply(
-//    id: Identifier = id"time",
-//    valueType: ValueType = LongValueType,
-//    units: String = "milliseconds since 1970-01-01",
-//    scale: TimeScale = TimeScale.Default,
-//    timeFormat: Option[TimeFormat] = None
-//  ): Time = new Time(
-//    Metadata(
-//      "id" -> id.asString,
-//      "valueType" -> valueType.toString),
-//    id, valueType
-//  )
-  //def apply(id: Identifier, valueType: ValueType, units: String): Time = but units could  be invalid
-
-
   override def fromMetadata(metadata: Metadata): Either[LatisException, Time] = {
     for {
-      id <- getId(metadata)
+      id        <- getId(metadata)
       valueType <- getValueType(metadata)
-      units <- getUnits(metadata)
-      reqUnits <- getRequiredUnits(units)
-      format <- getTimeFormat(reqUnits, valueType)
-      scale <- getTimeScale(reqUnits, valueType)
+      units     <- getUnits(metadata)
+      reqUnits  <- getRequiredUnits(units)
+      format    <- getTimeFormat(reqUnits, valueType)
+      scale     <- getTimeScale(reqUnits, valueType)
       missValue <- getMissingValue(metadata, valueType)
       fillValue <- getFillValue(metadata, valueType)
       precision <- getPrecision(metadata, valueType)
