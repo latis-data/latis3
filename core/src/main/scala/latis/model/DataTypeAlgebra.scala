@@ -27,7 +27,7 @@ trait DataTypeAlgebra { dataType: DataType =>
   //@deprecated("Not safe if the type changes?")
   def map(f: DataType => DataType): DataType = dataType match {
     case s: Scalar => f(s)
-    case t @ Tuple(es @ _*) => f(Tuple.fromSeq(t.id, es.map(f)).fold(throw _, identity))
+    case t: Tuple  => f(Tuple.fromSeq(t.id, t.elements.map(f)).fold(throw _, identity))
     case func @ Function(d, r) => f(Function.from(func.id, d.map(f), r.map(f)).fold(throw _, identity))
   }
 
@@ -81,7 +81,7 @@ trait DataTypeAlgebra { dataType: DataType =>
     // Recursive helper function
     def go(dt: DataType, acc: Seq[Data]): Seq[Data] = dt match {
       case s: Scalar      => acc :+ s.fillValue.orElse(s.missingValue).getOrElse(NullData)
-      case Tuple(es @ _*) => es.flatMap(go(_, acc))
+      case t: Tuple       => t.elements.flatMap(go(_, acc))
       case _: Function    => acc :+ NullData
     }
     Data.fromSeq(go(dataType, Seq.empty))
@@ -91,9 +91,9 @@ trait DataTypeAlgebra { dataType: DataType =>
   def findVariable(id: Identifier): Option[DataType] = dataType match {
     case s: Scalar =>
       Option.when(s.id == id)(s)
-    case t @ Tuple(es @ _*) =>
+    case t: Tuple =>
       if (t.id.contains(id)) t.some
-      else es.find(_.findVariable(id).nonEmpty)
+      else t.elements.find(_.findVariable(id).nonEmpty)
     case f @ Function(d, r) =>
       if (f.id.contains(id)) f.some
       else d.findVariable(id).orElse(r.findVariable(id))

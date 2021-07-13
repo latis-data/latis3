@@ -29,8 +29,8 @@ case class Projection(ids: Identifier*) extends MapOperation {
     //TODO: make exhaustive (https://github.com/latis-data/latis3/issues/304)
     case s: Scalar =>
       if (ids.contains(s.id)) Some(s) else None
-    case Tuple(vars @ _*) =>
-      val vs = vars.flatMap(applyToVariable)
+    case t: Tuple =>
+      val vs = t.elements.flatMap(applyToVariable)
       vs.length match {
         case 0 => None // drop empty Tuple
         case 1 => Some(vs.head) // reduce Tuple of one

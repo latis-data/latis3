@@ -83,8 +83,8 @@ case class RemoveGroupedVariables(ids: Seq[Identifier]) extends MapOperation {
   private def applyToVariable(v: DataType): Option[DataType] = v match {
     case s: Scalar =>
       if (ids.contains(s.id)) None else Some(s)
-    case t @ Tuple(vars @ _*) =>
-      val vs = vars.flatMap(applyToVariable)
+    case t: Tuple =>
+      val vs = t.elements.flatMap(applyToVariable)
       vs.length match {
         case 0 => None // drop empty Tuple
         case 1 => Some(vs.head) // reduce Tuple of one
