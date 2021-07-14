@@ -2,8 +2,6 @@ package latis.output
 
 import java.io.File
 
-import scala.collection.compat._
-
 import cats.effect.IO
 import cats.effect.Resource
 import cats.syntax.all._
@@ -74,7 +72,7 @@ class NetcdfEncoder(file: File) extends Encoder[IO, File] {
       val dScalars = domain.getScalars
       val rScalars = range.getScalars
       val scalars  = dScalars ++ rScalars
-      val dimNames = dScalars.map(_.id.fold("")(_.asString)).mkString(" ")
+      val dimNames = dScalars.map(_.id.asString).mkString(" ")
       val acc: Accumulator =
         accumulate(scalarsToAccumulator(scalars, samples.length), scalars, samples)
       val dArrs = domainAccumulatorToNcArray(acc, dScalars)
@@ -84,22 +82,22 @@ class NetcdfEncoder(file: File) extends Encoder[IO, File] {
       for {
         // add dimensions
         _ <- dScalars.zip(shape).traverse { case (s, dim) =>
-          val sId = s.id.fold("")(_.asString)
+          val sId = s.id.asString
           addDimension(file, sId, dim)
         }
         // add variables
         dVars <- dScalars.traverse(s =>
           addVariable(
             file,
-            s.id.fold("")(_.asString),
+            s.id.asString,
             scalarToNetcdfDataType(s),
-            s.id.fold("")(_.asString)
+            s.id.asString
           )
         )
         rVars <- rScalars.traverse(
           s => addVariable(
             file,
-            s.id.fold("")(_.asString),
+            s.id.asString,
             scalarToNetcdfDataType(s),
             dimNames
           )
@@ -116,6 +114,7 @@ class NetcdfEncoder(file: File) extends Encoder[IO, File] {
         // write data
         _ <- (dVars ++ rVars).zip(dArrs ++ rArrs).traverse { case (v, d) => write(file, v, d) }
       } yield ()
+    case _ => IO.raiseError(LatisException("NetcdfEncoder assumes data model is a Function"))
   }
 }
 

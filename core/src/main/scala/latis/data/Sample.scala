@@ -11,7 +11,7 @@ object Sample {
   /**
    * Extract the DomainData and RangeData from a Sample.
    */
-  def unapply(sample: Sample): Option[(DomainData, RangeData)] =
+  def unapply(sample: Sample): Some[(DomainData, RangeData)] =
     Some((sample._1, sample._2))
 
 }

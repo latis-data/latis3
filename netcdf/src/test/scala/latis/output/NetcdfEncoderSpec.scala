@@ -5,6 +5,7 @@ import java.nio.DoubleBuffer
 import java.nio.IntBuffer
 
 import cats.effect.unsafe.implicits.global
+import org.scalatest.EitherValues._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import ucar.ma2.{DataType => NcDataType}
@@ -12,6 +13,7 @@ import ucar.nc2.NetcdfFile
 
 import latis.data._
 import latis.dataset.MemoizedDataset
+import latis.dsl.ModelParser
 import latis.metadata.Metadata
 import latis.model._
 import latis.util.Identifier.IdentifierStringContext
@@ -34,7 +36,7 @@ class NetcdfEncoderSpec extends AnyFlatSpec {
       fluxArr should be(DoubleBuffer.wrap(expectedFlux))
     } finally {
       ncFile.close()
-      file.delete()
+      val _ = file.delete()
     }
   }
 
@@ -56,7 +58,7 @@ class NetcdfEncoderSpec extends AnyFlatSpec {
       ncFile.readSection("str").get1DJavaArray(NcDataType.STRING) should be(expectedStr)
     } finally {
       ncFile.close()
-      file.delete()
+      val _ = file.delete()
     }
   }
 
@@ -78,7 +80,7 @@ class NetcdfEncoderSpec extends AnyFlatSpec {
       ncFile.readSection("flux").get1DJavaArray(NcDataType.DOUBLE) should be(expectedFlux)
     } finally {
       ncFile.close()
-      file.delete()
+      val _ = file.delete()
     }
   }
 
@@ -100,7 +102,7 @@ class NetcdfEncoderSpec extends AnyFlatSpec {
       ncFile.readSection("flux").get1DJavaArray(NcDataType.DOUBLE) should be(expectedFlux)
     } finally {
       ncFile.close()
-      file.delete()
+      val _ = file.delete()
     }
   }
 
@@ -116,7 +118,7 @@ class NetcdfEncoderSpec extends AnyFlatSpec {
       }
     } finally {
       ncFile.close()
-      file.delete()
+      val _ = file.delete()
     }
   }
 
@@ -138,7 +140,7 @@ class NetcdfEncoderSpec extends AnyFlatSpec {
       }
     } finally {
       ncFile.close()
-      file.delete()
+      val _ = file.delete()
     }
   }
 }
@@ -153,10 +155,7 @@ object NetcdfEncoderSpec {
     )
 
     val md = Metadata(id"time_series_1D")
-    val model = Function(
-      Scalar(Metadata(id"time") + ("type" -> "int")),
-      Scalar(Metadata(id"flux") + ("type" -> "double"))
-    )
+    val model = ModelParser.unsafeParse("time: int -> flux: double")
     val data = SampledFunction(samples)
 
     new MemoizedDataset(md, model, data)
@@ -170,15 +169,16 @@ object NetcdfEncoderSpec {
     )
 
     val md = Metadata(id"time_series_1D_multi_range")
-    val model = Function(
-      Scalar(Metadata(id"time") + ("type" -> "int")),
-      Tuple(
-        Scalar(Metadata(id"flag") + ("type" -> "byte")),
-        Scalar(Metadata(id"flux") + ("type" -> "double")),
-        Scalar(Metadata(id"long") + ("type" -> "long")),
-        Scalar(Metadata(id"str") + ("type"  -> "string"))
-      )
-    )
+    val model = ModelParser.unsafeParse("time: int -> (flag: byte, flux: double, long: long, str: string)")
+//      Function(
+//      Scalar(Metadata(id"time") + ("type" -> "int")),
+//      Tuple(
+//        Scalar(Metadata(id"flag") + ("type" -> "byte")),
+//        Scalar(Metadata(id"flux") + ("type" -> "double")),
+//        Scalar(Metadata(id"long") + ("type" -> "long")),
+//        Scalar(Metadata(id"str") + ("type"  -> "string"))
+//      )
+//    )
     val data = SampledFunction(samples)
 
     new MemoizedDataset(md, model, data)
@@ -222,16 +222,17 @@ object NetcdfEncoderSpec {
     )
 
     val md = Metadata(id"time_series_2D")
-    val model = Function(
-      Scalar(Metadata(id"time") + ("type" -> "int")),
-      Function(
-        Scalar(Metadata(id"wavelength") + ("type" -> "double")),
-        Tuple(
-          Scalar(Metadata(id"flag") + ("type" -> "byte")),
-          Scalar(Metadata(id"flux") + ("type" -> "double"))
-        )
-      )
-    )
+    val model = ModelParser.unsafeParse("time: int -> wavelength: double -> (flag: byte, flux: double)")
+//      Function(
+//      Scalar(Metadata(id"time") + ("type" -> "int")),
+//      Function(
+//        Scalar(Metadata(id"wavelength") + ("type" -> "double")),
+//        Tuple(
+//          Scalar(Metadata(id"flag") + ("type" -> "byte")),
+//          Scalar(Metadata(id"flux") + ("type" -> "double"))
+//        )
+//      )
+//    )
     val data = SampledFunction(samples)
 
     new MemoizedDataset(md, model, data)
@@ -250,14 +251,15 @@ object NetcdfEncoderSpec {
     )
 
     val md = Metadata(id"time_series_3D")
-    val model = Function(
-      Tuple(
-        Scalar(Metadata(id"time") + ("type"       -> "int")),
-        Scalar(Metadata(id"wavelength") + ("type" -> "double")),
-        Scalar(Metadata(id"another") + ("type"    -> "double"))
-      ),
-      Scalar(Metadata(id"flux") + ("type" -> "double"))
-    )
+    val model = ModelParser.unsafeParse("(time: int, wavelength: double, another: double) -> flux: double")
+//      Function(
+//      Tuple(
+//        Scalar(Metadata(id"time") + ("type"       -> "int")),
+//        Scalar(Metadata(id"wavelength") + ("type" -> "double")),
+//        Scalar(Metadata(id"another") + ("type"    -> "double"))
+//      ),
+//      Scalar(Metadata(id"flux") + ("type" -> "double"))
+//    )
     val data = SampledFunction(samples)
 
     new MemoizedDataset(md, model, data)
@@ -269,10 +271,10 @@ object NetcdfEncoderSpec {
     )
 
     val md = Metadata(id"dataset_with_metadata") + ("globalFoo" -> "globalBar")
-    val model = Function(
-      Scalar(Metadata(id"time") + ("type" -> "int") + ("scalarFoo" -> "scalarBar")),
-      Scalar(Metadata(id"flux") + ("type" -> "double") + ("Foo"    -> "Bar"))
-    )
+    val model = Function.from(
+      Scalar.fromMetadata(Metadata(id"time") + ("type" -> "int") + ("scalarFoo" -> "scalarBar")).value,
+      Scalar.fromMetadata(Metadata(id"flux") + ("type" -> "double") + ("Foo"    -> "Bar")).value
+    ).value
     val data = SampledFunction(samples)
 
     new MemoizedDataset(md, model, data)
