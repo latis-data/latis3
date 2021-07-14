@@ -9,7 +9,6 @@ import latis.data.Data
 import latis.data.Sample
 import latis.dataset.Dataset
 import latis.model.DataType
-import latis.model.Function
 import latis.model.Index
 import latis.model.Scalar
 import latis.ops.Uncurry
@@ -31,21 +30,16 @@ class CsvEncoder(header: Dataset => Stream[IO, String]) extends Encoder[IO, Stri
   /**
    * Encodes a single Sample to a String of comma separated values.
    */
-  def encodeSample(model: DataType, sample: Sample): String =
-    (model, sample) match {
-      //TODO: not exhaustive: See https://github.com/latis-data/latis3/issues/304
-      case (Function(domain, range), Sample(ds, rs)) =>
-        val scalars = (domain.getScalars ++ range.getScalars).filterNot(_.isInstanceOf[Index])
-        val datas   = ds ++ rs
-        scalars
-          .zip(datas)
-          .map {
-            case (s: Scalar, d: Data) =>
-              s.formatValue(d)
-            case _ => ???
-          }
-          .mkString(",")
-    }
+  def encodeSample(model: DataType, sample: Sample): String = {
+    // Note that the dataset has been uncurried so there are no nested functions.
+    val scalars: List[Scalar] = model.getScalars.filterNot(_.isInstanceOf[Index])
+    val datas: List[Data] = sample.domain ++ sample.range
+    //TODO: assert that the lengths are the same? should be ensured earlier
+    scalars.zip(datas).map { case (s, d) =>
+      s.formatValue(d)
+    }.mkString(",")
+  }
+
 }
 
 object CsvEncoder {
@@ -61,14 +55,8 @@ object CsvEncoder {
   def withHeader(header: Dataset => String): CsvEncoder = new CsvEncoder(ds => Stream(header(ds)))
 
   def withColumnName: CsvEncoder = {
-    def header(dataset: Dataset): String = dataset.model match {
-      //TODO: not exhaustive: See https://github.com/latis-data/latis3/issues/304
-      case Function(domain, range) =>
-        (domain.getScalars ++ range.getScalars)
-          .filterNot(_.isInstanceOf[Index])
-          .map(_.id.fold("")(_.asString))
-          .mkString(",")
-    }
+    def header(dataset: Dataset): String =
+      dataset.model.getScalars.filterNot(_.isInstanceOf[Index]).map(_.id.asString).mkString(",")
     CsvEncoder.withHeader(header)
   }
 }

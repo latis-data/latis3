@@ -1,267 +1,121 @@
 package latis.model
 
+import org.scalatest.EitherValues._
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.Inside.inside
 
-import latis.data._
-import latis.metadata.Metadata
+import latis.data.DomainPosition
+import latis.data.NullData
+import latis.data.RangePosition
+import latis.data.TupleData
 import latis.util.Identifier.IdentifierStringContext
 
-class GetPathSuite extends AnyFunSuite {
-  test("getPath to Tuple in domain") {
-    val func = {
-      val d = Tuple(Metadata(id"tup"),
-        Scalar(Metadata(id"a") + ("type" -> "int")),
-        Scalar(Metadata(id"b") + ("type" -> "int")),
-        Scalar(Metadata(id"c") + ("type" -> "int"))
-      )
-      val r = Scalar(Metadata(id"d") + ("type" -> "int"))
-      Function(d, r)
-    }
+class DataTypeSuite extends AnyFunSuite {
 
-    assert(func.getPath(id"tup") == Some(List(DomainPosition(0))))
+  //TODO: property based test: generate model with "a" at random path
+  //  make sure we can find it
+  //  make sure we can get matching path
+  //  https://www.scalatest.org/user_guide/generator_driven_property_checks
+
+  private lazy val i = Index()
+  private lazy val x = Scalar(id"x", IntValueType)
+  //private lazy val y = Scalar(id"y", IntValueType)
+  private lazy val z = Scalar(id"z", IntValueType)
+  private lazy val a = Scalar(id"a", IntValueType)
+  private lazy val b = Scalar(id"b", DoubleValueType)
+  private lazy val c = Scalar(id"c", StringValueType)
+  private lazy val namedTup  = Tuple.fromElements(id"t", a, b).value       // t: (a, b)
+  //private lazy val anonTup   = Tuple.fromElements(a, b).value              // (a, b)
+  private lazy val nestedTup = Tuple.fromElements(namedTup, c).value       // (t: (a, b), c)
+  private lazy val f = Function.from(id"f", x, a).value                    // f: x -> a
+  private lazy val fWithTup = Function.from(id"f", x, namedTup).value      // f: x -> t: (a, b)
+  private lazy val tupWithF = Tuple.fromElements(a, fWithTup).value        // (a, f: x -> t: (a, b))
+  private lazy val nestedF = Function.from(id"g", z, f).value              // g: z -> f: x -> a
+  private lazy val nestedFInTup = Function.from(id"g", i, tupWithF).value  // g: _i -> (a, f: x -> t: (a, b))
+
+  test("to string") {
+    assert(nestedFInTup.toString == "g: _i -> (a, f: x -> t: (a, b))")
   }
 
-  test("getPath to nested Tuple in domain") {
-    val func = {
-      val d = Tuple(
-        Scalar(Metadata(id"a") + ("type" -> "int")),
-        Scalar(Metadata(id"b") + ("type" -> "int")),
-        Tuple(Metadata(id"tup"),
-          Scalar(Metadata(id"c") + ("type" -> "int")),
-          Scalar(Metadata(id"d") + ("type" -> "int")),
-          Scalar(Metadata(id"e") + ("type" -> "int"))
-        )
-      )
-      val r = Scalar(Metadata(id"f") + ("type" -> "int"))
-      Function(d, r)
-    }
-
-    assert(func.getPath(id"tup") == Some(List(DomainPosition(2))))
+  test("find tuple") {
+    assert(nestedFInTup.findVariable(id"t").nonEmpty)
   }
 
-  test("getPath to Tuple in range") {
-    val func = {
-      val d = Scalar(Metadata(id"a") + ("type" -> "int"))
-      val r = Tuple(Metadata(id"tup"),
-        Scalar(Metadata(id"b") + ("type" -> "int")),
-        Scalar(Metadata(id"c") + ("type" -> "int")),
-        Scalar(Metadata(id"d") + ("type" -> "int"))
-      )
-      Function(d, r)
-    }
-
-    assert(func.getPath(id"tup") == Some(List(RangePosition(0))))
+  test("don't find") {
+    assert(f.findVariable(id"nope").isEmpty)
   }
 
-  test("getPath to nested Tuple in range") {
-    val func = {
-      val d = Scalar(Metadata(id"a") + ("type" -> "int"))
-      val r = Tuple(
-        Scalar(Metadata(id"b") + ("type" -> "int")),
-        Scalar(Metadata(id"c") + ("type" -> "int")),
-        Tuple(Metadata(id"tup"),
-          Scalar(Metadata(id"d") + ("type" -> "int")),
-          Scalar(Metadata(id"e") + ("type" -> "int")),
-          Scalar(Metadata(id"f") + ("type" -> "int"))
-        )
-      )
-      Function(d, r)
-    }
+  //---- findPath ----//
 
-    assert(func.getPath(id"tup") == Some(List(RangePosition(2))))
+  test("path to constant scalar") {
+    assert(a.findPath(id"a").contains(List(RangePosition(0))))
   }
 
-  test("getPath to Scalar in nested Tuple in range") {
-    val func = {
-      val d = Scalar(Metadata(id"a") + ("type" -> "int"))
-      val r = Tuple(
-        Scalar(Metadata(id"b") + ("type" -> "int")),
-        Scalar(Metadata(id"c") + ("type" -> "int")),
-        Tuple(Metadata(id"tup"),
-          Scalar(Metadata(id"d") + ("type" -> "int")),
-          Scalar(Metadata(id"e") + ("type" -> "int")),
-          Scalar(Metadata(id"f") + ("type" -> "int"))
-        )
-      )
-      Function(d, r)
-    }
-
-    assert(func.getPath(id"e") == Some(List(RangePosition(3))))
+  test("path to scalar in constant tuple") {
+    assert(namedTup.findPath(id"b").contains(List(RangePosition(1))))
   }
 
-  test("getPath to Scalar in nested Tuple, searching fully qualified ID") {
-    val func = {
-      val d = Scalar(Metadata(id"a") + ("type" -> "int"))
-      val r = Tuple(
-        Scalar(Metadata(id"b") + ("type" -> "int")),
-        Scalar(Metadata(id"c") + ("type" -> "int")),
-        Tuple(Metadata(id"tup"),
-          Scalar(Metadata(id"d") + ("type" -> "int")),
-          Scalar(Metadata(id"e") + ("type" -> "int")),
-          Scalar(Metadata(id"f") + ("type" -> "int"))
-        )
-      )
-      Function(d, r)
-    }
-
-    assert(func.getPath(id"tup.e") == Some(List(RangePosition(3))))
-  }
-  
-  test("getPath to nonexistent variable") {
-    val func = Function(Scalar(Metadata(id"a") + ("type" -> "int")), Scalar(Metadata(id"b") + ("type" -> "int")))
-    
-    assert(func.getPath(id"tup") == None)
+  test("path to scalar in nested tuple") {
+    assert(nestedTup.findPath(id"c").contains(List(RangePosition(2))))
   }
 
-  test("getPath to lone Scalar") {
-    inside(Scalar(Metadata(id"a") + ("type" -> "int")).getPath(id"a")) {
-      case Some(RangePosition(p) :: Nil) => assert(p == 0)
+  test("path to function in top level tuple") {
+    assert(tupWithF.findPath(id"f").contains(List(RangePosition(1))))
+  }
+
+  test("no path to index") {
+    assert(nestedFInTup.findVariable(id"_i").nonEmpty)
+    assert(nestedFInTup.findPath(id"_i").isEmpty)
+  }
+
+  test("path to tuple") {
+    // t: (a, b)
+    assert(fWithTup.findPath(id"t").contains(List(RangePosition(0))))
+    assert(fWithTup.findPath(id"a").contains(List(RangePosition(0))))
+    assert(fWithTup.findPath(id"b").contains(List(RangePosition(1))))
+  }
+
+  test("path to nested tuple") {
+    // (t: (a, b), c)
+    assert(nestedTup.findPath(id"t").contains(List(RangePosition(0))))
+    assert(nestedTup.findPath(id"c").contains(List(RangePosition(2))))
+  }
+
+  test("path in nested tuple with function") {
+    // (z, t: (f: x -> a, b), c)
+    //  0  1   1  0    0  2   3
+    val model = Tuple.fromElements(z, Tuple.fromElements(id"t", f, b).value, c).value
+    assert(model.findPath(id"c").contains(List(RangePosition(3))))
+  }
+
+  test("path to scalar in function domain") {
+    assert(fWithTup.findPath(id"x").contains(List(DomainPosition(0))))
+  }
+
+  test("path to scalar in function range") {
+    assert(fWithTup.findPath(id"b").contains(List(RangePosition(1))))
+  }
+
+  test("path to scalar in nested function") {
+    assert(nestedF.findPath(id"a").contains(List(RangePosition(0),RangePosition(0))))
+  }
+
+  test("path to scalar in nested function in tuple") {
+    assert(nestedFInTup.findPath(id"b").contains(List(RangePosition(1),RangePosition(1))))
+  }
+
+  //---- fillData ----//
+
+  test("scalar fill data") {
+    assert(a.fillData == NullData)
+  }
+
+  test("tuple with function fill data") {
+    inside(tupWithF.fillData ) {
+      case TupleData(a, f) =>
+        assert(a == NullData)
+        assert(f == NullData)
     }
   }
 
-  ignore("getPath to Scalar in lone Tuple") {
-    inside(Tuple(
-      Scalar(Metadata(id"a") + ("type" -> "int")),
-      Scalar(Metadata(id"b") + ("type" -> "int"))
-    ).getPath(id"b")) {
-      case Some(RangePosition(p) :: Nil) => assert(p == 1)
-    }
-  }
-
-  test("no path to Index variable") {
-    val p = Function(
-      Index(id"i"),
-      Scalar(Metadata(id"a") + ("type" -> "int"))
-    ).getPath(id"i")
-    assert(p.isEmpty)
-  }
-
-  test("getPath ignoring Index variable") {
-    // (i, y) -> a
-    inside(Function(
-      Tuple(Index(id"i"), Scalar(Metadata(id"y") + ("type" -> "int"))),
-      Scalar(Metadata(id"a") + ("type" -> "int"))
-    ).getPath(id"y")) {
-      case Some(DomainPosition(p) :: Nil) =>
-        assert(p == 0)
-    }
-  }
-}
-
-class TupleFlattenSuite extends AnyFunSuite {
-  test("Flattening doubly nested tuple where all tuples have IDs") {
-    val nestedTuple = Tuple(Metadata(id"tup1"),
-      Scalar(Metadata(id"a") + ("type" -> "int")),
-      Tuple(Metadata(id"tup2"),
-        Scalar(Metadata(id"b") + ("type" -> "int")),
-        Scalar(Metadata(id"c") + ("type" -> "int")),
-        Tuple(Metadata(id"tup3"),
-          Scalar(Metadata(id"d") + ("type" -> "int"))
-        )
-      )
-    )
-
-    val flattened = nestedTuple.flatten
-
-    val expectedTuple = Tuple(Metadata(id"tup1"),
-      Scalar(Metadata(id"tup1.a") + ("type" -> "int")),
-      Scalar(Metadata(id"tup1.tup2.b") + ("type" -> "int")),
-      Scalar(Metadata(id"tup1.tup2.c") + ("type" -> "int")),
-      Scalar(Metadata(id"tup1.tup2.tup3.d") + ("type" -> "int"))
-    )
-
-    assert(flattened.toString == expectedTuple.toString)
-    assert(flattened.id == expectedTuple.id)
-  }
-
-  test("Flattening doubly nested tuple where outermost tuple lacks an ID") {
-    val nestedTuple = Tuple(
-      Scalar(Metadata(id"a") + ("type" -> "int")),
-      Tuple(Metadata(id"tup2"),
-        Scalar(Metadata(id"b") + ("type" -> "int")),
-        Scalar(Metadata(id"c") + ("type" -> "int")),
-        Tuple(Metadata(id"tup3"),
-          Scalar(Metadata(id"d") + ("type" -> "int"))
-        )
-      )
-    )
-
-    val flattened = nestedTuple.flatten
-
-    val expectedTuple = Tuple(
-      Scalar(Metadata(id"a") + ("type" -> "int")),
-      Scalar(Metadata(id"tup2.b") + ("type" -> "int")),
-      Scalar(Metadata(id"tup2.c") + ("type" -> "int")),
-      Scalar(Metadata(id"tup2.tup3.d") + ("type" -> "int"))
-    )
-
-    assert(flattened.toString == expectedTuple.toString)
-    assert(flattened.id == expectedTuple.id)
-  }
-
-  test("Flattening function with two nested tuples") {
-    val nestedTuple1 = Tuple(Metadata(id"tup1"),
-      Scalar(Metadata(id"a") + ("type" -> "int")),
-      Tuple(Metadata(id"tup2"),
-        Scalar(Metadata(id"b") + ("type" -> "int")),
-        Scalar(Metadata(id"c") + ("type" -> "int")),
-        Tuple(Metadata(id"tup3"),
-          Scalar(Metadata(id"d") + ("type" -> "int"))
-        )
-      )
-    )
-
-    val nestedTuple2 = Tuple(
-      Scalar(Metadata(id"a") + ("type" -> "int")),
-      Tuple(Metadata(id"tup2"),
-        Scalar(Metadata(id"b") + ("type" -> "int")),
-        Scalar(Metadata(id"c") + ("type" -> "int")),
-        Tuple(Metadata(id"tup3"),
-          Scalar(Metadata(id"d") + ("type" -> "int"))
-        )
-      )
-    )
-
-    val expectedTuple1 = Tuple(Metadata(id"tup1"),
-      Scalar(Metadata(id"tup1.a") + ("type" -> "int")),
-      Scalar(Metadata(id"tup1.tup2.b") + ("type" -> "int")),
-      Scalar(Metadata(id"tup1.tup2.c") + ("type" -> "int")),
-      Scalar(Metadata(id"tup1.tup2.tup3.d") + ("type" -> "int"))
-    )
-
-    val expectedTuple2 = Tuple(
-      Scalar(Metadata(id"a") + ("type" -> "int")),
-      Scalar(Metadata(id"tup2.b") + ("type" -> "int")),
-      Scalar(Metadata(id"tup2.c") + ("type" -> "int")),
-      Scalar(Metadata(id"tup2.tup3.d") + ("type" -> "int"))
-    )
-
-    val func = Function(nestedTuple1, nestedTuple2)
-
-    val flattened = func.flatten
-
-    inside(flattened) {
-      case Function(d, r) =>
-        assert(d.toString == expectedTuple1.toString)
-        assert(r.toString == expectedTuple2.toString)
-        assert(d.id == expectedTuple1.id)
-        assert(r.id == expectedTuple2.id)
-    }
-  }
-}
-
-class ParseValueSuite extends AnyFunSuite {
-
-  test("Replace invalid value with missing value") {
-    val s = Scalar(Metadata(
-      "id" -> "a",
-      "type" -> "double",
-      "fillValue" -> "NaN"
-    ))
-    inside(s.parseValue("word")) {
-      case Right(d: Data.DoubleValue) =>
-        assert(d.value.isNaN)
-    }
-  }
 }

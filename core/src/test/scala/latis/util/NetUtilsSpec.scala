@@ -10,9 +10,9 @@ import latis.util.NetUtils._
 
 class NetUtilsSpec extends AnyFlatSpec {
 
-  private val uri1 = new URI("http://user:password@host:123/URI")
-  private val uri2 = new URI("http://user:password@host:port/URI")
-  private val uri3 = new URI("http://use%2Fr:p%40ss%3Aword@host:123/URI")
+  private lazy val uri1 = new URI("http://user:password@host:123/URI")
+  private lazy val uri2 = new URI("http://user:password@host:port/URI")
+  private lazy val uri3 = new URI("http://use%2Fr:p%40ss%3Aword@host:123/URI")
 
   "getHost" should "parse the host from a URI" in {
     getHost(uri1) should be ("host".asRight)

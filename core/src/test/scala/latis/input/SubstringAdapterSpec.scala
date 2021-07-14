@@ -4,26 +4,17 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 
 import latis.data._
-import latis.metadata.Metadata
-import latis.model._
-import latis.util.Identifier.IdentifierStringContext
+import latis.dsl.ModelParser
 
 class SubstringAdapterSpec extends AnyFlatSpec {
 
-  private val config = new SubstringAdapter.Config(
+  private lazy val config = new SubstringAdapter.Config(
     ("substring", "0,4;5,8;9,10;11,12")
   )
-  private val model = Function(
-    Tuple(
-      Scalar(Metadata(id"time") + ("type" -> "string") + ("units" -> "yyyy"))
-    ),
-    Tuple(
-      Scalar(Metadata(id"myDouble") + ("type" -> "double")),
-      Scalar(Metadata(id"myString") + ("type" -> "string")),
-      Scalar(Metadata(id"myInt") + ("type"    -> "int"))
-    )
-  )
-  private val subStrAdapter = new SubstringAdapter(model, config)
+
+  private lazy val model = ModelParser.unsafeParse("time: string -> (myDouble: double, myString: string, myInt: int)")
+
+  private lazy val subStrAdapter = new SubstringAdapter(model, config)
 
   "A SubstringAdapter" should "parse a record given substring indices" in {
     val record         = "1970 1.1 A 1"

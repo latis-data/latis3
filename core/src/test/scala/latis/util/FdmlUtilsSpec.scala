@@ -11,7 +11,7 @@ class FdmlUtilsSpec extends AnyFlatSpec {
   "FdmlUtils.getSchemaLocation" should "get the schema URI" in {
     val uri = FdmlUtils.getSchemaLocation(
       new URI("datasets/data.fdml")
-    ).toTry.get.toString
+    ).value.toString
 
     uri should be ("http://latis-data.io/schemas/1.0/fdml-with-text-adapter.xsd")
   }

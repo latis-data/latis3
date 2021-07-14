@@ -1,5 +1,6 @@
 package latis.ops
 
+import org.scalatest.EitherValues._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.Inside.inside
@@ -12,33 +13,32 @@ import latis.time.TimeScale
 
 class ConvertTimeSpec extends AnyFlatSpec {
 
-  val numericTime = Time(
+  private lazy val numericTime = Time.fromMetadata(
     Metadata(
       "id" -> "t1",
       "type" -> "int",
-      "units" -> "days since 2020-01-01",
-      "class" -> "latis.time.Time"
+      "units" -> "days since 2020-01-01"
     )
-  )
+  ).value
 
-  val textTime = Time(
+  private lazy val textTime = Time.fromMetadata(
     Metadata(
       "id" -> "t2",
       "type" -> "string",
-      "units" -> "yyyy-MM-dd",
-      "class" -> "latis.time.Time"
+      "units" -> "yyyy-MM-dd"
     )
-  )
+  ).value
 
-  val convertTime = TimeScale.fromExpression("weeks since 2020-01-08")
-    .map(ConvertTime(_)).toTry.get
+  private lazy val convertTime = TimeScale.fromExpression("weeks since 2020-01-08")
+    .map(ConvertTime(_)).value
 
   "The ConvertTime Operation" should "update the metadata of the time variable" in {
-    val newModel = convertTime.applyToModel(numericTime).toTry.get
-    //println(newModel.metadata.properties)
-    newModel("type") should be(Some("double"))
-    //Note TimeScale.toString uses default ISO format
-    newModel("units") should be(Some("weeks since 2020-01-08T00:00:00.000Z"))
+    inside(convertTime.applyToModel(numericTime)) {
+      case Right(t: Time) =>
+        t.valueType should be(DoubleValueType)
+        //Note TimeScale.toString uses default ISO format
+        t.units should be(Some("weeks since 2020-01-08T00:00:00.000Z"))
+    }
   }
 
   it should "convert a numeric time variable" in {
@@ -60,10 +60,10 @@ class ConvertTimeSpec extends AnyFlatSpec {
   }
 
   it should "convert multiple time variables" in {
-    val model = Function(
+    val model = Function.from(
       textTime,
       numericTime
-    )
+    ).value
     val f = convertTime.mapFunction(model)
     val sample = Sample(DomainData("2020-01-15"), RangeData(14))
     inside(f(sample)) {

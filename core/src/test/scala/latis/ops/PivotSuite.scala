@@ -3,7 +3,6 @@ package latis.ops
 import cats.effect.unsafe.implicits.global
 import org.scalatest.Inside._
 import org.scalatest.funsuite.AnyFunSuite
-import org.scalatest.matchers.should.Matchers._
 
 import latis.data._
 import latis.dataset.Dataset
@@ -23,19 +22,12 @@ class PivotSuite extends AnyFunSuite {
     assert(samples.head == expectedFirstSample)
 
     inside(curryPivotDs.model) { case Function(domain, range) =>
-      domain shouldBe a[Scalar]
-      assert(domain.id.get.asString == "_1")
-      range shouldBe a[Tuple]
-
+      inside(domain) { case s: Scalar => assert(s.id.asString == "_1") }
       inside(range) { case Tuple(r1, r2, r3, r4) =>
-        r1 shouldBe a[Scalar]
-        assert(r1.id.get.asString == "Fe_a")
-        r2 shouldBe a[Scalar]
-        assert(r2.id.get.asString == "Fe_b")
-        r3 shouldBe a[Scalar]
-        assert(r3.id.get.asString == "Mg_a")
-        r4 shouldBe a[Scalar]
-        assert(r4.id.get.asString == "Mg_b")
+        inside(r1) { case s: Scalar => assert(s.id.asString == "Fe_a") }
+        inside(r2) { case s: Scalar => assert(s.id.asString == "Fe_b") }
+        inside(r3) { case s: Scalar => assert(s.id.asString == "Mg_a") }
+        inside(r4) { case s: Scalar => assert(s.id.asString == "Mg_b") }
       }
     }
   }
@@ -51,15 +43,10 @@ class PivotSuite extends AnyFunSuite {
     assert(samples.head == expectedFirstSample)
 
     inside(curryPivotDs.model) { case Function(domain, range) =>
-      domain shouldBe a[Scalar]
-      assert(domain.id.get.asString == "_1")
-      range shouldBe a[Tuple]
-
+      inside(domain) { case s: Scalar => assert(s.id.asString == "_1") }
       inside(range) { case Tuple(r1, r2) =>
-        r1 shouldBe a[Scalar]
-        assert(r1.id.get.asString == "Fe_a")
-        r2 shouldBe a[Scalar]
-        assert(r2.id.get.asString == "Mg_a")
+        inside(r1) { case s: Scalar => assert(s.id.asString == "Fe_a") }
+        inside(r2) { case s: Scalar => assert(s.id.asString == "Mg_a") }
       }
     }
   }
@@ -80,15 +67,13 @@ class PivotSuite extends AnyFunSuite {
     assert(samples.head == expectedFirstSample)
 
     inside(curryPivotDs.model) { case Function(domain, range) =>
-      domain shouldBe a[Scalar]
-      assert(domain.id.get.asString == "_1")
-      range shouldBe a[Scalar]
-      assert(range.id.get.asString == "Fe_a")
+      inside(domain) { case s: Scalar => assert(s.id.asString == "_1") }
+      inside(range)  { case s: Scalar => assert(s.id.asString == "Fe_a") }
     }
   }
 
   // (_1, _2) -> (a, b)
-  private val mock2d: Dataset =
+  private lazy val mock2d: Dataset =
     DatasetGenerator.generate2DDataset(
       Seq(1,2,3),
       Seq("Fe", "Mg"),
@@ -96,14 +81,14 @@ class PivotSuite extends AnyFunSuite {
       Seq(Seq(0.1, 0.2, 0.3, 0.4, 0.5, 0.6)))
 
   // (_1, _2) -> a
-  private val mock2d2: Dataset =
+  private lazy val mock2d2: Dataset =
     DatasetGenerator.generate2DDataset(
       Seq(1,2,3),
       Seq(0.1, 0.2),
       Seq(Seq(1.1, 1.2, 2.1, 2.2, 3.1, 3.2)))
 
   // (_1, _2) -> a
-  private val small2d: Dataset =
+  private lazy val small2d: Dataset =
     DatasetGenerator.generate2DDataset(
       Seq(1,2,3),
       Seq("Fe", "Mg"),

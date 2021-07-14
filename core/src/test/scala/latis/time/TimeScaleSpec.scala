@@ -2,6 +2,7 @@ package latis.time
 
 import java.util.Date
 
+import org.scalatest.EitherValues._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 
@@ -9,7 +10,7 @@ import latis.units.UnitConverter
 
 class TimeScaleSpec extends AnyFlatSpec {
   
-  val timeScaleFromFormat = TimeScale.fromExpression("yyyy-MM-dd").toTry.get
+  private lazy val timeScaleFromFormat = TimeScale.fromExpression("yyyy-MM-dd").value
   
   "A time scale from a format" should "have the default epoch" in {
     timeScaleFromFormat.epoch should be (new Date(0L))
@@ -22,9 +23,9 @@ class TimeScaleSpec extends AnyFlatSpec {
   it should "have the default zero" in {
     timeScaleFromFormat.zero should be (0.0)
   }
-  
-  
-  val numericTimeScale = TimeScale.fromExpression("hours since 1970-002").toTry.get
+
+
+  private lazy val numericTimeScale = TimeScale.fromExpression("hours since 1970-002").value
   
   "A numeric time scale" should "have the correct units" in {
     numericTimeScale.timeUnit should be (TimeUnit(3600))
@@ -33,11 +34,11 @@ class TimeScaleSpec extends AnyFlatSpec {
   it should "have the correct zero" in {
     numericTimeScale.zero should be (-24)
   }
-  
-  
-  val timeConverter = UnitConverter(
-    TimeScale.fromExpression("seconds since 2000-01-01T00:00:01").toTry.get,
-    TimeScale.fromExpression("milliseconds since 2000-01-01").toTry.get
+
+
+  private lazy val timeConverter = UnitConverter(
+    TimeScale.fromExpression("seconds since 2000-01-01T00:00:01").value,
+    TimeScale.fromExpression("milliseconds since 2000-01-01").value
   )
   
   "A time converter" should "convert between numeric time scales" in {

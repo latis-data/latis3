@@ -1,5 +1,6 @@
 package latis.time
 
+import org.scalatest.EitherValues._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.Inside.inside
@@ -10,21 +11,21 @@ import latis.util.Identifier.IdentifierStringContext
 
 class TimeSpec extends AnyFlatSpec {
   
-  val formattedTime: Time = Time(
+  val formattedTime: Time = Time.fromMetadata(
     Metadata(
       "id"    -> "time",
       "type"  -> "string",
       "units" -> "MMM dd, yyyy"
     )
-  )
-  
-  val numericTime: Time = Time(
+  ).value
+
+  private lazy val numericTime = Time.fromMetadata(
     Metadata(
       "id"    -> "time",
       "type"  -> "double",
       "units" -> "seconds since 2000-01-01"
     )
-  )
+  ).value
       
   
   "A numeric time" should "convert a string to a number" in {
@@ -65,11 +66,6 @@ class TimeSpec extends AnyFlatSpec {
   }
 
   "rename" should "preserve type" in {
-    val t = Time(Metadata(
-      "id"    -> "foo",
-      "type"  -> "double",
-      "units" -> "seconds since 2000-01-01"
-    ))
-    assert(t.rename(id"bar").isInstanceOf[Time])
+    assert(numericTime.rename(id"bar").isInstanceOf[Time])
   }
 }

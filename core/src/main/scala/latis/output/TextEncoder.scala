@@ -67,7 +67,7 @@ class TextEncoder extends Encoder[IO, String] {
 
       case i: latis.model.Index =>
         // No data in Sample, generate index
-        indexGenerator.nextIndex(i.id.get).toString
+        indexGenerator.nextIndex(i.id).toString
 
       case s: Scalar =>
         ds.pop() match {
@@ -75,8 +75,8 @@ class TextEncoder extends Encoder[IO, String] {
           case _ => ??? //bug, inconsistent data
         }
 
-      case Tuple(es @ _*) =>
-        es.map(go).mkString("(", ", ", ")")
+      case t: Tuple =>
+        t.elements.map(go).mkString("(", ", ", ")")
 
       // Nested Function
       case f: Function =>

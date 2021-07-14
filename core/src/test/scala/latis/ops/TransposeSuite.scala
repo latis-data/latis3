@@ -18,10 +18,10 @@ class TransposeSuite extends AnyFunSuite {
 
   test("model domain transposed") {
     inside(ds.transpose().model) {
-      case Function(Tuple(y, x), a) =>
-        assert(y.id.get.asString == "y")
-        assert(x.id.get.asString == "x")
-        assert(a.id.get.asString == "a")
+      case Function(Tuple(y: Scalar, x: Scalar), a: Scalar) =>
+        assert(y.id.asString == "y")
+        assert(x.id.asString == "x")
+        assert(a.id.asString == "a")
     }
   }
 

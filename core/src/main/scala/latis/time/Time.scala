@@ -4,53 +4,44 @@ import cats.syntax.all._
 
 import latis.data.Data
 import latis.data.Datum
-import latis.data.Text
 import latis.metadata.Metadata
 import latis.model.Scalar
+import latis.model.ScalarFactory
 import latis.model.StringValueType
+import latis.model.ValueType
+import latis.units.MeasurementScale
 import latis.units.UnitConverter
 import latis.util.Identifier
 import latis.util.LatisException
 
 /**
- * Time is a Scalar that provides special behavior for formated time values.
+ * Time is a Scalar that provides special behavior for time values.
  */
-class Time(metadata: Metadata) extends Scalar(metadata) {
-  //TODO: make sure this has the id or alias "time"
-  //TODO: validate units eagerly
+class Time protected (
+  metadata: Metadata,
+  id: Identifier,
+  valueType: ValueType,
+  units: Option[String],
+  scale: Option[MeasurementScale],
+  val timeFormat: Option[TimeFormat],
+  missingValue: Option[Data] = None,
+  fillValue: Option[Data] = None,
+  precision: Option[Int] = None,
+  ascending: Boolean = true
+) extends Scalar(
+  metadata,
+  id,
+  valueType,
+  units = units,
+  scale = scale,
+  missingValue = missingValue,
+  fillValue = fillValue,
+  precision = precision,
+  ascending = ascending
+) {
 
-  /** Override to preserve type */
-  override def rename(id: Identifier): Time = Time(metadata + ("id" -> id.asString))
-
-  /**
-   * Returns the units from the metadata.
-   */
-  val units: String = this("units").getOrElse {
-    val msg = "A Time variable must have units."
-    throw new RuntimeException(msg)
-  }
-
-  /**
-   * Constructs Some TimeFormat if the time is represented
-   * as a string. Otherwise returns None.
-   */
-  val timeFormat: Option[TimeFormat] = valueType match {
-    case StringValueType => TimeFormat.fromExpression(units).toOption
-    case _               => None
-  }
-
-  /**
-   * Returns whether this Time represents a formatted
-   * time string.
-   */
-  val isFormatted: Boolean = timeFormat.nonEmpty
-
-  /**
-   * Returns a TimeScale for use with time conversions.
-   */
-  val timeScale: TimeScale =
-    if (isFormatted) TimeScale.Default
-    else TimeScale.fromExpression(units).fold(throw _, identity)
+  /** Provides safe access to Time's MeasurementScale. */
+  def timeScale: TimeScale = scale.get.asInstanceOf[TimeScale]
 
   /**
    * Overrides the basic Scalar PartialOrdering to provide
@@ -58,28 +49,7 @@ class Time(metadata: Metadata) extends Scalar(metadata) {
    */
   override def ordering: PartialOrdering[Datum] =
     timeFormat.map { format =>
-      new PartialOrdering[Datum] {
-        // Note, None if data don't match our format
-        def tryCompare(x: Datum, y: Datum): Option[Int] = (x, y) match {
-          case (Text(t1), Text(t2)) =>
-            val cmp = for {
-              v1 <- format.parse(t1)
-              v2 <- format.parse(t2)
-            } yield Option(v1.compare(v2))
-            cmp.getOrElse(None)
-          case _ => None
-        }
-
-        def lteq(x: Datum, y: Datum): Boolean = (x, y) match {
-          case (Text(t1), Text(t2)) =>
-            val cmp = for {
-              v1 <- format.parse(t1)
-              v2 <- format.parse(t2)
-            } yield v1 <= v2
-            cmp.getOrElse(false)
-          case _ => false
-        }
-      }
+      TimeOrdering.fromFormat(format)
     }.getOrElse {
       // Not a formatted time so delegate to super
       super.ordering
@@ -121,7 +91,63 @@ class Time(metadata: Metadata) extends Scalar(metadata) {
 
 }
 
-object Time {
+object Time extends ScalarFactory {
 
-  def apply(md: Metadata) = new Time(md)
+  override def fromMetadata(metadata: Metadata): Either[LatisException, Time] = {
+    for {
+      id        <- getId(metadata)
+      valueType <- getValueType(metadata)
+      units     <- getUnits(metadata)
+      reqUnits  <- getRequiredUnits(units)
+      format    <- getTimeFormat(reqUnits, valueType)
+      scale     <- getTimeScale(reqUnits, valueType)
+      missValue <- getMissingValue(metadata, valueType)
+      fillValue <- getFillValue(metadata, valueType)
+      precision <- getPrecision(metadata, valueType)
+      ascending <- getAscending(metadata)
+    } yield new Time(
+      metadata + ("class" -> "latis.time.Time"),
+      id,
+      valueType,
+      units = units,
+      scale = scale,
+      timeFormat = format,
+      missingValue = missValue,
+      fillValue = fillValue,
+      precision = precision,
+      ascending = ascending
+    )
+  }
+
+  /** Enforces that a Time variable has units defined. */
+  protected def getRequiredUnits(units: Option[String]): Either[LatisException, String] =
+    units.toRight(LatisException("Time requires units"))
+
+  /**
+   * Constructs a TimeScale based on units metadata.
+   *
+   * If the units represent a time format, this will have a string value type
+   * and the default time scale will be used. Otherwise, a time scale will be
+   * constructed from the numeric units.
+   *
+   * Although a time scale is required for Time scalars, this returns an Option
+   * to match the default Scalar type signature.
+   */
+  protected def getTimeScale(units: String, valueType: ValueType): Either[LatisException, Option[MeasurementScale]] =
+    valueType match {
+      case StringValueType => TimeScale.Default.some.asRight
+      case _               => TimeScale.fromExpression(units).map(_.some)
+    }
+
+  /**
+   * Constructs a TimeFormat based on units metadata.
+   *
+   * Only Times with a string value type will have a time format.
+   */
+  protected def getTimeFormat(units: String, valueType: ValueType): Either[LatisException, Option[TimeFormat]] =
+    valueType match {
+      case StringValueType => TimeFormat.fromExpression(units).map(_.some)
+      case _               => None.asRight
+    }
+
 }

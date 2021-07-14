@@ -3,122 +3,102 @@ package latis.dsl
 import atto._
 import atto.Atto._
 import org.scalactic.Equality
+import org.scalatest.EitherValues._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.Assertion
 import org.scalatest.Inside.inside
 
-import latis.metadata.Metadata
-import latis.model.DataType
-import latis.model.Function
-import latis.model.Scalar
-import latis.model.Tuple
+import latis.model._
 import latis.util.Identifier.IdentifierStringContext
 import latis.util.LatisException
 
 
 class ModelParserSpec extends AnyFlatSpec {
 
-  private val testScalar   = testParser(ModelParser.scalar)(_, _)
-  private val testTuple    = testParser(ModelParser.tuple)(_, _)
-  private val testFunction = testParser(ModelParser.function)(_, _)
+  private lazy val testScalar   = testParser(ModelParser.scalar)(_, _)
+  private lazy val testTuple    = testParser(ModelParser.tuple)(_, _)
+  private lazy val testFunction = testParser(ModelParser.function)(_, _)
+
+  private lazy val a = Scalar(id"a", DoubleValueType)
+  private lazy val b = Scalar(id"b", IntValueType)
+  private lazy val c = Scalar(id"c", StringValueType)
+  private lazy val d = Scalar(id"d", LongValueType)
 
   "The ModelParser" should "parse a scalar" in {
-    testScalar("b", Scalar(Metadata(id"b") + ("type" -> "int")))
+    testScalar("b", b)
   }
 
   it should "parse a scalar with a type" in {
-    testScalar("a: double", Scalar(Metadata(id"a") + ("type" -> "double")))
+    testScalar("a: double", a)
   }
 
   it should "parse a tuple" in {
     testTuple(
       "(a: double, b: int)",
-      Tuple(
-        Scalar(Metadata(id"a") + ("type" -> "double")),
-        Scalar(Metadata(id"b") + ("type" -> "int"))
-      )
+      Tuple.fromElements(a, b).value
     )
   }
 
   it should "parse a tuple of more than two elements" in {
     testTuple(
-      "(a, b, c)",
-      Tuple(
-        Scalar(Metadata(id"a") + ("type" -> "int")),
-        Scalar(Metadata(id"b") + ("type" -> "int")),
-        Scalar(Metadata(id"c") + ("type" -> "int"))
-      )
+      "(a: double, b, c: string)",
+      Tuple.fromElements(a, b, c).value
     )
   }
 
   it should "parse a nested tuple" in {
     inside(ModelParser.unsafeParse("(a, (b, c))")) {
       case Tuple(a: Scalar, Tuple(b: Scalar, c: Scalar)) =>
-        a.id.get should be (id"a")
-        b.id.get should be (id"b")
-        c.id.get should be (id"c")
+        a.id should be (id"a")
+        b.id should be (id"b")
+        c.id should be (id"c")
     }
   }
 
   ignore should "parse a function in a tuple" in {
     inside(ModelParser.unsafeParse("(a, b -> c)")) {
       case Tuple(a: Scalar, Function(b: Scalar, c: Scalar)) =>
-        a.id.get should be (id"a")
-        b.id.get should be (id"b")
-        c.id.get should be (id"c")
+        a.id should be (id"a")
+        b.id should be (id"b")
+        c.id should be (id"c")
     }
   }
 
   it should "parse a function" in {
     testFunction(
-      "a: int -> b: double",
-      Function(
-        Scalar(Metadata(id"a") + ("type" -> "int")),
-        Scalar(Metadata(id"b") + ("type" -> "double"))
-      )
+      "b: int -> a: double",
+      Function.from(b, a).value
     )
   }
 
   it should "parse a complex function" in {
+    val f = for {
+      domain <- Tuple.fromElements(c, b)
+      range <- Tuple.fromElements(a, d)
+      f <- Function.from(domain, range)
+    } yield f
     testFunction(
-      "(a: string, b: int) -> (c: double, d: double)",
-      Function(
-        Tuple(
-          Scalar(Metadata(id"a") + ("type" -> "string")),
-          Scalar(Metadata(id"b") + ("type" -> "int"))
-        ),
-        Tuple(
-          Scalar(Metadata(id"c") + ("type" -> "double")),
-          Scalar(Metadata(id"d") + ("type" -> "double"))
-        )
-      )
+      "(c: string, b: int) -> (a: double, d: long)",
+      f.value
     )
   }
 
   it should "parse a nested function" in {
+    val inner = Function.from(b, c).value
+    val outer = Function.from(a, inner).value
     testFunction(
-      "a: int -> b: double -> c: double",
-      Function(
-        Scalar(Metadata(id"a") + ("type" -> "int")),
-        Function(
-          Scalar(Metadata(id"b") + ("type" -> "double")),
-          Scalar(Metadata(id"c") + ("type" -> "double"))
-        )
-      )
+      "a: double -> b: int -> c: string",
+      outer
     )
   }
 
   it should "parse a nested function with parentheses" in {
+    val inner = Function.from(b, c).value
+    val outer = Function.from(a, inner).value
     testFunction(
-      "a: int -> (b: double -> c: double)",
-      Function(
-        Scalar(Metadata(id"a") + ("type" -> "int")),
-        Function(
-          Scalar(Metadata(id"b") + ("type" -> "double")),
-          Scalar(Metadata(id"c") + ("type" -> "double"))
-        )
-      )
+      "a: double -> (b: int -> c: string)",
+      outer
     )
   }
 

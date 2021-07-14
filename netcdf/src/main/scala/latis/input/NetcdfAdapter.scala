@@ -17,12 +17,14 @@ import ucar.ma2.{Range => URange}
 import ucar.nc2.util.EscapeStrings.backslashEscape
 import ucar.nc2.dataset.NetcdfDataset
 import ucar.nc2.{Variable => NcVariable}
+import ucar.nc2.dataset.NetcdfDatasets
 
 import latis.data._
 import latis.model._
 import latis.ops.Operation
 import latis.ops.Selection
 import latis.ops.Stride
+import latis.time.Time
 import latis.util.dap2.parser.ast._
 import latis.util._
 
@@ -44,12 +46,16 @@ case class NetcdfAdapter(
    */
   override def canHandleOperation(op: Operation): Boolean = op match {
     case Stride(stride) if stride.length == model.arity => true
-    case s@Selection(v, _, _) => model.getVariable(v).exists(
-      v => v("cadence").nonEmpty && v("start").nonEmpty) &&
-      (s.operator match {
-        case Gt | Lt | GtEq | LtEq | Eq | EqEq | Tilde => true
-        case _ => false
-    })
+    case sel @ Selection(v, _, _) => model.findVariable(v) match {
+      case Some(s: Scalar) =>
+        s.metadata.properties.contains("cadence") &&
+        s.metadata.properties.contains("start") &&
+        (sel.operator match {
+          case Gt | Lt | GtEq | LtEq | Eq | EqEq | Tilde => true
+          case _ => false
+        })
+      case _ => false
+    }
     //TODO: take, drop, ...
     case _ => false
   }
@@ -74,8 +80,7 @@ case class NetcdfAdapter(
       // Assumes all domain variables are 1D and define a Cartesian Product set.
       val domainSet: DomainSet = {
         val dsets: List[DomainSet] = domainSections.map { case (scalar, sec) =>
-          val scalarId = scalar.id.getOrElse(throw LatisException("Scalar must have an identifier"))
-          nc.readVariable(scalarId, sec).map { ncArr =>
+          nc.readVariable(scalar.id, sec).map { ncArr =>
             val ds: IndexedSeq[DomainData] =
               (0 until ncArr.getSize.toInt).map { i =>
                 Data.fromValue(ncArr.getObject(i)).fold(throw _, DomainData(_))
@@ -98,8 +103,7 @@ case class NetcdfAdapter(
         val arrs: List[NcArray] = rangeSections.flatMap {
           case (scalar, section) =>
             //TODO: beware of silent failure if var not found
-            val scalarId = scalar.id.getOrElse(throw LatisException("Scalar must have an identifier"))
-            nc.readVariable(scalarId, section)
+            nc.readVariable(scalar.id, section)
         }
         (0 until arrs.head.getSize.toInt).map { i =>
           RangeData(arrs.map { ncArr =>
@@ -167,7 +171,7 @@ object NetcdfAdapter extends AdapterFactory {
     }
 
     Stream.bracket(IO {
-      NetcdfDataset.openDataset(path)
+      NetcdfDatasets.openDataset(path)
     })(nc => IO(nc.close()))
   }
 
@@ -182,6 +186,7 @@ object NetcdfAdapter extends AdapterFactory {
     // TODO: revisit logic in each operation for multiple sections
     case Stride(stride) => NetcdfAdapter.applyStride(sections, model, stride.toArray)
     case sel: Selection => NetcdfAdapter.applySelection(sections, model, sel)
+    case _              => LatisException("Unsupported operation").asLeft //Bug if we get here
   }
 
   /**
@@ -301,7 +306,7 @@ object NetcdfAdapter extends AdapterFactory {
 
     /** Gets a scalar's metadata and converts it to a double. */
     def getMetadataAsDouble(s: Scalar, key: String): Either[LatisException, Double] =
-      s(key) match {
+      s.metadata.getProperty(key) match {
         case Some(v) => Either.catchOnly[NumberFormatException](v.toDouble)
           .leftMap(_ => LatisException(s"$v could not be converted to a double"))
         case _ => Left(LatisException(s"scalar $s does not have $key metadata"))
@@ -310,8 +315,8 @@ object NetcdfAdapter extends AdapterFactory {
     /** Returns value as a BigDecimal. If value is a formatted string, return ms since 1970. */
     def getBigDecimalValue(s: Scalar, value: String): Either[LatisException, BigDecimal] = {
       s match {
-        case scalar: latis.time.Time if scalar.isFormatted =>
-          scalar.timeFormat.get.parse(value).map(BigDecimal(_))
+        case time: Time if time.timeFormat.nonEmpty =>
+          time.timeFormat.get.parse(value).map(BigDecimal(_))
         case _ => Either.catchOnly[NumberFormatException](BigDecimal(value))
       }
     }.leftMap(_ => LatisException(s"$value could not be converted to a BigDecimal"))
@@ -330,7 +335,7 @@ object NetcdfAdapter extends AdapterFactory {
 
     /** Gets the zero-indexed position of a domain scalar in a top-level function. */
     def getScalarPos(id: Identifier): Either[LatisException, Int] =
-      model.getPath(id) match {
+      model.findPath(id) match {
         case None => Left(LatisException(s"$id not found in model."))
         case Some(List(DomainPosition(n))) => Right(n)
         case _ => Left(LatisException(s"$id must be in the domain of a " +
@@ -363,7 +368,7 @@ object NetcdfAdapter extends AdapterFactory {
       firstValue <- getMetadataAsDouble(scalar, "start")
       selectValue <- getBigDecimalValue(scalar, selection.value)
       index <- getIndex(selectValue, firstValue, cadence)
-      pos <- getScalarPos(scalar.id.getOrElse(throw LatisException("Scalar must have an identifier")))
+      pos <- getScalarPos(scalar.id)
       // find the URange to apply the selection to
       oldRange <- getOldRange(sections(pos))
       // apply the selection to get a new URange
@@ -397,20 +402,21 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
 
     def getNcVar(id: Identifier): Option[NcVariable] = {
       val validId = makeValidPathName(
-        model.findVariable(id)
-        .flatMap(_("sourceId"))
-        .getOrElse(id.asString)
+        model.findVariable(id) match {
+          case Some(s: Scalar) =>
+            s.metadata.getProperty("sourceId").getOrElse(id.asString)
+          case _ => ??? //Bug: not Scalar or not found
+        }
       )
       Option(ncDataset.findVariable(validId))
     }
 
     //TODO: fail faster by not making this lazy?
-    val ids = model.getScalars.map(_.id.getOrElse {
-      throw LatisException("Scalar must have an identifier")
-    })
+    val ids = model.getScalars.map(_.id)
     val pairs = ids.flatMap { id =>
       getNcVar(id).map((id, _))
       //Note, domain variables not found will be replaced by index
+      //TODO: require use of dimension name if no coordinate variable?
       //TODO: what about range vars?
       //val msg = s"NetCDF variable not found: $vname"
       //throw LatisException(msg)
@@ -443,7 +449,7 @@ case class NetcdfWrapper(ncDataset: NetcdfDataset, model: DataType, config: Netc
    * scalars in the model, and the section is then split into a list of sections.
    */
   lazy val sections: List[Section] = {
-    val ids = model.getScalars.map(_.id.getOrElse(throw LatisException("Scalar must have an identifier")))
+    val ids = model.getScalars.map(_.id)
     config.section match {
       case Some(spec) =>
         val sectionsNotNull = ids.zip(spec.split(';')).map {

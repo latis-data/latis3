@@ -2,25 +2,36 @@ package latis.util
 
 import scala.collection.mutable
 
+import org.scalatest.EitherValues._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 
 import latis.data._
 import latis.metadata.Metadata
 import latis.model.Function
+import latis.model.IntValueType
 import latis.model.Scalar
 import latis.model.Tuple
 import latis.time.Time
+import latis.util.Identifier.IdentifierStringContext
 
 class OrderingSpec extends AnyFlatSpec {
 
-  val model = Function(
-    Tuple(
-      Scalar(Metadata("id" -> "x", "type" -> "int")),
-      Time(Metadata("id" -> "time", "type" -> "string", "units" -> "MM/dd/yyyy"))
-    ),
-    Scalar(Metadata("id" -> "x", "type" -> "int"))
-  )
+  private lazy val time = Time.fromMetadata(
+    Metadata(
+      "id" -> "time",
+      "type" -> "string",
+      "units" -> "MM/dd/yyyy"
+    )
+  ).value
+
+  val model = Function.from(
+    Tuple.fromElements(
+      Scalar(id"x", IntValueType),
+      time
+    ).value,
+    Scalar(id"a", IntValueType)
+  ).value
 
   val samples = List(
     Sample(DomainData(0, "01/01/2001"), RangeData(2)),

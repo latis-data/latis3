@@ -16,6 +16,7 @@ import latis.ops.UnaryOperation
 import latis.util.LatisException
 import latis.util.ReflectionUtils
 import latis.util.dap2.parser.ast
+import latis.util.Identifier
 
 /** Provides methods for creating datasets from FDML. */
 object FdmlReader {
@@ -82,21 +83,28 @@ object FdmlReader {
       case s: FScalar   => makeScalar(s)
     }
 
+  private def getId(attributes: Map[String, String]): Either[LatisException, Option[Identifier]] =
+    attributes.get("id").traverse { id =>
+      Identifier.fromString(id).toRight(LatisException(s"Invalid id: $id"))
+    }
+
   private def makeFunction(function: FFunction): Either[LatisException, Function] =
     for {
       domain <- makeDataType(function.domain)
       range  <- makeDataType(function.range)
-    } yield Function(Metadata(function.attributes), domain, range)
+      id     <- getId(function.attributes)
+      f      <- Function.from(id, domain, range)
+    } yield f
 
   private def makeTuple(tuple: FTuple): Either[LatisException, Tuple] =
-    (tuple.fst :: tuple.snd :: tuple.rest).traverse(makeDataType).map {
-      Tuple(Metadata(tuple.attributes), _)
-    }
+    for {
+      dts <- (tuple.fst :: tuple.snd :: tuple.rest).traverse(makeDataType)
+      id  <- getId(tuple.attributes)
+      tup <- Tuple.fromSeq(id, dts)
+    } yield tup
 
   private def makeScalar(scalar: FScalar): Either[LatisException, Scalar] =
-    Either.catchNonFatal {
-      Scalar(scalar.metadata)
-    }.leftMap(LatisException(_))
+    Scalar.fromMetadata(scalar.metadata)
 
   private def makeAdapter(
     adapter: FAdapter,

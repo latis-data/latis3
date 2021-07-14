@@ -149,44 +149,34 @@ object DatasetGenerator {
 
   //use 1st value of each variable
   def makeModel(ds: Seq[Any], rs: Seq[Any]): DataType =
-    Function(makeDomainType(ds), makeRangeType(rs))
+    Function.from(makeDomainType(ds), makeRangeType(rs)).fold(throw _, identity)
 
   def makeDomainType(data: Seq[Any]): DataType = {
     val scalars = data.zipWithIndex.map {
       case (v, i) =>
-        val vname = s"_${i + 1}"
-        val vtype = ValueType.fromValue(v).toTry.get.toString
-        Scalar(
-          Metadata(
-            "id"   -> vname,
-            "type" -> vtype
-          )
-        )
+        val id = Identifier.fromString(s"_${i + 1}").get
+        val vtype = ValueType.fromValue(v).toTry.get
+        Scalar(id, vtype)
     }
     scalars.length match {
       //TODO: DataType.fromSeq, like Data.fromSeq but keep nested Tuples
       case 0 => ??? //error
       case 1 => scalars.head
-      case _ => Tuple(scalars)
+      case _ => Tuple.fromSeq(scalars).fold(throw _, identity)
     }
   }
 
   def makeRangeType(data: Seq[Any]): DataType = {
     val scalars = data.zipWithIndex.map {
       case (v, i) =>
-        val vname = (i + 97).toChar.toString //letters a, b, ...
-        val vtype = ValueType.fromValue(v).toTry.get.toString
-        Scalar(
-          Metadata(
-            "id"   -> vname,
-            "type" -> vtype
-          )
-        )
+        val id = Identifier.fromString((i + 97).toChar.toString).get //letters a, b, ...
+        val vtype = ValueType.fromValue(v).toTry.get
+        Scalar(id, vtype)
     }
     scalars.length match {
       case 0 => ??? //error
       case 1 => scalars.head
-      case _ => Tuple(scalars)
+      case _ => Tuple.fromSeq(scalars).fold(throw _, identity)
     }
   }
 }

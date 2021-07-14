@@ -3,6 +3,7 @@ package latis.ops
 import cats.syntax.all._
 
 import latis.data._
+import latis.metadata.Metadata
 import latis.model._
 import latis.time.Time
 import latis.util.Identifier
@@ -19,18 +20,23 @@ case class TimeTupleToTime(id: Identifier = id"time") extends MapOperation {
 
   def applyToModel(model: DataType): Either[LatisException, DataType] =
     Either.catchOnly[LatisException](model.map {
-    case t @ Tuple(es @ _*) if t.id.contains(id) => //TODO: support aliases with hasName?
+    case t: Tuple if t.id.contains(id) => //TODO: support aliases with hasName?
       //build up format string
-      val format: String = es.toList.traverse(_("units"))
+      val format: String = t.elements.collect{case s: Scalar => s}.toList.traverse(_.units)
         .fold(throw LatisException("A time Tuple must have units defined for each element."))(_.mkString(" "))
       //make the time Scalar
-      val metadata = t.metadata + ("units" -> format) + ("type" -> "string")
-      Time(metadata)
+      //assumes time tuple has id
+      val metadata = Metadata(
+        "id"    -> t.id.get.asString,
+        "units" -> format,
+        "type"  -> "string"
+      )
+      Time.fromMetadata(metadata).fold(throw _, identity)
     case v => v
     })
 
   override def mapFunction(model: DataType): Sample => Sample = {
-    val timePos: SamplePosition = model.getPath(id) match {
+    val timePos: SamplePosition = model.findPath(id) match {
       case Some(List(sp)) => sp
       case None => throw LatisException(s"Cannot find path to variable: ${id.asString}")
       case _ => throw LatisException(s"Variable '${id.asString}' must not be in a nested Function.")
@@ -39,28 +45,27 @@ case class TimeTupleToTime(id: Identifier = id"time") extends MapOperation {
       .getOrElse {
         throw new LatisException(s"Cannot find variable: ${id.asString}")
       } match {
-          case t: Tuple => t.flatten match {
+          case t: Tuple => t match { //TODO: was t.flatten
             case tf: Tuple => tf.elements.length //TODO: is this "dimensionality"? Should it be a first class citizen?
             case _ => throw LatisException("Tuple did not flatten to a tuple.")
           }
           case _ => throw LatisException(s"Variable '${id.asString}' must be a Tuple.")
-        }
+      }
 
-    { case Sample(dd, rd) =>
+    (sample: Sample) =>
       //extract text values and join with space
       //TODO: join with delimiter, problem when we use regex?
       timePos match {
         case DomainPosition(n) =>
-          val domain = DomainData.fromData(convertTimeTuple(dd, n, timeLen)) match {
+          val domain = DomainData.fromData(convertTimeTuple(sample.domain, n, timeLen)) match {
             case Right(d) => d
             case Left(ex) => throw ex
           }
-          Sample(domain, rd)
+          Sample(domain, sample.range)
         case RangePosition(n) =>
-          val range = convertTimeTuple(rd, n, timeLen)
-          Sample(dd, range)
+          val range = convertTimeTuple(sample.range, n, timeLen)
+          Sample(sample.domain, range)
       }
-    }
   }
 
   /**

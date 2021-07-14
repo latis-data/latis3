@@ -31,19 +31,20 @@ class BinaryEncoder extends Encoder[IO, BitVector] {
     StreamEncoder.many(sampleEncoder(model))
 
   def sampleEncoder(model: DataType): SEncoder[Sample] = new SEncoder[(DomainData, RangeData)] {
-    def encode(sample: (DomainData, RangeData)): Attempt[BitVector] =
-    (model, sample) match {
-      //TODO: not exhaustive: See https://github.com/latis-data/latis3/issues/304
-      case (Function(domain, range), Sample(ds, rs)) =>
-        val scalars = (domain.getScalars ++ range.getScalars).filterNot(_.isInstanceOf[Index])
-        val datas   = ds ++ rs
-        (scalars zip datas).foldLeft(Attempt.successful(BitVector(hex""))) {
-          case (ab: Attempt[BitVector], (s: Scalar, d: Data)) =>
-            ab.flatMap {
-              case b: BitVector => dataCodec(s).encode(d).map(b ++ _)
-            }
-        }
+
+    def encode(sample: (DomainData, RangeData)): Attempt[BitVector] = {
+      // Note that the dataset has been uncurried so there are no nested functions.
+      val scalars: List[Scalar] = model.getScalars.filterNot(_.isInstanceOf[Index])
+      val datas: List[Data] = sample.domain ++ sample.range
+      //TODO: assert that the lengths are the same? should be ensured earlier
+      scalars.zip(datas).foldLeft(Attempt.successful(BitVector(hex""))) {
+        case (ab: Attempt[BitVector], (s: Scalar, d: Data)) =>
+          ab.flatMap { b =>
+            dataCodec(s).encode(d).map(b ++ _)
+          }
+      }
     }
+
     def sizeBound: SizeBound = SizeBound.unknown
   }
 
@@ -56,8 +57,8 @@ class BinaryEncoder extends Encoder[IO, BitVector] {
     case LongValueType    => codecs.int64.xmap[LongValue](LongValue(_), _.value).upcast[Data]
     case FloatValueType   => codecs.float.xmap[FloatValue](FloatValue(_), _.value).upcast[Data]
     case DoubleValueType  => codecs.double.xmap[DoubleValue](DoubleValue(_), _.value).upcast[Data]
-    case StringValueType if (s("size").nonEmpty) =>
-      val size = s("size").get.toLong * 8
+    case StringValueType if (s.metadata.getProperty("size").nonEmpty) =>
+      val size = s.metadata.getProperty("size").get.toLong * 8
       codecs.paddedFixedSizeBits(
         size,
         codecs.utf8,

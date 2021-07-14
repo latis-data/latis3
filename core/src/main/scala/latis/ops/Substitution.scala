@@ -20,8 +20,8 @@ case class Substitution(dataset: Dataset) extends MapOperation {
     // Get the paths to the substitution variables in the target Dataset
     //TODO: error if not consecutive
     val paths = modelScalars._1.toList.traverse { s =>
-      val sId = s.id.getOrElse(throw LatisException("Found an unnamed Scalar"))
-      model.getPath(sId)
+      val sId = s.id
+      model.findPath(sId)
     }.getOrElse {
       val msg = s"Failed to find substitution domain in target Dataset"
       throw LatisException(msg)
@@ -54,15 +54,15 @@ case class Substitution(dataset: Dataset) extends MapOperation {
               case Right(rd) =>
                 // Make sure these range data can be used for a domain, i.e. all Datum, no SF
                 rd match {
-                  //TODO: not exhaustive: Some(Data) See https://github.com/latis-data/latis3/issues/305
                   case d: Datum => List(d)
-                  case TupleData(ds @ _*) => ds.toList.map {
+                  case td: TupleData => td.elements.toList.map {
                     case d: Datum => d
                     case _ =>
                       throw LatisException("Domain substitution includes Function")
                   }
                   case _: SampledFunction =>
                     throw LatisException("Domain substitution includes Function")
+                  case NullData => ???
                 }
               case Left(le) => throw le
             }
@@ -76,20 +76,20 @@ case class Substitution(dataset: Dataset) extends MapOperation {
             val vals: List[Data] = sample.range
             // Extract the values to be replaced; can't include Function
             val slice: List[Datum] = vals.slice(i, i + domainVariableIDs.length).map {
-              //TODO: not exhaustive: Some(Data) See https://github.com/latis-data/latis3/issues/305
               case d: Datum => d
               // Note, there should be no TupleData in a Sample
               case _: TupleData =>
                 throw LatisException("Substitution includes TupleData")
               case _: SampledFunction =>
                 throw LatisException("Substitution includes Function")
+              case NullData => ???
             }
             // Evaluate the substitution Dataset with the values to be replaced
             val sub: List[Data] = f(Data.fromSeq(slice)) match {
-              //TODO: not exhaustive: Some(Data) See https://github.com/latis-data/latis3/issues/305
               case Right(d: Datum) => List(d)
-              case Right(TupleData(ds @ _*)) => ds.toList
+              case Right(td: TupleData) => td.elements.toList
               case Left(le) => throw le
+              case _ => ???
             }
             // Substitute the new values into the range
             val range: RangeData = vals.splitAt(i) match {
@@ -121,24 +121,23 @@ case class Substitution(dataset: Dataset) extends MapOperation {
     // substitution Dataset's domain with the types from its range.
     // Recursive helper function
     def go(dt: DataType): DataType = dt match {
-      //TODO: not exhaustive: Some(Data) See https://github.com/latis-data/latis3/issues/304
       case s: Scalar =>
-        if ((domainVariableIDs.length == 1) && s.id.contains(domainVariableIDs.head)) subScalars.head
+        if ((domainVariableIDs.length == 1) && s.id == domainVariableIDs.head) subScalars.head
         else s
       case Tuple(es @ _*) =>
-        //TODO: support aliases
-        es.map(_.id).indexOfSlice(domainVariableIDs) match {
-          case -1 => Tuple(es.map(go)) //no match, keep recursing
+        //TODO: assumes scalars only
+        es.collect{case s: Scalar => s}.map(_.id).indexOfSlice(domainVariableIDs) match {
+          case -1 => Tuple.fromSeq(es.map(go)).fold(throw _, identity) //no match, keep recursing
           case index =>
             es.splitAt(index) match {
               // Splice in the new variable types
               case (p1, p3) =>
                 val dts = p1 ++ subScalars ++ p3.drop(domainVariableIDs.length)
                 if (dts.length == 1) dts.head //Reduce 1-Tuple
-                else Tuple(dts)
+                else Tuple.fromSeq(dts).fold(throw _, identity)
             }
         }
-      case Function(d, r) => Function(go(d), go(r))
+      case Function(d, r) => Function.from(go(d), go(r)).fold(throw _, identity)
     }
 
     Right(go(model))
@@ -156,8 +155,6 @@ case class Substitution(dataset: Dataset) extends MapOperation {
   /**
    * Extracts the variable IDs from the domain of the Substitution Dataset.
    */
-  private val domainVariableIDs: Seq[Identifier] = modelScalars._1.map(
-    _.id.getOrElse(throw LatisException("Found an unnamed Scalar"))
-  )
+  private val domainVariableIDs: Seq[Identifier] = modelScalars._1.map(_.id)
 
 }

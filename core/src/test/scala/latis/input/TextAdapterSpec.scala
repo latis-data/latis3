@@ -1,32 +1,29 @@
 package latis.input
 
-import latis.metadata.Metadata
-import latis.util.NetUtils.resolveUri
-import latis.model._
 import java.net.URI
 
-import latis.data.{DomainData, RangeData, Sample}
-import latis.dataset.AdaptedDataset
 import cats.effect.unsafe.implicits.global
+import org.scalatest.EitherValues._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 
+import latis.data.DomainData
+import latis.data.RangeData
+import latis.data.Sample
+import latis.dataset.AdaptedDataset
+import latis.dsl.ModelParser
+import latis.metadata.Metadata
+import latis.model._
 import latis.util.Identifier.IdentifierStringContext
+import latis.util.NetUtils.resolveUri
 
 class TextAdapterSpec extends AnyFlatSpec {
 
   "A TextAdapter" should "read text data" in {
     val ds = {
-      def uri: URI = resolveUri("data/data.txt").toTry.get
+      def uri: URI = resolveUri("data/data.txt").value
       val metadata = Metadata(id"data")
-      val model: DataType = Function(
-        Scalar(Metadata("id" -> "a", "type" -> "int")),
-        Tuple(
-          Scalar(Metadata("id" -> "b", "type" -> "int")),
-          Scalar(Metadata("id" -> "c", "type" -> "double")),
-          Scalar(Metadata("id" -> "d", "type" -> "string"))
-        )
-      )
+      val model: DataType = ModelParser.unsafeParse("a: int -> (b: int, c: double, d: string)")
       val config = new TextAdapter.Config()
       val adapter = new TextAdapter(model, config)
       new AdaptedDataset(metadata, model, adapter, uri)

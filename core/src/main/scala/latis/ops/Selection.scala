@@ -39,7 +39,7 @@ case class Selection(id: Identifier, operator: ast.SelectionOp, value: String) e
     //TODO: support aliases
 
     // Determine the Sample position of the selected variable
-    val pos: SamplePosition = model.getPath(id) match {
+    val pos: SamplePosition = model.findPath(id) match {
       case Some(p) =>
         p.length match {
           case 1 => p.head
@@ -47,7 +47,7 @@ case class Selection(id: Identifier, operator: ast.SelectionOp, value: String) e
             val msg = "Selection does not support values in nested Functions."
             throw new UnsupportedOperationException(msg)
         }
-      case None => ??? //shouldn't happen due to earlier check
+      case None => ??? //shouldn't happen due to earlier check TODO: happened with selection on nonpresent ert in latis3-packets
     }
 
     val cdata = getValue(model).fold(throw _, identity)
@@ -56,7 +56,6 @@ case class Selection(id: Identifier, operator: ast.SelectionOp, value: String) e
 
     (sample: Sample) =>
       sample.getValue(pos) match {
-        //TODO: not exhaustive: Some(Data) See https://github.com/latis-data/latis3/issues/305
         case Some(d: Datum) =>
           ordering
             .tryCompare(d, cdata)
@@ -71,6 +70,8 @@ case class Selection(id: Identifier, operator: ast.SelectionOp, value: String) e
           throw LatisException("Should not find SampledFunction at this position")
         case Some(_: TupleData) =>
           throw LatisException("Should not find TupleData at this position")
+        case Some(NullData) =>
+          throw LatisException("Should not find NullData at this position")
         case None =>
           // Bug: There should be a Datum at this position
           throw LatisException("Should find Datum at this position")

@@ -28,7 +28,7 @@ case class GroupByVariable(ids: Identifier*) extends GroupOperation {
    * Gets the SamplePosition for each group-by variable.
    */
   def samplePositions(model: DataType): List[SamplePosition] = ids.toList.map { id =>
-    model.getPath(id) match {
+    model.findPath(id) match {
       case Some(path) =>
         if (path.length > 1)
           throw LatisException(s"Group-by variable must not be in a nested Function: ${id.asString}")
@@ -50,7 +50,12 @@ case class GroupByVariable(ids: Identifier*) extends GroupOperation {
           throw LatisException(msg)
       }
     }
-    Tuple(scalars).flatten
+
+    scalars.length match {
+      case 0 => ???
+      case 1 => scalars.head
+      case 2 => Tuple.fromSeq(scalars).fold(throw _, identity)  //TODO: .flatten?
+    }
   }
 
   def groupByFunction(model: DataType): Sample => Option[DomainData] =
@@ -77,17 +82,17 @@ case class RemoveGroupedVariables(ids: Seq[Identifier]) extends MapOperation {
   /** Recursive method to build new model by dropping variableNames. */
   private def applyToVariable(v: DataType): Option[DataType] = v match {
     case s: Scalar =>
-      if (s.id.exists(id => ids.contains(id))) None else Some(s)
-    case t @ Tuple(vars @ _*) =>
-      val vs = vars.flatMap(applyToVariable)
+      if (ids.contains(s.id)) None else Some(s)
+    case t: Tuple =>
+      val vs = t.elements.flatMap(applyToVariable)
       vs.length match {
         case 0 => None // drop empty Tuple
         case 1 => Some(vs.head) // reduce Tuple of one
-        case _ => Some(Tuple(t.metadata, vs))
+        case _ => Some(Tuple.fromSeq(t.id, vs).fold(throw _, identity))
       }
     case f @ Function(d, r) =>
       (applyToVariable(d), applyToVariable(r)) match {
-        case (Some(d), Some(r)) => Some(Function(f.metadata, d, r))
+        case (Some(d), Some(r)) => Some(Function.from(f.id, d, r).fold(throw _, identity))
         case (None, Some(r)) => Some(r)
         //TODO: deal with empty range
         case _ => None
@@ -96,13 +101,11 @@ case class RemoveGroupedVariables(ids: Seq[Identifier]) extends MapOperation {
 
   override def mapFunction(model: DataType): Sample => Sample = {
     // Determine the list of variables to keep
-    val vnames: List[Identifier] = model.getScalars.map(
-      _.id.getOrElse(throw LatisException("Found an unnamed Scalar"))
-    ).filterNot(ids.contains)
+    val vnames: List[Identifier] = model.getScalars.map(_.id).filterNot(ids.contains)
 
     // Get the paths of the variables to be removed from each Sample.
     // Sort to maintain the original order of variables.
-    val samplePositions = vnames.flatMap(model.getPath).map(_.head)
+    val samplePositions = vnames.flatMap(model.findPath).map(_.head)
     val domainIndices: Seq[Int] = samplePositions.collect {
       case DomainPosition(i) => i
     }.sorted
@@ -110,11 +113,10 @@ case class RemoveGroupedVariables(ids: Seq[Identifier]) extends MapOperation {
       case RangePosition(i)  => i
     }.sorted
 
-    (sample: Sample) => sample match {
-      case Sample(ds, rs) =>
-        val domain = domainIndices.map(ds(_))
-        val range = rangeIndices.map(rs(_))
-        Sample(domain, range)
+    (sample: Sample) => {
+      val domain = domainIndices.map(sample.domain(_))
+      val range = rangeIndices.map(sample.range(_))
+      Sample(domain, range)
     }
   }
 }

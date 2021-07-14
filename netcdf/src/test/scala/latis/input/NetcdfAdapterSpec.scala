@@ -1,55 +1,59 @@
 package latis.input
 
+import org.scalatest.EitherValues._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
+import org.scalatest.Assertion
 import ucar.ma2.Section
 import ucar.ma2.{Range => URange}
 
 import latis.metadata.Metadata
 import latis.model._
 import latis.ops.Selection
+import latis.time.Time
+import latis.util.Identifier.IdentifierStringContext
 
 class NetcdfAdapterSpec extends AnyFlatSpec {
 
-  private val simple1dModel = Function(
-    Scalar(Metadata("id" -> "time", "type" -> "int", "cadence" -> "1", "start" -> "7")),
-    Scalar(Metadata("id" -> "flux", "type" -> "double"))
-  )
-  private val simple1dSections = makeSections("0:9; 0:9")
+  private lazy val simple1dModel = Function.from(
+    Scalar.fromMetadata(Metadata("id" -> "time", "type" -> "int", "cadence" -> "1", "start" -> "7")).value,
+    Scalar(id"flux", DoubleValueType)
+  ).value
+  private lazy val simple1dSections = makeSections("0:9; 0:9")
 
-  private val simple2dModel = Function(
-    Tuple(
-      Scalar(Metadata("id" -> "time", "type" -> "int", "cadence" -> "1", "start" -> "7")),
-      Scalar(Metadata("id" -> "wavelength", "type" -> "double", "cadence" -> "0.1", "start" -> "5.0")),
-    ),
-    Scalar(Metadata("id" -> "flux", "type" -> "double"))
-  )
-  private val simple2dSections = makeSections("0:9; 0:4; 0:9, 0:4")
+  private lazy val simple2dModel = Function.from(
+    Tuple.fromElements(
+      Scalar.fromMetadata(Metadata("id" -> "time", "type" -> "int", "cadence" -> "1", "start" -> "7")).value,
+      Scalar.fromMetadata(Metadata("id" -> "wavelength", "type" -> "double", "cadence" -> "0.1", "start" -> "5.0")).value,
+    ).value,
+    Scalar(id"flux", DoubleValueType)
+  ).value
+  private lazy val simple2dSections = makeSections("0:9; 0:4; 0:9, 0:4")
 
-  private val sdoDiodesModel = Function(
-    Tuple(
-      Scalar(Metadata("id" -> "time", "type" -> "int", "cadence" -> "1", "start" -> "7")),
-      Scalar(Metadata("id" -> "wavelength", "type" -> "double")),
-    ),
-    Tuple(
-      Scalar(Metadata("id" -> "flux", "type" -> "double")),
-      Scalar(Metadata("id" -> "error", "type" -> "double")),
-    )
-  )
-  private val sdoDiodesSections = makeSections("0, 0:3760; 0:5; 0, 0:3760, 0:5; 0, 0:3760, 0:5")
+  private lazy val sdoDiodesModel = Function.from(
+    Tuple.fromElements(
+      Scalar.fromMetadata(Metadata("id" -> "time", "type" -> "int", "cadence" -> "1", "start" -> "7")).value,
+      Scalar(id"wavelength", DoubleValueType),
+    ).value,
+    Tuple.fromElements(
+      Scalar(id"flux", DoubleValueType),
+      Scalar(id"error", DoubleValueType)
+    ).value
+  ).value
+  private lazy val sdoDiodesSections = makeSections("0, 0:3760; 0:5; 0, 0:3760, 0:5; 0, 0:3760, 0:5")
 
-  private val timeModel = Function(
-    latis.time.Time(Metadata(
+  private lazy val timeModel = Function.from(
+    Time.fromMetadata(Metadata(
       "id" -> "time",
       "class" -> "latis.time.Time",
       "units" -> "yyyyMMdd",
       "type" -> "string",
       "cadence" -> "86400000", // ms in a day
       "start" -> s"${86400000L * 365}"
-    )),
-    Scalar(Metadata("id" -> "flux", "type" -> "double"))
-  )
-  private val timeSections = makeSections("0:31; 0:31")
+    )).value,
+    Scalar(id"flux", DoubleValueType)
+  ).value
+  private lazy val timeSections = makeSections("0:31; 0:31")
 
   private def makeSections(s: String): List[Section] =
     s.split(';').toList.map(new Section(_))
@@ -158,7 +162,7 @@ class NetcdfAdapterSpec extends AnyFlatSpec {
       ) should be(Right(makeSections("2:14; 2:14")))
   }
 
-  def simpleSelectTest(selection: String, expectedRange: URange): Unit =
+  def simpleSelectTest(selection: String, expectedRange: URange): Assertion =
     NetcdfAdapter.applySelection(
       simple1dSections,
       simple1dModel,

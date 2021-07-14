@@ -25,15 +25,14 @@ case class Uncurry() extends FlatMapOperation {
 
     // Recursive helper function to restructure the model
     def go(dt: DataType): Unit = dt match {
-      //TODO: not exhaustive: See https://github.com/latis-data/latis3/issues/304
       case dt: Scalar     => rs += dt
-      case Tuple(es @ _*) => es.foreach(go)
+      case t: Tuple       => t.elements.foreach(go)
       case Function(d, r) =>
         //flatten tuples, instead of recursing on domain (no nested functions)
         d match {
-          //TODO: not exhaustive: See https://github.com/latis-data/latis3/issues/304
-          case Tuple(es @ _*) => ds ++= es
-          case _: Scalar      => ds += d
+          case _: Scalar => ds += d
+          case t: Tuple  => ds ++= t.elements
+          case _: Function => ??? //Function not allowed in domain
         }
         go(r)
     }
@@ -44,12 +43,12 @@ case class Uncurry() extends FlatMapOperation {
     // Reconstruct the model from the new domain and range types
     val rtype = rs.length match {
       case 1 => rs.head
-      case _ => Tuple(rs.toSeq)
+      case _ => Tuple.fromSeq(rs.toSeq).fold(throw _, identity)
     }
     Right(ds.length match {
       case 0 => rtype
-      case 1 => Function(ds.head, rtype)
-      case _ => Function(Tuple(ds.toSeq), rtype)
+      case 1 => Function.from(ds.head, rtype).fold(throw _, identity)
+      case _ => Function.from(Tuple.fromSeq(ds.toSeq).fold(throw _, identity), rtype).fold(throw _, identity)
       //TODO: flatten domain, Traversable builder not working
     })
   }

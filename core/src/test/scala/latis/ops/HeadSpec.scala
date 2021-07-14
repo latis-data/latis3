@@ -12,6 +12,7 @@ import latis.dataset.Dataset
 import latis.dataset.MemoizedDataset
 import latis.dsl._
 import latis.metadata.Metadata
+import latis.model.IntValueType
 import latis.model.Scalar
 import latis.util.Identifier.IdentifierStringContext
 
@@ -40,7 +41,7 @@ class HeadSpec extends AnyFlatSpec {
   it should "return an empty dataset when applied to an empty dataset" in {
     val md = new MemoizedDataset(
       Metadata(id"MT"),
-      Scalar(Metadata(id"id") + ("type" -> "int")),
+      Scalar(id"id", IntValueType),
       SampledFunction(Seq.empty),
       Seq(Head())
     )

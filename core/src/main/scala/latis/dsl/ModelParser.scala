@@ -4,7 +4,6 @@ import atto._
 import atto.Atto._
 import cats.syntax.all._
 
-import latis.metadata.Metadata
 import latis.model._
 import latis.util.LatisException
 import latis.util.dap2.parser.parsers.identifier
@@ -14,7 +13,7 @@ import latis.util.dap2.parser.parsers.identifier
  * into a DataType.
  */
 object ModelParser {
-  private val defaultScalarType: String = "Int"
+  private val defaultScalarType: ValueType = IntValueType
 
   def parse(exp: String): Either[LatisException, DataType] =
     phrase(dataType).parse(exp).done.either.leftMap { s =>
@@ -43,13 +42,13 @@ object ModelParser {
     d <- (tuple | scalar).token
     _ <- string("->").token
     r <- dataType.token
-  } yield Function(d, r)
+  } yield Function.from(d, r).fold(throw _, identity)
 
   //TODO: support functions in tuples
   def tuple: Parser[DataType] = for {
     //l <- parens(sepBy(dataType.token, char(',').token)) //stack overflow
     l <- parens(sepBy((scalar | tuple).token, char(',').token))
-  } yield Tuple(l)
+  } yield Tuple.fromSeq(l).fold(throw _, identity)
 
   def scalar: Parser[DataType] =
     scalarWithType | scalarWithoutType
@@ -58,11 +57,11 @@ object ModelParser {
     id <- identifier.token
     _ <- string(":").token
     t <- valueType.token
-  } yield Scalar(Metadata(id) + ("type" -> t))
+  } yield Scalar(id, ValueType.fromName(t).fold(throw _, identity))
 
   private def scalarWithoutType: Parser[DataType] = for {
     id <- identifier.token
-  } yield Scalar(Metadata(id) + ("type" -> defaultScalarType))
+  } yield Scalar(id, defaultScalarType)
 
   private def valueType: Parser[String] =
     stringCI("boolean") |
