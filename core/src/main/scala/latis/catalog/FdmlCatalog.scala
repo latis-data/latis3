@@ -11,6 +11,7 @@ import fs2.io.file.Files
 
 import latis.dataset.Dataset
 import latis.input.fdml.FdmlReader
+import latis.util.LatisException
 
 object FdmlCatalog {
 
@@ -20,9 +21,11 @@ object FdmlCatalog {
    * This catalog will only include files with the "fdml" extension
    * and does not recurse into subdirectories.
    */
-  def fromDirectory(path: Path, validate: Boolean = true): Catalog = new Catalog {
-    override val datasets: Stream[IO, Dataset] = dirDatasetStream(path, validate)
-  }
+  def fromDirectory(path: Path, validate: Boolean = true): IO[Catalog] =
+    dirDatasetStream(path, validate)
+      .compile
+      .toVector
+      .map(Catalog.fromFoldable(_))
 
   /**
    * Creates a catalog from a directory of FDML files on the
@@ -35,21 +38,12 @@ object FdmlCatalog {
     cl: ClassLoader,
     path: Path,
     validate: Boolean = true
-  ): Catalog = new Catalog {
-    override val datasets: Stream[IO, Dataset] = for {
-      url <- Stream.eval(getResource(cl, path.toString())).unNone
-      dir <- Stream.fromEither[IO](urlToPath(url))
-      ds  <- dirDatasetStream(dir, validate)
-    } yield ds
-
-    private def getResource(
-      cl: ClassLoader,
-      resource: String
-    ): IO[Option[URL]] = IO(Option(cl.getResource(resource)))
-
-    private def urlToPath(url: URL): Either[Throwable, Path] =
-      Either.catchNonFatal(Paths.get(url.toURI()))
-  }
+  ): IO[Catalog] =
+    for {
+      url <- getResource(cl, path.toString())
+      dir <- IO.fromEither(urlToPath(url))
+      dss <- dirDatasetStream(dir, validate).compile.toVector
+    } yield Catalog.fromFoldable(dss)
 
   private def dirDatasetStream(dir: Path, validate: Boolean): Stream[IO, Dataset] =
     Files[IO].directoryStream(dir, "*.fdml").flatMap { f =>
@@ -57,8 +51,21 @@ object FdmlCatalog {
       pathToDataset(f, validate).fold(_ => Stream.empty, Stream.emit)
     }
 
+  private def getResource(
+    cl: ClassLoader,
+    resource: String
+  ): IO[URL] = IO(Option(cl.getResource(resource))).flatMap {
+    case None      => IO.raiseError(
+      LatisException(s"Unable to load resource: $resource")
+    )
+    case Some(url) => IO.pure(url)
+  }
+
   private def pathToDataset(path: Path, validate: Boolean): Either[Throwable, Dataset] =
     Either.catchNonFatal {
       FdmlReader.read(path.toUri(), validate)
     }
+
+  private def urlToPath(url: URL): Either[Throwable, Path] =
+    Either.catchNonFatal(Paths.get(url.toURI()))
 }

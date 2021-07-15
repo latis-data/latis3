@@ -23,7 +23,7 @@ class DatasetSpec extends AnyFlatSpec {
     getClass().getClassLoader(),
     Paths.get("datasets"),
     validate = false
-  )
+  ).unsafeRunSync()
 
   val dataset = {
     val metadata = Metadata(id"test")

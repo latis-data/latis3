@@ -25,9 +25,8 @@ object Latis3Server extends IOApp {
       logger      <- Resource.eval(Slf4jLogger.create[IO])
       serverConf  <- Resource.eval(getServerConf)
       catalogConf <- Resource.eval(getCatalogConf)
-      catalog      = FdmlCatalog.fromDirectory(
-        catalogConf.dir,
-        catalogConf.validate
+      catalog     <- Resource.eval(
+        FdmlCatalog.fromDirectory(catalogConf.dir, catalogConf.validate)
       )
       serviceConf <- Resource.eval(getServiceConf)
       interfaces  <- Resource.eval(loader.loadServices(serviceConf, catalog))
