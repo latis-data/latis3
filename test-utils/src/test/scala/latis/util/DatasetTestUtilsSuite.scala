@@ -91,8 +91,13 @@ class DatasetTestUtilsSuite extends AnyFunSuite {
 
   test("equals first sample") {
     val ops = List(Drop(1))
+    testSuite.equalsFirstSample(id"foo", ops)(1, "b")
+  }
+
+  test("equals first sample with list") {
+    val ops = List(Drop(1))
     val values = List(1, "b")
-    testSuite.equalsFirstSample(id"foo", ops)(values)
+    testSuite.equalsFirstSample(id"foo", ops)(values: _*)
   }
 
   test("equals fails for nested function") {

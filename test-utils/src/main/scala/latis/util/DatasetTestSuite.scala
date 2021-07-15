@@ -50,7 +50,7 @@ abstract class DatasetTestSuite extends AnyFunSuite {
 
 
   def equalsFirstSample(dataset: Identifier, ops: List[UnaryOperation] = List.empty)
-                       (values: Seq[Any]): Assertion =
+                       (values: Any*): Assertion =
     (for {
       ods <- catalog.findDataset(dataset)
       ds = ods.getOrElse(fail(s"Dataset not found: ${dataset.asString}"))
