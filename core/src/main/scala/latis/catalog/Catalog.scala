@@ -1,5 +1,6 @@
 package latis.catalog
 
+import cats.Foldable
 import cats.Monoid
 import cats.data.OptionT
 import cats.effect.IO
@@ -32,6 +33,11 @@ object Catalog {
 
   /** A [[Catalog]] that contains no datasets. */
   def empty: Catalog = Catalog()
+
+  def fromFoldable[F[_]: Foldable](dss: F[Dataset]): Catalog =
+    new Catalog {
+      override val datasets: Stream[IO, Dataset] = Stream.foldable(dss)
+    }
 
   implicit def monoid: Monoid[Catalog] = new Monoid[Catalog] {
     def empty: Catalog = Catalog.empty
