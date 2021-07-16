@@ -19,7 +19,7 @@ class DatasetTestUtilsSuite extends AnyFunSuite {
     val catalog: Catalog = new Catalog {
       def datasets: Stream[IO, Dataset] = Stream.emits{
         List(
-          DatasetGenerator("x -> a", id"foo"),
+          DatasetGenerator("x -> a: string", id"foo"),
           DatasetGenerator("(x, y) -> a", id"bar2D").curry(1),
         )
       }
@@ -66,18 +66,18 @@ class DatasetTestUtilsSuite extends AnyFunSuite {
 
   test("match first sample") {
     testSuite.matchFirstSample(id"foo") {
-      case Sample(DomainData(Integer(x)), RangeData(Integer(a))) =>
+      case Sample(DomainData(Integer(x)), RangeData(Text(a))) =>
         assert(x == 0)
-        assert(a == 0)
+        assert(a == "a")
     }
   }
 
   test("match first sample with operation") {
     val ops = List(Drop(1))
     testSuite.matchFirstSample(id"foo", ops) {
-      case Sample(DomainData(Integer(x)), RangeData(Integer(a))) =>
+      case Sample(DomainData(Integer(x)), RangeData(Text(a))) =>
         assert(x == 1)
-        assert(a == 1)
+        assert(a == "b")
     }
   }
 
@@ -91,8 +91,13 @@ class DatasetTestUtilsSuite extends AnyFunSuite {
 
   test("equals first sample") {
     val ops = List(Drop(1))
-    val values = List(1, 1)
-    testSuite.equalsFirstSample(id"foo", ops)(values)
+    testSuite.equalsFirstSample(id"foo", ops)(1, "b")
+  }
+
+  test("equals first sample with list") {
+    val ops = List(Drop(1))
+    val values = List(1, "b")
+    testSuite.equalsFirstSample(id"foo", ops)(values: _*)
   }
 
   test("equals fails for nested function") {
