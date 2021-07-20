@@ -1,9 +1,9 @@
 package latis.util
 
 import org.scalatest.funsuite.AnyFunSuite
-import StringUtil._
+import StringUtils._
 
-class StringUtilSuite extends AnyFunSuite {
+class StringUtilsSuite extends AnyFunSuite {
 
   test("quote unquoted string") {
     val s = "foo" //foo

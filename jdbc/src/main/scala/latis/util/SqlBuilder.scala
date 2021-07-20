@@ -67,13 +67,13 @@ case class SqlBuilder(
           // If the database time column is non-numeric, this expects the time units
           // to reflect a format that works with the database.
           t.convertValue(v) match {
-            case Right(Text(s)) => StringUtil.ensureSingleQuoted(s)
+            case Right(Text(s)) => StringUtils.ensureSingleQuoted(s)
             case Right(n)       => n.asString
             case Left(le)       => throw LatisException(s"Invalid time value: $v", le)
           }
         case Some(s: Scalar) if (s.valueType == StringValueType) =>
           //Ensure that text variable value is quoted
-          StringUtil.ensureSingleQuoted(v)
+          StringUtils.ensureSingleQuoted(v)
         case Some(_) => v
         case None =>
           //Should not get this far with an invalid id
