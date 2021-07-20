@@ -1,6 +1,6 @@
 package latis.util
 
-object StringUtil {
+object StringUtils {
 
   private[this] val doubleQuote: Char = '"'
   private[this] val singleQuote: Char = '\''
@@ -38,4 +38,11 @@ object StringUtil {
    */
   def ensureSingleQuoted(string: String): String = ensureQuoted(string, singleQuote)
 
+  /** Implicit class to enable color console output. */
+  implicit class ColoredString(s: String) {
+    import Console._
+    def green: String  = s"${RESET}${GREEN}$s${RESET}"
+    def yellow: String = s"${RESET}${YELLOW}$s${RESET}"
+    def red: String    = s"${RESET}${RED}$s${RESET}"
+  }
 }

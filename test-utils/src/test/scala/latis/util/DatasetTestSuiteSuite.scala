@@ -13,7 +13,7 @@ import latis.model._
 import latis.ops._
 import latis.util.Identifier.IdentifierStringContext
 
-class DatasetTestUtilsSuite extends AnyFunSuite {
+class DatasetTestSuiteSuite extends AnyFunSuite {
 
   val testSuite = new DatasetTestSuite {
     val catalog: Catalog = new Catalog {
@@ -96,7 +96,7 @@ class DatasetTestUtilsSuite extends AnyFunSuite {
 
   test("equals first sample with list") {
     val ops = List(Drop(1))
-    val values = List(1, "b")
+    val values: List[Any] = List(1, "b")
     testSuite.equalsFirstSample(id"foo", ops)(values: _*)
   }
 
