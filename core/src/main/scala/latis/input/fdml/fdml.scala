@@ -143,5 +143,5 @@ final case class FScalar(
    * `attributes`, are included in this metadata.
    */
   def metadata: Metadata = Metadata(attributes) ++
-    Metadata("id" -> id.asString, "type" -> ty.toString.toLowerCase) //TODO: add other attributes?
+    Metadata("id" -> id.asString, "type" -> ty.toString.toLowerCase)
 }
