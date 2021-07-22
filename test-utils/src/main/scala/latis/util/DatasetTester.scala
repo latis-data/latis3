@@ -9,6 +9,7 @@ import scala.util.matching.Regex
 import cats.effect.ExitCode
 import cats.effect.IO
 import cats.effect.IOApp
+import cats.syntax.all._
 import fs2.text
 import fs2.Stream
 import fs2.io.file.Files
@@ -77,21 +78,20 @@ class DatasetTester(catalog: Catalog) {
     firstSample <- IO.fromOption(oSample) {
       LatisException(" Empty dataset")
     }
-  } yield {
-    if (matchSamples(firstSample, testSample)) {
-      println(s" Passed".green)
-      true
-    }
-    else {
-      println(s" Failed".red)
-      println(s"  Expected: $testSample".red)
-      println(s"  Actual:   $firstSample".red)
-      false
-    }
+    test <- testSamples(firstSample, testSample)
+  } yield test
+
+  private def testSamples(s1: Sample, s2: Sample): IO[Boolean] = {
+    if (matchSamples(s1, s2)) IO.println(s" Passed".green) *> true.pure[IO]
+    else
+      IO.println(s" Failed".red) *>
+      IO.println(s"  Expected: $s2".red) *>
+      IO.println(s"  Actual:   $s1".red) *>
+      false.pure[IO]
   }
 
   /** Prints a dot (".") every second. */
-  private lazy val dots: IO[Unit] = IO.sleep(1000.milliseconds).map(_ => print(".")).foreverM
+  private lazy val dots: IO[Unit] = IO.sleep(1000.milliseconds).flatMap(_ => IO.print(".")).foreverM
   //TODO: add timeout duration so error if this wins the race!
   //  or just put timeout on testData, raises error
 
@@ -102,11 +102,9 @@ class DatasetTester(catalog: Catalog) {
         //Print dots while processing data
         dots.race(testData(name, data)) //IO[Either[Unit, Boolean]]
       case _ => ??? // Not possible due to filter in testFile
-    }).attempt.map {
-      case Left(t) =>
-        println(t.getMessage.red)
-        false
-      case Right(Right(b)) => b
+    }).attempt.flatMap {
+      case Left(t) => IO.println(t.getMessage.red) *> false.pure[IO]
+      case Right(Right(b)) => b.pure[IO]
       case _ => ??? //forever dots won the race
     }
   }
@@ -119,7 +117,7 @@ object DatasetTester extends IOApp {
   //TODO: support "+-" tolerance
   //TODO: use log level for more detail?
   //TODO: validate fdml
-  //TODO: add timeout for a single dataset test
+  //TODO: add timeout and memory monitor for each dataset test
   //TODO: consider using ScalaTest
 
   private lazy val catalog: IO[Catalog] = {
@@ -142,21 +140,21 @@ object DatasetTester extends IOApp {
       case ((p, f), b) =>
         if (b) (p + 1, f)
         else (p, f + 1)
-    }.compile.toList.map {
+    }.compile.toList.flatMap {
       _.headOption match {
         case Some((p, f)) =>
           if (p > 0) {
             val s = if (p > 1) "s" else ""
-            println(s"$p test$s passed.".green)
+            IO.println(s"$p test$s passed.".green)
           }
           if (f > 0) {
             val s = if (f > 1) "s" else ""
-            println(s"$f test$s failed.".red)
-            ExitCode.Error
-          } else ExitCode.Success
+            IO.println(s"$f test$s failed.".red) *>
+            ExitCode.Error.pure[IO]
+          } else ExitCode.Success.pure[IO]
         case _ =>
-          println("No valid test data.".red)
-          ExitCode.Error
+          IO.println("No valid test data.".red) *>
+          ExitCode.Error.pure[IO]
       }
     }
   }
