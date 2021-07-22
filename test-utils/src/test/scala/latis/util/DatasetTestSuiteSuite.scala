@@ -15,15 +15,15 @@ import latis.util.Identifier.IdentifierStringContext
 
 class DatasetTestSuiteSuite extends AnyFunSuite {
 
-  val testSuite = new DatasetTestSuite {
-    val catalog: Catalog = new Catalog {
+  private lazy val testSuite = new DatasetTestSuite {
+    val catalog: IO[Catalog] = IO(new Catalog {
       def datasets: Stream[IO, Dataset] = Stream.emits{
         List(
           DatasetGenerator("x -> a: string", id"foo"),
           DatasetGenerator("(x, y) -> a", id"bar2D").curry(1),
         )
       }
-    }
+    })
   }
 
   test("dataset") {

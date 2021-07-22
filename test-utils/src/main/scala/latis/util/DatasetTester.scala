@@ -1,5 +1,6 @@
 package latis.util
 
+import java.nio.file.Path
 import java.nio.file.Paths
 
 import scala.concurrent.duration.DurationInt
@@ -33,9 +34,9 @@ class DatasetTester(catalog: Catalog) {
   //TODO: don't silently drop invalid lines?
 
   /** Tests each line in the test data file. */
-  def testFile(file: String): Stream[IO, Boolean] =
+  def testFile(path: Path): Stream[IO, Boolean] =
     Files[IO]
-      .readAll(Paths.get(file), 4096)
+      .readAll(path, 4096)
       .through(text.utf8Decode)
       .through(text.lines)
       .filter(pattern.matches)
@@ -95,7 +96,7 @@ class DatasetTester(catalog: Catalog) {
   //  or just put timeout on testData, raises error
 
   /** Processes a line of test data, */
-  private def testLine(line: String): IO[Boolean] = {
+  def testLine(line: String): IO[Boolean] = {
     (line match {
       case pattern(name, data) =>
         //Print dots while processing data
@@ -121,22 +122,27 @@ object DatasetTester extends IOApp {
   //TODO: add timeout for a single dataset test
   //TODO: consider using ScalaTest
 
-  private lazy val catalog: Catalog = {
+  private lazy val catalog: IO[Catalog] = {
     val dir = LatisConfig.getOrElse("latis.fdml.dir", "datasets/fdml")
     FdmlCatalog.fromDirectory(Paths.get(dir))
   }
 
   def run(args: List[String]): IO[ExitCode] = {
-    catalog.datasets.compile.toList.map(_.foreach(println))
     val file = args.headOption.getOrElse("datasets/testData.csv")
-    new DatasetTester(catalog)
-      .testFile(file) //initiate a stream of tests
-      .fold((0, 0)) { //count (pass, fail)
-        case ((p, f), b) =>
-          if (b) (p + 1, f)
-          else (p, f + 1)
-      }
-      .compile.toList.map { //print report
+
+    // Make a stream of tests with console output baked in
+    val tests = for {
+      cat <- Stream.eval(catalog)
+      path = Paths.get(file)
+      tests <- new DatasetTester(cat).testFile(path)
+    } yield tests
+
+    // Create a report
+    tests.fold((0, 0)) { //count (pass, fail)
+      case ((p, f), b) =>
+        if (b) (p + 1, f)
+        else (p, f + 1)
+    }.compile.toList.map {
       _.headOption match {
         case Some((p, f)) =>
           if (p > 0) {
