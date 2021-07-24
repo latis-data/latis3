@@ -141,21 +141,16 @@ object DatasetTester extends IOApp {
         if (b) (p + 1, f)
         else (p, f + 1)
     }.compile.toList.flatMap {
-      _.headOption match {
-        case Some((p, f)) =>
-          if (p > 0) {
-            val s = if (p > 1) "s" else ""
-            IO.println(s"$p test$s passed.".green)
-          }
-          if (f > 0) {
-            val s = if (f > 1) "s" else ""
-            IO.println(s"$f test$s failed.".red) *>
+      case (p, f) :: Nil =>
+        val s = if (p == 1) "" else "s"
+        //IO.println(s"$p test$s passed.".green) //not printing
+        println(s"$p test$s passed.".green)
+        if (f > 0) {
+          val s = if (f > 1) "s" else ""
+          IO.println(s"$f test$s failed.".red) *>
             ExitCode.Error.pure[IO]
-          } else ExitCode.Success.pure[IO]
-        case _ =>
-          IO.println("No valid test data.".red) *>
-          ExitCode.Error.pure[IO]
-      }
+        } else ExitCode.Success.pure[IO]
+      case _ => ExitCode.Error.pure[IO] //fold guarantees a single element
     }
   }
 }
