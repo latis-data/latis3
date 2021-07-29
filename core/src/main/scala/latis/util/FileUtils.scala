@@ -24,7 +24,7 @@ object FileUtils {
     if (path.isAbsolute) {
       Some(path)
     } else
-      getClass.getResource(File.separator + path) match {
+      getClass.getResource("/" + path) match {
         case url: URL =>
           url.getProtocol match {
             case "file" =>
