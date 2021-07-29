@@ -158,7 +158,6 @@ object BooleanDatum {
  */
 trait Number extends Any with Datum {
   def asDouble: Double
-  override def asString: String = asDouble.toString
 }
 object Number {
   // Extract a Double from a Number
@@ -172,7 +171,6 @@ object Number {
 trait Integer extends Any with Number {
   def asLong: Long
   def asDouble: Double = asLong.toDouble
-  override def asString: String = asLong.toString
 }
 object Integer {
   // Extract a Long from an Integer
@@ -188,7 +186,6 @@ trait IndexDatum extends Any with Integer {
   def asInt: Int
   def asLong: Long = asInt.toLong
   override def asDouble: Double = asInt.toDouble
-  override def asString: String = asInt.toString
 }
 object IndexDatum {
   // Extract an Int from an IndexDatum
