@@ -19,13 +19,13 @@ class FileUtilsSpec extends AnyFlatSpec {
     assert(FileUtils.resolvePath(path).nonEmpty)
   }
   
-  it should "find a file in a jar in the classpath" in {
+  ignore should "find a file in a jar in the classpath" in {
     val path = Paths.get("org/scalatest/flatspec/AnyFlatSpec.class")
     FileUtils.resolvePath(path).get.toString should be ("/org/scalatest/flatspec/AnyFlatSpec.class")
   }
   
   // Test reuse of the ZipFileSystem
-  it should "find a second file in the same jar" in {
+  ignore should "find a second file in the same jar" in {
     val path = Paths.get("org/scalatest/Assertions.class")
     FileUtils.resolvePath(path).get.toString should be ("/org/scalatest/Assertions.class")
   }
