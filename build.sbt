@@ -19,7 +19,10 @@ lazy val commonSettings = Seq(
     "co.fs2"        %% "fs2-core"    % fs2Version,
     "co.fs2"        %% "fs2-io"      % fs2Version,
     "com.typesafe"   % "config"      % "1.4.1",
-    "org.scalatest" %% "scalatest"   % scalaTestVersion % Test
+    "org.scalatest" %% "scalatest"   % scalaTestVersion % Test,
+    "org.scalacheck" %% "scalacheck" % "1.15.4" % Test,
+    "org.scalatestplus" %% "scalacheck-1-15" % "3.2.9.0" % Test
+
   ),
   Test / fork := true,
   scalacOptions -= "-Xfatal-warnings",
@@ -111,7 +114,6 @@ lazy val `dap2-parser` = project
     name := "dap2-parser",
     libraryDependencies ++= Seq(
       "org.tpolecat"   %% "atto-core"  % attoVersion,
-      "org.scalacheck" %% "scalacheck" % "1.15.4" % Test,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.15" % "1.3.0" % Test
     )
   )
