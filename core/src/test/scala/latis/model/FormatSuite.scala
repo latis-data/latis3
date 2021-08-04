@@ -1,13 +1,17 @@
 package latis.model
 
+import org.scalacheck.Arbitrary
+import org.scalacheck.Gen
+import org.scalacheck.Prop._
 import org.scalatest.EitherValues._
 import org.scalatest.funsuite.AnyFunSuite
+import org.scalatestplus.scalacheck.Checkers
 
 import latis.data._
 import latis.metadata.Metadata
 import latis.util.Identifier.IdentifierStringContext
 
-class FormatSuite extends AnyFunSuite {
+class FormatSuite extends AnyFunSuite with Checkers {
 
   private lazy val md = Metadata("id" -> "a", "type" -> "double", "precision" -> "2")
   private lazy val scalar: Scalar = Scalar.fromMetadata(md).value
@@ -99,6 +103,42 @@ class FormatSuite extends AnyFunSuite {
 
   test("Get error from format on a Tuple"){
     assert(scalar.formatValue(Data.fromSeq(Seq(1, 2, 3))) == "error")
+  }
+
+  test("Generated format double with precision"){
+    val pGen: Gen[Int] = Gen.choose(0, 10)
+    check(forAll(pGen, Arbitrary.arbitrary[Double]){ (p: Int, num: Double) =>
+      val str = (s"%.${p}f").format(num)
+      val md = Metadata("id" -> "a", "type" -> "double", "precision" -> p.toString)
+      val formatted = Scalar.fromMetadata(md).value.formatValue(Data.DoubleValue(num))
+      str == formatted
+    })
+  }
+
+  test("Generated format double without precision"){
+    check(forAll{ (num: Double) =>
+      val str = num.toString
+      val formatted = Scalar(id"d", DoubleValueType).formatValue(Data.DoubleValue(num))
+      str == formatted
+    })
+  }
+
+  test("Generated format float with precision"){
+    val pGen: Gen[Int] = Gen.choose(0, 10)
+    check(forAll(pGen, Arbitrary.arbitrary[Float]){ (p: Int, num: Float) =>
+      val str = (s"%.${p}f").format(num)
+      val md = Metadata("id" -> "a", "type" -> "float", "precision" -> p.toString)
+      val formatted = Scalar.fromMetadata(md).value.formatValue(Data.FloatValue(num))
+      str == formatted
+    })
+  }
+
+  test("Generated format float without precision"){
+    check(forAll{ (num: Float) =>
+      val str = num.toString
+      val formatted = Scalar(id"f", FloatValueType).formatValue(Data.FloatValue(num))
+      str == formatted
+    })
   }
 
 }
