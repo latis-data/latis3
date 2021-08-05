@@ -109,6 +109,38 @@ object SampledFunction {
  * If you simply want to consume a data value as a number, match
  * on Number and use the Double value.
  * Neither would match Text even if the string value is "numeric".
+ *
+ * Datum is extended by traits Number and Text, and by value classes BooleanValue, BinaryValue,
+ * BigIntValue, and BigDecimalValue.
+ *
+ * Number is extended by traits Integer and Real, while Text is extended by value classes CharValue
+ * and StringValue.
+ *
+ * Integer is extended by trait IndexDatum and value class LongValue, while Real is extended by value
+ * classes FloatValue and DoubleValue.
+ *
+ * IndexDatum is extended by ByteValue, CharValue, ShortValue, and IntValue.
+ *
+ * To summarize, here is a tree representing the hierarchy: (Note: CharValue can be reached two different ways)
+ * /Datum/
+ * ├─ BigDecimalValue
+ * ├─ BigIntValue
+ * ├─ BinaryValue
+ * ├─ BooleanValue
+ * ├─ /Number/
+ * │  ├─ /Integer/
+ * │  │  ├─ LongValue
+ * │  │  ├─ /IndexDatum/
+ * │  │  │  ├─ ByteValue
+ * │  │  │  ├─ CharValue
+ * │  │  │  ├─ IntValue
+ * │  │  │  ├─ ShortValue
+ * │  ├─ /Real/
+ * │  │  ├─ DoubleValue
+ * │  │  ├─ FloatValue
+ * ├─ /Text/
+ * │  ├─ CharValue
+ * │  ├─ StringValue
  */
 
 trait Datum extends Any with Data {
@@ -136,17 +168,6 @@ object NullData extends Data with Serializable {
   def eval(data: DomainData): Either[LatisException, RangeData] = ???
 
   override def toString: String = "null"
-}
-
-/**
- * BooleanDatum is a type of Data whose value is represented as a Boolean.
- */
-trait BooleanDatum extends Any with Datum {
-  def asBoolean: Boolean
-}
-object BooleanDatum {
-  // Extract a Boolean from a BooleanDatum
-  def unapply(data: BooleanDatum): Option[Boolean] = Option(data.asBoolean)
 }
 
 /**
@@ -275,9 +296,8 @@ object Data {
   //Note, these are implicit so we can construct DomainData from primitive types
   //  Import latis.data.Data._ to get implicit Data construction from supported types
 
-  implicit class BooleanValue(val value: Boolean) extends AnyVal with BooleanDatum with Serializable {
+  implicit class BooleanValue(val value: Boolean) extends AnyVal with Datum with Serializable {
     override def toString = s"BooleanValue($value)"
-    override def asBoolean: Boolean = value
   }
 
   implicit class ByteValue(val value: Byte) extends AnyVal with IndexDatum with Serializable {
@@ -322,17 +342,18 @@ object Data {
   }
 
   implicit class BinaryValue(val value: Array[Byte]) extends AnyVal with Datum with Serializable {
-    override def asString: String = "BLOB"
+    private[data] def len2str(length: Int): String = {
+      length.toString + " Byte Binary"
+    }
+    override def asString: String = len2str(value.length)
     override def toString = s"BinaryValue($asString)"
   }
 
-  implicit class BigIntValue(val value: BigInt) extends AnyVal with Integer with Serializable {
-    def asLong: Long = value.toLong //won't break but may be wrong
+  implicit class BigIntValue(val value: BigInt) extends AnyVal with Datum with Serializable {
     override def toString = s"BigIntValue($value)"
   }
 
-  implicit class BigDecimalValue(val value: BigDecimal) extends AnyVal with Real with Serializable {
-    def asDouble: Double = value.toDouble //may lose precision
+  implicit class BigDecimalValue(val value: BigDecimal) extends AnyVal with Datum with Serializable {
     override def toString = s"BigDecimalValue($value)"
   }
 }
