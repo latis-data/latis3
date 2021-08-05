@@ -29,15 +29,6 @@ class DataSpec extends AnyFlatSpec {
     dd should not be(df)
   }
   
-  "Implicitly constructed Boolean Data" should "be extractable through pattern matching" in {
-    val tup = TupleData(true, false)
-    inside(tup) {
-      case TupleData(BooleanDatum(t), BooleanDatum(f)) =>
-        t should be(true)
-        f should be(false)
-    }
-  }
-  
   "BooleanValues" should "be represented properly as Strings" in {
     val tup = TupleData(true, false)
     inside(tup) {
