@@ -191,7 +191,7 @@ object DataGenerator {
   }
 
   def booleanGenerator: Iterator[Datum] =
-    Iterator.iterate(BooleanValue(true))(b => BooleanValue(!b.asBoolean))
+    Iterator.iterate(BooleanValue(true))(b => BooleanValue(!b.value))
 
   def intGenerator: Iterator[Datum] =
     Iterator.iterate(IntValue(0))(n => IntValue(n.asInt + 1))
