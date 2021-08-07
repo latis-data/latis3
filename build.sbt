@@ -26,6 +26,11 @@ lazy val commonSettings = Seq(
   ),
   Test / fork := true,
   scalacOptions -= "-Xfatal-warnings",
+  scalacOptions += {
+    // Keep deprecation warnings as warnings, but make everything
+    // else errors.
+    if (insideCI.value) "-Wconf:cat=deprecation:w,any:e" else ""
+  },
   addCompilerPlugin("org.typelevel" % "kind-projector" % "0.13.0" cross CrossVersion.full)
 )
 
@@ -171,7 +176,12 @@ lazy val `service-interface` = project
       "org.typelevel" %% "cats-core"   % catsVersion,
       "org.typelevel" %% "cats-effect" % catsEffectVersion
     ),
-    scalacOptions -= "-Xfatal-warnings"
+    scalacOptions -= "-Xfatal-warnings",
+    scalacOptions += {
+      // Keep deprecation warnings as warnings, but make everything
+      // else errors.
+      if (insideCI.value) "-Wconf:cat=deprecation:w,any:e" else ""
+    }
   )
 
 lazy val macros = project
