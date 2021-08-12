@@ -45,26 +45,6 @@ class BinaryEncoderSpec extends AnyFlatSpec {
     encodedList should be(expected)
   }
 
-  it should "encode a Sample to binary" in {
-    val sample = Sample(DomainData(0), RangeData(1, 1.1, "a"))
-    val model = Function.from(
-        Scalar(id"d", IntValueType),
-      Tuple.fromElements(
-        Scalar(id"r1", IntValueType),
-        Scalar(id"r2", DoubleValueType),
-        Scalar.fromMetadata(Metadata("id" -> "r2", "type" -> "string", "size" -> "2")).value
-      ).value
-    ).value
-
-    val expected = Attempt.successful(
-      SEncoder.encode(0).require ++
-        SEncoder.encode(1).require ++
-        SEncoder.encode(1.1).require ++
-        BitVector(hex"6100"))
-
-    enc.sampleEncoder(model).encode(sample) should be(expected)
-  }
-
   it should "encode Data to binary" in {
     val dataToEncode = List(
     true: BooleanValue,
@@ -112,5 +92,50 @@ class BinaryEncoderSpec extends AnyFlatSpec {
       case Attempt.Successful(bv: BitVector) =>
         bv.toByteArray.map(_.toChar).mkString should be("foo")
     }
+  }
+
+  "A Sample Codec" should "decode a Sample from binary" in {
+    import latis.data._
+    val sample = Sample(DomainData(0), RangeData(1, 1.1, "a"))
+    val model = Function.from(
+      Scalar(id"d", IntValueType),
+      Tuple.fromElements(
+        Scalar(id"r1", IntValueType),
+        Scalar(id"r2", DoubleValueType),
+        Scalar.fromMetadata(Metadata("id" -> "r2", "type" -> "string", "size" -> "2")).value
+      ).value
+    ).value
+
+    val encoded =
+      SEncoder.encode(0).require ++
+        SEncoder.encode(1).require ++
+        SEncoder.encode(1.1).require ++
+        BitVector(hex"6100")
+
+    val decoded = enc.sampleCodec(model).decode(encoded) match {
+      case Attempt.Successful(DecodeResult(value, _)) => value
+      case _ => fail("Failed to decode")
+    }
+    decoded should be(sample)
+  }
+
+  it should "encode a Sample to binary" in {
+    val sample = Sample(DomainData(0), RangeData(1, 1.1, "a"))
+    val model = Function.from(
+      Scalar(id"d", IntValueType),
+      Tuple.fromElements(
+        Scalar(id"r1", IntValueType),
+        Scalar(id"r2", DoubleValueType),
+        Scalar.fromMetadata(Metadata("id" -> "r2", "type" -> "string", "size" -> "2")).value
+      ).value
+    ).value
+
+    val expected = Attempt.successful(
+      SEncoder.encode(0).require ++
+        SEncoder.encode(1).require ++
+        SEncoder.encode(1.1).require ++
+        BitVector(hex"6100"))
+
+    enc.sampleCodec(model).encode(sample) should be(expected)
   }
 }
