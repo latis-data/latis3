@@ -76,7 +76,7 @@ class BinaryEncoder extends Encoder[IO, BitVector] {
       }
   }
 
-  def sampleCodec(model: DataType): Codec[Sample] = {
+  def sampleCodec(model: DataType, dCodec: Scalar => Codec[Data] = dataCodec): Codec[Sample] = {
     val (domainScalars: List[Scalar], rangeScalars: List[Scalar]) = model match {
       case s: Scalar =>
         (List[Scalar](), List[Scalar](s))
@@ -86,8 +86,8 @@ class BinaryEncoder extends Encoder[IO, BitVector] {
       case Function(d, r) =>
         (d.getScalars, r.getScalars)
     }
-    val domainList: List[Codec[Datum]] = domainScalars.map(s => dataCodec(s).downcast[Datum])
-    val rangeList: List[Codec[Data]] = rangeScalars.map(s => dataCodec(s))
+    val domainList: List[Codec[Datum]] = domainScalars.map(s => dCodec(s).downcast[Datum])
+    val rangeList: List[Codec[Data]] = rangeScalars.map(s => dCodec(s))
     codecOfList(domainList) ~ codecOfList(rangeList)
   }
 }
