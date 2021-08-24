@@ -16,6 +16,10 @@ class CatalogSuite extends AnyFunSuite {
   val c1 = Catalog(ds1, ds2)
   val c2 = Catalog(ds3)
   val combined = c1 |+| c2
+  val nested = Catalog.empty.withCatalogs(
+    id"a" -> Catalog(ds1),
+    id"b" -> Catalog(ds2).addCatalog(id"c", c2)
+  )
 
   test("list datasets in a single catalog") {
     val expected = List("ds1", "ds2")
@@ -55,5 +59,17 @@ class CatalogSuite extends AnyFunSuite {
     assertResult(expected) {
       combined.findDataset(id"ds3").unsafeRunSync().map(_.id.get.asString)
     }
+  }
+
+  test("find catalog in a nested catalog") {
+    nested.findCatalog(id"b.c")
+      .fold(fail("Failed to find catalog"))(assertResult(c2)(_))
+  }
+
+  test("find dataset in a nested catalog") {
+    nested.findDataset(id"b.c.ds3")
+      .unsafeRunSync()
+      .map(_.id.get)
+      .fold(fail("Failed to find dataset"))(assertResult(id"ds3")(_))
   }
 }
