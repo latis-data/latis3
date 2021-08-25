@@ -80,9 +80,7 @@ class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4
     case ""      => encode("html", ds)
     case "asc"   => new TextEncoder().encode(ds).through(text.utf8Encode).asRight
       .map((_,`Content-Type`(MediaType.text.plain)))
-    case "bin"   => new BinaryEncoder().encode(ds).flatMap {
-      bits => Stream.emits(bits.toByteArray)
-    }.asRight.map((_, `Content-Type`(MediaType.application.`octet-stream`)))
+    case "bin"   => new BinaryEncoder().encode(ds).asRight.map((_, `Content-Type`(MediaType.application.`octet-stream`)))
     case "csv"   => CsvEncoder.withColumnName.encode(ds).through(text.utf8Encode).asRight
       .map((_, `Content-Type`(MediaType.text.csv)))
     case "jsonl" => new JsonEncoder().encode(ds).map(_.noSpaces).intersperse("\n").through(text.utf8Encode).asRight
