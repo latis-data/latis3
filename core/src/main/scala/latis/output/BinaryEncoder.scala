@@ -14,17 +14,17 @@ import latis.dataset._
 import latis.model._
 import latis.ops.Uncurry
 
-class BinaryEncoder(val dataCodec: Scalar => Codec[Data] = DataCodec.defaultDataCodec) extends Encoder[IO, BitVector] {
+class BinaryEncoder(val dataCodec: Scalar => Codec[Data] = DataCodec.defaultDataCodec) extends Encoder[IO, Byte] {
   //TODO: deal with NullData, require replaceMissing?
 
   /**
    * Encodes the Stream of Samples from the given Dataset as a Stream
    * of BitVectors.
    */
-  override def encode(dataset: Dataset): Stream[IO, BitVector] = {
+  override def encode(dataset: Dataset): Stream[IO, Byte] = {
     val uncurriedDataset = dataset.withOperation(Uncurry())
-    // Encode each Sample as a BitVector in the Stream
-    sampleStreamEncoder(uncurriedDataset.model).encode(uncurriedDataset.samples)
+    // Encode the samples as a Stream of Bytes
+    uncurriedDataset.samples.through(sampleStreamEncoder(uncurriedDataset.model).toPipeByte)
   }
 
   /** Instance of scodec.stream.StreamEncoder for Sample. */
