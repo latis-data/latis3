@@ -30,17 +30,17 @@ class BinaryEncoderSpec extends AnyFlatSpec {
     val ds: Dataset = DatasetGenerator("x -> (a: int, b: double)")
     val encodedList = enc.encode(ds).compile.toList.unsafeRunSync()
 
-    val expected = List(
+    val bitVec =
       SEncoder.encode(0).require ++
         SEncoder.encode(0).require ++
-        SEncoder.encode(0.0).require,
+        SEncoder.encode(0.0).require ++
       SEncoder.encode(1).require ++
         SEncoder.encode(1).require ++
-        SEncoder.encode(1.0).require,
+        SEncoder.encode(1.0).require ++
       SEncoder.encode(2).require ++
         SEncoder.encode(2).require ++
         SEncoder.encode(2.0).require
-    )
+    val expected: List[Byte] = bitVec.toByteArray.toList
 
     encodedList should be(expected)
   }
