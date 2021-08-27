@@ -40,7 +40,7 @@ class BinaryEncoderSpec extends AnyFlatSpec {
       SEncoder.encode(2).require ++
         SEncoder.encode(2).require ++
         SEncoder.encode(2.0).require
-    val expected: List[Byte] = bitVec.toByteVector.toSeq.toList
+    val expected: List[Byte] = bitVec.toByteArray.toList
 
     encodedList should be(expected)
   }
