@@ -9,7 +9,7 @@ import latis.data.Sample
 import latis.model.DataType
 import latis.util.LatisException
 
-case class Last() extends StreamOperation {
+case class Last() extends StreamOperation with Taking {
 
   def pipe(model: DataType): Pipe[IO, Sample, Sample] =
     in =>

@@ -8,7 +8,7 @@ import latis.data.Sample
 import latis.model.DataType
 import latis.util.LatisException
 
-case class TakeRight(n: Int) extends StreamOperation {
+case class TakeRight(n: Int) extends StreamOperation with Taking {
 
   def pipe(model: DataType): Pipe[IO, Sample, Sample] = in => in.takeRight(n)
 
