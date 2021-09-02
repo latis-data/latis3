@@ -14,6 +14,7 @@ import latis.util.LatisException
  * in a new Dataset that has all the "false" Samples removed.
  * This only impacts the number of Samples in the Dataset.
  * It does not affect the model.
+ * A Filter operation is idempotent.
  */
 trait Filter extends UnaryOperation with StreamOperation { self =>
   //TODO: update "length" metadata?
