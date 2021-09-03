@@ -31,7 +31,7 @@ lazy val commonSettings = Seq(
     // else errors.
     if (insideCI.value) "-Wconf:cat=deprecation:w,any:e" else ""
   },
-  addCompilerPlugin("org.typelevel" % "kind-projector" % "0.13.1" cross CrossVersion.full)
+  addCompilerPlugin("org.typelevel" % "kind-projector" % "0.13.2" cross CrossVersion.full)
 )
 
 lazy val dockerSettings = Seq(
