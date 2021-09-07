@@ -99,7 +99,7 @@ lazy val core = project
       "org.scala-lang.modules" %% "scala-xml"           % "1.3.0",
       "io.circe"               %% "circe-core"          % "0.14.1",
       "org.scodec"             %% "scodec-core"         % "1.11.8",
-      "org.scodec"             %% "scodec-stream"       % "3.0.1",
+      "org.scodec"             %% "scodec-stream"       % "3.0.2",
       "org.scodec"             %% "scodec-cats"         % "1.1.0",
       "org.http4s"             %% "http4s-blaze-client" % http4sVersion,
       "com.github.regis-leray" %% "fs2-ftp"             % "0.8.0"
