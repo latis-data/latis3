@@ -1,16 +1,16 @@
 package latis.dataset
 
-import cats.data.NonEmptyList
 import org.scalatest.Inside._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 
+import latis.data._
 import latis.data.Data._
 import latis.data.Sample
-import latis.data._
 import latis.dsl._
 import latis.metadata.Metadata
 import latis.model._
+import latis.ops.Append
 import latis.ops.Rename
 import latis.ops.Selection
 import latis.util.Identifier.IdentifierStringContext
@@ -34,6 +34,7 @@ class CompositeDatasetSpec extends AnyFlatSpec {
 
     new MemoizedDataset(metadata, model, data)
   }
+
   private lazy val ds2 = {
     val metadata = Metadata(id"test2")
 
@@ -49,8 +50,8 @@ class CompositeDatasetSpec extends AnyFlatSpec {
 
     new MemoizedDataset(metadata, model, data)
   }
-  private lazy val compDs =
-    new CompositeDataset(ds1.metadata, NonEmptyList(ds1, List(ds2)))
+
+  private lazy val compDs = CompositeDataset(id"test", Append(), ds1, ds2)
 
   "A dataset" should "provide a composite model" in {
     inside(compDs.model) {
