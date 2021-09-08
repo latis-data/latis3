@@ -5,84 +5,131 @@ import cats.effect.IO
 import cats.syntax.all._
 import fs2.Stream
 
-import latis.data.Data
-import latis.data.Sample
-import latis.data.SampledFunction
-import latis.data.StreamFunction
+import latis.data._
 import latis.metadata.Metadata
 import latis.model.DataType
-import latis.ops.Append
-import latis.ops.BinaryOperation
-import latis.ops.UnaryOperation
+import latis.ops._
+import latis.util.Identifier
 import latis.util.LatisException
 
 /**
- * Defines a Dataset with data provided via a list of Datasets to be appended.
+ * Defines a Dataset with data provided via a list of Datasets to be
+ * combined with the given join operation.
+ *
+ * This assumes that each dataset has the same model, for now.
  */
-class CompositeDataset(
-  _metadata: Metadata,
+class CompositeDataset private (
+  dsIdentifier: Identifier,
   datasets: NonEmptyList[Dataset],
-  operations: Seq[UnaryOperation] = Seq.empty
+  joinOperation: Join,
+  granuleOps: List[UnaryOperation] = List.empty, //ops to be applied to granules before the join
+  afterOps: List[UnaryOperation] = List.empty    //ops to be applied after the join
 ) extends Dataset {
+  //TODO: support "horizontal" joins: datasets with different models (i.e. diff set of variables, combine "columns")
 
-  val joinOperation: BinaryOperation = Append()
-
-  // TODO: implement metadata appending
-  override def metadata: Metadata = _metadata
-
-  override def model: DataType = (for {
-    model <- compositeModel
-    opsModel <- operations.foldM(model)((mod, op) => op.applyToModel(mod))
-  } yield opsModel).fold(throw _, identity)
-
-  /**
-   * Returns a lazy fs2.Stream of Samples.
-   */
-  def samples: Stream[IO, Sample] =
-    applyOperations().fold(Stream.raiseError[IO](_), _.samples)
+  //TODO: make richer metadata, prov
+  override def metadata: Metadata = Metadata(dsIdentifier)
 
   /**
    * Returns a new Dataset with the given Operation *logically*
    * applied to this one.
    */
-  def withOperation(op: UnaryOperation): Dataset =
-    new CompositeDataset(
-      _metadata,
-      datasets,
-      operations :+ op
+  def withOperation(op: UnaryOperation): Dataset = {
+    if (nonReappliedAfterOps.isEmpty) op match {
+      //TODO: push down other operations?
+      //TODO: make sure granule (after current granuleOps application) has target variable? or no-op?
+        //matters for joins with different models, not Append or Sorted
+      case _: Filter       => copyWithOperationForGranule(op)
+      case _: MapOperation => copyWithOperationForGranule(op)
+      case _: Rename       => copyWithOperationForGranule(op)
+      case _: Taking       => copyWithOperationForBoth(op)
+      case _               => copyWithOperationAfterJoin(op)
+    }
+    else copyWithOperationAfterJoin(op) //can't safely add this op before other afterOps
+  }
+
+  private def copyWithOperationForGranule(op: UnaryOperation): CompositeDataset =
+    new CompositeDataset(dsIdentifier, datasets, joinOperation,
+      granuleOps :+ op,
+      afterOps
     )
+
+  private def copyWithOperationAfterJoin(op: UnaryOperation): CompositeDataset =
+    new CompositeDataset(dsIdentifier, datasets, joinOperation,
+      granuleOps,
+      afterOps :+ op
+    )
+
+  private def copyWithOperationForBoth(op: UnaryOperation): CompositeDataset =
+    new CompositeDataset(dsIdentifier, datasets, joinOperation,
+      granuleOps :+ op,
+      afterOps :+ op
+    )
+
+  /**
+   * Defines the list of operations to be applied after the join
+   * that haven't already been applied to the granules.
+   */
+  private def nonReappliedAfterOps: List[UnaryOperation] = afterOps.filterNot(_.isInstanceOf[Taking])
+
+  /**
+   * Computes the model with the operations and join applied.
+   * Assumes join does not affect the model, for now.
+   */
+  override lazy val model: DataType =
+    (granuleOps ++ nonReappliedAfterOps).foldM(datasets.head.model) {
+      (mod, op) => op.applyToModel(mod)
+    }.fold(throw _, identity)
 
   /**
    * Applies the Operations to generate the new Data.
    */
   private def applyOperations(): Either[LatisException, Data] = for {
-      model <- compositeModel
-      data <- compositeData
-      newData <- operations.foldM((model, data)) { case ((mod1, dat1), op) =>
-        (op.applyToModel(mod1), op.applyToData(dat1, mod1)).mapN((_, _))
-      }.map(_._2)
-    } yield newData
+    // Apply granule operations
+    dss     <- datasets.map(_.withOperations(granuleOps)).asRight
+    // Apply join
+    data    <- dss.tail.foldM(StreamFunction(dss.head.samples): Data) { //compiler needs type hint
+      (dat, ds) => joinOperation.applyToData(dat, StreamFunction(ds.samples))
+    }
+    // Apply other operations
+    newData <- afterOps.foldM((model, data)) {
+      case ((mod, dat), op) =>
+        (op.applyToModel(mod), op.applyToData(dat, mod)).mapN((_, _))
+    }.map(_._2) //drop model, keep data
+  } yield newData
+
+  /**
+   * Applies the operations and returns a Stream of Samples.
+   */
+  def samples: Stream[IO, Sample] =
+    applyOperations().fold(Stream.raiseError[IO](_), _.samples)
 
   /**
    * Causes the data source to be read and released
    * and existing Operations to be applied.
    */
   def unsafeForce(): MemoizedDataset = new MemoizedDataset(
-    metadata,  //from super with ops applied
-    model,     //from super with ops applied
+    metadata,
+    model,
     applyOperations().fold(throw _, identity).asInstanceOf[SampledFunction].unsafeForce
   )
 
-  private lazy val compositeData: Either[LatisException, Data] =
-    datasets.tail.foldM {
-      StreamFunction(datasets.head.samples): Data
-    } { (data, ds) =>
-      joinOperation.applyToData(data, StreamFunction(ds.samples))
-    }
+}
 
-  private lazy val compositeModel: Either[LatisException, DataType] =
-    datasets.tail.foldM(datasets.head.model){ (model, ds) =>
-      joinOperation.applyToModel(model, ds.model)
-    }
+
+object CompositeDataset {
+
+  /**
+   * Constructs a CompositeDataset with the given identifier and join operation
+   * to be applied to at least two datasets.
+   */
+  def apply(
+    id: Identifier,
+    joinOperation: Join,
+    ds1: Dataset,
+    ds2: Dataset,
+    rest: List[Dataset] = List.empty
+  ): CompositeDataset =
+    new CompositeDataset(id, NonEmptyList.of(ds1, (ds2 :: rest): _*), joinOperation)
 
 }
