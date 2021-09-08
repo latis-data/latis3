@@ -5,12 +5,12 @@ import scala.concurrent.ExecutionContext
 import cats.effect.IO
 import cats.effect.Resource
 import org.http4s.HttpRoutes
+import org.http4s.Method
 import org.http4s.implicits._
 import org.http4s.server.Router
 import org.http4s.server.Server
 import org.http4s.blaze.server._
 import org.http4s.server.middleware.CORS
-import org.http4s.server.middleware.CORSConfig
 import org.typelevel.log4cats.StructuredLogger
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
@@ -51,10 +51,12 @@ object Latis3ServerBuilder {
       .withHttpApp {
         LatisErrorHandler(
           LatisServiceLogger(
-            Router(conf.mapping -> CORS(
-              constructRoutes(interfaces),
-              CORSConfig.default
-            )).orNotFound,
+            Router(conf.mapping ->
+              CORS.policy
+                .withAllowOriginAll
+                .withAllowMethodsIn(Set(Method.GET, Method.HEAD))
+                .apply(constructRoutes(interfaces))
+            ).orNotFound,
             logger
           ),
           logger
