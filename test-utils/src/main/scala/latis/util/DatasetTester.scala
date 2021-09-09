@@ -38,7 +38,7 @@ class DatasetTester(catalog: Catalog) {
   def testFile(path: Path): Stream[IO, Boolean] =
     Files[IO]
       .readAll(path, 4096)
-      .through(text.utf8Decode)
+      .through(text.utf8.decode)
       .through(text.lines)
       .filter(pattern.matches)
       .evalMap(testLine)

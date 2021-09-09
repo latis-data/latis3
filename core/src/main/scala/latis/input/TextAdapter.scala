@@ -27,7 +27,7 @@ class TextAdapter(model: DataType, config: TextAdapter.Config = new TextAdapter.
   def recordStream(uri: URI): Stream[IO, String] =
     StreamSource
       .getStream(uri)
-      .through(text.utf8Decode)
+      .through(text.utf8.decode)
       .through(text.lines)
       .drop(config.linesToSkip.toLong)
       .through(seekToDataMarker(config.dataMarker))

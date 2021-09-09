@@ -78,14 +78,14 @@ class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4
 
   private def encode(ext: String, ds: Dataset): Either[Dap2Error, (Stream[IO, Byte], `Content-Type`)] = ext match {
     case ""      => encode("html", ds)
-    case "asc"   => new TextEncoder().encode(ds).through(text.utf8Encode).asRight
+    case "asc"   => new TextEncoder().encode(ds).through(text.utf8.encode).asRight
       .map((_,`Content-Type`(MediaType.text.plain)))
     case "bin"   => new BinaryEncoder().encode(ds).asRight.map((_, `Content-Type`(MediaType.application.`octet-stream`)))
-    case "csv"   => CsvEncoder.withColumnName.encode(ds).through(text.utf8Encode).asRight
+    case "csv"   => CsvEncoder.withColumnName.encode(ds).through(text.utf8.encode).asRight
       .map((_, `Content-Type`(MediaType.text.csv)))
-    case "jsonl" => new JsonEncoder().encode(ds).map(_.noSpaces).intersperse("\n").through(text.utf8Encode).asRight
+    case "jsonl" => new JsonEncoder().encode(ds).map(_.noSpaces).intersperse("\n").through(text.utf8.encode).asRight
       .map((_, `Content-Type`(MediaType.unsafeParse("application/jsonl"))))
-    case "meta"  => new MetadataEncoder().encode(ds).map(_.noSpaces).through(text.utf8Encode).asRight
+    case "meta"  => new MetadataEncoder().encode(ds).map(_.noSpaces).through(text.utf8.encode).asRight
       .map((_,`Content-Type`(MediaType.application.json)))
     case "nc"    =>
       (for {
@@ -93,7 +93,7 @@ class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4
         file    <- new NetcdfEncoder(tmpFile.toFile()).encode(ds)
         bytes   <- Files[IO].readAll(file.toPath(), 4096)
       } yield bytes).asRight.map((_, `Content-Type`(MediaType.application.`x-netcdf`)))
-    case "txt"   => CsvEncoder().encode(ds).through(text.utf8Encode).asRight
+    case "txt"   => CsvEncoder().encode(ds).through(text.utf8.encode).asRight
       .map((_, `Content-Type`(MediaType.text.plain)))
     case _       => UnknownExtension(s"Unknown extension: $ext").asLeft
   }

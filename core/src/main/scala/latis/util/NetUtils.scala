@@ -48,7 +48,7 @@ object NetUtils {
   def readUriIntoString(uri: URI): Either[LatisException, String] =
     StreamSource
       .getStream(uri)
-      .through(text.utf8Decode)
+      .through(text.utf8.decode)
       .compile
       .string
       .attempt
