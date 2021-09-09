@@ -64,7 +64,7 @@ package object dsl {
      */
     def show(): Unit = new TextEncoder()
       .encode(dataset)
-      .through(text.utf8Encode)
+      .through(text.utf8.encode)
       .through(OutputStreamWriter.unsafeFromOutputStream[IO](System.out).write)
       .compile
       .drain
@@ -77,7 +77,7 @@ package object dsl {
       //TODO: factor out extension to encoder mapping, reuse in dap2 service
       case Some("csv") => CsvEncoder()
         .encode(dataset)
-        .through(text.utf8Encode)
+        .through(text.utf8.encode)
         .through(Files[IO].writeAll(Paths.get(file)))
         .compile
         .drain
