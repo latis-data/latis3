@@ -1,9 +1,12 @@
 package latis.catalog
 
+import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import cats.syntax.all._
+import fs2.Stream
 import org.scalatest.funsuite.AnyFunSuite
 
+import latis.dataset.Dataset
 import latis.dsl.DatasetGenerator
 import latis.util.Identifier._
 
@@ -20,6 +23,21 @@ class CatalogSuite extends AnyFunSuite {
     id"a" -> Catalog(ds1),
     id"b" -> Catalog(ds2).addCatalog(id"c", c2)
   )
+
+  // Get a list of every dataset in a catalog and its subcatalogs.
+  //
+  // Datasets from the root catalog will come first, but the order of
+  // subcatalogs is undefined.
+  //
+  // This is not useful in practice because we lose information about
+  // which catalog a dataset came from, so there are no guarantees
+  // that datasets in this list are unique.
+  private def listAll(c: Catalog): List[Dataset] = {
+    def go(c: Catalog): Stream[IO, Dataset] = {
+      c.datasets ++ c.catalogs.toList.foldMap { case (_, c) => go(c) }
+    }
+    go(c).compile.toList.unsafeRunSync()
+  }
 
   test("list datasets in a single catalog") {
     val expected = List("ds1", "ds2")
@@ -71,5 +89,17 @@ class CatalogSuite extends AnyFunSuite {
       .unsafeRunSync()
       .map(_.id.get)
       .fold(fail("Failed to find dataset"))(assertResult(id"ds3")(_))
+  }
+
+  test("filter(_ => true) is identity") {
+    assertResult(3) {
+      listAll(nested.filter(_ => true)).length
+    }
+  }
+
+  test("filter(_ => false) removes all datasets") {
+    assert {
+      listAll(nested.filter(_ => false)).isEmpty
+    }
   }
 }

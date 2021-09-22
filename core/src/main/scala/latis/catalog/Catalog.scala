@@ -44,6 +44,18 @@ trait Catalog { self =>
       self.catalogs + (id -> catalog)
   }
 
+  /**
+   * Returns a catalog containing only the datasets for which the
+   * predicate is true.
+   */
+  def filter(p: Dataset => Boolean): Catalog = new Catalog {
+    override val datasets: Stream[IO, Dataset] = self.datasets.filter(p)
+
+    override val catalogs: Map[Identifier, Catalog] = self.catalogs.map {
+      case (id, cat) => id -> cat.filter(p)
+    }
+  }
+
   /** Returns a subcatalog given its name. */
   def findCatalog(name: Identifier): Option[Catalog] =
     splitId(name) match {
