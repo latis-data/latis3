@@ -110,8 +110,7 @@ class GranuleAppendDatasetSuite extends AnyFunSuite {
     }.unsafeRunSync()
   }
 
-  //TODO: avoid need to rewrite selection
-  ignore("push down selection after t rename") {
+  test("push down selection after t rename") {
     counter.clear()
     val ops = List(
       Rename(id"t", id"foo"),
