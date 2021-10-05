@@ -31,7 +31,7 @@ case class Curry(arity: Int = 1) extends GroupOperation {
       val msg = "Curry can only reduce arity. Use Uncurry to increase arity."
       throw LatisException(msg)
     }
-    (sample: Sample) => Some(sample.domain.take(arity))
+    (sample: Sample) => Some(sample.domain.take(arity)) //TODO: only Cartesian dataset can guarantee unique, order
   }
 
   // takes the model for the dataset and returns the domain of the curried dataset
