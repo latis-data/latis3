@@ -111,7 +111,11 @@ class GranuleAppendDataset private (
       // Prevent application to the list if certain operations have already been added.
       granuleDomain match {
         case Some(s: Scalar) =>
-          (s.id == id) && //TODO: must rewrite to match last rename
+          // Get the domain variable id, account for potential rename
+          val domainId = listOps.collect {
+            case Rename(_, id) => id
+          }.lastOption.getOrElse(s.id)
+          (domainId == id) &&  //Selection target must match domain id
           operations.forall {
             // Can we safely push down the selection to the granule list dataset
             // if the given operation has already been added.
