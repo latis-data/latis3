@@ -1,7 +1,5 @@
 package latis.output
 
-import scala.util.Properties.lineSeparator
-
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
@@ -20,7 +18,7 @@ class CsvEncoderSpec extends AnyFlatSpec {
       "0,0,0.0,a",
       "1,1,1.0,b",
       "2,2,2.0,c"
-    ).map(_ + lineSeparator)
+    ).map(_ + "\n")
     csvList should be(expectedCsv)
   }
 
@@ -28,14 +26,14 @@ class CsvEncoderSpec extends AnyFlatSpec {
     val enc            = CsvEncoder.withColumnName
     val csvList        = enc.encode(ds).compile.toList.unsafeRunSync()
     val expectedHeader = "x,a,b,c"
-    csvList.head should be(expectedHeader + lineSeparator)
+    csvList.head should be(expectedHeader + "\n")
 
     val expectedCsv = List(
       expectedHeader,
       "0,0,0.0,a",
       "1,1,1.0,b",
       "2,2,2.0,c"
-    ).map(_ + lineSeparator)
+    ).map(_ + "\n")
     csvList should be (expectedCsv)
   }
 }
