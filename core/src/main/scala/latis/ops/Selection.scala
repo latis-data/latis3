@@ -10,34 +10,41 @@ import latis.util.Identifier
 import latis.util.LatisException
 import latis.util.dap2.parser.ast
 import latis.util.dap2.parser.parsers
+import latis.util.Bounds
 
 /**
  * Operation to keep only Samples that meet the given selection criterion.
+ *
+ * If the target variable has 'binWidth' defined (in the units of that variable),
+ * this applies bin semantics such that:
+ * - The data value is interpreted as the inclusive lower bound of the bin.
+ * - The bin width is added to the lower bound (assuming natural ordering) to define the exclusive upper bound.
+ * - Equality (as in = or ==) matches if the value is within the bin: [lower, upper).
+ * - >= and <= will match if partially overlapping the bin (upper value excluded).
+ * - > and < will not match partial bins.
+ * Bin semantics requires numeric data which will be handled as a Double.
+ *
+ * As a Filter, a predicate determines the fate of a Sample based only on the state of that Sample.
  */
 case class Selection(id: Identifier, operator: ast.SelectionOp, value: String) extends Filter {
-  //TODO: use smaller types, enumerate operators?
+  //TODO: restrict construction
+  //TODO: safer by construction with model: Scalar, op, Datum
   //TODO: enable IndexedFunction to use binary search...
   //TODO: support nested functions, all or none?
   //TODO: allow value to have units
-  //TODO: nearest (~) is not a filter
-  //      makes sense only for variable in Cartesian domain
-  //      transform "x ~ v" to another operation
   //TODO: support matches (=~)
+  //TODO: support bounds variable (as opposed to fixed binWidth)
+  //TODO: support bins for string Time variables
+  //      generic asDouble akin to format as string?
+  //      avoid special time logic here
 
-  def getValue(model: DataType): Either[LatisException, Datum] = for {
-    scalar <- getScalar(model)
-    cdata <- scalar.convertValue(value).leftMap(LatisException(_))
-  } yield cdata
-
+  // Get the target Scalar. //TODO: do during smart construction with model
   def getScalar(model: DataType): Either[LatisException, Scalar] = model.findVariable(id) match {
-    case Some(s: Scalar) => Right(s)
-    case _ => Left(LatisException(s"Selection variable not found: ${id.asString}"))
+    case Some(s: Scalar) => s.asRight
+    case _ => LatisException(s"Selection variable not found: ${id.asString}").asLeft
   }
 
   def predicate(model: DataType): Sample => Boolean = {
-    // Get the desired Scalar from the model
-    //TODO: support aliases
-
     // Determine the Sample position of the selected variable
     val pos: SamplePosition = model.findPath(id) match {
       case Some(p) =>
@@ -45,51 +52,28 @@ case class Selection(id: Identifier, operator: ast.SelectionOp, value: String) e
           case 1 => p.head
           case _ =>
             val msg = "Selection does not support values in nested Functions."
-            throw new UnsupportedOperationException(msg)
+            throw LatisException(msg)
         }
       case None => ??? //shouldn't happen due to earlier check TODO: happened with selection on nonpresent ert in latis3-packets
     }
 
-    val cdata = getValue(model).fold(throw _, identity)
     val scalar = getScalar(model).fold(throw _, identity)
-    val ordering = scalar.ordering
 
-    (sample: Sample) =>
-      sample.getValue(pos) match {
-        case Some(d: Datum) =>
-          ordering
-            .tryCompare(d, cdata)
-            .map(matches)
-            .getOrElse {
-              // Not comparable
-              val msg = s"Selection failed to compare values: $d, $cdata"
-              throw new UnsupportedOperationException(msg)
-            }
-        case Some(_: SampledFunction) =>
-          // Bug: Should not find SF at this position
-          throw LatisException("Should not find SampledFunction at this position")
-        case Some(_: TupleData) =>
-          throw LatisException("Should not find TupleData at this position")
-        case Some(NullData) =>
-          throw LatisException("Should not find NullData at this position")
-        case None =>
-          // Bug: There should be a Datum at this position
-          throw LatisException("Should find Datum at this position")
-      }
+    // Interpret string value as the same type as the target Scalar. //TODO: do during smart construction with model
+    val cdata = scalar.convertValue(value).fold(throw _, identity)
+
+    // Define an internal predicate to filter a data value.
+    val pred = if (scalar.metadata.properties.contains("binWidth"))  //TODO: first class member
+      Selection.datumPredicateWithBinning(scalar, operator, cdata)
+      else Selection.datumPredicate(scalar, operator, cdata)
+
+    // Define the primary predicate for the Sample filter.
+    (sample: Sample) => sample.getValue(pos) match {
+      case Some(d: Datum) => pred(d)
+      case _ => throw LatisException(s"Invalid Data at sample position $pos") //bug
+    }
   }
 
-  /**
-   * Helper function to determine if the value comparison
-   * satisfies the selection operation.
-   */
-  private def matches(comparison: Int): Boolean =
-    if (operator == ast.NeEq) {
-      comparison != 0
-    } else {
-      (comparison < 0 && ast.prettyOp(operator).contains("<")) ||
-      (comparison > 0 && ast.prettyOp(operator).contains(">")) ||
-      (comparison == 0 && ast.prettyOp(operator).contains("="))
-    }
 }
 
 object Selection {
@@ -114,4 +98,80 @@ object Selection {
       case ParseResult.Done(_, ast.Selection(id, op, value)) => Right(Selection(id, op, value))
       case _ => Left(LatisException(s"Failed to parse expression $expression"))
     }
+
+  /**
+   * Makes a function that applies the selection filter to a data value of the target variable.
+   */
+  def datumPredicate(
+    scalar: Scalar,
+    operator: ast.SelectionOp,
+    value: Datum
+  ): Datum => Boolean = {
+    val ordering = scalar.ordering
+    operator match {
+      case ast.Eq   => (d: Datum) => ordering.equiv(d, value)
+      case ast.EqEq => (d: Datum) => ordering.equiv(d, value)
+      case ast.NeEq => (d: Datum) => ! ordering.equiv(d, value)
+      case ast.Gt   => (d: Datum) => ordering.gt(d, value)
+      case ast.GtEq => (d: Datum) => ordering.gteq(d, value)
+      case ast.Lt   => (d: Datum) => ordering.lt(d, value)
+      case ast.LtEq => (d: Datum) => ordering.lteq(d, value)
+      case _ => throw LatisException(s"Unsupported selection operator: $ast.prettyOp(operator)") //TODO: prevent by construction
+    }
+  }
+
+  /**
+   * Makes a function for the given Scalar that takes a Datum of that type
+   * and applies binning semantics to return a Bounds of Doubles for that bin.
+   *
+   * Expects binWidth to be defined in the units of the Scalar.
+   * Assumes numeric types which will be converted to a Double.
+   */
+  def makeBounder(scalar: Scalar): Datum => Bounds[Double] = {
+    //TODO: make binWidth a first class member of Scalar so it is safe by construction
+    //      Time could override to support ISO time duration
+    //TODO: add binPosition enum for start|mid|end, assume start for now
+    //TODO: support reverse ordering?
+    val w = scalar.metadata.getProperty("binWidth")
+      .flatMap(_.toDoubleOption)
+      .getOrElse(throw LatisException("Invalid binWidth"))
+
+    (datum: Datum) =>  datum match {
+      case Number(d) => Bounds.of(d, d + w).get //TODO: enforce w > 0
+      //TODO: support string Times
+      case _ => throw LatisException("Selection with bins expects numeric data")
+    }
+  }
+
+  /**
+   * Makes a function that applies the selection filter to a data value of the target variable
+   * with bin semantics.
+   */
+  def datumPredicateWithBinning(
+    scalar: Scalar,
+    operator: ast.SelectionOp,
+    value: Datum
+  ): Datum => Boolean = {
+    // Interpret the selection value as a double
+    val dvalue: Double = value match {
+      case Number(v) => v
+      //TODO: support string time, ms since 1970
+      case _ => throw LatisException("Selection with bins expects numeric value")
+    }
+
+    // Make function to get Bounds for a given data value
+    val bounder: Datum => Bounds[Double] = makeBounder(scalar)
+
+    // Make lean predicate based on selection operator
+    operator match {
+      case ast.Eq   => (d: Datum) => bounder(d).contains(dvalue)
+      case ast.EqEq => (d: Datum) => bounder(d).contains(dvalue)
+      case ast.NeEq => (d: Datum) => ! bounder(d).contains(dvalue)
+      case ast.Gt   => (d: Datum) => bounder(d).lower >  dvalue
+      case ast.GtEq => (d: Datum) => bounder(d).upper >  dvalue
+      case ast.Lt   => (d: Datum) => bounder(d).upper <= dvalue
+      case ast.LtEq => (d: Datum) => bounder(d).lower <= dvalue
+      case _ => throw LatisException(s"Unsupported selection operator: $ast.prettyOp(operator)") //TODO: prevent by construction
+    }
+  }
 }
