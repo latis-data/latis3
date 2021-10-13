@@ -17,11 +17,11 @@ import latis.util.Bounds
  *
  * If the target variable has 'binWidth' defined (in the units of that variable),
  * this applies bin semantics such that:
- * - The data value is interpreted as the inclusive lower bound of the bin.
- * - The bin width is added to the lower bound (assuming natural ordering) to define the exclusive upper bound.
- * - Equality (as in = or ==) matches if the value is within the bin: [lower, upper).
- * - >= and <= will match if partially overlapping the bin (upper value excluded).
- * - > and < will not match partial bins.
+ *  - The data value is interpreted as the inclusive lower bound of the bin.
+ *  - The bin width is added to the lower bound (assuming natural ordering) to define the exclusive upper bound.
+ *  - Equality (as in = or ==) matches if the value is within the bin: [lower, upper).
+ *  - >= and <= will match if partially overlapping the bin (upper value excluded).
+ *  - > and < will not match partial bins.
  * Bin semantics requires numeric data which will be handled as a Double.
  *
  * As a Filter, a predicate determines the fate of a Sample based only on the state of that Sample.
