@@ -102,7 +102,7 @@ object Selection {
   /**
    * Makes a function that applies the selection filter to a data value of the target variable.
    */
-  def datumPredicate(
+  private[ops] def datumPredicate(
     scalar: Scalar,
     operator: ast.SelectionOp,
     value: Datum
@@ -127,7 +127,7 @@ object Selection {
    * Expects binWidth to be defined in the units of the Scalar.
    * Assumes numeric types which will be converted to a Double.
    */
-  def makeBounder(scalar: Scalar): Datum => Bounds[Double] = {
+  private[ops] def makeBounder(scalar: Scalar): Datum => Bounds[Double] = {
     //TODO: make binWidth a first class member of Scalar so it is safe by construction
     //      Time could override to support ISO time duration
     //TODO: add binPosition enum for start|mid|end, assume start for now
@@ -147,7 +147,7 @@ object Selection {
    * Makes a function that applies the selection filter to a data value of the target variable
    * with bin semantics.
    */
-  def datumPredicateWithBinning(
+  private[ops] def datumPredicateWithBinning(
     scalar: Scalar,
     operator: ast.SelectionOp,
     value: Datum
