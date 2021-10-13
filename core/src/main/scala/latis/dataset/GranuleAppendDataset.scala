@@ -8,6 +8,7 @@ import latis.metadata.Metadata
 import latis.model._
 import latis.ops._
 import latis.util.Identifier
+import latis.util.dap2.parser.ast
 
 /**
  * A GranuleAppendDataset combines individual (granule) Datasets
@@ -22,15 +23,10 @@ import latis.util.Identifier
  * domain variable (usually time) that is the same as the first dimension of
  * the granule datasets. Selections on that common variable can often be pushed down
  * to the granule list to limit the number of granules that need to be accessed.
- * In such cases, the granule list selection is treated with contiguous bin
- * semantics such that the value of the domain variable of the granule list
- * represents the inclusive start of the bin which ends with the exclusive
- * start of the next granule. This assumes that the domain value for the granule
- * in the granule list is less than or equal to the domain value of the first
- * sample in the granule. For example, daily files (i.e. granules) could be
- * represented as a time series of URLs (i.e. granule list dataset): time -> url
- * with time values for the start of the day. Each file might contain hourly samples
- * for that day that we want to combine with samples from other files.
+ *
+ * If a granule may contain multiple samples, then the granule list dataset
+ * must have metadata to enable selections with bin semantics (e.g. a binWidth
+ * defined on the domain variable).
  *
  * The granule list may have a different domain than the granules as long as
  * uniqueness and ordering is maintained when simply appending Samples from the
@@ -53,21 +49,6 @@ class GranuleAppendDataset private (
   listOps: List[UnaryOperation] = List.empty,
   operations: List[UnaryOperation] = List.empty
 ) extends Dataset {
-  //TODO: support nD tiles
-
-  /*
-  TODO: apply bin semantics
-    require cadence?
-
-  TODO: handle error in granuleToDataset
-    how much can be raised into stream's IO error channel?
-    what if granule sample is invalid?
-    should function return Either?
-    just deal with thrown exceptions?
-
-  TODO: migrate sorted join from packets
-  TODO: migrate type matcher from packets
-   */
 
   def metadata: Metadata = Metadata(dsIdentifier) //TODO: add prov, see AbstractDataset
 
@@ -147,12 +128,18 @@ class GranuleAppendDataset private (
    */
   def withOperation(op: UnaryOperation): Dataset = {
     if (canPushDown(op)) {
+      // Bin semantics don't match partial bins with Gt or Lt but we need partial granules
+      val pdop = op match {
+        case Selection(id, ast.Lt, value) => Selection(id, ast.LtEq, value)
+        case Selection(id, ast.Gt, value) => Selection(id, ast.GtEq, value)
+        case _ => op
+      }
       new GranuleAppendDataset(
         dsIdentifier,
         granuleList,
         granuleModel,
         granuleToDataset,
-        listOps = listOps :+ op,
+        listOps = listOps :+ pdop,
         operations = operations :+ op
       )
     } else {
@@ -167,19 +154,7 @@ class GranuleAppendDataset private (
     }
   }
 
-  /*
-  TODO: nearest neighbor
-    Note: should not be handled as a Selection, not a filter
-    e.g. last second of minute cadence in daily files
-      the time nominally falls within the bounds of the file but the nearest is in the next file
-      use time >= n & take(2)?
-      consider also start/previous
-        would need to know cadence of files?
-        can we use a 3 element sliding window?
-        or just best effort?
-   */
-
-  def unsafeForce(): MemoizedDataset = ???
+  def unsafeForce(): MemoizedDataset = ??? //to be deprecated
 }
 
 object GranuleAppendDataset {
@@ -195,22 +170,5 @@ object GranuleAppendDataset {
     model,
     granuleToDataset
   )
-
-  /*
-  TODO: FDML support
-    Assign "class" in "dataset" element, default to AdaptedDataset, use GranuleAppendDataset here
-    source is granuleList dataset (preferably via ref)
-    adapter and model are for granule
-    construct GranuleAppendDataset
-      make adapter from AdapterConfig
-      granuleToDataset: extract uri from granuleList, invoke adapter
-        require "uri" variable or var of type URI (subclass of scalar)?
-   */
-//  def apply(
-//    id: Identifier,
-//    granuleList: Dataset,
-//    model: DataType,
-//    adapterConfig: AdapterConfig
-//  ): GranuleAppendDataset = ???
 
 }
