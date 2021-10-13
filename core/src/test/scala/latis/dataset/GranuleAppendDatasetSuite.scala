@@ -8,20 +8,35 @@ import org.scalatest.Inside.inside
 import latis.data._
 import latis.dsl._
 import latis.metadata.Metadata
+import latis.model._
 import latis.ops._
 import latis.util.Identifier.IdentifierStringContext
 
 class GranuleAppendDatasetSuite extends AnyFunSuite {
 
-  private lazy val granuleList: Dataset = DatasetGenerator("t: double -> uri: string")
   /*
+    Granule list dataset:
     t -> uri
     0.0 -> a
     1.0 -> b
     2.0 -> c
    */
+  private lazy val granuleList: Dataset = {
+    val model = Function.from(
+      Scalar.fromMetadata(Metadata("id" -> "t", "type" -> "double", "binWidth" -> "1.0")).value,
+      Scalar.fromMetadata(Metadata("id" -> "uri", "type" -> "string")).value
+    ).value
 
-  private lazy val model = ModelParser("t: double -> a: string").value
+    val samples = List(
+      Sample(DomainData(0.0), RangeData("a")),
+      Sample(DomainData(1.0), RangeData("b")),
+      Sample(DomainData(2.0), RangeData("c"))
+    )
+
+    new MemoizedDataset(Metadata(id"test"), model, SeqFunction(samples))
+  }
+
+  private lazy val model = ModelParser("t: double -> (a: string, b: int)").value
 
   //TODO: concurrency issue?
   private lazy val counter = scala.collection.mutable.Map[String, Int]()
@@ -35,8 +50,8 @@ class GranuleAppendDatasetSuite extends AnyFunSuite {
         case None    => counter += u -> 1
       }
       val mf: MemoizedFunction = SeqFunction(List(
-        Sample(DomainData(t), RangeData(u + t)),
-        Sample(DomainData(t + 0.5), RangeData(u + (t + 0.5)))
+        Sample(DomainData(t), RangeData(u + t, t.toInt)),
+        Sample(DomainData(t + 0.5), RangeData(u + (t + 0.5), t.toInt))
       ))
       new MemoizedDataset(
         Metadata("id" -> s"granule_$u"),
@@ -75,6 +90,21 @@ class GranuleAppendDatasetSuite extends AnyFunSuite {
     }.compile.toList.map { ts =>
       assert(ts == List(0.0, 0.5, 1.0))
       assert(!counter.contains("c")) //never accesses granule c
+    }.unsafeRunSync()
+  }
+
+  test("push down selection with partial granule") {
+    counter.clear()
+    val ops = List(
+      Selection.makeSelection("t > 1.1").value //">" changed to ">=" to get partial granule
+    )
+    dataset.withOperations(ops).samples.map {
+      inside(_) {
+        case Sample(DomainData(Number(t)), _) => t
+      }
+    }.compile.toList.map { ts =>
+      assert(ts == List(1.5, 2.0, 2.5))
+      assert(!counter.contains("a")) //never accesses granule a
     }.unsafeRunSync()
   }
 
@@ -142,9 +172,21 @@ class GranuleAppendDatasetSuite extends AnyFunSuite {
     }.unsafeRunSync()
   }
 
-  //TODO: add another range variable to unproject
-  //TODO: test handling of Index
-  ignore("push down selection after projection") {}
+  test("push down selection after projection") {
+    counter.clear()
+    val ops = List(
+      Projection(id"t", id"a"),
+      Selection.makeSelection("t <= 1").value
+    )
+    dataset.withOperations(ops).samples.map {
+      inside(_) {
+        case Sample(DomainData(Number(t)), _) => t
+      }
+    }.compile.toList.map { ts =>
+      assert(ts == List(0.0, 0.5, 1.0))
+      assert(!counter.contains("c")) //never accesses granule c
+    }.unsafeRunSync()
+  }
 
   test("don't push down selection after stride") {
     counter.clear()
@@ -162,7 +204,7 @@ class GranuleAppendDatasetSuite extends AnyFunSuite {
     }.unsafeRunSync()
   }
 
-  //TODO: seems to access 3rd granule though not needed?
+  //TODO: seems to access 3rd granule though not needed, CompositeDataset issue?
   ignore("take short circuit") {
     counter.clear()
     val ops = List(
@@ -178,11 +220,43 @@ class GranuleAppendDatasetSuite extends AnyFunSuite {
     }.unsafeRunSync()
   }
 
-  ignore("single granule") {}
+  test("single granule") {
+    counter.clear()
+    val ops = List(
+      Selection.makeSelection("t = 1.5").value
+    )
+    dataset.withOperations(ops).samples.map {
+      inside(_) {
+        case Sample(DomainData(Number(t)), _) => t
+      }
+    }.compile.toList.map { ts =>
+      assert(ts == List(1.5))
+      assert(counter.size == 1)
+    }.unsafeRunSync()
+  }
 
-  ignore("empty dataset") {}
+  test("empty dataset") {
+    counter.clear()
+    val ops = List(
+      Selection.makeSelection("t > 3").value
+    )
+    dataset.withOperations(ops).samples.map {
+      inside(_) {
+        case Sample(DomainData(Number(t)), _) => t
+      }
+    }.compile.toList.map { ts =>
+      assert(ts.isEmpty)
+      assert(counter.isEmpty)
+    }.unsafeRunSync()
+  }
 
-  ignore("error in granuleToDataset") {}
-
-  ignore("push down selection with bin semantics") {}
+  test("error in granuleToDataset") {
+    val f: Sample => Dataset = (s: Sample) => throw new RuntimeException("Boom")
+    val ds = GranuleAppendDataset(id"myDataset", granuleList, model, f)
+    ds.samples.compile.toList.attempt.map {
+      inside(_) {
+        case Left(re: RuntimeException) => assert(re.getMessage == "Boom")
+      }
+    }.unsafeRunSync()
+  }
 }
