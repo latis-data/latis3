@@ -12,19 +12,19 @@ import latis.dataset._
  * This is often important for performance reasons.
  *
  * Properties of Joins:
- * - Each dataset must have the same domain type.
- * - Joins must not generate new variables.
- * - Joins may add fill data (e.g. outer joins).
- * - Joins may compute new values only to resolve duplication (e.g. average).
+ *  - Each dataset must have the same domain type.
+ *  - Joins must not generate new variables.
+ *  - Joins may add fill data (e.g. outer joins).
+ *  - Joins may compute new values only to resolve duplication (e.g. average).
  *
  * The following classes of UnaryOperations can be distributed over the Join
  * operation and applied to the operands:
- *   Filter (e.g. Selection)
- *   MapOperation (e.g. Projection)
+ *  - Filter (e.g. Selection)
+ *  - MapOperation (e.g. Projection)
  *
  * Some classes of UnaryOperations can be applied to the operands
  * but also need to be reapplied after the join:
- *   Taking (Head, Take, TakeRight, Last)
+ *  - Taking (Head, Take, TakeRight, Last)
  *
  * Joins can be used by a CompositeDataset while enabling operation
  * push-down to member Datasets.

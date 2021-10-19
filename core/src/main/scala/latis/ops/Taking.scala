@@ -11,8 +11,9 @@ package latis.ops
  * after the join.
  *
  * Examples: Head, Take, TakeRight, Last
+ *
  * Counter-examples (not Taking):
- *   Selection requires data examination
- *   Tail is not idempotent
+ *  - Selection requires data examination
+ *  - Tail is not idempotent
  */
 trait Taking
