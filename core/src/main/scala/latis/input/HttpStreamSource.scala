@@ -2,13 +2,11 @@ package latis.input
 
 import java.net.URI
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 import cats.effect.IO
 import fs2.Stream
 import org.http4s.Request
 import org.http4s.Uri
-import org.http4s.blaze.client.BlazeClientBuilder
+import org.http4s.ember.client.EmberClientBuilder
 
 /**
  * Creates an StreamSource from a "http" or "https" URI.
@@ -30,9 +28,10 @@ class HttpStreamSource extends StreamSource {
   def getStream(uri: URI): Option[Stream[IO, Byte]] =
     if (uri.isAbsolute && supportsScheme(uri.getScheme)) {
       val request = Request[IO](uri = Uri.unsafeFromString(uri.toString))
-      val stream = BlazeClientBuilder[IO](global).stream.flatMap {
-        _.stream(request).flatMap(_.body)
-      }
+      val client = EmberClientBuilder.default[IO].build
+      val stream = Stream.resource(client)
+        .flatMap(_.stream(request))
+        .flatMap(_.body)
       Option(stream)
     } else None
 

@@ -101,7 +101,7 @@ lazy val core = project
       "org.scodec"             %% "scodec-core"         % "1.11.9",
       "org.scodec"             %% "scodec-stream"       % "3.0.2",
       "org.scodec"             %% "scodec-cats"         % "1.1.0",
-      "org.http4s"             %% "http4s-blaze-client" % http4sVersion,
+      "org.http4s"             %% "http4s-ember-client" % http4sVersion,
       "com.github.regis-leray" %% "fs2-ftp"             % "0.8.2"
     )
   )
@@ -158,7 +158,7 @@ lazy val server = project
   .settings(
     name := "latis3-server",
     libraryDependencies ++= Seq(
-      "org.http4s"            %% "http4s-blaze-server"    % http4sVersion,
+      "org.http4s"            %% "http4s-ember-server"    % http4sVersion,
       "org.http4s"            %% "http4s-core"            % http4sVersion,
       "org.http4s"            %% "http4s-dsl"             % http4sVersion,
       "com.github.pureconfig" %% "pureconfig"             % pureconfigVersion,

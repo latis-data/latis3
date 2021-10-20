@@ -3,6 +3,7 @@ package latis.server
 import java.net.URL
 import java.nio.file.Path
 
+import com.comcast.ip4s.Port
 import pureconfig.CamelCase
 import pureconfig.ConfigFieldMapping
 import pureconfig.KebabCase
@@ -16,7 +17,7 @@ final case class CatalogConf(
 )
 
 final case class ServerConf(
-  port: Int,
+  port: Port,
   mapping: String
 )
 

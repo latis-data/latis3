@@ -1,15 +1,14 @@
 package latis.server
 
-import scala.concurrent.ExecutionContext
-
 import cats.effect.IO
 import cats.effect.Resource
+import com.comcast.ip4s._
 import org.http4s.HttpRoutes
 import org.http4s.Method
 import org.http4s.implicits._
 import org.http4s.server.Router
 import org.http4s.server.Server
-import org.http4s.blaze.server._
+import org.http4s.ember.server._
 import org.http4s.server.middleware.CORS
 import org.typelevel.log4cats.StructuredLogger
 import pureconfig.ConfigSource
@@ -32,7 +31,6 @@ object Latis3ServerBuilder {
     conf: ServerConf,
     interfaces: List[(String, ServiceInterface)],
     logger: StructuredLogger[IO],
-    executionContext: ExecutionContext = ExecutionContext.global
   )(
     implicit timer: Temporal[IO]
   ): Resource[IO, Server] = {
@@ -46,8 +44,9 @@ object Latis3ServerBuilder {
       Router(routes:_*)
     }
 
-    BlazeServerBuilder[IO](executionContext)
-      .bindHttp(conf.port, "0.0.0.0")
+    EmberServerBuilder.default[IO]
+      .withHost(host"0.0.0.0")
+      .withPort(conf.port)
       .withHttpApp {
         LatisErrorHandler(
           LatisServiceLogger(
@@ -62,7 +61,6 @@ object Latis3ServerBuilder {
           logger
         )
       }
-      .withoutBanner
-      .resource
+      .build
   }
 }
