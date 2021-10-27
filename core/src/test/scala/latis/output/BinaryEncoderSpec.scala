@@ -19,6 +19,7 @@ import latis.dataset.Dataset
 import latis.dsl.DatasetGenerator
 import latis.metadata.Metadata
 import latis.model._
+import latis.ops.Projection
 import latis.util.Identifier.IdentifierStringContext
 
 class BinaryEncoderSpec extends AnyFlatSpec {
@@ -38,6 +39,23 @@ class BinaryEncoderSpec extends AnyFlatSpec {
         SEncoder.encode(1).require ++
         SEncoder.encode(1.0).require ++
       SEncoder.encode(2).require ++
+        SEncoder.encode(2).require ++
+        SEncoder.encode(2.0).require
+    val expected: List[Byte] = bitVec.toByteArray.toList
+
+    encodedList should be(expected)
+  }
+
+  it should "encode a dataset with an Index variable" in {
+    val ds: Dataset = DatasetGenerator("x -> (a: int, b: double)")
+      .withOperation(Projection.fromExpression("a, b").value)
+    val encodedList = enc.encode(ds).compile.toList.unsafeRunSync()
+
+    val bitVec =
+        SEncoder.encode(0).require ++
+        SEncoder.encode(0.0).require ++
+        SEncoder.encode(1).require ++
+        SEncoder.encode(1.0).require ++
         SEncoder.encode(2).require ++
         SEncoder.encode(2.0).require
     val expected: List[Byte] = bitVec.toByteArray.toList
