@@ -1,5 +1,10 @@
 package latis.dataset
 
+import java.net.URI
+
+import scala.util.Success
+import scala.util.Try
+
 import cats.effect.IO
 import fs2.Stream
 
@@ -68,14 +73,15 @@ class GranuleAppendDataset private (
    */
   def samples: Stream[IO, Sample] =
     Stream.eval(
-      granuleList                          //start with granule list dataset
-        .withOperations(listOps)           //add operations to granule list
-        .samples                           //get samples, one for each granule
-        .map(granuleToDataset)             //convert each sample to a dataset
-        .compile.toList                    //get the list of datasets from stream (in IO)
-        .map(makeDataset)                  //combine the granules into a single dataset
-        .map(_.withOperations(operations)) //add operations to dataset
-    ).flatMap(_.samples)                   //eval back into stream then get samples
+      granuleList                           //start with granule list dataset
+        .withOperations(listOps)            //add operations to granule list
+        .samples                            //get samples, one for each granule
+        .map(s => Try(granuleToDataset(s))) //convert each sample to a dataset
+        .collect { case Success(ds) => ds } //drop broken granules
+        .compile.toList                     //get the list of datasets from stream (in IO)
+        .map(makeDataset)                   //combine the granules into a single dataset
+        .map(_.withOperations(operations))  //add operations to dataset
+    ).flatMap(_.samples)                    //eval back into stream then get samples
 
   /** Returns the granule list domain Scalar if it is one-dimensional. */
   private def granuleDomain: Option[Scalar] = granuleList.model match {
