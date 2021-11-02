@@ -6,14 +6,18 @@ import scala.util.Success
 import scala.util.Try
 
 import cats.effect.IO
+import cats.syntax.all._
 import fs2.Stream
 
 import latis.data._
+import latis.input.Adapter
 import latis.metadata.Metadata
 import latis.model._
 import latis.ops._
 import latis.util.Identifier
+import latis.util.Identifier._
 import latis.util.dap2.parser.ast
+import latis.util.LatisException
 
 /**
  * A GranuleAppendDataset combines individual (granule) Datasets
@@ -176,5 +180,40 @@ object GranuleAppendDataset {
     model,
     granuleToDataset
   )
+
+  /**
+   * Constructs a GranuleAppendDataset with an Adapter to be used for each granule.
+   *
+   * This expects to find a `uri` variable in the granuleList Dataset. The `uri`
+   * variable must not be in a nested Function. This will construct the
+   * `granuleToDataset` function that is used by the GranuleAppendDataset.
+   * This function will extract the URI from each sample in the granuleList
+   * Dataset and invoke the Adapter to generate Data for that granule.
+   */
+  def withAdapter(
+    id: Identifier,
+    granuleList: Dataset,
+    model: DataType,
+    adapter: Adapter,
+    ops: List[UnaryOperation] = List.empty
+  ): Either[LatisException, Dataset] = for {
+      path <- Either.fromOption(
+        granuleList.model.findPath(id"uri"),
+        LatisException("No uri variable found in granule list dataset")
+      )
+      pos <-
+        if (path.length == 1) path.head.asRight
+        else LatisException("Granule uri must not be in nested Function").asLeft
+    } yield {
+      val granuleToDataset: Sample => Dataset = (sample: Sample) =>
+        sample.getValue(pos) match {
+          case Some(Text(u)) =>
+            val md = Metadata(id) //TODO: generate unique granule id?
+            val uri = new URI(u) //may throw URISyntaxException
+            new AdaptedDataset(md, model, adapter, uri, ops)
+          case _ => throw LatisException("Invalid Sample") //TODO: log warning
+        }
+      GranuleAppendDataset(id, granuleList, model, granuleToDataset).withOperations(ops)
+    }
 
 }
