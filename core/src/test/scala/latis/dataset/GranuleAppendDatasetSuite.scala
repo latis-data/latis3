@@ -1,5 +1,7 @@
 package latis.dataset
 
+import java.net.URI
+
 import cats.effect.unsafe.implicits.global
 import org.scalatest.EitherValues._
 import org.scalatest.funsuite.AnyFunSuite
@@ -7,6 +9,7 @@ import org.scalatest.Inside.inside
 
 import latis.data._
 import latis.dsl._
+import latis.input.Adapter
 import latis.metadata.Metadata
 import latis.model._
 import latis.ops._
@@ -261,6 +264,26 @@ class GranuleAppendDatasetSuite extends AnyFunSuite {
     val ds = GranuleAppendDataset(id"myDataset", granuleList, model, f)
     ds.samples.compile.toList.map { ss =>
       assert(4 == ss.length)
+    }.unsafeRunSync()
+  }
+
+  test("with adapter") {
+    // Make an adapter that provides a 2-sample function based on the uri.
+    // This should be the same as the dataset above.
+    val adapter = new Adapter {
+      var t = -1.0
+      def getData(uri: URI, ops: Seq[Operation]): Data = {
+        t += 1
+        val u = uri.toString
+        SeqFunction(List(
+          Sample(DomainData(t), RangeData(u + t, t.toInt)),
+          Sample(DomainData(t + 0.5), RangeData(u + (t + 0.5), t.toInt))
+        ))
+      }
+    }
+    val ds = GranuleAppendDataset.withAdapter(id"myDataset", granuleList, model, adapter).value
+    ds.samples.compile.toList.map { ss =>
+      assert(6 == ss.length)
     }.unsafeRunSync()
   }
 }
