@@ -250,13 +250,17 @@ class GranuleAppendDatasetSuite extends AnyFunSuite {
     }.unsafeRunSync()
   }
 
-  test("error in granuleToDataset") {
-    val f: Sample => Dataset = (_: Sample) => throw new RuntimeException("Boom")
+  test("error in granuleToDataset skips granule") {
+    val f: Sample => Dataset = {
+      var cnt = -1
+      (sample: Sample) =>
+        cnt += 1
+        if (cnt == 1) throw new RuntimeException("Boom")
+        else granuleToDataset(sample)
+    }
     val ds = GranuleAppendDataset(id"myDataset", granuleList, model, f)
-    ds.samples.compile.toList.attempt.map {
-      inside(_) {
-        case Left(re: RuntimeException) => assert(re.getMessage == "Boom")
-      }
+    ds.samples.compile.toList.map { ss =>
+      assert(4 == ss.length)
     }.unsafeRunSync()
   }
 }
