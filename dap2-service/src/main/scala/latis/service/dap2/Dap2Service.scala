@@ -6,6 +6,7 @@ import cats.effect._
 import cats.syntax.all._
 import fs2.Stream
 import fs2.io.file.Files
+import fs2.io.file.{Path => FPath}
 import fs2.text
 import org.http4s.headers.`Content-Type`
 import org.http4s.HttpRoutes
@@ -89,9 +90,9 @@ class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4
       .map((_,`Content-Type`(MediaType.application.json)))
     case "nc"    =>
       (for {
-        tmpFile <- Stream.resource(Files[IO].tempFile(None))
-        file    <- new NetcdfEncoder(tmpFile.toFile()).encode(ds)
-        bytes   <- Files[IO].readAll(file.toPath(), 4096)
+        tmpFile <- Stream.resource(Files[IO].tempFile)
+        file    <- new NetcdfEncoder(tmpFile.toNioPath.toFile()).encode(ds)
+        bytes   <- Files[IO].readAll(FPath.fromNioPath(file.toPath()))
       } yield bytes).asRight.map((_, `Content-Type`(MediaType.application.`x-netcdf`)))
     case "txt"   => CsvEncoder().encode(ds).through(text.utf8.encode).asRight
       .map((_, `Content-Type`(MediaType.text.plain)))

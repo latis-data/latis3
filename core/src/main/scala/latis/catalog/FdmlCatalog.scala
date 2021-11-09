@@ -1,13 +1,12 @@
 package latis.catalog
 
 import java.net.URL
-import java.nio.file.Path
 import java.nio.file.Paths
 
 import cats.effect.IO
 import cats.syntax.all._
 import fs2.Stream
-import fs2.io.file.Files
+import fs2.io.file._
 
 import latis.dataset.Dataset
 import latis.input.fdml.FdmlReader
@@ -40,13 +39,13 @@ object FdmlCatalog {
     validate: Boolean = true
   ): IO[Catalog] =
     for {
-      url <- getResource(cl, path.toString())
+      url <- getResource(cl, path.toString)
       dir <- IO.fromEither(urlToPath(url))
       dss <- dirDatasetStream(dir, validate).compile.toVector
     } yield Catalog.fromFoldable(dss)
 
   private def dirDatasetStream(dir: Path, validate: Boolean): Stream[IO, Dataset] =
-    Files[IO].directoryStream(dir, "*.fdml").flatMap { f =>
+    Files[IO].list(dir, "*.fdml").flatMap { f =>
       // TODO: Log failures to read datasets.
       pathToDataset(f, validate).fold(_ => Stream.empty, Stream.emit)
     }
@@ -63,9 +62,9 @@ object FdmlCatalog {
 
   private def pathToDataset(path: Path, validate: Boolean): Either[Throwable, Dataset] =
     Either.catchNonFatal {
-      FdmlReader.read(path.toUri(), validate)
+      FdmlReader.read(path.toNioPath.toUri(), validate)
     }
 
   private def urlToPath(url: URL): Either[Throwable, Path] =
-    Either.catchNonFatal(Paths.get(url.toURI()))
+    Either.catchNonFatal(Path.fromNioPath(Paths.get(url.toURI())))
 }

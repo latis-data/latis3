@@ -1,15 +1,14 @@
 package latis.dataset
 
-import java.nio.file.Paths
-
 import cats.effect.unsafe.implicits.global
+import fs2.io.file.Path
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.Inside.inside
 
 import latis.catalog.FdmlCatalog
-import latis.data.Data._
 import latis.data._
+import latis.data.Data._
 import latis.dsl.ModelParser
 import latis.metadata.Metadata
 import latis.ops.Selection
@@ -21,7 +20,7 @@ class DatasetSpec extends AnyFlatSpec {
 
   val catalog = FdmlCatalog.fromClasspath(
     getClass().getClassLoader(),
-    Paths.get("datasets"),
+    Path("datasets"),
     validate = false
   ).unsafeRunSync()
 

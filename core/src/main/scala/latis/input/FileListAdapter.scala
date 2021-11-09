@@ -1,27 +1,25 @@
 package latis.input
 
 import java.net.URI
-import java.nio.file.{Files => JFiles}
-import java.nio.file.Path
 
 import scala.util.matching.Regex
 
 import cats.effect.IO
 import cats.syntax.all._
 import fs2.Stream
-import fs2.io.file.Files
+import fs2.io.file._
 
 import latis.data.Data
 import latis.data.RangeData
 import latis.data.Sample
+import latis.input.FileListAdapter.FileInfo
 import latis.model.DataType
 import latis.model.Function
 import latis.model.Scalar
 import latis.util.ConfigLike
+import latis.util.Identifier.IdentifierStringContext
 import latis.util.LatisException
 import latis.util.NetUtils
-import FileListAdapter.FileInfo
-import latis.util.Identifier.IdentifierStringContext
 
 /**
  * An adapter for creating datasets from directory listings.
@@ -73,7 +71,7 @@ class FileListAdapter(
   override def recordStream(uri: URI): Stream[IO, FileInfo] =
     for {
       root  <- Stream.fromEither[IO](NetUtils.getFilePath(uri))
-      files <- listFiles(root)
+      files <- listFiles(Path.fromNioPath(root))
     } yield files
 
   override def parseRecord(info: FileInfo): Option[Sample] =
@@ -98,7 +96,7 @@ class FileListAdapter(
    */
   private def listFiles(path: Path): Stream[IO, FileInfo] = {
     val files: Stream[IO, Path] =
-      Files[IO].walk(path).filter(JFiles.isRegularFile(_))
+      Files[IO].walk(path).evalFilter(Files[IO].isRegularFile(_))
 
     // Get the size if there is a variable named "size."
     model match {
@@ -138,8 +136,8 @@ class FileListAdapter(
     size: Option[Long]
   ): Either[LatisException, RangeData] = {
     val uri: URI = {
-      val fileUri = path.toUri
-      val baseUri = config.baseDir.map(_.toUri)
+      val fileUri = path.toNioPath.toUri
+      val baseUri = config.baseDir.map(_.toNioPath.toUri)
       baseUri.map(_.relativize(fileUri)).getOrElse(fileUri)
     }
 
@@ -220,7 +218,7 @@ object FileListAdapter extends AdapterFactory {
       baseDir <- cl.get("baseDir").traverse {
         NetUtils.parseUri(_).flatMap(NetUtils.getFilePath)
       }
-    } yield Config(pattern, columns, baseDir)
+    } yield Config(pattern, columns, baseDir.map(Path.fromNioPath))
 
     private def parseColumns(cols: String): Either[LatisException, List[List[Int]]] =
       Either.catchOnly[NumberFormatException] {
