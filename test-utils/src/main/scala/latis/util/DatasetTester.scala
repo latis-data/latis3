@@ -1,8 +1,5 @@
 package latis.util
 
-import java.nio.file.Path
-import java.nio.file.Paths
-
 import scala.concurrent.duration.DurationInt
 import scala.util.matching.Regex
 
@@ -12,7 +9,7 @@ import cats.effect.IOApp
 import cats.syntax.all._
 import fs2.text
 import fs2.Stream
-import fs2.io.file.Files
+import fs2.io.file._
 
 import latis.catalog.Catalog
 import latis.catalog.FdmlCatalog
@@ -37,7 +34,7 @@ class DatasetTester(catalog: Catalog) {
   /** Tests each line in the test data file. */
   def testFile(path: Path): Stream[IO, Boolean] =
     Files[IO]
-      .readAll(path, 4096)
+      .readAll(path)
       .through(text.utf8.decode)
       .through(text.lines)
       .filter(pattern.matches)
@@ -122,7 +119,7 @@ object DatasetTester extends IOApp {
 
   private lazy val catalog: IO[Catalog] = {
     val dir = LatisConfig.getOrElse("latis.fdml.dir", "datasets/fdml")
-    FdmlCatalog.fromDirectory(Paths.get(dir))
+    FdmlCatalog.fromDirectory(Path(dir))
   }
 
   def run(args: List[String]): IO[ExitCode] = {
@@ -131,7 +128,7 @@ object DatasetTester extends IOApp {
     // Make a stream of tests with console output baked in
     val tests = for {
       cat <- Stream.eval(catalog)
-      path = Paths.get(file)
+      path = Path(file)
       tests <- new DatasetTester(cat).testFile(path)
     } yield tests
 
