@@ -6,10 +6,8 @@ import cats.syntax.all._
 
 import latis.dataset.AdaptedDataset
 import latis.dataset.Dataset
-import latis.dataset.TappedDataset
+import latis.dataset.GranuleAppendDataset
 import latis.input.Adapter
-import latis.input.GranuleListAppendAdapter
-import latis.metadata.Metadata
 import latis.model._
 import latis.ops
 import latis.ops.UnaryOperation
@@ -50,31 +48,22 @@ object FdmlReader {
   private def readGranuleAppendFdml(
     fdml: GranuleAppendFdml
   ): Either[LatisException, Dataset] = for {
+    id         <- Either.fromOption(
+      fdml.metadata.getProperty("id").flatMap(Identifier.fromString),
+      LatisException("Invalid identifier")
+    )
     granules   <- readDatasetFdml(fdml.source.fdml)
     model      <- makeFunction(fdml.model)
+    adapter    <- makeAdapter(fdml.adapter, model)
     operations <- fdml.operations.traverse(makeOperation)
-    template   <- makeDatasetTemplate(fdml.adapter.nested, model, operations)
-    adapter     = new GranuleListAppendAdapter(granules, template)
-  } yield new TappedDataset(
-    fdml.metadata,
-    model,
-    adapter.getData(operations),
-    operations
-  )
-
-  private def makeDatasetTemplate(
-    adapter: FAdapter,
-    model: Function,
-    operations: List[UnaryOperation]
-  ): Either[LatisException, URI => Dataset] = for {
-    adapter <- makeAdapter(adapter, model)
-  } yield uri => new AdaptedDataset(
-    Metadata(),
-    model,
-    adapter,
-    uri,
-    operations
-  )
+    dataset    <- GranuleAppendDataset.withAdapter(
+                    id,
+                    granules,
+                    model,
+                    adapter,
+                    operations
+                  )
+  } yield dataset
 
   private def makeDataType(model: FModel): Either[LatisException, DataType] =
     model match {

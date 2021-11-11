@@ -50,10 +50,11 @@ object FdmlParser {
       LatisException("Expecting dataset element").asLeft
     } else ().asRight
 
-  // Assuming that this in a granule append FDML file if the "source"
-  // element has a "dataset" element.
-  private def isGranuleAppendFdml(xml: Elem): Boolean =
-    (xml \ "source" \ "dataset").nonEmpty
+  // Uses the dataset class to specify that this is a GranuleAppendDataset.
+  private def isGranuleAppendFdml(xml: Elem): Boolean = {
+    xml.attributes.asAttrMap.get("class")
+      .contains("latis.dataset.GranuleAppendDataset")
+  }
 
   private def parseDatasetFdml(
     xml: Elem
@@ -72,7 +73,7 @@ object FdmlParser {
   ): Either[LatisException, GranuleAppendFdml] = for {
     metadata   <- parseMetadata(xml).asRight
     source     <- parseFdmlSource(xml)
-    adapter    <- parseNestedAdapter(xml)
+    adapter    <- parseSingleAdapter(xml)
     function   <- findRootFunction(xml)
     model      <- parseFunction(function)
     exprs      <- parseProcessingInstructions(xml)
@@ -106,6 +107,7 @@ object FdmlParser {
     xml: Elem
   ): Either[LatisException, FdmlSource] =
     (xml \ "source").toList match {
+      //TODO: support ref to granule list dataset, not just fdml
       case elem :: Nil => (elem \ "dataset").toList match {
         case (elem: Elem) :: Nil => parseDatasetFdml(elem).map(FdmlSource(_))
         case _ :: _ => LatisException("Expecting a single dataset element").asLeft
@@ -127,19 +129,6 @@ object FdmlParser {
       } yield SingleAdapter(clss, attrs)
       case _ :: _ => LatisException("Expecting a single adapter").asLeft
       case _      => LatisException("Expecting adapter element").asLeft
-    }
-
-  private def parseNestedAdapter(
-    xml: Elem
-  ): Either[LatisException, NestedAdapter] =
-    (xml \ "adapter").toList match {
-      case (outer: Elem) :: Nil =>
-        for {
-          outerAdapter <- parseSingleAdapter(xml)
-          innerAdapter <- parseSingleAdapter(outer)
-        } yield NestedAdapter(outerAdapter.clss, outerAdapter.attributes, innerAdapter)
-      case _ :: _ => LatisException("Expecting a single nested adapter element").asLeft
-      case _      => LatisException("Expecting a nested adapter element").asLeft
     }
 
   private def findRootFunction(xml: Elem): Either[LatisException, Node] =

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<dataset id="granuleAppend">
+<dataset id="granuleAppend" class="latis.dataset.GranuleAppendDataset">
 
   <source>
     <dataset>
@@ -16,9 +16,7 @@
     </dataset>
   </source>
 
-  <adapter class="outer-class">
-    <adapter class="inner-class"/>
-  </adapter>
+  <adapter class="adapter-class"/>
 
   <function>
     <scalar id="time"
