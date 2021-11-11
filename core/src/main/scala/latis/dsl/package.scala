@@ -1,7 +1,5 @@
 package latis
 
-import java.nio.file.Paths
-
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import fs2.io.file.Files
