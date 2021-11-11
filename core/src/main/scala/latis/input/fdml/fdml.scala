@@ -24,7 +24,7 @@ final case class DatasetFdml(
 final case class GranuleAppendFdml(
   metadata: Metadata,
   source: FdmlSource,
-  adapter: NestedAdapter,
+  adapter: SingleAdapter,
   model: FFunction,
   operations: List[CExpr] = List.empty
 ) extends Fdml
@@ -59,16 +59,6 @@ sealed abstract class FAdapter(
 final case class SingleAdapter(
   clss: String,
   attributes: Map[String, String]
-) extends FAdapter(clss, attributes)
-
-/**
- * A nested adapter, where the outer adapter specifies how to join the
- * output of the inner adapter.
- */
-final case class NestedAdapter(
-  clss: String,
-  attributes: Map[String, String],
-  nested: SingleAdapter
 ) extends FAdapter(clss, attributes)
 
 /** Abstract representation of a dataset source. */

@@ -222,12 +222,8 @@ final class FdmlParserSpec extends AnyFlatSpec {
             }
           }
 
-          inside(adapter) { case NestedAdapter(clss, _, nested) =>
-            clss should equal ("outer-class")
-
-            inside(nested) { case SingleAdapter(clss, _) =>
-              clss should equal ("inner-class")
-            }
+          inside(adapter) { case SingleAdapter(clss, _) =>
+            clss should equal ("adapter-class")
           }
 
           inside(model) { case FFunction(domain, range, _) =>
