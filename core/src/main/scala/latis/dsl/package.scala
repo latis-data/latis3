@@ -63,8 +63,7 @@ package object dsl {
      */
     def show(): Unit = new TextEncoder()
       .encode(dataset)
-      .through(text.utf8.encode)
-      .through(OutputStreamWriter.unsafeFromOutputStream[IO](System.out).write)
+      .map(println)
       .compile
       .drain
       .unsafeRunSync()
