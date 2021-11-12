@@ -13,6 +13,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import latis.input.fdml.Fdml
 import latis.input.fdml.FdmlParser
 import latis.input.fdml.FdmlReader
+import latis.ops.Selection
 import latis.util.LatisException
 
 class GranuleAppendDatasetSuite extends AnyFunSuite {
@@ -50,7 +51,7 @@ class GranuleAppendDatasetSuite extends AnyFunSuite {
             <adapter class="latis.input.FileListAdapter"
                      pattern=".*file(\\d).csv"/>
             <function>
-              <scalar id="x" type="float"/>
+              <scalar id="x" type="float" binWidth="1"/>
               <scalar id="uri" type="string"/>
             </function>
           </dataset>
@@ -80,4 +81,20 @@ class GranuleAppendDatasetSuite extends AnyFunSuite {
     }.unsafeRunSync()
   }
 
+  test("selection with bin semantics") {
+    withGranules { dir =>
+      (for {
+        fdml <- makeFdml(dir)
+        ds   <- FdmlReader.read(fdml)
+      } yield {
+        val ops = List(
+          Selection.makeSelection("x > 1.5").value,
+          Selection.makeSelection("x < 2.5").value,
+        )
+        ds.withOperations(ops).samples.compile.toList.map { samples =>
+          assert(3 == samples.length) //1.8,2.0,2.4
+        }
+      }).value
+    }.unsafeRunSync()
+  }
 }
