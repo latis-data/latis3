@@ -2,9 +2,6 @@ package latis.dataset
 
 import java.net.URI
 
-import scala.util.Success
-import scala.util.Try
-
 import cats.effect.IO
 import cats.syntax.all._
 import fs2.Stream
@@ -80,8 +77,14 @@ class GranuleAppendDataset private (
       granuleList                           //start with granule list dataset
         .withOperations(listOps)            //add operations to granule list
         .samples                            //get samples, one for each granule
-        .map(s => Try(granuleToDataset(s))) //convert each sample to a dataset
-        .collect { case Success(ds) => ds } //drop broken granules
+        .map { s =>                         //convert each sample to a dataset
+          Either.catchNonFatal(granuleToDataset(s))
+            .leftMap { t =>
+              val msg = s"[WARN] Granule dropped for sample $s. ${t.getMessage}"
+              println(msg) //TODO: log
+            }
+        }
+        .collect { case Right(ds) => ds }   //keep only good granules
         .compile.toList                     //get the list of datasets from stream (in IO)
         .map(makeDataset)                   //combine the granules into a single dataset
         .map(_.withOperations(operations))  //add operations to dataset
