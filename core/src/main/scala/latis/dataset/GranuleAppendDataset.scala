@@ -80,7 +80,7 @@ class GranuleAppendDataset private (
         .map { s =>                         //convert each sample to a dataset
           Either.catchNonFatal(granuleToDataset(s))
             .leftMap { t =>
-              val msg = s"[WARN] Granule dropped for sample $s. ${t.getMessage}"
+              val msg = s"[WARN] Granule dropped for sample $s. $t"
               println(msg) //TODO: log
             }
         }

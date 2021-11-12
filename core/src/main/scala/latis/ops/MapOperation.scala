@@ -33,7 +33,7 @@ trait MapOperation extends StreamOperation { self =>
       stream.map { sample =>
         Either.catchNonFatal(f(sample))
           .leftMap { t =>
-            println(s"[WARN] Sample dropped. ${t.getMessage}") //TODO: log
+            println(s"[WARN] Sample dropped. $t") //TODO: log
           }
       }.collect {
         case Right(s) => s
