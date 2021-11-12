@@ -46,8 +46,13 @@ object FdmlCatalog {
 
   private def dirDatasetStream(dir: Path, validate: Boolean): Stream[IO, Dataset] =
     Files[IO].list(dir, "*.fdml").flatMap { f =>
-      // TODO: Log failures to read datasets.
-      pathToDataset(f, validate).fold(_ => Stream.empty, Stream.emit)
+      pathToDataset(f, validate).fold(
+        t => {
+          println(s"[WARN] Fdml dataset dropped: $f. ${t.getMessage}") //TODO: log
+          Stream.empty
+        },
+        Stream.emit
+      )
     }
 
   private def getResource(
