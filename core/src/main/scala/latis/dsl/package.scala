@@ -62,7 +62,7 @@ package object dsl {
      */
     def show(): Unit = new TextEncoder()
       .encode(dataset)
-      .map(println)
+      .map(print)
       .compile
       .drain
       .unsafeRunSync()
