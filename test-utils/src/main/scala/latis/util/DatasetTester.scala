@@ -119,7 +119,7 @@ object DatasetTester extends IOApp {
 
   private lazy val catalog: IO[Catalog] = {
     val dir = LatisConfig.getOrElse("latis.fdml.dir", "datasets/fdml")
-    FdmlCatalog.fromDirectory(Path(dir))
+    FdmlCatalog.fromDirectory(Path(dir), false)
   }
 
   def run(args: List[String]): IO[ExitCode] = {
