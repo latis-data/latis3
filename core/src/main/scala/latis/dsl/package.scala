@@ -12,7 +12,6 @@ import latis.dataset.Dataset
 import latis.input.DatasetReader
 import latis.ops._
 import latis.output.CsvEncoder
-import latis.output.OutputStreamWriter
 import latis.output.TextEncoder
 import latis.util.FileUtils
 import latis.util.Identifier
