@@ -1,7 +1,6 @@
 package latis.catalog
 
 import java.net.URL
-import java.nio.file.Paths
 
 import cats.effect.IO
 import cats.syntax.all._
@@ -71,5 +70,5 @@ object FdmlCatalog {
     }
 
   private def urlToPath(url: URL): Either[Throwable, Path] =
-    Either.catchNonFatal(Path.fromNioPath(Paths.get(url.toURI())))
+    Either.catchNonFatal(Path(url.getPath))
 }
