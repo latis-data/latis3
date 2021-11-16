@@ -48,9 +48,13 @@ object FdmlReader {
   private def readGranuleAppendFdml(
     fdml: GranuleAppendFdml
   ): Either[LatisException, Dataset] = for {
+    sid        <- Either.fromOption(
+      fdml.metadata.getProperty("id"),
+      LatisException("Missing identifier")
+    )
     id         <- Either.fromOption(
-      fdml.metadata.getProperty("id").flatMap(Identifier.fromString),
-      LatisException("Invalid identifier")
+      Identifier.fromString(sid),
+      LatisException(s"Invalid identifier: $sid")
     )
     granules   <- readDatasetFdml(fdml.source.fdml)
     model      <- makeFunction(fdml.model)
