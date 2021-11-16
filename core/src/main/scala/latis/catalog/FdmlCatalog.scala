@@ -47,7 +47,7 @@ object FdmlCatalog {
     Files[IO].list(dir, "*.fdml").flatMap { f =>
       pathToDataset(f, validate).fold(
         t => {
-          println(s"[WARN] Fdml dataset dropped: $f. $t") //TODO: log
+          Stream.eval(IO.println(s"[WARN] Fdml dataset dropped: $f. $t")) >> //TODO: log
           Stream.empty
         },
         Stream.emit

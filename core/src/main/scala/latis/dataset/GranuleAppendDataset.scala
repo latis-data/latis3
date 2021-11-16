@@ -80,9 +80,15 @@ class GranuleAppendDataset private (
         .map { s =>                         //convert each sample to a dataset
           Either.catchNonFatal(granuleToDataset(s))
             .leftMap { t =>
-              val msg = s"[WARN] Granule dropped for sample $s. $t"
-              println(msg) //TODO: log
+              val msg = s"Granule dropped for sample $s"
+              LatisException(msg, t)
             }
+        }
+        .evalTap {                          //log warning message
+          case Left(le) =>
+            val msg = s"[WARN] ${le.message}. ${le.cause}"
+            IO.println(msg) //TODO: log
+          case _ => IO.unit
         }
         .collect { case Right(ds) => ds }   //keep only good granules
         .compile.toList                     //get the list of datasets from stream (in IO)
