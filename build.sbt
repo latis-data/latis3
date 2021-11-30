@@ -14,15 +14,14 @@ val scalaTestVersion  = "3.2.10"
 
 lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
-    "org.typelevel" %% "cats-core"   % catsVersion,
-    "org.typelevel" %% "cats-effect" % catsEffectVersion,
-    "co.fs2"        %% "fs2-core"    % fs2Version,
-    "co.fs2"        %% "fs2-io"      % fs2Version,
-    "com.typesafe"   % "config"      % "1.4.1",
-    "org.scalatest" %% "scalatest"   % scalaTestVersion % Test,
-    "org.scalacheck" %% "scalacheck" % "1.15.4" % Test,
+    "org.typelevel"     %% "cats-core"       % catsVersion,
+    "org.typelevel"     %% "cats-effect"     % catsEffectVersion,
+    "co.fs2"            %% "fs2-core"        % fs2Version,
+    "co.fs2"            %% "fs2-io"          % fs2Version,
+    "com.typesafe"      % "config"           % "1.4.1",
+    "org.scalatest"     %% "scalatest"       % scalaTestVersion % Test,
+    "org.scalacheck"    %% "scalacheck"      % "1.15.4" % Test,
     "org.scalatestplus" %% "scalacheck-1-15" % "3.2.10.0" % Test
-
   ),
   Test / fork := true,
   scalacOptions -= "-Xfatal-warnings",
@@ -31,7 +30,7 @@ lazy val commonSettings = Seq(
     // else errors.
     if (insideCI.value) "-Wconf:cat=deprecation:w,any:e" else ""
   },
-  addCompilerPlugin("org.typelevel" % "kind-projector" % "0.13.2" cross CrossVersion.full)
+  addCompilerPlugin(("org.typelevel" % "kind-projector" % "0.13.2").cross(CrossVersion.full))
 )
 
 lazy val dockerSettings = Seq(
@@ -67,12 +66,12 @@ lazy val `aws-lambda` = project
   .settings(
     name := "latis3-aws-lambda",
     libraryDependencies ++= Seq(
-      "com.amazonaws"             % "aws-lambda-java-core"   % "1.2.1",
-      "com.amazonaws"             % "aws-lambda-java-events" % "3.10.0",
-      "com.amazonaws"             % "aws-lambda-java-log4j2" % "1.2.0" % Runtime,
-      "org.apache.logging.log4j"  % "log4j-core"             % log4jVersion,
-      "org.apache.logging.log4j"  % "log4j-slf4j-impl"       % log4jVersion % Runtime,
-      "org.typelevel"            %% "log4cats-slf4j"         % log4catsVersion
+      "com.amazonaws"            % "aws-lambda-java-core"   % "1.2.1",
+      "com.amazonaws"            % "aws-lambda-java-events" % "3.10.0",
+      "com.amazonaws"            % "aws-lambda-java-log4j2" % "1.2.0" % Runtime,
+      "org.apache.logging.log4j" % "log4j-core"             % log4jVersion,
+      "org.apache.logging.log4j" % "log4j-slf4j-impl"       % log4jVersion % Runtime,
+      "org.typelevel"            %% "log4cats-slf4j"        % log4catsVersion
     ),
     docker / imageNames := {
       Seq(ImageName(s"${organization.value}/latis3-lambda:${version.value}"))
@@ -119,7 +118,7 @@ lazy val `dap2-parser` = project
   .settings(
     name := "dap2-parser",
     libraryDependencies ++= Seq(
-      "org.tpolecat"   %% "atto-core"  % attoVersion,
+      "org.tpolecat"               %% "atto-core"                 % attoVersion,
       "com.github.alexarchambault" %% "scalacheck-shapeless_1.15" % "1.3.0" % Test
     )
   )
@@ -133,8 +132,8 @@ lazy val `dap2-service` = project
   .settings(
     name := "dap2-service-interface",
     libraryDependencies ++= Seq(
-      "org.http4s"     %% "http4s-core" % http4sVersion % Provided,
-      "org.http4s"     %% "http4s-dsl"  % http4sVersion % Provided
+      "org.http4s" %% "http4s-core" % http4sVersion % Provided,
+      "org.http4s" %% "http4s-dsl"  % http4sVersion % Provided
     )
   )
 
@@ -164,7 +163,7 @@ lazy val server = project
       "com.github.pureconfig" %% "pureconfig"             % pureconfigVersion,
       "com.github.pureconfig" %% "pureconfig-cats-effect" % pureconfigVersion,
       "org.typelevel"         %% "log4cats-slf4j"         % log4catsVersion,
-      "ch.qos.logback"         % "logback-classic"        % "1.2.6" % Runtime
+      "ch.qos.logback"        % "logback-classic"         % "1.2.6" % Runtime
     )
   )
 
@@ -201,10 +200,10 @@ lazy val netcdf = project
   .settings(
     name := "latis3-netcdf",
     libraryDependencies ++= Seq(
-      "edu.ucar"            % "netcdf4"          % netcdfVersion,
+      "edu.ucar" % "netcdf4" % netcdfVersion
     ),
     resolvers ++= Seq(
-      "Unidata" at "https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases"
+      "Unidata".at("https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases")
     )
   )
 
@@ -214,8 +213,8 @@ lazy val jdbc = project
   .settings(
     name := "latis3-jdbc",
     libraryDependencies ++= Seq(
-      "org.tpolecat"             %% "doobie-core" % "1.0.0-RC1",
-      "com.h2database"            % "h2"          % "1.4.200" % Test,
+      "org.tpolecat"   %% "doobie-core" % "1.0.0-RC1",
+      "com.h2database" % "h2"           % "2.0.202" % Test
     )
   )
 
@@ -226,5 +225,5 @@ lazy val `test-utils` = project
     name := "latis3-test-utils",
     libraryDependencies ++= Seq(
       "org.scalatest" %% "scalatest" % scalaTestVersion
-    ),
+    )
   )
