@@ -4,6 +4,8 @@ import java.net.URI
 
 import scala.util.matching.Regex
 
+import cats.Alternative
+import cats.Foldable
 import cats.effect.IO
 import cats.syntax.all._
 import fs2.Stream
@@ -87,16 +89,15 @@ class FileListAdapter(
     } yield Sample(domain, range)
 
   /**
-   * Produces a Stream of paths, optionally with the corresponding
-   * file size, for every file in the directory pointed to by `path`
-   * and its subdirectories.
+   * Produces a Stream of paths, lexicographically ordered and
+   * optionally with the corresponding file size, to files contained
+   * within `path` and its subdirectories.
    *
    * The size is only computed if there is a variable named "size" in
    * the model.
    */
   private def listFiles(path: Path): Stream[IO, FileInfo] = {
-    val files: Stream[IO, Path] =
-      Files[IO].walk(path).evalFilter(Files[IO].isRegularFile(_))
+    val files: Stream[IO, Path] = sortedWalk(path)
 
     // Get the size if there is a variable named "size."
     model match {
@@ -156,6 +157,55 @@ class FileListAdapter(
             sizeDatum <- Data.fromValue(sizeLong)
           } yield RangeData(uriDatum, sizeDatum)
       case _ => LatisException("Unsupported range").asLeft
+    }
+  }
+
+  /**
+   * Returns a lexicographically ordered stream of paths to files
+   * contained within `path` and its subdirectories.
+   *
+   * The directory tree is traversed as follows:
+   *
+   *  - If `path` is a regular file, return the corresponding path.
+   *  - If `path` is a directory, sort the contents, emit paths for
+   *    the regular files, then recurse into the directories.
+   */
+  private def sortedWalk(path: Path): Stream[IO, Path] = {
+
+    // Partitions a sequence of paths into a pair of sequences where
+    // the left sequence has paths representing directories and the
+    // right sequence has paths representing files.
+    def partition[F[_]: Alternative: Foldable](
+      paths: F[Path]
+    ): IO[(F[Path], F[Path])] =
+      paths.partitionEitherM { path =>
+        Files[IO]
+          .isDirectory(path)
+          .map {
+            case true  => path.asLeft
+            case false => path.asRight
+          }
+      }
+
+    Stream.eval {
+      Files[IO].getBasicFileAttributes(path, followLinks=false)
+    }.flatMap { attrs =>
+      if (attrs.isRegularFile) {
+        Stream.emit(path)
+      } else if (attrs.isDirectory) {
+        Stream.force {
+          Files[IO]
+            .list(path)
+            .compile
+            .toVector
+            .flatMap { paths =>
+              partition(paths.sortBy(_.toString)).map { case (dirs, files) =>
+                Stream.emits(files) ++
+                Stream.emits(dirs).flatMap(sortedWalk)
+              }
+            }
+        }
+      } else Stream.empty
     }
   }
 }
