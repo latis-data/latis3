@@ -9,7 +9,7 @@ import org.scalatest.EitherValues._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import ucar.ma2.{DataType => NcDataType}
-import ucar.nc2.NetcdfFile
+import ucar.nc2.NetcdfFiles
 
 import latis.data._
 import latis.dataset.MemoizedDataset
@@ -27,7 +27,7 @@ class NetcdfEncoderSpec extends AnyFlatSpec {
     val expectedFlux = Array(1.0, 2.5, 5.1e-2)
 
     val file   = enc.encode(time_series_1D).compile.toList.unsafeRunSync().head
-    val ncFile = NetcdfFile.open(file.getAbsolutePath)
+    val ncFile = NetcdfFiles.open(file.getAbsolutePath)
     try {
       val arrs    = ncFile.readArrays(ncFile.getVariables)
       val timeArr = arrs.get(0).getDataAsByteBuffer.asIntBuffer
@@ -49,7 +49,7 @@ class NetcdfEncoderSpec extends AnyFlatSpec {
     val expectedStr  = Array("foo", "bar", "baz")
 
     val file   = enc.encode(time_series_1D_multi_range).compile.toList.unsafeRunSync().head
-    val ncFile = NetcdfFile.open(file.getAbsolutePath)
+    val ncFile = NetcdfFiles.open(file.getAbsolutePath)
     try {
       ncFile.readSection("time").get1DJavaArray(NcDataType.INT) should be(expectedTime)
       ncFile.readSection("flag").get1DJavaArray(NcDataType.BYTE) should be(expectedFlag)
@@ -70,7 +70,7 @@ class NetcdfEncoderSpec extends AnyFlatSpec {
     val expectedFlux       = Array(1.0, 2.5, 1.2, 5.1e-2, 0.9, 2.1)
 
     val file   = enc.encode(time_series_2D).compile.toList.unsafeRunSync().head
-    val ncFile = NetcdfFile.open(file.getAbsolutePath)
+    val ncFile = NetcdfFiles.open(file.getAbsolutePath)
     try {
       ncFile.readSection("time").get1DJavaArray(NcDataType.INT) should be(expectedTime)
       ncFile.readSection("wavelength").get1DJavaArray(NcDataType.DOUBLE) should be(
@@ -92,7 +92,7 @@ class NetcdfEncoderSpec extends AnyFlatSpec {
     val expectedFlux       = Array(1.0, 2.5, 1.2, 5.1e-2, 0.9, 2.1, 0.9, 2.1)
 
     val file   = enc.encode(time_series_3D).compile.toList.unsafeRunSync().head
-    val ncFile = NetcdfFile.open(file.getAbsolutePath)
+    val ncFile = NetcdfFiles.open(file.getAbsolutePath)
     try {
       ncFile.readSection("time").get1DJavaArray(NcDataType.INT) should be(expectedTime)
       ncFile.readSection("wavelength").get1DJavaArray(NcDataType.DOUBLE) should be(
@@ -111,7 +111,7 @@ class NetcdfEncoderSpec extends AnyFlatSpec {
     val expectedMetadata = Metadata(id"dataset_with_metadata") + ("globalFoo" -> "globalBar") + ("history" -> "Uncurry()")
 
     val file   = enc.encode(dataset_with_metadata).compile.toList.unsafeRunSync().head
-    val ncFile = NetcdfFile.open(file.getAbsolutePath)
+    val ncFile = NetcdfFiles.open(file.getAbsolutePath)
     try {
       expectedMetadata.properties.foreach {
         case (k, v) => ncFile.findGlobalAttribute(k).getStringValue should be(v)
@@ -128,7 +128,7 @@ class NetcdfEncoderSpec extends AnyFlatSpec {
     val expectedFluxMetadata = Metadata(id"flux") + ("type" -> "double") + ("Foo" -> "Bar")
 
     val file   = enc.encode(dataset_with_metadata).compile.toList.unsafeRunSync().head
-    val ncFile = NetcdfFile.open(file.getAbsolutePath)
+    val ncFile = NetcdfFiles.open(file.getAbsolutePath)
     try {
       val timeVar = ncFile.findVariable("time")
       expectedTimeMetadata.properties.foreach {
