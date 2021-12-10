@@ -103,4 +103,15 @@ trait DataTypeAlgebra { dataType: DataType =>
   def findPath(id: Identifier): Option[SamplePath] =
     PathFinder.findPath(this, id)
 
+  /** Tests whether the predicate holds for at least one element of the model. */
+  def exists(p: DataType => Boolean): Boolean = {
+    def go(model: DataType): Boolean = {
+      if (p(model)) true else model match {
+        case _: Scalar      => false
+        case t: Tuple       => t.elements.exists(go)
+        case Function(d, r) => go(d) || go(r)
+      }
+    }
+    go(this)
+  }
 }
