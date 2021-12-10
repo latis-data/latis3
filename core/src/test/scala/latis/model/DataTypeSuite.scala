@@ -118,4 +118,17 @@ class DataTypeSuite extends AnyFunSuite {
     }
   }
 
+  //---- exists ----//
+
+  test("exists") {
+    assert(fWithTup.exists(_.isInstanceOf[Tuple]))
+  }
+
+  test("not exists") {
+    assert(! f.exists(_.isInstanceOf[Tuple]))
+  }
+
+  test("self exists") {
+    assert(f.exists(_.isInstanceOf[Function]))
+  }
 }
