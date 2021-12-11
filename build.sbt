@@ -27,9 +27,7 @@ lazy val commonSettings = Seq(
   Test / fork := true,
   scalacOptions -= "-Xfatal-warnings",
   scalacOptions += {
-    // Keep deprecation warnings as warnings, but make everything
-    // else errors.
-    if (insideCI.value) "-Wconf:cat=deprecation:w,any:e" else ""
+    if (insideCI.value) "-Wconf:any:e" else "-Wconf:any:w"
   },
   addCompilerPlugin("org.typelevel" % "kind-projector" % "0.13.2" cross CrossVersion.full)
 )
@@ -179,9 +177,7 @@ lazy val `service-interface` = project
     ),
     scalacOptions -= "-Xfatal-warnings",
     scalacOptions += {
-      // Keep deprecation warnings as warnings, but make everything
-      // else errors.
-      if (insideCI.value) "-Wconf:cat=deprecation:w,any:e" else ""
+      if (insideCI.value) "-Wconf:any:e" else "-Wconf:any:w"
     }
   )
 
@@ -206,7 +202,11 @@ lazy val netcdf = project
     ),
     resolvers ++= Seq(
       "Unidata" at "https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases"
-    )
+    ),
+    // Make deprecations non-fatal in CI.
+    scalacOptions ++= {
+      if (insideCI.value) Seq("-Wconf:cat=deprecation:w,any:e") else Seq()
+    }
   )
 
 lazy val jdbc = project
