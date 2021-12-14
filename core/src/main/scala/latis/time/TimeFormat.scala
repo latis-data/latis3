@@ -1,9 +1,9 @@
 package latis.time
 
-import java.text.SimpleDateFormat
-import java.util.Date
+import java.time._
+import java.time.format.DateTimeFormatter
+import java.time.temporal._
 import java.util.Locale
-import java.util.TimeZone
 
 import scala.util._
 
@@ -12,79 +12,75 @@ import cats.syntax.all._
 import latis.util.LatisException
 
 /**
- * TimeFormat support that is thread safe and assumes GMT time zone.
+ * Time parsing and formatting support.
+ *
+ * This wraps a thread-safe DateTimeFormatter. The formatting patterns are defined at
+ * https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html.
  */
-class TimeFormat(sdf: SimpleDateFormat) {
-  //TODO: look into java.time.format.DateTimeFormatter
+class TimeFormat private (format: String, dtf: DateTimeFormatter) {
+  //TODO: support 2-digit century start (default assumes 2000-2999)
 
-  def format(millis: Long): String = this.synchronized {
-    sdf.format(new Date(millis))
-  }
+  /** Formats the time given in epoch milliseconds. */
+  def format(millis: Long): String =
+    dtf.format(Instant.ofEpochMilli(millis))
 
-  def parse(string: String): Either[LatisException, Long] = this.synchronized {
-    Either.catchNonFatal(sdf.parse(string))
-      .map(_.getTime)
-      .leftMap {
-        val msg = s"Could not parse '$string' with the format $sdf"
-        LatisException(msg, _)
+  /** Parses the given time string as epoch milliseconds. */
+  def parse(string: String): Either[LatisException, Long] =
+    (for {
+      ta <- Either.catchNonFatal(dtf.parse(string))
+      ms <- Either.catchNonFatal(ta.query(TimeFormat.temporalQuery))
+    } yield ms).leftMap {
+      val msg = s"Could not parse '$string' with the format $format"
+      LatisException(msg, _)
     }
-  }
 
   /**
-   * Sets the 100-year period to be used to interpret 2-digit years.
-   * This time is expected to be an ISO 8601 time string
-   * representing the start of the 100-year period.
+   * Returns the format string.
    */
-  //TODO: pass as an optional constructor arg
-  def setCenturyStart(start: String): TimeFormat = {
-    TimeFormat.parseIso(start) match {
-      case Right(t) =>
-        sdf.set2DigitYearStart(new Date(t))
-      case Left(e) =>
-        throw e
-    }
-    this
-  }
-
-  /**
-   * Overrides toString to return the format string.
-   */
-  override def toString: String = sdf.toPattern
+  override def toString: String = format
 }
 
-//==============================================================================
 
 object TimeFormat {
 
+  /**
+   * Makes a TimeFormat for the given pattern as supported by
+   * java.time.format.DateTimeFormatter.
+   *
+   * This imposes the use of the US locale and GMT time zone.
+   */
   def fromExpression(format: String): Either[LatisException, TimeFormat] =
     Either.catchNonFatal {
-      val sdf = new SimpleDateFormat(format, Locale.ENGLISH)
-      sdf.setTimeZone(TimeZone.getTimeZone("GMT"))
-      sdf
-    }.map {
-      new TimeFormat(_)
+      DateTimeFormatter.ofPattern(format)
+        .withLocale(Locale.US)
+        .withZone(ZoneId.of("GMT"))
+    }.map { dtf =>
+      new TimeFormat(format, dtf)
     }.leftMap {
       val msg = s"Could not parse '$format' as a time format."
       LatisException(msg, _)
     }
 
+  /** Returns whether the given pattern is a valid time format. */
   def isValid(format: String): Boolean = fromExpression(format).isRight
 
   /**
-   * Provides a TimeFormat for the default ISO 8601 format.
+   * Provides a TimeFormat for the default ISO 8601 format:
+   * yyyy-MM-dd'T'HH:mm:ss.SSS'Z'.
    */
   val Iso: TimeFormat = TimeFormat.fromExpression("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     .fold(throw _, identity) //Should be safe
 
   /**
-   * Represents the given time in milliseconds as the
-   * default ISO 8601 time format.
+   * Formats the given time in epoch milliseconds in the
+   * default ISO 8601 time format: yyyy-MM-dd'T'HH:mm:ss.SSS'Z'.
    */
   def formatIso(millis: Long): String = Iso.format(millis)
 
   /**
-   * Provides a convenience method for parsing an arbitrary
-   * ISO 8601 time string. If this needs to be applied numerous times,
+   * Parses an arbitrary ISO 8601 time string as epoch milliseconds.
+   *
+   * If this needs to be applied numerous times,
    * e.g. for each sample of a dataset, it is recommended that a
    * TimeFormat object be created with fromIsoValue and reused.
    */
@@ -96,11 +92,32 @@ object TimeFormat {
 
   /**
    * Creates a TimeFormat from an ISO time value.
-   * This supports most common ISO 8601 representations
-   * not including weeks or time zones other than "Z".
+   *
+   * This supports the following ISO 8601 representations:
+   *
+   *   Date:
+   *   - yyyy
+   *   - yyyy-MM
+   *   - yyyyDDD
+   *   - yyyy-DDD
+   *   - yyyyMMdd
+   *   - yyyy-MM-dd
+   *
+   *   Time of day:
+   *   - HH
+   *   - HHmm
+   *   - HH:mm
+   *   - HHmmss
+   *   - HHmmss.SSS
+   *   - HH:mm:ss
+   *   - HH:mm:ss.SSS
+   *
+   *   with an optional "Z" time zone designator.
+   *
+   *   The data and time of day components must be delimited by a "T".
    */
   def fromIsoValue(value: String): Either[LatisException, TimeFormat] = {
-    (value.split("T") match {
+    (value.split("T") match { //TODO: or space? allowed in profile RFC 3339
       case Array(date) =>
         // No time component
         getDateFormatString(date)
@@ -112,52 +129,69 @@ object TimeFormat {
       case _ =>
         LatisException(s"Invalid TimeFormat: $value").asLeft
     }).flatMap {
-      TimeFormat.fromExpression(_)
+      TimeFormat.fromExpression
     }
-    //TODO: combine error messages if both time and date part fail
   }
 
   /**
-   * Matches the date portion of an ISO time to a format string.
+   * Converts the date portion of an ISO time to a format pattern.
    */
-  private def getDateFormatString(s: String): Either[LatisException, String] =
-    s.length match {
-      case 4 => Right("yyyy")
-      case 6 => Right("yyMMdd") //Note, yyyyMM is not ISO compliant
-      case 7 =>
-        if (s.contains("-")) Right("yyyy-MM")
-        else Right("yyyyDDD")
-      case 8 =>
-        if (s.contains("-")) Right("yyyy-DDD")
-        else Right("yyyyMMdd")
-      case 10 => Right("yyyy-MM-dd")
-      case _ =>
-        val msg = s"Failed to determine a date format for $s"
-        Left(new LatisException(msg))
+  private def getDateFormatString(s: String): Either[LatisException, String] = {
+    if      (s.matches(raw"\d{4}-\d{2}-\d{2}")) "yyyy-MM-dd".asRight
+    else if (s.matches(raw"\d{8}"))             "yyyyMMdd".asRight
+    else if (s.matches(raw"\d{7}"))             "yyyyDDD".asRight
+    else if (s.matches(raw"\d{4}-\d{3}"))       "yyyy-DDD".asRight
+    else if (s.matches(raw"\d{4}-\d{2}"))       "yyyy-MM".asRight
+    else if (s.matches(raw"\d{4}"))             "yyyy".asRight
+    else {
+      val msg = s"Failed to determine a date format for $s"
+      LatisException(msg).asLeft
     }
+  }
 
   /**
-   * Matches the time portion of an ISO time to a format string.
+   * Converts the time portion of an ISO time to a format pattern.
    */
   private def getTimeFormatString(s: String): Either[LatisException, String] = {
-    // Handle the "Z" time zone designation
-    val length = s.indexOf("Z") match {
-      case n: Int if (n != -1) => n
-      case _                   => s.length
-    }
+    // Strip off the optional "Z" time zone designation to add back later
+    val (s2, z) = if (s.endsWith("Z")) (s.dropRight(1), "'Z'") else (s, "")
 
-    length match {
-      case 0  => Right("")
-      case 2  => Right("HH")
-      case 4  => Right("HHmm")
-      case 5  => Right("HH:mm")
-      case 6  => Right("HHmmss")
-      case 8  => Right("HH:mm:ss")
-      case 12 => Right("HH:mm:ss.SSS")
-      case _ =>
-        val msg = s"Failed to determine a time format for $s"
-        Left(new LatisException(msg))
-    }
+    (if     (s2.matches(raw"\d{2}:\d{2}:\d{2}\.\d{3}")) "HH:mm:ss.SSS".asRight
+    else if (s2.matches(raw"\d{2}:\d{2}:\d{2}"))        "HH:mm:ss".asRight
+    else if (s2.matches(raw"\d{6}\.\d{3}"))             "HHmmss.SSS".asRight
+    else if (s2.matches(raw"\d{6}"))                    "HHmmss".asRight
+    else if (s2.matches(raw"\d{2}:\d{2}"))              "HH:mm".asRight
+    else if (s2.matches(raw"\d{4}"))                    "HHmm".asRight
+    else if (s2.matches(raw"\d{2}"))                    "HH".asRight
+    else {
+      val msg = s"Failed to determine a time format for $s"
+      LatisException(msg).asLeft
+    }).map(_ + z) //add optional Z back on
   }
 
+  /**
+   * Defines a TemporalQuery for extracting epoch milliseconds from a
+   * TemporalAccessor resulting from a DateTimeFormatter parse.
+   */
+  private val temporalQuery = new TemporalQuery[Long] {
+    def queryFrom(ta: TemporalAccessor): Long = {
+      val milliOfDay = if (ta.isSupported(ChronoField.MILLI_OF_DAY)) {
+        ta.getLong(ChronoField.MILLI_OF_DAY)
+      } else 0L
+
+      val days = if (ta.isSupported(ChronoField.EPOCH_DAY)) {
+        ta.getLong(ChronoField.EPOCH_DAY)
+      } else if (ta.isSupported(ChronoField.MONTH_OF_YEAR)) {
+        val year  = ta.get(ChronoField.YEAR)
+        val month = ta.get(ChronoField.MONTH_OF_YEAR)
+        LocalDate.of(year, month, 1).getLong(ChronoField.EPOCH_DAY)
+      } else if (ta.isSupported(ChronoField.YEAR)) {
+        val year = ta.get(ChronoField.YEAR)
+        LocalDate.of(year, 1, 1).getLong(ChronoField.EPOCH_DAY)
+      } else throw new DateTimeException("Failed to query TemporalAccessor")
+
+      days * 86400000L + milliOfDay
+    }
+  }
 }
+
