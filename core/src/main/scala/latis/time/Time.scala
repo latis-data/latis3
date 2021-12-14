@@ -58,36 +58,33 @@ class Time protected (
   /**
    * Overrides value conversion to support formatted time strings.
    *
-   * This will try to interpret the value in this Time's units (numeric or format)
-   * or then as an ISO string.
+   * This will try to interpret the value as an ISO string before
+   * resorting to parseValue which interprets the data in native units.
    *
    * This method is intended for lightweight use such as parsing time selections.
    * Construct a reusable TimeFormat or UnitConverter for bigger conversion tasks.
    */
-  override def convertValue(value: String): Either[Exception, Datum] =
-    (valueType match {
-      case StringValueType =>
-        //Try to match this Time's format or else ISO
-        val format = timeFormat.get //safe since this has type string
-        format.parse(value)
-          .recoverWith(_ => TimeFormat.parseIso(value))
-          .map(t => Data.StringValue(format.format(t)))
-      case _ =>
-        //Try to interpret as this value type then as ISO.
-        super.parseValue(value)
-          .recoverWith { _ =>
-            TimeFormat.parseIso(value).flatMap { t =>
-              val t2 = UnitConverter(TimeScale.Default, timeScale)
-                .convert(t.toDouble)
-              Either.fromOption(
-                valueType.convertDouble(t2),
-                LatisException(s"Failed to convert time value: $value")
-              )
-            }
-          }
-    }).leftMap { le =>
-      LatisException(s"Failed to interpret time value: $value", le)
+  override def convertValue(value: String): Either[Exception, Datum] = {
+    TimeFormat.parseIso(value).flatMap { ms =>
+      // Interpreted as ISO
+      valueType match {
+        case StringValueType =>
+          // Convert to this Time's format
+          val format = timeFormat.get //safe since this has type string
+          Data.StringValue(format.format(ms)).asRight
+        case _ =>
+          // Convert to this Time's numeric units
+          val t = UnitConverter(TimeScale.Default, timeScale).convert(ms.toDouble)
+          Either.fromOption(
+            valueType.convertDouble(t),
+            LatisException(s"Failed to convert time value: $value")
+          )
+      }
+    }.recoverWith { _ =>
+      // Parse assuming native units
+      parseValue(value)
     }
+  }
 
 }
 

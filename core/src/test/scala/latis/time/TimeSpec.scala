@@ -26,40 +26,53 @@ class TimeSpec extends AnyFlatSpec {
       "units" -> "seconds since 2000-01-01"
     )
   ).value
-      
-  
-  "A numeric time" should "convert a string to a number" in {
-    //Note that this is interpreted as a number rather than ISO yyMMdd
-    inside(numericTime.convertValue("864000")) {
+
+
+  "A numeric time" should "convert an ISO string to a number" in {
+    // Note that this is interpreted as ISO year 2000
+    inside(numericTime.convertValue("2000")) {
       case Right(d: Data.DoubleValue) =>
-        d.value should be (864000D)
+        d.value should be (0)
     }
   }
 
-  "A numeric time" should "convert an ISO time" in {
-    //Note that this fails the numeric check then tries ISO
-    inside(numericTime.convertValue("2000-001")) {
+  it should "convert a non-ISO string to a number" in {
+    // Note that this is interpreted as a number since it is not valid ISO
+    inside(numericTime.convertValue("12345")) {
       case Right(d: Data.DoubleValue) =>
-        d.value should be (0D)
+        d.value should be (12345)
     }
   }
 
-  "A formatted time" should "convert a time with matching format" in {
-    //Note that this uses the time's format rather than ISO
+  "A formatted time" should "convert an ISO time" in {
+    inside(formattedTime.convertValue("2000001")) {
+      case Right(d: Data.StringValue) =>
+        d.value should be("Jan 01, 2000")
+    }
+  }
+
+  it should "convert a non-ISO time with native format" in {
+    // Note that this uses the time's format since it is not valid ISO
     inside(formattedTime.convertValue("Jan 01, 2000")) {
       case Right(d: Data.StringValue) =>
         d.value should be("Jan 01, 2000")
     }
   }
 
-  "A formatted time" should "convert a numeric looking ISO time" in {
-    //Note that this fails to match the current format then tries ISO.
-    //Seven digits are interpreted as yyyyDDD.
-    inside(formattedTime.convertValue("2000001")) {
+  "An ambiguously formatted time" should "be interpreted as ISO first" in {
+    val time: Time = Time.fromMetadata(
+      Metadata(
+        "id"    -> "time",
+        "type"  -> "string",
+        "units" -> "ddMMyyyy"
+      )
+    ).value
+    inside(time.convertValue("19990102")) {
       case Right(d: Data.StringValue) =>
-        d.value should be("Jan 01, 2000")
+        d.value should be("02011999")
     }
   }
+
   
   "Time ordering" should "compare two formatted time values" in {
     formattedTime.ordering.tryCompare("Jan 01, 2000", "Feb 01, 2000") should be (Some(-1))
