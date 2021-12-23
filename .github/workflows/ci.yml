@@ -7,9 +7,9 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - uses: olafurpg/setup-scala@v10
+      - uses: coursier/setup-action@v1
         with:
-          java-version: adopt@1.8
+          jvm: adopt:8
       - uses: coursier/cache-action@v6
       - name: Update package lists
         run: sudo apt-get update
