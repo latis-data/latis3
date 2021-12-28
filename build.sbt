@@ -4,11 +4,11 @@ ThisBuild / scalaVersion := "2.13.7"
 val attoVersion       = "0.9.5"
 val catsVersion       = "2.7.0"
 val catsEffectVersion = "3.3.1"
-val fs2Version        = "3.2.3"
+val fs2Version        = "3.2.4"
 val http4sVersion     = "0.23.7"
 val log4catsVersion   = "2.1.1"
-val log4jVersion      = "2.17.0"
-val netcdfVersion     = "5.5.1"
+val log4jVersion      = "2.17.1"
+val netcdfVersion     = "5.4.2"
 val pureconfigVersion = "0.17.1"
 val scalaTestVersion  = "3.2.10"
 
@@ -27,9 +27,7 @@ lazy val commonSettings = Seq(
   Test / fork := true,
   scalacOptions -= "-Xfatal-warnings",
   scalacOptions += {
-    // Keep deprecation warnings as warnings, but make everything
-    // else errors.
-    if (insideCI.value) "-Wconf:cat=deprecation:w,any:e" else ""
+    if (insideCI.value) "-Wconf:any:e" else "-Wconf:any:w"
   },
   addCompilerPlugin("org.typelevel" % "kind-projector" % "0.13.2" cross CrossVersion.full)
 )
@@ -179,9 +177,7 @@ lazy val `service-interface` = project
     ),
     scalacOptions -= "-Xfatal-warnings",
     scalacOptions += {
-      // Keep deprecation warnings as warnings, but make everything
-      // else errors.
-      if (insideCI.value) "-Wconf:cat=deprecation:w,any:e" else ""
+      if (insideCI.value) "-Wconf:any:e" else "-Wconf:any:w"
     }
   )
 
@@ -206,7 +202,11 @@ lazy val netcdf = project
     ),
     resolvers ++= Seq(
       "Unidata" at "https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases"
-    )
+    ),
+    // Make deprecations non-fatal in CI.
+    scalacOptions ++= {
+      if (insideCI.value) Seq("-Wconf:cat=deprecation:w,any:e") else Seq()
+    }
   )
 
 lazy val jdbc = project
@@ -216,7 +216,7 @@ lazy val jdbc = project
     name := "latis3-jdbc",
     libraryDependencies ++= Seq(
       "org.tpolecat"             %% "doobie-core" % "1.0.0-RC1",
-      "com.h2database"            % "h2"          % "2.0.202" % Test
+      "com.h2database"            % "h2"          % "2.0.204" % Test
     )
   )
 
