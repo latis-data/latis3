@@ -31,7 +31,7 @@ trait ScalarAlgebra { scalar: Scalar =>
     }
 
   /**
-   * Returns a string representation of the given Data based on this DataType.
+   * Returns a string representation of the given Data based on this Scalar.
    *
    * This should be used to get a string representation of a Datum
    * instead of Datum.asString so properties of the Scalar, such as
@@ -44,6 +44,19 @@ trait ScalarAlgebra { scalar: Scalar =>
       case (NullData, _)      => "null"
       case _ => "error" //Tuple and Function data should not show up here
     }
+
+  /**
+   * Returns a Double representation of the given Data based on this Scalar.
+   *
+   * Note that the default numeric type (e.g. for math) is Double.
+   *
+   * This assumes that the given data is a valid member of this Scalar's
+   * ValueType. Invalid data will result in a NaN.
+   */
+  def valueAsDouble(data: Data): Double = data match {
+    case Number(v) => v
+    case _         => Double.NaN
+  }
 
   /**
    * Converts a string value into the appropriate type and units
