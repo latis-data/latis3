@@ -4,6 +4,7 @@ import cats.syntax.all._
 
 import latis.data.Data
 import latis.data.Datum
+import latis.data.Text
 import latis.metadata.Metadata
 import latis.model.Scalar
 import latis.model.ScalarFactory
@@ -86,6 +87,19 @@ class Time protected (
     }
   }
 
+  /**
+   * Overrides numeric conversion to handle formatted time strings.
+   *
+   * This assumes that the given data is valid for this Time.
+   * Invalid data will result in a NaN.
+   */
+  override def valueAsDouble(data: Data): Double = valueType match {
+    case StringValueType => data match {
+      case Text(s) => timeFormat.get.parse(s).fold(_ => Double.NaN, _.toDouble)
+      case _       => Double.NaN
+    }
+    case _ => super.valueAsDouble(data)
+  }
 }
 
 object Time extends ScalarFactory {
