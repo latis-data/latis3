@@ -6,6 +6,7 @@ import org.scalatest.EitherValues._
 import latis.data.Data
 import latis.metadata.Metadata
 import latis.model.Scalar
+import latis.time.Time
 import latis.util.dap2.parser.ast
 
 class SelectionSuite extends AnyFunSuite {
@@ -125,5 +126,33 @@ class SelectionSuite extends AnyFunSuite {
   test("bin lteq after") {
     val value = Data.DoubleValue(2.5)
     assert(Selection.datumPredicateWithBinning(binnedScalar, ast.LtEq, value)(datum))
+  }
+
+  //-- Time selection with bin semantics --//
+
+  private lazy val binnedNumericTime = Time.fromMetadata(Metadata(
+    "id"       -> "time",
+    "type"     -> "double",
+    "units"    -> "seconds since 2000-01-01",
+    "binWidth" -> "1" //seconds, matching units
+  )).value
+
+  private lazy val binnedNonIsoFormattedTime: Time = Time.fromMetadata(Metadata(
+    "id"       -> "time",
+    "type"     -> "string",
+    "units"    -> "MMM dd, yyyy",
+    "binWidth" -> "100000000" //ms, native time units
+  )).value
+
+  test("binnedNumericTime eq in bin") {
+    val datum = Data.DoubleValue(2.0)
+    val value = Data.DoubleValue(2.5)
+    assert(Selection.datumPredicateWithBinning(binnedNumericTime, ast.Eq, value)(datum))
+  }
+
+  test("binnedNonIsoFormattedTime eq in bin") {
+    val datum = Data.StringValue("Jan 01, 1970")
+    val value = Data.StringValue("Jan 02, 1970")
+    assert(Selection.datumPredicateWithBinning(binnedNonIsoFormattedTime, ast.Eq, value)(datum))
   }
 }
