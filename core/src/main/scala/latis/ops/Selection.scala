@@ -34,9 +34,6 @@ case class Selection(id: Identifier, operator: ast.SelectionOp, value: String) e
   //TODO: allow value to have units
   //TODO: support matches (=~)
   //TODO: support bounds variable (as opposed to fixed binWidth)
-  //TODO: support bins for string Time variables
-  //      generic asDouble akin to format as string?
-  //      avoid special time logic here
 
   // Get the target Scalar. //TODO: do during smart construction with model
   def getScalar(model: DataType): Either[LatisException, Scalar] = model.findVariable(id) match {
@@ -136,10 +133,9 @@ object Selection {
       .flatMap(_.toDoubleOption)
       .getOrElse(throw LatisException("Invalid binWidth"))
 
-    (datum: Datum) =>  datum match {
-      case Number(d) => Bounds.of(d, d + w).get //TODO: enforce w > 0
-      //TODO: support string Times
-      case _ => throw LatisException("Selection with bins expects numeric data")
+    (datum: Datum) => {
+      val d = scalar.valueAsDouble(datum)
+      Bounds.of(d, d + w).get //TODO: enforce w > 0
     }
   }
 
@@ -153,11 +149,7 @@ object Selection {
     value: Datum
   ): Datum => Boolean = {
     // Interpret the selection value as a double
-    val dvalue: Double = value match {
-      case Number(v) => v
-      //TODO: support string time, ms since 1970
-      case _ => throw LatisException("Selection with bins expects numeric value")
-    }
+    val dvalue: Double = scalar.valueAsDouble(value)
 
     // Make function to get Bounds for a given data value
     val bounder: Datum => Bounds[Double] = makeBounder(scalar)
