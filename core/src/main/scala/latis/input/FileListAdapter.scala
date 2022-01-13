@@ -4,8 +4,7 @@ import java.net.URI
 
 import scala.util.matching.Regex
 
-import cats.Alternative
-import cats.Foldable
+import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.syntax.all._
 import fs2.Stream
@@ -27,12 +26,15 @@ import latis.util.NetUtils
  * An adapter for creating datasets from directory listings.
  *
  * This adapter produces datasets of the form `(s,,1,,, ..., s,,N,,) →
- * uri` or `(s,,1,,, ..., s,,N,,) → (uri, size)` given a regular
- * expression with `N` capture groups. This regular expression is
- * recursively applied to the paths of files within the directory
- * given to [[getData]]. The groups are used to populate the
- * corresponding scalars. Paths that do not match or have too few
- * groups are silently ignored.
+ * uri` or `(s,,1,,, ..., s,,N,,) → (uri, size)` given a sequence of
+ * regular expressions with a total of `N` capture groups between
+ * them. Capture groups can appear in any of the regular expressions.
+ *
+ * The sequence of regular expressions selects paths from the root of
+ * a directory tree (specified by the URI given to [[getData]]) to
+ * files. Paths that do not match are not traversed. A directory tree
+ * with files at depth `N` requires a sequence of `N` regular
+ * expressions.
  *
  * The scalars `s,,1,,, ..., s,,N,,` are mapped to capture groups in
  * the given regular expression using the `columns` configuration key.
@@ -97,7 +99,7 @@ class FileListAdapter(
    * the model.
    */
   private def listFiles(path: Path): Stream[IO, FileInfo] = {
-    val files: Stream[IO, Path] = sortedWalk(path)
+    val files: Stream[IO, Path] = smartWalk(path, config.pattern)
 
     // Get the size if there is a variable named "size."
     model match {
@@ -114,10 +116,20 @@ class FileListAdapter(
    * joining the matches as specified by `config.columns`.
    */
   private def extractValues(path: Path): List[String] = {
-    val groups: List[String] =
-      config.pattern.findFirstMatchIn(path.toString)
-        .map(_.subgroups)
-        .getOrElse(List.empty)
+    val groups: List[String] = {
+      val segments = {
+        // This is a hack to get around the fact that we can't access
+        // the root from parseRecord, which is ultimately what calls
+        // this method. Otherwise we'd just use the root and figure
+        // out the relative path.
+        val nSegmentsToKeep = config.pattern.length
+        path.names.map(_.toString).takeRight(nSegmentsToKeep)
+      }
+
+      config.pattern.toList.zip(segments).flatMap { case (regex, segment) =>
+        regex.findFirstMatchIn(segment).map(_.subgroups).getOrElse(List.empty)
+      }
+    }
 
     config.columns.map { ci =>
       if (groups.length > ci.flatten.max) {
@@ -162,51 +174,40 @@ class FileListAdapter(
 
   /**
    * Returns a lexicographically ordered stream of paths to files
-   * contained within `path` and its subdirectories.
-   *
-   * The directory tree is traversed as follows:
-   *
-   *  - If `path` is a regular file, return the corresponding path.
-   *  - If `path` is a directory, sort the contents, emit paths for
-   *    the regular files, then recurse into the directories.
+   * selected by `pattern`.
    */
-  private def sortedWalk(path: Path): Stream[IO, Path] = {
-
-    // Partitions a sequence of paths into a pair of sequences where
-    // the left sequence has paths representing directories and the
-    // right sequence has paths representing files.
-    def partition[F[_]: Alternative: Foldable](
-      paths: F[Path]
-    ): IO[(F[Path], F[Path])] =
-      paths.partitionEitherM { path =>
-        Files[IO]
-          .isDirectory(path)
-          .map {
-            case true  => path.asLeft
-            case false => path.asRight
-          }
-      }
-
-    Stream.eval {
-      Files[IO].getBasicFileAttributes(path, followLinks=false)
-    }.flatMap { attrs =>
-      if (attrs.isRegularFile) {
-        Stream.emit(path)
-      } else if (attrs.isDirectory) {
-        Stream.force {
-          Files[IO]
+  private def smartWalk(
+    path: Path,
+    pattern: NonEmptyList[Regex]
+  ): Stream[IO, Path] = {
+    def go(path: Path, pattern: List[Regex]): Stream[IO, Path] =
+      pattern match {
+        case head :: Nil =>
+          // We are looking for files that match.
+          val matchingFiles = Files[IO]
             .list(path)
+            .evalFilter(Files[IO].isRegularFile)
+            .filter(path => head.matches(path.fileName.toString))
             .compile
             .toVector
-            .flatMap { paths =>
-              partition(paths.sortBy(_.toString)).map { case (dirs, files) =>
-                Stream.emits(files) ++
-                Stream.emits(dirs).flatMap(sortedWalk)
-              }
-            }
-        }
-      } else Stream.empty
-    }
+
+          Stream.evals(matchingFiles.map(_.sortBy(_.toString)))
+        case head :: rest =>
+          // We are looking for directories that match.
+          val matchingDirs = Files[IO]
+            .list(path)
+            .evalFilter(Files[IO].isDirectory)
+            .filter(path => head.matches(path.fileName.toString))
+            .compile
+            .toVector
+
+          Stream
+            .evals(matchingDirs.map(_.sortBy(_.toString)))
+            .flatMap(go(_, rest))
+        case Nil => Stream.empty
+      }
+
+    go(path, pattern.toList)
   }
 }
 
@@ -240,7 +241,7 @@ object FileListAdapter extends AdapterFactory {
    * @param baseDir path to relativize file paths against
    */
   final case class Config(
-    pattern: Regex,
+    pattern: NonEmptyList[Regex],
     columns: Option[List[List[Int]]],
     baseDir: Option[Path]
   )
@@ -251,9 +252,11 @@ object FileListAdapter extends AdapterFactory {
      *
      * Handles the following configuration keys:
      *
-     *  - `pattern`: A required regular expression string. The regular
-     *    expression should have `N` capture groups for `N` scalars in
-     *    the domain.
+     *  - `pattern`: A required string containing a sequence of
+     *    regular expressions delimited by forward slashes. A
+     *    directory tree with files at depth `M` must have `M` regular
+     *    expressions. The entire string must have a total of `N`
+     *    capture groups for `N` scalars in the domain.
      *  - `columns`: An optional string of zero-based indices
      *    separated by semicolons or commas. See [[FileListAdapter]]
      *    for a more detailed description.
@@ -261,9 +264,9 @@ object FileListAdapter extends AdapterFactory {
      *    returned by this adapter will be relativized against.
      */
     def fromConfigLike(cl: ConfigLike): Either[LatisException, Config] = for {
-      pattern <- cl.get("pattern").map(_.r).toRight {
+      pattern <- cl.get("pattern").toRight {
         LatisException("Adapter requires a pattern definition")
-      }
+      }.flatMap(parsePattern)
       columns <- cl.get("columns").traverse(parseColumns)
       baseDir <- cl.get("baseDir").traverse {
         NetUtils.parseUri(_).flatMap(NetUtils.getFilePath)
@@ -276,5 +279,11 @@ object FileListAdapter extends AdapterFactory {
       }.leftMap {
         new LatisException("Column specification must contain only numbers", _)
       }
+
+    private def parsePattern(
+      str: String
+    ): Either[LatisException, NonEmptyList[Regex]] =
+      NonEmptyList.fromList(str.split("/").toList.map(_.r))
+        .toRight(LatisException(s"Failed to construct pattern from: $str"))
   }
 }
