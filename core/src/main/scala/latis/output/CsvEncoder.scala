@@ -21,8 +21,8 @@ class CsvEncoder(header: Dataset => Stream[IO, String]) extends Encoder[IO, Stri
   override def encode(dataset: Dataset): Stream[IO, String] = {
     val uncurriedDataset = dataset.withOperation(Uncurry())
     // Encode each Sample as a String in the Stream
-    header(dataset).map(_ + "\n") ++ uncurriedDataset.samples
-      .map(encodeSample(uncurriedDataset.model, _) + "\n")
+    header(dataset).map(_ + "\r\n") ++ uncurriedDataset.samples
+      .map(encodeSample(uncurriedDataset.model, _) + "\r\n")
   }
 
   /**
