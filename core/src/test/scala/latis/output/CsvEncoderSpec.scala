@@ -18,7 +18,7 @@ class CsvEncoderSpec extends AnyFlatSpec {
       "0,0,0.0,a",
       "1,1,1.0,b",
       "2,2,2.0,c"
-    ).map(_ + "\n")
+    ).map(_ + "\r\n")
     csvList should be(expectedCsv)
   }
 
@@ -26,14 +26,14 @@ class CsvEncoderSpec extends AnyFlatSpec {
     val enc            = CsvEncoder.withColumnName
     val csvList        = enc.encode(ds).compile.toList.unsafeRunSync()
     val expectedHeader = "x,a,b,c"
-    csvList.head should be(expectedHeader + "\n")
+    csvList.head should be(expectedHeader + "\r\n")
 
     val expectedCsv = List(
       expectedHeader,
       "0,0,0.0,a",
       "1,1,1.0,b",
       "2,2,2.0,c"
-    ).map(_ + "\n")
+    ).map(_ + "\r\n")
     csvList should be (expectedCsv)
   }
 }
