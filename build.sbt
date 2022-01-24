@@ -21,7 +21,7 @@ lazy val commonSettings = Seq(
     "com.typesafe"   % "config"      % "1.4.1",
     "org.scalatest" %% "scalatest"   % scalaTestVersion % Test,
     "org.scalacheck" %% "scalacheck" % "1.15.4" % Test,
-    "org.scalatestplus" %% "scalacheck-1-15" % "3.2.10.0" % Test
+    "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test
 
   ),
   Test / fork := true,
