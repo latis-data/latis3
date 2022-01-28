@@ -62,3 +62,7 @@ class BinaryEncoder(val dataCodec: Scalar => Codec[Data] = DataCodec.defaultData
     codecOfList(domainList) ~ codecOfList(rangeList)
   }
 }
+
+object BinaryEncoder {
+  def apply(): BinaryEncoder = new BinaryEncoder()
+}
