@@ -5,9 +5,11 @@ import org.scalatest.EitherValues._
 
 import latis.data.Data
 import latis.metadata.Metadata
+import latis.model.BooleanValueType
 import latis.model.Scalar
 import latis.time.Time
 import latis.util.dap2.parser.ast
+import latis.util.Identifier.IdentifierStringContext
 
 class SelectionSuite extends AnyFunSuite {
   //TODO: test regular selections...
@@ -154,5 +156,35 @@ class SelectionSuite extends AnyFunSuite {
     val datum = Data.StringValue("Jan 01, 1970")
     val value = Data.StringValue("Jan 02, 1970")
     assert(Selection.datumPredicateWithBinning(binnedNonIsoFormattedTime, ast.Eq, value)(datum))
+  }
+
+  //-- Boolean selection --//
+
+  private val boolean = Scalar(id"b", BooleanValueType)
+  private val trueDatum  = Data.BooleanValue(true)
+  private val falseDatum = Data.BooleanValue(false)
+
+  test("true equals") {
+    assert(Selection.datumPredicate(boolean, ast.Eq, trueDatum)(trueDatum))
+  }
+
+  test("false equals") {
+    assert(Selection.datumPredicate(boolean, ast.Eq, falseDatum)(falseDatum))
+  }
+
+  test("false less than true") {
+    assert(Selection.datumPredicate(boolean, ast.Lt, trueDatum)(falseDatum))
+  }
+
+  test("true greater than false") {
+    assert(Selection.datumPredicate(boolean, ast.Gt, falseDatum)(trueDatum))
+  }
+
+  test("false not equal true") {
+    assert(! Selection.datumPredicate(boolean, ast.Eq, trueDatum)(falseDatum))
+  }
+
+  test("true not equal false") {
+    assert(! Selection.datumPredicate(boolean, ast.Eq, falseDatum)(trueDatum))
   }
 }
