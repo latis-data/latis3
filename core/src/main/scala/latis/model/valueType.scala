@@ -55,7 +55,7 @@ object BooleanValueType extends ValueType {
 
   def parseValue(value: String): Either[LatisException, Datum] = Try {
     BooleanValue(value.toBoolean)
-  }.toEither.leftMap { _ => LatisException(s"Failed to parse IntValue: $value") }
+  }.toEither.leftMap { _ => LatisException(s"Failed to parse BooleanValue: $value") }
 
   override def toString: String = "boolean"
 }
