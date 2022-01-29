@@ -10,7 +10,7 @@ val log4catsVersion   = "2.2.0"
 val log4jVersion      = "2.17.1"
 val netcdfVersion     = "5.5.3"
 val pureconfigVersion = "0.17.1"
-val scalaTestVersion  = "3.2.10"
+val scalaTestVersion  = "3.2.11"
 
 lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
@@ -21,7 +21,7 @@ lazy val commonSettings = Seq(
     "com.typesafe"   % "config"      % "1.4.1",
     "org.scalatest" %% "scalatest"   % scalaTestVersion % Test,
     "org.scalacheck" %% "scalacheck" % "1.15.4" % Test,
-    "org.scalatestplus" %% "scalacheck-1-15" % "3.2.10.0" % Test
+    "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test
 
   ),
   Test / fork := true,
@@ -94,7 +94,7 @@ lazy val core = project
   .settings(
     name := "latis3-core",
     libraryDependencies ++= Seq(
-      "org.scala-lang.modules" %% "scala-xml"           % "1.3.0",
+      "org.scala-lang.modules" %% "scala-xml"           % "2.0.1",
       "io.circe"               %% "circe-core"          % "0.14.1",
       "org.scodec"             %% "scodec-core"         % "1.11.9",
       "org.scodec"             %% "scodec-stream"       % "3.0.2",
