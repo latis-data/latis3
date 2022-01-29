@@ -14,6 +14,7 @@ import org.typelevel.log4cats.StructuredLogger
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
 import pureconfig.module.catseffect.syntax._
+import pureconfig.module.ip4s._
 import cats.effect.Temporal
 
 object Latis3ServerBuilder {
