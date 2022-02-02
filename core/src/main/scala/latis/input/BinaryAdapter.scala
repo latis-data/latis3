@@ -5,20 +5,19 @@ import java.net.URI
 import scodec.Codec
 import scodec.stream.StreamDecoder
 
-import latis.data.Sample
-import latis.data.SampledFunction
-import latis.data.StreamFunction
+import latis.data.{Data, Sample, SampledFunction, StreamFunction}
 import latis.model._
 import latis.ops.Operation
+import latis.output.DataCodec
 
 /**
  * Adapter for reading binary datasets.
  */
-class BinaryAdapter(model: DataType) extends Adapter {
+class BinaryAdapter(model: DataType, dataCodec: Scalar => Codec[Data] = DataCodec.defaultDataCodec) extends Adapter {
 
   /* Lazily retrieves the BinaryEncoder using the default DataCodec and creates a sampleCodec utilizing this adapter's model  */
   private lazy val sampleCodec: Codec[Sample] =
-    latis.output.BinaryEncoder().sampleCodec(model)
+    latis.output.BinaryEncoder(dataCodec).sampleCodec(model)
 
   /* Creates a StreamDecoder from the sampleCodec */
   private lazy val sampleStreamDecoder: StreamDecoder[Sample] =

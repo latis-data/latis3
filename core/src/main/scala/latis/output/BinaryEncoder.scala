@@ -64,5 +64,5 @@ class BinaryEncoder(val dataCodec: Scalar => Codec[Data] = DataCodec.defaultData
 }
 
 object BinaryEncoder {
-  def apply(): BinaryEncoder = new BinaryEncoder()
+  def apply(dataCodec: Scalar => Codec[Data] = DataCodec.defaultDataCodec): BinaryEncoder = new BinaryEncoder(dataCodec)
 }
