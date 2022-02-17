@@ -8,11 +8,14 @@ import fs2.Stream
 import fs2.io.file.Files
 import fs2.io.file.{Path => FPath}
 import fs2.text
+import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.`Content-Type`
+import org.http4s.scalatags.scalatagsEncoder
 import org.http4s.HttpRoutes
 import org.http4s.MediaType
 import org.http4s.Response
-import org.http4s.dsl.Http4sDsl
+import scalatags.Text
+import scalatags.Text.all._
 
 import latis.catalog.Catalog
 import latis.dataset.Dataset
@@ -31,8 +34,40 @@ import latis.util.dap2.parser.ast.ConstraintExpression
  */
 class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4sDsl[IO] {
 
+  private[dap2] val catalogTable: IO[Text.TypedTag[String]] =
+    catalog.datasets.map { ds =>
+      val id = ds.id.fold("")(_.asString)
+      val title = ds.metadata.getProperty("title").getOrElse(id)
+      tr(
+        td(id),
+        td(a(href := id+".meta")(title))
+      )
+    }.compile.toList.map { catalogEntries =>
+      table(
+        caption(b(i(u("Catalog")))),
+        tr(
+          th("id"),
+          th("title"),
+        ),
+        catalogEntries
+      )
+    }
+
+  private val landingPage: IO[Text.TypedTag[String]] =
+    catalogTable.map { table =>
+      html(
+        body(
+          h1("LaTiS 3 DAP2 Server"),
+          hr(),
+          table
+        )
+      )
+    }
+
   override def routes: HttpRoutes[IO] =
     HttpRoutes.of {
+      case GET -> Root =>
+        Ok(landingPage)
       case req @ GET -> Root / id ~ ext =>
         (for {
           ident    <- IO.fromOption(Identifier.fromString(id))(ParseFailure(s"Invalid identifier: '$id'"))
