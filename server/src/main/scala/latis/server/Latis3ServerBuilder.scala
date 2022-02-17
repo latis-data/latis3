@@ -40,7 +40,7 @@ object Latis3ServerBuilder {
       interfaces: List[(String, ServiceInterface)]
     ): HttpRoutes[IO] = {
       val routes = interfaces.map {
-        case (mapping, service) => (mapping, service.routes)
+        case (prefix, service) => (prefix, service.routes)
       }
       Router(routes:_*)
     }
@@ -51,7 +51,7 @@ object Latis3ServerBuilder {
       .withHttpApp {
         LatisErrorHandler(
           LatisServiceLogger(
-            Router(conf.mapping ->
+            Router(conf.prefix ->
               CORS.policy
                 .withAllowOriginAll
                 .withAllowMethodsIn(Set(Method.GET, Method.HEAD))
