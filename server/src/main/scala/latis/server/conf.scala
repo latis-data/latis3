@@ -18,7 +18,7 @@ final case class CatalogConf(
 
 final case class ServerConf(
   port: Port,
-  mapping: String
+  prefix: String
 )
 
 final case class ServiceConf(
@@ -26,18 +26,18 @@ final case class ServiceConf(
 )
 
 sealed trait ServiceSpec {
-  val mapping: String
+  val prefix: String
   val clss: String
 }
 
 final case class JarServiceSpec(
   path: URL,
-  mapping: String,
+  prefix: String,
   clss: String
 ) extends ServiceSpec
 
 final case class ClassPathServiceSpec(
-  mapping: String,
+  prefix: String,
   clss: String
 ) extends ServiceSpec
 

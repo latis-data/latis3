@@ -27,7 +27,7 @@ final class ServiceInterfaceLoader {
       for {
         loader  <- getClassLoader(spec)
         service <- loadService(loader, spec, catalog)
-      } yield (spec.mapping, service)
+      } yield (spec.prefix, service)
     }
 
   private def loadService(
