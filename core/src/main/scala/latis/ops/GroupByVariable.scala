@@ -14,7 +14,7 @@ import latis.util.LatisException
  * Assumes there are no nested function, for now.
  * Does not preserve nested Tuples, for now.
  */
-case class GroupByVariable(ids: Identifier*) extends GroupOperation {
+class GroupByVariable(ids: Identifier*) extends GroupOperation {
 
   /**
    * Defines a DefaultAggregation composed with a MapOperation that un-projects

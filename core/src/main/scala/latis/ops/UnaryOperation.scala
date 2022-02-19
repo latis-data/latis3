@@ -30,6 +30,8 @@ object UnaryOperation {
     args: List[String]
   ): Either[LatisException, UnaryOperation] = name match {
     case "convertTime" => ConvertTime.fromArgs(args)
+    case "count" => CountAggregation().asRight
+    case "countBy" => CountBy.fromArgs(args)
     case "curry" => Curry.fromArgs(args)
     case "drop" => Drop.fromArgs(args)
     case "dropLast" => DropLast().asRight
