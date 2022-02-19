@@ -22,7 +22,7 @@ class GroupByVariableSpec extends AnyFlatSpec {
   ))
 
   private lazy val ds = new MemoizedDataset(Metadata(id"test"), model, data)
-      .withOperation(GroupByVariable(id"y"))
+      .withOperation(new GroupByVariable(id"y"))
       .unsafeForce()
 
   "GroupByVariable" should "unProject the grouped variables" in {
