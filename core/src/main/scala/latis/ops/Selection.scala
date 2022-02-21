@@ -35,39 +35,45 @@ case class Selection(id: Identifier, operator: ast.SelectionOp, value: String) e
   //TODO: support matches (=~)
   //TODO: support bounds variable (as opposed to fixed binWidth)
 
-  // Get the target Scalar. //TODO: do during smart construction with model
-  def getScalar(model: DataType): Either[LatisException, Scalar] = model.findVariable(id) match {
-    case Some(s: Scalar) => s.asRight
-    case _ => LatisException(s"Selection variable not found: ${id.asString}").asLeft
-  }
-
-  def predicate(model: DataType): Sample => Boolean = {
+  def predicate(model: DataType): Either[LatisException, Sample => Boolean] = {
     // Determine the Sample position of the selected variable
-    val pos: SamplePosition = model.findPath(id) match {
-      case Some(p) =>
-        p.length match {
-          case 1 => p.head
-          case _ =>
-            val msg = "Selection does not support values in nested Functions."
-            throw LatisException(msg)
+    def getPosition: Either[LatisException, SamplePosition] =
+      model.findPath(id)
+        .toRight(LatisException(s"Variable not found: ${id.asString}"))
+        .flatMap { path =>
+          path.length match {
+            case 1 => path.head.asRight
+            case _ =>
+              val msg = "Selection does not support values in nested Functions."
+              LatisException(msg).asLeft
+          }
         }
-      case None => ??? //shouldn't happen due to earlier check TODO: happened with selection on nonpresent ert in latis3-packets
+
+    // Get the target Scalar variable
+    def getScalar: Either[LatisException, Scalar] = model.findVariable(id) match {
+      case Some(s: Scalar) => s.asRight
+      case _ => LatisException(s"Scalar variable not found: ${id.asString}").asLeft
     }
 
-    val scalar = getScalar(model).fold(throw _, identity)
-
-    // Interpret string value as the same type as the target Scalar. //TODO: do during smart construction with model
-    val cdata = scalar.convertValue(value).fold(throw _, identity)
-
     // Define an internal predicate to filter a data value.
-    val pred = if (scalar.metadata.properties.contains("binWidth"))  //TODO: first class member
-      Selection.datumPredicateWithBinning(scalar, operator, cdata)
+    //TODO: extend Either to data predicate methods
+    def makePredicate(scalar: Scalar, cdata: Datum) =
+      if (scalar.metadata.properties.contains("binWidth"))  //TODO: first class member
+        Selection.datumPredicateWithBinning(scalar, operator, cdata)
       else Selection.datumPredicate(scalar, operator, cdata)
 
-    // Define the primary predicate for the Sample filter.
-    (sample: Sample) => sample.getValue(pos) match {
-      case Some(d: Datum) => pred(d)
-      case _ => throw LatisException(s"Invalid Data at sample position $pos") //bug
+    for {
+      pos    <- getPosition
+      scalar <- getScalar
+      cdata  <- scalar.convertValue(value)
+      pred    = makePredicate(scalar, cdata)
+    } yield {
+      // Define the primary predicate for the Sample filter.
+      (sample: Sample) =>
+        sample.getValue(pos) match {
+          case Some(d: Datum) => pred(d)
+          case _ => throw LatisException(s"Invalid Data at sample position $pos") //bug
+        }
     }
   }
 

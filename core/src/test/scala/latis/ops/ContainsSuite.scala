@@ -27,6 +27,13 @@ class ContainsSuite extends AnyFunSuite {
     }.unsafeRunSync()
   }
 
+  test("contains no values") {
+    val c = Contains.fromArgs(List("x", "9", "10")).value
+    ds.withOperation(c).samples.compile.toList.map { list =>
+      assertResult(0)(list.length)
+    }.unsafeRunSync()
+  }
+
   test("contains text value") {
     val c = Contains.fromArgs(List("a", "b")).value
     ds.withOperation(c).samples.compile.toList.map { list =>
@@ -34,10 +41,29 @@ class ContainsSuite extends AnyFunSuite {
     }.unsafeRunSync()
   }
 
-  ignore("contains quoted text value") {
+  test("contains quoted text value") {
     val c = Contains.fromArgs(List("a", """"b"""")).value
     ds.withOperation(c).samples.compile.toList.map { list =>
       assertResult(1)(list.length)
     }.unsafeRunSync()
+  }
+
+  test("application fails with invalid value types") {
+    val c = Contains.fromArgs(List("x", "foo")).value
+    ds.withOperation(c).samples.attempt.compile.toList.map { list =>
+      assert(list.head.isLeft)
+    }.unsafeRunSync()
+  }
+
+  test("application fails with missing id") {
+    val c = Contains.fromArgs(List("z", "foo")).value
+    ds.withOperation(c).samples.attempt.compile.toList.map { list =>
+      assert(list.head.isLeft)
+    }.unsafeRunSync()
+  }
+
+  test("construction fails with invalid id") {
+    val c = Contains.fromArgs(List("!x", "foo"))
+    assert(c.isLeft)
   }
 }

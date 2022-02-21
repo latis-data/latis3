@@ -14,38 +14,49 @@ import latis.util.LatisException
 case class Contains(id: Identifier, values: String*) extends Filter {
   //TODO: support nested functions, aliases,... (See Selection)
 
-  def predicate(model: DataType): Sample => Boolean = {
-    // Determine the path to the selected variable
-    val path: SamplePosition = model.findPath(id) match {
-      case Some(p) => p.head //assume no nested functions for now
-      case None => throw LatisException(s"Variable not found: ${id.asString}")
-    }
+  def predicate(model: DataType): Either[LatisException, Sample => Boolean] = {
+    // Determine the position of the selected variable
+    def getPosition: Either[LatisException, SamplePosition] =
+      model.findPath(id)
+        .toRight(LatisException(s"Variable not found: ${id.asString}"))
+        .flatMap { path =>
+          path.length match {
+            case 1 => path.head.asRight
+            case _ =>
+              val msg = "Contains does not support values in nested Functions."
+              LatisException(msg).asLeft
+          }
+        }
 
     // Get the target Scalar variable
-    val scalar: Scalar = model.findVariable(id) match {
-      case Some(s: Scalar) => s
-      case _ => throw LatisException(s"Scalar variable not found: ${id.asString}")
+    def getScalar: Either[LatisException, Scalar] = model.findVariable(id) match {
+      case Some(s: Scalar) => s.asRight
+      case _ => LatisException(s"Scalar variable not found: ${id.asString}").asLeft
     }
-
-    val ordering = scalar.ordering
 
     // Convert values to appropriate type for comparison
-    val cvals: Seq[Datum] = values.map { v =>
-      scalar.convertValue(v).getOrElse {
-        val msg = s"Invalid comparison value: $v"
-        throw LatisException(msg)
+    def getComparisonValues(scalar: Scalar): Either[LatisException, Seq[Datum]] =
+      values.traverse { v =>
+        scalar.convertValue(v).leftMap { le =>
+          LatisException(s"Invalid comparison value: $v", le)
+        }
       }
-    }
 
-    // Define predicate function
-    (sample: Sample) =>
-      sample.getValue(path).map {
-        case d: Datum => cvals.exists(c => ordering.equiv(c, d))
-        case NullData => false
-        case d        => throw LatisException(s"Sample value is not a Datum: $d")
-      }.getOrElse {
-        throw LatisException("Invalid Sample")
-      }
+    for {
+      pos    <- getPosition
+      scalar <- getScalar
+      cvals  <- getComparisonValues(scalar)
+    } yield {
+      // Define predicate function
+      (sample: Sample) =>
+        sample.getValue(pos).map {
+          case d: Datum => cvals.exists(c => scalar.ordering.equiv(c, d))
+          case NullData => false
+          case d        => throw LatisException(s"Sample value is not a Datum: $d")
+        }.getOrElse {
+          throw LatisException("Invalid Sample")
+        }
+    }
   }
 
 }
@@ -53,7 +64,6 @@ case class Contains(id: Identifier, values: String*) extends Filter {
 object Contains {
 
   def fromArgs(args: List[String]): Either[LatisException, Contains] = args match {
-    //TODO: support quoted string literals
     case id :: value :: values =>
       Either.fromOption(
         Identifier.fromString(id),
