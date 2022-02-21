@@ -32,7 +32,7 @@ class SelectionSpec extends AnyFlatSpec {
       RangeData(1)
     )
 
-    Selection.makeSelection("time > 1999").fold(throw _, identity).predicate(model)(sample) should be (true)
-    Selection.makeSelection("time > 2001").fold(throw _, identity).predicate(model)(sample) should be (false)
+    Selection.makeSelection("time > 1999").value.predicate(model).value(sample) should be (true)
+    Selection.makeSelection("time > 2001").value.predicate(model).value(sample) should be (false)
   }
 }
