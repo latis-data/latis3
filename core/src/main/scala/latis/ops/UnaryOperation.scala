@@ -29,6 +29,7 @@ object UnaryOperation {
     name: String,
     args: List[String]
   ): Either[LatisException, UnaryOperation] = name match {
+    case "contains" => Contains.fromArgs(args)
     case "convertTime" => ConvertTime.fromArgs(args)
     case "count" => CountAggregation().asRight
     case "countBy" => CountBy.fromArgs(args)
