@@ -5,6 +5,7 @@ import cats.syntax.all._
 import latis.data._
 import latis.util.DefaultDatumOrdering
 import latis.util.LatisException
+import latis.util.StringUtils
 
 trait ScalarAlgebra { scalar: Scalar =>
 
@@ -62,9 +63,10 @@ trait ScalarAlgebra { scalar: Scalar =>
    * Converts a string value into the appropriate type and units
    * for this Scalar.
    */
-  def convertValue(value: String): Either[Exception, Datum] =
-    parseValue(value)
-  //TODO: support units, e.g. "1.2 meters"
+  def convertValue(value: String): Either[LatisException, Datum] = valueType match {
+    case StringValueType => parseValue(StringUtils.removeDoubleQuotes(value))
+    case _               => parseValue(value)
+  }
 
   /**
    * Defines a PartialOrdering for Datums of the type described by this Scalar.

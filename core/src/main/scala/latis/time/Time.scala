@@ -65,7 +65,7 @@ class Time protected (
    * This method is intended for lightweight use such as parsing time selections.
    * Construct a reusable TimeFormat or UnitConverter for bigger conversion tasks.
    */
-  override def convertValue(value: String): Either[Exception, Datum] = {
+  override def convertValue(value: String): Either[LatisException, Datum] = {
     TimeFormat.parseIso(value).flatMap { ms =>
       // Interpreted as ISO
       valueType match {

@@ -38,6 +38,15 @@ object StringUtils {
    */
   def ensureSingleQuoted(string: String): String = ensureQuoted(string, singleQuote)
 
+  /**
+   * Removes double quotes from a string that is quoted.
+   */
+  def removeDoubleQuotes(string: String): String = {
+    if (string.head == doubleQuote && string.last == doubleQuote)
+      string.substring(1, string.length - 1)
+    else string
+  }
+
   /** Implicit class to enable color console output. */
   implicit class ColoredString(s: String) {
     import Console._

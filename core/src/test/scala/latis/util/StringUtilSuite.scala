@@ -45,4 +45,14 @@ class StringUtilsSuite extends AnyFunSuite {
     val qs = ensureQuoted("", 'q')
     assert(qs == "qq")
   }
+
+  test("remove double quotes") {
+    val s = """"foo""""
+    assert(removeDoubleQuotes(s) == "foo")
+  }
+
+  test("remove double quotes no-op") {
+    val s = "foo"
+    assert(removeDoubleQuotes(s) == "foo")
+  }
 }
