@@ -43,4 +43,14 @@ class JsonEncoderSpec extends AnyFlatSpec {
     val data: Data = NullData
     data.asJson.toString() should be("null")
   }
+
+  it should "encode a true boolean" in {
+    val data: Data = Data.BooleanValue(true)
+    data.asJson.toString() should be("true")
+  }
+
+  it should "encode a false boolean" in {
+    val data: Data = Data.BooleanValue(false)
+    data.asJson.toString() should be("false")
+  }
 }
