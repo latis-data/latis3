@@ -17,6 +17,9 @@ import pureconfig.module.catseffect.syntax._
 import pureconfig.module.ip4s._
 import cats.effect.Temporal
 
+import latis.service.landing.LandingPageService
+import latis.util.ReflectionUtils.getClassByName
+
 object Latis3ServerBuilder {
 
   val latisConfigSource: ConfigSource =
@@ -27,6 +30,25 @@ object Latis3ServerBuilder {
 
   val getServerConf: IO[ServerConf] =
     latisConfigSource.loadF[IO, ServerConf]()
+
+  def makeServiceInfo(className: String): ServiceInfo = {
+    def exception2Option[T](function: String=>T, input: String): Option[T] = {
+      try {
+        Some(function(input))
+      } catch {
+        case _: Exception => None
+      }
+    }
+    def getField(obj: Class[_], field: String): String = {
+      obj.getDeclaredField(field).get().asInstanceOf[String]
+    }
+    val info = exception2Option(getClassByName, className)
+    val name = exception2Option(getField(info.get,_),"name")
+    val version = exception2Option(getField(info.get,_),"version")
+    val latisVersion = exception2Option(getField(info.get,_),"latisVersion")
+    val buildTime = exception2Option(getField(info.get,_),"buildTime")
+    ServiceInfo(name.getOrElse("LaTiS Server"), version, latisVersion, buildTime)
+  }
 
   def mkServer(
     conf: ServerConf,
@@ -41,7 +63,7 @@ object Latis3ServerBuilder {
     ): HttpRoutes[IO] = {
       val routes = interfaces.map {
         case (prefix, service) => (prefix, service.routes)
-      }
+      } :+ ("/", new LandingPageService(makeServiceInfo("BuildInfo")).routes)
       Router(routes:_*)
     }
 
