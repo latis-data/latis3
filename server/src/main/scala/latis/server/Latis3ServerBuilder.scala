@@ -63,7 +63,7 @@ object Latis3ServerBuilder {
     ): HttpRoutes[IO] = {
       val routes = interfaces.map {
         case (prefix, service) => (prefix, service.routes)
-      } :+ ("/", new LandingPageService(makeServiceInfo("BuildInfo")).routes)
+      } :+ ("/", new LandingPageService(makeServiceInfo("latis.util.BuildInfo$")).routes)
       Router(routes:_*)
     }
 
