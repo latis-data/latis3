@@ -42,7 +42,11 @@ object Latis3ServerBuilder {
     def getField(obj: Class[_], field: String): String = {
       obj.getDeclaredField(field).get(obj).asInstanceOf[String]
     }
+    println(className)
     val info = exception2Option(getClassByName, className)
+    println(info.get)
+    println(info.get.getDeclaredFields.mkString("\n"))
+    println(getField(info.get,"name"))
     val name = exception2Option(getField(info.get,_),"name")
     val version = exception2Option(getField(info.get,_),"version")
     val latisVersion = exception2Option(getField(info.get,_),"latisVersion")
