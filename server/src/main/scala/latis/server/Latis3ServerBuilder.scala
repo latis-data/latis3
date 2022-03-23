@@ -40,7 +40,7 @@ object Latis3ServerBuilder {
       }
     }
     def getField(obj: Class[_], field: String): String = {
-      obj.getDeclaredField(field).get(null).asInstanceOf[String]
+      obj.getDeclaredField(field).get(obj).asInstanceOf[String]
     }
     val info = exception2Option(getClassByName, className)
     val name = exception2Option(getField(info.get,_),"name")
