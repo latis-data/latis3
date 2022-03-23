@@ -11,25 +11,25 @@ import latis.server.ServiceInfo
 
 class LandingPageService(serviceInfo: ServiceInfo) extends Http4sDsl[IO]{
 
+  private val properties = List(
+    "Version:" -> serviceInfo.version,
+    "LaTiS Version:" -> serviceInfo.latisVersion,
+    "Build Time:" -> serviceInfo.buildTime
+  )
+  private val propsTable = table(
+    properties.filterNot(p => p._2.isEmpty).map { p =>
+      tr(
+        td(p._1),
+        td(p._2)
+      )
+    }
+  )
   private val landingPage: Text.TypedTag[String] =
       html(
         body(
           h1(serviceInfo.name),
           hr(),
-          table(
-            tr(
-              td("Version:"),
-              td(serviceInfo.version)
-            ),
-            tr(
-              td("LaTiS Version:"),
-              td(serviceInfo.latisVersion)
-            ),
-            tr(
-              td("Build Time:"),
-              td(serviceInfo.buildTime)
-            )
-          )
+          propsTable
         )
       )
 
