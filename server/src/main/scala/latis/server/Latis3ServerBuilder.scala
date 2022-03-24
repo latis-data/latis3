@@ -2,6 +2,7 @@ package latis.server
 
 import cats.effect.IO
 import cats.effect.Resource
+import cats.implicits._
 import com.comcast.ip4s._
 import org.http4s.HttpRoutes
 import org.http4s.Method
@@ -32,24 +33,26 @@ object Latis3ServerBuilder {
     latisConfigSource.loadF[IO, ServerConf]()
 
   private[server] def makeServiceInfo(className: String): ServiceInfo = {
-    def exception2Option[T](function: String=>T, input: String): Option[T] = {
-      try {
-        Some(function(input))
-      } catch {
-        case _: Exception => None
-      }
-    }
-    def getField(obj: Class[_], field: String): String = {
+    val classObj = Either.catchNonFatal(getClassByName(className)).toOption
+
+    def getField(obj: Class[_], field: String): Option[String] = Either.catchNonFatal {
       val f = obj.getDeclaredField(field)
       f.setAccessible(true)
       f.get(obj).asInstanceOf[String]
+    }.toOption
+
+    classObj.flatMap { clss =>
+      val name = getField(clss, "name")
+      val version = getField(clss, "version")
+      val latisVersion = getField(clss, "latisVersion")
+      val buildTime = getField(clss, "buildTime")
+
+      name.map {
+        ServiceInfo(_, version, latisVersion, buildTime)
+      }
+    }.getOrElse {
+      ServiceInfo("LaTiS Server", None, None, None)
     }
-    val info = exception2Option(getClassByName, className)
-    val name = exception2Option(getField(info.get,_),"name")
-    val version = exception2Option(getField(info.get,_),"version")
-    val latisVersion = exception2Option(getField(info.get,_),"latisVersion")
-    val buildTime = exception2Option(getField(info.get,_),"buildTime")
-    ServiceInfo(name.getOrElse("LaTiS Server"), version, latisVersion, buildTime)
   }
 
   def mkServer(
