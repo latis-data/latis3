@@ -31,7 +31,7 @@ object Latis3ServerBuilder {
   val getServerConf: IO[ServerConf] =
     latisConfigSource.loadF[IO, ServerConf]()
 
-  def makeServiceInfo(className: String): ServiceInfo = {
+  private[server] def makeServiceInfo(className: String): ServiceInfo = {
     def exception2Option[T](function: String=>T, input: String): Option[T] = {
       try {
         Some(function(input))

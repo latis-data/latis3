@@ -9,28 +9,13 @@ import org.http4s.implicits.http4sLiteralsSyntax
 import org.scalatest.flatspec.AnyFlatSpec
 import org.typelevel.ci.CIStringSyntax
 
-import latis.server.Latis3ServerBuilder
 import latis.server.ServiceInfo
 
-case object BuildInfo {
-  val name = "Test Server"
-  val version = "0.0.1"
-  val latisVersion = "3.0.0"
-  val buildTime = "10:35am 3/23/2022"
-}
-
 class LandingPageServiceSpec extends AnyFlatSpec{
-  val serviceInfo: ServiceInfo = Latis3ServerBuilder.makeServiceInfo("latis.service.landing.BuildInfo$")
+  val serviceInfo: ServiceInfo = ServiceInfo("Test Server", Some("0.0.1"), Some("3.0.0"), Some("10:35am 3/23/2022"))
   val landingPageService = new LandingPageService(serviceInfo)
 
-  "The Landing Page Service" should "generate the correct ServiceInfo from a provided object name" in {
-    assert(serviceInfo.name == "Test Server")
-    assert(serviceInfo.version.get == "0.0.1")
-    assert(serviceInfo.latisVersion.get == "3.0.0")
-    assert(serviceInfo.buildTime.get == "10:35am 3/23/2022")
-  }
-
-  it should "generate a non-zero length '200 OK' response" in {
+  "The Landing Page Service" should "generate a non-zero length '200 OK' response" in {
     val req = Request[IO](Method.GET, uri"/")
     (for {
       response <- landingPageService.routes.orNotFound(req)
