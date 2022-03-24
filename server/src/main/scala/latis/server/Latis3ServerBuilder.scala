@@ -2,7 +2,7 @@ package latis.server
 
 import cats.effect.IO
 import cats.effect.Resource
-import cats.implicits._
+import cats.syntax.all._
 import com.comcast.ip4s._
 import org.http4s.HttpRoutes
 import org.http4s.Method
