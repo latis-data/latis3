@@ -32,7 +32,7 @@ package object data {
   /**
    * Define implicit class to provide operations on Sample objects.
    */
-  implicit class SampleOps(sample: Sample) {
+  implicit class SampleOps(val sample: Sample) extends AnyVal {
 
     def domain: DomainData = sample._1
 
