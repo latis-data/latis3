@@ -94,7 +94,7 @@ lazy val core = project
   .settings(
     name := "latis3-core",
     libraryDependencies ++= Seq(
-      "org.scala-lang.modules" %% "scala-xml"           % "2.0.1",
+      "org.scala-lang.modules" %% "scala-xml"           % "2.1.0",
       "io.circe"               %% "circe-core"          % "0.14.1",
       "org.scodec"             %% "scodec-core"         % "1.11.9",
       "org.scodec"             %% "scodec-stream"       % "3.0.2",
