@@ -20,7 +20,7 @@ lazy val commonSettings = Seq(
     "co.fs2"        %% "fs2-io"      % fs2Version,
     "com.typesafe"   % "config"      % "1.4.2",
     "org.scalatest" %% "scalatest"   % scalaTestVersion % Test,
-    "org.scalacheck" %% "scalacheck" % "1.15.4" % Test,
+    "org.scalacheck" %% "scalacheck" % "1.16.0" % Test,
     "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test
 
   ),
