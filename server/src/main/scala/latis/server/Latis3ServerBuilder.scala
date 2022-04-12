@@ -48,7 +48,7 @@ object Latis3ServerBuilder {
       val buildTime = getField(clss, "buildTime")
 
       ServiceInfo(service.getOrElse("LaTiS Server"), version, latisVersion, buildTime)
-    }.get
+    }.getOrElse(ServiceInfo("LaTiS Server", None, None, None))
   }
 
   def mkServer(
