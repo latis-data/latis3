@@ -32,7 +32,7 @@ class LandingPageServiceSpec extends AnyFlatSpec{
       response <- resp
       body <- response.bodyText.compile.toList
     } yield {
-      assert(body.head contains serviceInfo.name)
+      assert(body.head contains serviceInfo.service)
       assert(body.head contains serviceInfo.version.get)
       assert(body.head contains serviceInfo.latisVersion.get)
       assert(body.head contains serviceInfo.buildTime.get)

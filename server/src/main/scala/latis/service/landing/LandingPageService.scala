@@ -27,7 +27,7 @@ class LandingPageService(serviceInfo: ServiceInfo) extends Http4sDsl[IO]{
   private val landingPage: Text.TypedTag[String] =
       html(
         body(
-          h1(serviceInfo.name),
+          h1(serviceInfo.service),
           hr(),
           propsTable
         )
