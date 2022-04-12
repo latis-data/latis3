@@ -41,18 +41,14 @@ object Latis3ServerBuilder {
       f.get(obj).asInstanceOf[String]
     }.toOption
 
-    classObj.flatMap { clss =>
+    classObj.map { clss =>
       val name = getField(clss, "name")
       val version = getField(clss, "version")
       val latisVersion = getField(clss, "latisVersion")
       val buildTime = getField(clss, "buildTime")
 
-      name.map {
-        ServiceInfo(_, version, latisVersion, buildTime)
-      }
-    }.getOrElse {
-      ServiceInfo("LaTiS Server", None, None, None)
-    }
+      ServiceInfo(name.getOrElse("LaTiS Server"), version, latisVersion, buildTime)
+    }.get
   }
 
   def mkServer(
