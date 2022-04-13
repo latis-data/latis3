@@ -5,17 +5,18 @@ import java.net.URLDecoder
 import cats.effect._
 import cats.syntax.all._
 import fs2.Stream
-import fs2.io.file.Files
 import fs2.io.file.{Path => FPath}
+import fs2.io.file.Files
 import fs2.text
+import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.`Content-Type`
-import org.http4s.scalatags.scalatagsEncoder
+import org.http4s.Headers
 import org.http4s.HttpRoutes
 import org.http4s.MediaType
 import org.http4s.Response
-import scalatags.Text
-import scalatags.Text.all._
+import org.http4s.headers.Accept
+import org.http4s.scalatags.scalatagsEncoder
 
 import latis.catalog.Catalog
 import latis.dataset.Dataset
@@ -34,75 +35,106 @@ import latis.util.dap2.parser.ast.ConstraintExpression
  */
 class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4sDsl[IO] {
 
-  private[dap2] val catalogTable: IO[Text.TypedTag[String]] =
-    catalog.datasets.map { ds =>
-      val id = ds.id.fold("")(_.asString)
-      val title = ds.metadata.getProperty("title").getOrElse(id)
-      tr(
-        td(id),
-        td(a(href := id+".meta")(title))
-      )
-    }.compile.toList.map { catalogEntries =>
-      table(
-        caption(b(i(u("Catalog")))),
-        tr(
-          th("id"),
-          th("title"),
-        ),
-        catalogEntries
-      )
-    }
-
-  private val landingPage: IO[Text.TypedTag[String]] =
-    catalogTable.map { table =>
-      html(
-        body(
-          h1("LaTiS 3 DAP2 Server"),
-          hr(),
-          table
-        )
-      )
-    }
-
   override def routes: HttpRoutes[IO] =
     HttpRoutes.of {
-      case GET -> Root =>
-        Ok(landingPage)
-      case req @ GET -> Root / id ~ ext =>
-        (for {
-          ident    <- IO.fromOption(Identifier.fromString(id))(ParseFailure(s"Invalid identifier: '$id'"))
-          dataset  <- getDataset(ident)
-          ops      <- IO.fromEither(getOperations(req.queryString))
-          result    = ops.foldLeft(dataset)((ds, op) => ds.withOperation(op))
-          encoding <- IO.fromEither(encode(ext, result))
-          bytes     = encoding._1
-          content   = encoding._2
-          response <- Ok(bytes).map(_.withContentType(content))
-        } yield response).recoverWith {
-          case err: Dap2Error => handleDap2Error(err)
-        }
+      case req @ GET -> path => // path relative to "dap2", starting with "/"
+        handleGetRequest(path, req.queryString, req.headers)
     }
 
-  private def getDataset(id: Identifier): IO[Dataset] =
-    catalog.findDataset(id).flatMap {
-      case None => IO.raiseError {
-        DatasetResolutionFailure(s"Dataset not found: ${id.asString}")
+  /** Handles GET requests for a Catalog or Dataset. */
+  private def handleGetRequest(path: Path, query: String, headers: Headers): IO[Response[IO]] = {
+    if (path.isEmpty) catalogResponse(catalog, headers)
+    else parsePath(path) match {
+      case (Some(id), ext) => catalog.findDataset(id).flatMap {
+        case Some(ds) =>
+          // Dataset path should not end with slash
+          if (path.endsWithSlash) NotFound(s"Resource not found: $path")
+          else datasetResponse(ds, ext, query)
+        case None     => catalog.findCatalog(id) match {
+          case Some(cat) => catalogResponse(cat, headers)
+          case None      => NotFound(s"Resource not found: $path")
+        }
       }
-      case Some(ds) => ds.pure[IO]
+      case (None, _) => NotFound(s"Resource not found: $path")
     }
+  }
+
+  /**
+   * Extracts the fully qualified catalog or dataset identifier
+   * and optional output extension from the request URL path.
+   *
+   * Each segment of the path will be interpreted as a nested catalog with the
+   * last segment representing a catalog or a dataset with an optional file extension.
+   * This assumes that the path is not empty, a case that should already be handled.
+   *
+   * The returned identifier is optional to account for an invalid path.
+   */
+  private def parsePath(path: Path): (Option[Identifier], Option[String]) = {
+    val segs = path.segments.map(_.toString)
+    val (lastSeg, ext) =
+      if (segs.last.endsWith(".")) (None, None)
+      else segs.last.split('.').toList match {
+        case id :: ext :: Nil => (Some(id), Some(ext))
+        case id:: Nil         => (Some(id), None) //"foo." will match here keeping "foo"
+        case _                => (None, None) //invalid unqualified id
+      }
+    val id = lastSeg.flatMap { last =>
+      val ids = segs.dropRight(1) :+ last
+      if (ids.exists(s => s.isEmpty || s.contains('.'))) None //invalid unqualified id
+      else Identifier.fromString(ids.mkString("."))
+    }
+    (id, ext)
+  }
+
+  /**
+   * Provides a response for a Catalog request.
+   *
+   * This determines whether the JSON or HTML response satisfies the Accept header first.
+   * If both match or there is no Accept header, JSON will be used over HTML. If none match,
+   * this will respond with a NotAcceptable (406).
+   */
+  private def catalogResponse(catalog: Catalog, headers: Headers): IO[Response[IO]] =
+    headers.get[Accept] match {
+      case Some(accept) =>
+        accept.values.map(_.mediaRange).map { mr =>
+          if (MediaType.application.json.satisfies(mr)) JsonCatalogEncoder.encode(catalog).flatMap(Ok(_)).some
+          else if (MediaType.text.html.satisfies(mr)) HtmlCatalogEncoder.encode(catalog).flatMap(Ok(_)).some
+          else None
+        }.toList.unite.headOption //take first nonNone response
+         .getOrElse(NotAcceptable("A catalogs is available only as JSON or HTML."))
+      case None => JsonCatalogEncoder.encode(catalog).flatMap(Ok(_))
+    }
+
+  /** Provides a response for a Dataset request. */
+  private def datasetResponse(
+    dataset: Dataset,
+    ext: Option[String],
+    query: String
+  ): IO[Response[IO]] = {
+    (for {
+      ops      <- IO.fromEither(getOperations(query))
+      ds        = dataset.withOperations(ops)
+      encoding <- IO.fromEither(encodeDataset(ds, ext))
+      bytes     = encoding._1
+      content   = encoding._2
+      response <- Ok(bytes).map(_.withContentType(content))
+    } yield response).recoverWith {
+      case err: Dap2Error => handleDap2Error(err)
+    }
+  }
 
   private def getOperations(query: String): Either[Dap2Error, List[UnaryOperation]] = {
     val ce = URLDecoder.decode(query, "UTF-8")
 
     ConstraintParser.parse(ce)
-      .leftMap(ParseFailure(_))
+      .leftMap(ParseFailure)
       .flatMap { cexprs: ConstraintExpression =>
         cexprs.exprs.traverse {
           case ast.Projection(vs)      => Right(ops.Projection(vs:_*))
           case ast.Selection(n, op, v) => Right(ops.Selection(n, op, stripQuotes(v)))
           // Delegate to Operation factory
           case ast.Operation(name, args) =>
-            UnaryOperation.makeOperation(name, args.map(stripQuotes(_)))
+            UnaryOperation.makeOperation(name, args.map(stripQuotes))
               .leftMap(le => InvalidOperation(le.message))
         }
       }
@@ -112,8 +144,10 @@ class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4
   private def stripQuotes(str: String): String =
     str.stripPrefix("\"").stripSuffix("\"")
 
-  private def encode(ext: String, ds: Dataset): Either[Dap2Error, (Stream[IO, Byte], `Content-Type`)] = ext match {
-    case ""      => encode("html", ds)
+  private def encodeDataset(
+    ds: Dataset,
+    ext: Option[String]
+  ): Either[Dap2Error, (Stream[IO, Byte], `Content-Type`)] = ext.getOrElse("meta") match {
     case "asc"   => new TextEncoder().encode(ds).through(text.utf8.encode).asRight
       .map((_,`Content-Type`(MediaType.text.plain)))
     case "bin"   => new BinaryEncoder().encode(ds).asRight.map((_, `Content-Type`(MediaType.application.`octet-stream`)))

@@ -133,6 +133,7 @@ lazy val `dap2-service` = project
     libraryDependencies ++= Seq(
       "org.http4s"     %% "http4s-core"      % http4sVersion % Provided,
       "org.http4s"     %% "http4s-dsl"       % http4sVersion % Provided,
+      "org.http4s"     %% "http4s-circe"     % http4sVersion,
       "org.http4s"     %% "http4s-scalatags" % http4sVersion
     )
   )
