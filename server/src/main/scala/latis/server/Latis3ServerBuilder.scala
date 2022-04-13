@@ -2,6 +2,7 @@ package latis.server
 
 import cats.effect.IO
 import cats.effect.Resource
+import cats.syntax.all._
 import com.comcast.ip4s._
 import org.http4s.HttpRoutes
 import org.http4s.Method
@@ -17,6 +18,9 @@ import pureconfig.module.catseffect.syntax._
 import pureconfig.module.ip4s._
 import cats.effect.Temporal
 
+import latis.service.landing.LandingPageService
+import latis.util.ReflectionUtils.getClassByName
+
 object Latis3ServerBuilder {
 
   val latisConfigSource: ConfigSource =
@@ -27,6 +31,25 @@ object Latis3ServerBuilder {
 
   val getServerConf: IO[ServerConf] =
     latisConfigSource.loadF[IO, ServerConf]()
+
+  private[server] def makeServiceInfo(className: String): ServiceInfo = {
+    val classObj = Either.catchNonFatal(getClassByName(className)).toOption
+
+    def getField(obj: Class[_], field: String): Option[String] = Either.catchNonFatal {
+      val f = obj.getDeclaredField(field)
+      f.setAccessible(true)
+      f.get(obj).asInstanceOf[String]
+    }.toOption
+
+    classObj.map { clss =>
+      val service = getField(clss, "service")
+      val version = getField(clss, "version")
+      val latisVersion = getField(clss, "latisVersion")
+      val buildTime = getField(clss, "buildTime")
+
+      ServiceInfo(service.getOrElse("LaTiS Server"), version, latisVersion, buildTime)
+    }.getOrElse(ServiceInfo("LaTiS Server", None, None, None))
+  }
 
   def mkServer(
     conf: ServerConf,
@@ -41,7 +64,7 @@ object Latis3ServerBuilder {
     ): HttpRoutes[IO] = {
       val routes = interfaces.map {
         case (prefix, service) => (prefix, service.routes)
-      }
+      } :+ ("/", new LandingPageService(makeServiceInfo("latis.util.BuildInfo$")).routes)
       Router(routes:_*)
     }
 
