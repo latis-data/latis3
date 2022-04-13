@@ -16,7 +16,8 @@ class Dap2ServiceSpec extends AnyFlatSpec {
 
   private lazy val dataset1 = new MemoizedDataset(Metadata("id"->"id1", "title"->"title1"), null, null)
   private lazy val dataset2 = new MemoizedDataset(Metadata("id"->"id2", "title"->"title2"), null, null)
-  private lazy val dap2Service = new Dap2Service(Catalog(dataset1, dataset2))
+  private lazy val catalog = Catalog(dataset1, dataset2)
+  private lazy val dap2Service = new Dap2Service(catalog)
 
   "The Dap2 Landing Page" should "create a non-zero length '200 OK' response" in {
     val req = Request[IO](Method.GET, uri"/", headers=Headers(Header.Raw(ci"Host", "testhost:0000")))
@@ -30,7 +31,7 @@ class Dap2ServiceSpec extends AnyFlatSpec {
 
   it should "correctly generate the catalog table" in {
     (for {
-      catalog <- dap2Service.catalogTable
+      catalog <- HtmlCatalogEncoder.catalogTable(catalog)
     } yield {
       val expected =
         """<table>
