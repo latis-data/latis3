@@ -8,6 +8,7 @@ import org.scalatest.matchers.should.Matchers._
 
 import latis.dataset.Dataset
 import latis.dsl._
+import latis.util.Identifier.IdentifierStringContext
 
 class TextEncoderSpec extends AnyFlatSpec {
 
@@ -15,9 +16,9 @@ class TextEncoderSpec extends AnyFlatSpec {
   val enc = new TextEncoder
 
   "A Text encoder" should "encode a dataset to Text" in {
-    val ds: Dataset = DatasetGenerator("x -> (a: int, b: double, c: string)")
+    val ds: Dataset = DatasetGenerator("x -> (a: int, b: double, c: string)", id"foo")
     val expectedOutput: Seq[String] = List(
-      "x -> (a, b, c)",
+      "foo: x -> (a, b, c)",
       "0 -> (0, 0.0, a)",
       "1 -> (1, 1.0, b)",
       "2 -> (2, 2.0, c)"
