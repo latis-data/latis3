@@ -9,7 +9,7 @@ import scalatags.Text.all._
 
 import latis.server.ServiceInfo
 
-class LandingPageService(serviceInfo: ServiceInfo) extends Http4sDsl[IO]{
+class LandingPageService(serviceInfo: ServiceInfo) extends Http4sDsl[IO] {
 
   private val properties = List(
     "Version:" -> serviceInfo.version,

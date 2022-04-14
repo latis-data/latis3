@@ -12,7 +12,7 @@ import org.typelevel.ci.CIStringSyntax
 
 import latis.server.ServiceInfo
 
-class LandingPageServiceSpec extends AnyFlatSpec{
+class LandingPageServiceSpec extends AnyFlatSpec {
   val serviceInfo: ServiceInfo = ServiceInfo("Test Server", Some("0.0.1"), Some("3.0.0"), Some("10:35am 3/23/2022"))
   val landingPageService = new LandingPageService(serviceInfo)
   val req: Request[IO] = Request[IO](Method.GET, uri"/")
