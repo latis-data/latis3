@@ -9,7 +9,7 @@ case object BuildInfo {
   val buildTime = "10:35am 3/23/2022"
 }
 
-class Latis3ServerBuilderSpec extends AnyFlatSpec{
+class Latis3ServerBuilderSpec extends AnyFlatSpec {
   val serviceInfo: ServiceInfo = Latis3ServerBuilder.makeServiceInfo("latis.server.BuildInfo$")
 
   "The Latis3 Server Builder" should "generate the correct ServiceInfo from a provided object name" in {
