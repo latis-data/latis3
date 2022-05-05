@@ -35,8 +35,10 @@ class TextEncoder extends Encoder[IO, String] {
     indexGenerator = new IndexGenerator()
 
     // Create a Stream with the header
-    val header: Stream[IO, String] =
-      Stream.emit(dataset.model.toString + lineSeparator)
+    val header: Stream[IO, String] = {
+      val id = dataset.id.map(_.asString + ": ").getOrElse("")
+      Stream.emit(id + dataset.model.toString + lineSeparator)
+    }
 
     // Encode each Sample as a String in the Stream
     val samples: Stream[IO, String] =

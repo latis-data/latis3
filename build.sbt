@@ -6,7 +6,7 @@ val catsVersion       = "2.7.0"
 val catsEffectVersion = "3.3.11"
 val fs2Version        = "3.2.7"
 val http4sVersion     = "0.23.11"
-val log4catsVersion   = "2.2.0"
+val log4catsVersion   = "2.3.1"
 val log4jVersion      = "2.17.2"
 val netcdfVersion     = "5.5.3"
 val pureconfigVersion = "0.17.1"
@@ -21,7 +21,9 @@ lazy val commonSettings = Seq(
     "com.typesafe"   % "config"      % "1.4.2",
     "org.scalatest" %% "scalatest"   % scalaTestVersion % Test,
     "org.scalacheck" %% "scalacheck" % "1.15.4" % Test,
-    "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test
+    "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test,
+    "org.scalameta" %% "munit"       % "0.7.29" % Test,
+    "org.typelevel" %% "munit-cats-effect-3" % "1.0.7" % Test
 
   ),
   Test / fork := true,
@@ -133,6 +135,7 @@ lazy val `dap2-service` = project
     libraryDependencies ++= Seq(
       "org.http4s"     %% "http4s-core"      % http4sVersion % Provided,
       "org.http4s"     %% "http4s-dsl"       % http4sVersion % Provided,
+      "org.http4s"     %% "http4s-circe"     % http4sVersion,
       "org.http4s"     %% "http4s-scalatags" % http4sVersion
     )
   )
@@ -218,7 +221,7 @@ lazy val jdbc = project
     name := "latis3-jdbc",
     libraryDependencies ++= Seq(
       "org.tpolecat"             %% "doobie-core" % "1.0.0-RC2",
-      "com.h2database"            % "h2"          % "2.1.210" % Test
+      "com.h2database"            % "h2"          % "2.1.212" % Test
     )
   )
 
