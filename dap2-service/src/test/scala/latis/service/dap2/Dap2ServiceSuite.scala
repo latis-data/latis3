@@ -1,126 +1,185 @@
 package latis.service.dap2
 
-import cats.data.NonEmptyList
 import cats.effect.IO
-import cats.effect.unsafe.implicits.global
+import cats.syntax.all._
+import munit.CatsEffectSuite
 import org.http4s._
-import org.http4s.implicits.http4sLiteralsSyntax
-import org.scalatest.funsuite.AnyFunSuite
-import org.scalatest.Inside.inside
-import org.typelevel.ci.CIStringSyntax
+import org.http4s.headers.`Content-Length`
+import org.http4s.headers.`Content-Type`
+import org.http4s.implicits._
+import org.typelevel.ci._
 
 import latis.catalog.Catalog
+import latis.dataset.MemoizedDataset
 import latis.dsl.DatasetGenerator
-import latis.util.Identifier.IdentifierStringContext
+import latis.metadata.Metadata
+import latis.util.Identifier._
 
-class Dap2ServiceSuite extends AnyFunSuite {
+class Dap2ServiceSuite extends CatsEffectSuite {
   //TODO: test other error handling
   //  bad query
   //  error after streaming
 
-  private lazy val ds0 = DatasetGenerator("x -> a", id"ds0")
-  private lazy val ds1 = DatasetGenerator("y -> b", id"ds1")
+  private val service = {
+    val catalog = {
+      val ds0 = DatasetGenerator("x -> a", id"ds0")
+      val ds1 = DatasetGenerator("y -> b", id"ds1")
+      Catalog(ds0).addCatalog(id"cat1", Catalog(ds1))
+    }
+    new Dap2Service(catalog).routes.orNotFound
+  }
 
-  private lazy val catalog: Catalog =
-    Catalog(ds0).addCatalog(id"cat1", Catalog(ds1))
+  test("create a non-zero length '200 OK' response") {
+    val req = Request[IO](
+      Method.GET,
+      uri"/",
+      headers=Headers(Header.Raw(ci"Host", "testhost:0000"))
+    )
 
-  private lazy val dap2Service = new Dap2Service(catalog)
+    service(req).map { res =>
+      assertEquals(res.status, Status.Ok, "non-200 status")
 
-  def showResponse(uri: Uri): Unit = {
-    dap2Service.routes.orNotFound(Request[IO](Method.GET, uri)).flatMap { response =>
-      IO.println(response.status) >>
-        response.bodyText.evalMap(IO.println).compile.drain
-    }.unsafeRunSync()
+      res.headers.get[`Content-Length`].map(_.length) match {
+        case Some(length) => assert(length > 0, "zero length response")
+        case None => fail("no content-length header")
+      }
+    }
+  }
+
+  test("correctly generate the catalog table") {
+    val dataset1 = new MemoizedDataset(
+      Metadata("id"->"id1", "title"->"title1"),
+      null,
+      null
+    )
+
+    val dataset2 = new MemoizedDataset(
+      Metadata("id"->"id2", "title"->"title2"),
+      null,
+      null
+    )
+
+    val catalog = Catalog(dataset1, dataset2)
+
+    HtmlCatalogEncoder.catalogTable(catalog).map { c =>
+      val expected =
+        """<table>
+          |<caption><b><i><u>Catalog</u></i></b></caption>
+          |<tr>
+          |<th>id</th>
+          |<th>title</th>
+          |</tr>
+          |<tr>
+          |<td>id1</td>
+          |<td><a href="id1.meta">title1</a></td>
+          |</tr>
+          |<tr>
+          |<td>id2</td>
+          |<td><a href="id2.meta">title2</a></td>
+          |</tr>
+          |</table>""".stripMargin.replaceAll(System.lineSeparator(), "")
+      assertEquals(c.render, expected)
+    }
   }
 
   test("top level catalog") {
-    dap2Service.routes.orNotFound(Request[IO](Method.GET, uri"/")).map { response =>
-      assert(response.status == Status.Ok)
-    }.unsafeRunSync()
+    service(Request[IO](Method.GET, uri"/")).map { response =>
+      assertEquals(response.status, Status.Ok)
+    }
   }
 
   test("resource not found") {
-    dap2Service.routes.orNotFound(Request[IO](Method.GET, uri"/foo")).map { response =>
-      assert(response.status == Status.NotFound)
-    }.unsafeRunSync()
+    service(Request[IO](Method.GET, uri"/foo")).map { response =>
+      assertEquals(response.status, Status.NotFound)
+    }
   }
 
   test("invalid id") {
-    dap2Service.routes.orNotFound(Request[IO](Method.GET, uri"/foo.bar/baz")).map { response =>
-      assert(response.status == Status.NotFound)
-    }.unsafeRunSync()
+    service(Request[IO](Method.GET, uri"/foo.bar/baz")).map { response =>
+      assertEquals(response.status, Status.NotFound)
+    }
   }
 
   test("nested catalog independent of trailing slash") {
-    (for {
-      resp1 <- dap2Service.routes.orNotFound(Request[IO](Method.GET, uri"/cat1"))
-      resp2 <- dap2Service.routes.orNotFound(Request[IO](Method.GET, uri"/cat1/"))
-      body1 <- resp1.bodyText.compile.toList.map(_.mkString)
-      body2 <- resp2.bodyText.compile.toList.map(_.mkString)
-    } yield {
-      assert(resp1.status == Status.Ok)
-      assert(body1 == body2)
-    }).unsafeRunSync()
+    (
+      service(Request[IO](Method.GET, uri"/cat1")),
+      service(Request[IO](Method.GET, uri"/cat1/"))
+    ).tupled.flatMap { case (resA, resB) =>
+        assertEquals(resA.status, Status.Ok)
+
+        (
+          resA.bodyText.compile.string,
+          resB.bodyText.compile.string
+        ).mapN { case (a, b) => assertEquals(a, b) }
+    }
   }
 
   test("dataset with extension") {
-    dap2Service.routes.orNotFound(Request[IO](Method.GET, uri"/ds0.meta")).map { response =>
-      assert(response.status == Status.Ok)
-      inside(response.headers.get(ci"Content-Type")) {
-        case Some(NonEmptyList(header, _)) => assertResult("application/json")(header.value)
+    service(Request[IO](Method.GET, uri"/ds0.meta")).map { response =>
+      assertEquals(response.status, Status.Ok)
+
+      response.headers.get[`Content-Type`] match {
+        case Some(ct) => assertEquals(ct.mediaType, MediaType.application.json)
+        case None => fail("missing content-type header")
       }
-    }.unsafeRunSync()
+    }
   }
 
   test("dataset without extension") {
-    dap2Service.routes.orNotFound(Request[IO](Method.GET, uri"/ds0")).map { response =>
-      assert(response.status == Status.Ok)
-      inside(response.headers.get(ci"Content-Type")) {
-        case Some(NonEmptyList(header, _)) => assertResult("application/json")(header.value)
+    service(Request[IO](Method.GET, uri"/ds0")).map { response =>
+      assertEquals(response.status, Status.Ok)
+
+      response.headers.get[`Content-Type`] match {
+        case Some(ct) => assertEquals(ct.mediaType, MediaType.application.json)
+        case None => fail("missing content-type header")
       }
-    }.unsafeRunSync()
+    }
   }
 
   test("nested dataset with extension") {
-    dap2Service.routes.orNotFound(Request[IO](Method.GET, uri"/cat1/ds1.meta")).map { response =>
-      assert(response.status == Status.Ok)
-      inside(response.headers.get(ci"Content-Type")) {
-        case Some(NonEmptyList(header, _)) => assertResult("application/json")(header.value)
+    service(Request[IO](Method.GET, uri"/cat1/ds1.meta")).map { response =>
+      assertEquals(response.status, Status.Ok)
+
+      response.headers.get[`Content-Type`] match {
+        case Some(ct) => assertEquals(ct.mediaType, MediaType.application.json)
+        case None => fail("missing content-type header")
       }
-    }.unsafeRunSync()
+    }
   }
 
   test("nested dataset without extension") {
-    dap2Service.routes.orNotFound(Request[IO](Method.GET, uri"/cat1/ds1")).map { response =>
-      assert(response.status == Status.Ok)
-      inside(response.headers.get(ci"Content-Type")) {
-        case Some(NonEmptyList(header, _)) => assertResult("application/json")(header.value)
+    service(Request[IO](Method.GET, uri"/cat1/ds1")).map { response =>
+      assertEquals(response.status, Status.Ok)
+
+      response.headers.get[`Content-Type`] match {
+        case Some(ct) => assertEquals(ct.mediaType, MediaType.application.json)
+        case None => fail("missing content-type header")
       }
-    }.unsafeRunSync()
+    }
   }
 
   test("dataset not found with trailing slash") {
-    dap2Service.routes.orNotFound(Request[IO](Method.GET, uri"/cat1/ds1/")).map { response =>
-      assert(response.status == Status.NotFound)
-    }.unsafeRunSync()
+    service(Request[IO](Method.GET, uri"/cat1/ds1/")).map { response =>
+      assertEquals(response.status, Status.NotFound)
+    }
   }
 
   test("dataset not found with extension and trailing slash") {
-    dap2Service.routes.orNotFound(Request[IO](Method.GET, uri"/cat1/ds1.meta/")).map { response =>
-      assert(response.status == Status.NotFound)
-    }.unsafeRunSync()
+    service(Request[IO](Method.GET, uri"/cat1/ds1.meta/")).map { response =>
+      assertEquals(response.status, Status.NotFound)
+    }
   }
 
   test("dataset not found with trailing dot") {
-    dap2Service.routes.orNotFound(Request[IO](Method.GET, uri"/cat1/ds1.")).map { response =>
-      assert(response.status == Status.NotFound)
-    }.unsafeRunSync()
+    service(Request[IO](Method.GET, uri"/cat1/ds1.")).map { response =>
+      assertEquals(response.status, Status.NotFound)
+    }
   }
 
   test("dataset not found with extension and trailing dot") {
-    dap2Service.routes.orNotFound(Request[IO](Method.GET, uri"/cat1/ds1.meta.")).map { response =>
-      assert(response.status == Status.NotFound)
-    }.unsafeRunSync()
+    service(Request[IO](Method.GET, uri"/cat1/ds1.meta.")).map { response =>
+      assertEquals(response.status, Status.NotFound)
+    }
   }
 
   //---- Test catalog content negotiation ----//
@@ -128,40 +187,55 @@ class Dap2ServiceSuite extends AnyFunSuite {
   test("negotiate json response") {
     val headers = Headers(Header.Raw(ci"Accept", "application/json,text/html"))
     val req = Request[IO](Method.GET, uri"/", headers=headers)
-    dap2Service.routes.orNotFound(req).map { resp =>
-      assertResult("application/json")(resp.headers.get(ci"Content-Type").get.head.value)
-    }.unsafeRunSync()
+    service(req).map { resp =>
+      resp.headers.get[`Content-Type`] match {
+        case Some(ct) => assertEquals(ct.mediaType, MediaType.application.json)
+        case None => fail("missing content-type header")
+      }
+    }
   }
 
   test("negotiate json response by default") {
     val headers = Headers()
     val req = Request[IO](Method.GET, uri"/", headers=headers)
-    dap2Service.routes.orNotFound(req).map { resp =>
-      assertResult("application/json")(resp.headers.get(ci"Content-Type").get.head.value)
-    }.unsafeRunSync()
+    service(req).map { resp =>
+      resp.headers.get[`Content-Type`] match {
+        case Some(ct) => assertEquals(ct.mediaType, MediaType.application.json)
+        case None => fail("missing content-type header")
+      }
+    }
   }
 
   test("negotiate json response over all") {
     val headers = Headers(Header.Raw(ci"Accept", "*/*"))
     val req = Request[IO](Method.GET, uri"/", headers=headers)
-    dap2Service.routes.orNotFound(req).map { resp =>
-      assertResult("application/json")(resp.headers.get(ci"Content-Type").get.head.value)
-    }.unsafeRunSync()
+    service(req).map { resp =>
+      resp.headers.get[`Content-Type`] match {
+        case Some(ct) => assertEquals(ct.mediaType, MediaType.application.json)
+        case None => fail("missing content-type header")
+      }
+    }
   }
 
   test("negotiate json response over image") {
     val headers = Headers(Header.Raw(ci"Accept", "image/*,application/json"))
     val req = Request[IO](Method.GET, uri"/", headers=headers)
-    dap2Service.routes.orNotFound(req).map { resp =>
-      assertResult("application/json")(resp.headers.get(ci"Content-Type").get.head.value)
-    }.unsafeRunSync()
+    service(req).map { resp =>
+      resp.headers.get[`Content-Type`] match {
+        case Some(ct) => assertEquals(ct.mediaType, MediaType.application.json)
+        case None => fail("missing content-type header")
+      }
+    }
   }
 
   test("negotiate html response") {
     val headers = Headers(Header.Raw(ci"Accept", "text/*,application/json"))
     val req = Request[IO](Method.GET, uri"/", headers=headers)
-    dap2Service.routes.orNotFound(req).map { resp =>
-      assert(resp.headers.get(ci"Content-Type").get.head.value.startsWith("text/html"))
-    }.unsafeRunSync()
+    service(req).map { resp =>
+      resp.headers.get[`Content-Type`] match {
+        case Some(ct) => assertEquals(ct.mediaType, MediaType.text.html)
+        case None => fail("missing content-type header")
+      }
+    }
   }
 }

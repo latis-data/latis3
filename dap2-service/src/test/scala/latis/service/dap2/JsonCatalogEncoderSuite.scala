@@ -1,14 +1,13 @@
 package latis.service.dap2
 
-import cats.effect.unsafe.implicits.global
-import org.scalatest.funsuite.AnyFunSuite
+import munit.CatsEffectSuite
 
 import latis.catalog.Catalog
 import latis.dataset.MemoizedDataset
 import latis.metadata.Metadata
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 
-class JsonCatalogEncoderSuite extends AnyFunSuite {
+class JsonCatalogEncoderSuite extends CatsEffectSuite {
 
   private lazy val ds0 = new MemoizedDataset(Metadata("id"->"ds0", "title"->"Dataset 0"), null, null)
   private lazy val ds1 = new MemoizedDataset(Metadata("id"->"ds1", "title"->"Dataset 1"), null, null)
@@ -51,8 +50,8 @@ class JsonCatalogEncoderSuite extends AnyFunSuite {
         |  ]
         |}""".stripMargin
     JsonCatalogEncoder.encode(catalog).map { json =>
-      assertResult(expected)(json.toString)
-    }.unsafeRunSync()
+      assertEquals(json.toString, expected)
+    }
   }
 
 }
