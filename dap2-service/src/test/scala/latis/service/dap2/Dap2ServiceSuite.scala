@@ -46,7 +46,7 @@ class Dap2ServiceSuite extends CatsEffectSuite {
     }
   }
 
-  test("correctly generate the catalog table") {
+  test("correctly generate the catalog's dataset table") {
     val dataset1 = new MemoizedDataset(
       Metadata("id"->"id1", "title"->"title1"),
       null,
@@ -61,10 +61,10 @@ class Dap2ServiceSuite extends CatsEffectSuite {
 
     val catalog = Catalog(dataset1, dataset2)
 
-    HtmlCatalogEncoder.catalogTable(catalog).map { c =>
+    HtmlCatalogEncoder.datasetTable(catalog).map { c =>
       val expected =
         """<table>
-          |<caption><b><i><u>Catalog</u></i></b></caption>
+          |<caption><i>Datasets</i></caption>
           |<tr>
           |<th>id</th>
           |<th>title</th>
@@ -77,6 +77,43 @@ class Dap2ServiceSuite extends CatsEffectSuite {
           |<td>id2</td>
           |<td><a href="id2.meta">title2</a></td>
           |</tr>
+          |</table>""".stripMargin.replaceAll(System.lineSeparator(), "")
+      assertEquals(c.render, expected)
+    }
+  }
+
+  test("correctly generate the catalog's subcatalog table") {
+    val dataset1 = new MemoizedDataset(
+      Metadata("id"->"id1", "title"->"title1"),
+      null,
+      null
+    )
+
+    val dataset2 = new MemoizedDataset(
+      Metadata("id"->"id2", "title"->"title2"),
+      null,
+      null
+    )
+
+    val catalog = Catalog(dataset1).addCatalog(id"subcat", Catalog(dataset2))
+
+    HtmlCatalogEncoder.subcatalogTable(catalog).map { c =>
+      val expected =
+        """<table class="subcatalog">
+          |<caption><i>Subcatalogs</i></caption>
+          |<tr><td>
+          |<details>
+          |<summary><b><i><u>subcat</u></i></b>&nbsp&nbsp&nbsp&nbsp<a href="subcat/">&#8690</a></summary>
+          |<div><table>
+          |<caption><i>Datasets</i></caption>
+          |<tr><th>id</th><th>title</th></tr>
+          |<tr><td>id2</td><td><a href="subcat/id2.meta">title2</a></td></tr>
+          |</table><table class="subcatalog">
+          |<caption><i>Subcatalogs</i></caption>
+          |<tr><td><hr /></td></tr>
+          |</table></div>
+          |</details>
+          |</td></tr>
           |</table>""".stripMargin.replaceAll(System.lineSeparator(), "")
       assertEquals(c.render, expected)
     }

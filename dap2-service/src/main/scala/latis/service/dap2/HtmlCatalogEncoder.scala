@@ -1,15 +1,12 @@
 package latis.service.dap2
 
 import cats.effect._
-import cats.effect.unsafe.implicits.global
 import fs2.Stream
 import scalatags.Text
 import scalatags.Text.all._
 import scalatags.Text.tags2.details
-import scalatags.Text.tags2.summary
-
-import latis.util.Identifier.IdentifierStringContext
 import scalatags.Text.tags2.style
+import scalatags.Text.tags2.summary
 
 import latis.catalog.Catalog
 
@@ -32,6 +29,7 @@ object HtmlCatalogEncoder {
             "table { height: 50px; padding: 15px 0; margin: 15px 0; border:2px solid; }" +
               "th, td { padding: 0 15px; text-align: left; }" +
               "caption { text-align: left; }" +
+              "summary { width: 100%; }" +
               ".subcatalog { width: 100%; }"
           )
         ),
@@ -48,26 +46,6 @@ object HtmlCatalogEncoder {
       )
     }
   }
-
-  /** Provides an HTML table representation of a Catalog. */
-  private[dap2] def catalogTable(catalog: Catalog): IO[Text.TypedTag[String]] =
-    catalog.datasets.map { ds =>
-      val id = ds.id.fold("")(_.asString)
-      val title = ds.metadata.getProperty("title").getOrElse(id)
-      tr(
-        td(id),
-        td(a(href := id+".meta")(title))
-      )
-    }.compile.toList.map { catalogEntries =>
-      table(
-        caption(b(i(u("Catalog")))),
-        tr(
-          th("id"),
-          th("title")
-        ),
-        catalogEntries
-      )
-    }
 
   /** Provides an HTML table representation of a Catalog's datasets */
   private[dap2] def datasetTable(catalog: Catalog, prefix: String = ""): IO[Text.TypedTag[String]] =
@@ -101,8 +79,9 @@ object HtmlCatalogEncoder {
       } yield {
         tr(
           td(details(
-            summary(Text.all.style := "width:100%;",
-              b(i(u(id))), emptyTab, a(href := prefix + id + "/")(forwardArrow)),
+            summary(b(i(u(id))), emptyTab,
+              a(href := prefix + id + "/")(forwardArrow)
+            ),
             div(datasets,
               subcatalogs)
           ))
