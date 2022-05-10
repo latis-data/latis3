@@ -108,10 +108,9 @@ class Dap2ServiceSuite extends CatsEffectSuite {
           |<caption><i>Datasets</i></caption>
           |<tr><th>id</th><th>title</th></tr>
           |<tr><td>id2</td><td><a href="subcat/id2.meta">title2</a></td></tr>
-          |</table><table class="subcatalog">
-          |<caption><i>Subcatalogs</i></caption>
-          |<tr><td><hr /></td></tr>
-          |</table></div>
+          |</table>
+          |<div></div>
+          |</div>
           |</details>
           |</td></tr>
           |</table>""".stripMargin.replaceAll(System.lineSeparator(), "")
