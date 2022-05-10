@@ -12,7 +12,6 @@ import latis.catalog.Catalog
 
 object HtmlCatalogEncoder {
 
-  private val emptyCell = raw("&#8212;")
   private val emptyTab = raw("&nbsp&nbsp&nbsp&nbsp")
   private val backArrow = raw("&#8689")
   private val forwardArrow = raw("&#8690")
@@ -58,7 +57,7 @@ object HtmlCatalogEncoder {
       )
     }.compile.toList.map { catalogDatasets =>
       if (catalogDatasets.isEmpty) {
-        null
+        div()
       } else {
         table(
           caption(i("Datasets")),
@@ -93,7 +92,7 @@ object HtmlCatalogEncoder {
       }
     }.compile.toList.map { catalogSubcatalogs =>
       if (catalogSubcatalogs.isEmpty) {
-        null
+        div()
       } else {
         table(`class` := "subcatalog",
           caption(i("Subcatalogs")),
