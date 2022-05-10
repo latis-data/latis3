@@ -56,15 +56,19 @@ object HtmlCatalogEncoder {
         td(id),
         td(a(href := prefix + id + ".meta")(title))
       )
-    }.ifEmptyEmit(tr(td(emptyCell),td(emptyCell))).compile.toList.map { catalogDatasets =>
-      table(
-        caption(i("Datasets")),
-        tr(
-          th("id"),
-          th("title")
-        ),
-        catalogDatasets
-      )
+    }.compile.toList.map { catalogDatasets =>
+      if (catalogDatasets.isEmpty) {
+        null
+      } else {
+        table(
+          caption(i("Datasets")),
+          tr(
+            th("id"),
+            th("title")
+          ),
+          catalogDatasets
+        )
+      }
     }
 
   /** Provides a recursive HTML table representation of a Catalog's sub-catalogs */
@@ -87,11 +91,15 @@ object HtmlCatalogEncoder {
           ))
         )
       }
-    }.ifEmptyEmit(tr(td(hr()))).compile.toList.map { tab =>
-      table(`class` := "subcatalog",
-        caption(i("Subcatalogs")),
-        tab
-      )
+    }.compile.toList.map { catalogSubcatalogs =>
+      if (catalogSubcatalogs.isEmpty) {
+        null
+      } else {
+        table(`class` := "subcatalog",
+          caption(i("Subcatalogs")),
+          catalogSubcatalogs
+        )
+      }
     }
   }
 }
