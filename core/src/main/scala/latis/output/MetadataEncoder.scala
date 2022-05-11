@@ -45,7 +45,7 @@ object MetadataEncoder {
         Json.fromJsonObject(
           datasetMetadata
             .add("model", md.ds.model.toString().asJson)
-            .add("variables", variableMetadata)
+            .add("variable", variableMetadata)
         )
       }
     }
