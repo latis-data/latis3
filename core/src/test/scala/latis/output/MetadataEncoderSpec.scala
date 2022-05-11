@@ -40,7 +40,7 @@ final class MetadataEncoderSpec extends AnyFlatSpec {
       fail("Missing model")
     } should equal ("function: a -> b")
 
-    val variables = cursor.downField("variables")
+    val variables = cursor.downField("variable")
     variables.downN(0).get[String]("id").getOrElse {
       fail("Missing variable ID")
     } should equal ("a")
