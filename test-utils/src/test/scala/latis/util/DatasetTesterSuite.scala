@@ -1,17 +1,16 @@
 package latis.util
 
 import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import cats.syntax.all._
 import fs2._
-import org.scalatest.funsuite.AnyFunSuite
+import munit.CatsEffectSuite
 
 import latis.catalog.Catalog
 import latis.dataset.Dataset
 import latis.dsl.DatasetGenerator
 import latis.util.Identifier.IdentifierStringContext
 
-class DatasetTesterSuite extends AnyFunSuite {
+class DatasetTesterSuite extends CatsEffectSuite {
 
   private lazy val catalog: IO[Catalog] = IO( new Catalog {
     def datasets: Stream[IO, Dataset] = Stream.emits(List(
@@ -27,7 +26,7 @@ class DatasetTesterSuite extends AnyFunSuite {
     "datasetB, 0, 0, 0"
   )
 
-  ignore("test data") {
+  test("test data".ignore) {
     tester.flatMap { dsTester =>
       lines.traverse(dsTester.testLine)
     }.unsafeRunSync()
