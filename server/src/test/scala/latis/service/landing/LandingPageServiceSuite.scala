@@ -17,7 +17,7 @@ class LandingPageServiceSuite extends CatsEffectSuite {
   val req: Request[IO] = Request[IO](Method.GET, uri"/")
   val resp: IO[Response[IO]] = landingPageService.routes.orNotFound(req)
 
-  test("generate a non-zero length '200 OK' response for the landing page service") {
+  test("generate a non-zero length '200 OK' response") {
     resp.map { res =>
       assertEquals(res.status, http4s.Status.Ok)
       res.headers.get[`Content-Length`].map(_.length) match {
@@ -28,14 +28,14 @@ class LandingPageServiceSuite extends CatsEffectSuite {
   }
 
   test("produce all of the ServiceInfo information") {
-    resp.map { res =>
-      res.bodyText.compile.toList.map { body =>
-        assert(body.head contains serviceInfo.service, "service not present in HTML")
-        assert(body.head contains serviceInfo.version.get, "version not present in HTML")
-        assert(body.head contains serviceInfo.latisVersion.get, "latisVersion not present in HTML")
-        assert(body.head contains serviceInfo.buildTime.get, "buildTime not present in HTML")
-      }
-    }.flatten
+    resp.flatMap { res =>
+      res.bodyText.compile.toList
+    }.map { body =>
+      assert(body.head contains serviceInfo.service, "service not present in HTML")
+      assert(body.head contains serviceInfo.version.get, "version not present in HTML")
+      assert(body.head contains serviceInfo.latisVersion.get, "latisVersion not present in HTML")
+      assert(body.head contains serviceInfo.buildTime.get, "buildTime not present in HTML")
+    }
   }
 
 }

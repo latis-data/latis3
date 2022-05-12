@@ -1,6 +1,6 @@
 package latis.server
 
-import munit.CatsEffectSuite
+import munit.FunSuite
 
 case object BuildInfo {
   val service = "Test Server"
@@ -9,7 +9,7 @@ case object BuildInfo {
   val buildTime = "10:35am 3/23/2022"
 }
 
-class Latis3ServerBuilderSuite extends CatsEffectSuite {
+class Latis3ServerBuilderSuite extends FunSuite {
   val serviceInfo: ServiceInfo = Latis3ServerBuilder.makeServiceInfo("latis.server.BuildInfo$")
 
   test("generate the correct ServiceInfo from a provided object name") {
