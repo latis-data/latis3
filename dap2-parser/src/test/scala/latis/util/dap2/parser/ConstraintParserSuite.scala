@@ -1,19 +1,18 @@
 package latis.util.dap2.parser
 
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers._
+import munit.CatsEffectSuite
 
 import latis.util.Identifier._
 import latis.util.dap2.parser.ast._
 
-class ConstraintParserSpec extends AnyFlatSpec {
+class ConstraintParserSuite extends CatsEffectSuite {
 
   /**
    * Helper for reducing boilerplate.
    *
    * If the parser fails, the test will fail with the message given by
    * the parser. Otherwise, the assertion will be run with the result
-   * of the parse as the input.
+   * of the parse as the)put.
    *
    * @param expr expression to parse
    * @param assertion assertion for a successful parse
@@ -21,60 +20,67 @@ class ConstraintParserSpec extends AnyFlatSpec {
   private def testParse(expr: String)(assertion: ConstraintExpression => Any): Any =
     ConstraintParser.parse(expr).fold(fail(_), assertion)
 
-  "A DAP 2 constraint parser" should "accept no constraints" in
-    testParse("") {
-      _.exprs.length should be (0)
+  test("accept no constraints") {
+    testParse("") { ce =>
+      assertEquals(ce.exprs.length, 0)
     }
+  }
 
-  it should "parse a selection" in
+  test("parse a selection") {
     testParse("time>0") { ce =>
       val correct = ConstraintExpression(
         List(Selection(id"time", Gt, "0"))
       )
-      ce should be (correct)
+      assertEquals(ce, correct)
     }
+  }
 
-  it should "parse a selection with white space" in
+  test("parse a selection with white space") {
     testParse("time > 0") { ce =>
       val correct = ConstraintExpression(
         List(Selection(id"time", Gt, "0"))
       )
-      ce should be (correct)
+      assertEquals(ce, correct)
     }
+  }
 
-  it should "parse a selection with a full ISO 8601 time string" in
+  test("parse a selection with a full ISO 8601 time string") {
     testParse("time>=2000-01-01T00:00:00.000Z") { ce =>
       val correct = ConstraintExpression(
         List(Selection(id"time", GtEq, "2000-01-01T00:00:00.000Z"))
       )
-      ce should be (correct)
+      assertEquals(ce, correct)
     }
+  }
 
-  it should "parse a selection with a partial ISO 8601 time string" in
+  test("parse a selection with a partial ISO 8601 time string") {
     testParse("time>=2000-01-01T00:00") { ce =>
       val correct = ConstraintExpression(
         List(Selection(id"time", GtEq, "2000-01-01T00:00"))
       )
-      ce should be (correct)
+      assertEquals(ce, correct)
     }
+  }
 
-  it should "parse a selection with only a date" in
+  test("parse a selection with only a date") {
     testParse("time<2000-01-01") { ce =>
       val correct = ConstraintExpression(
         List(Selection(id"time", Lt, "2000-01-01"))
       )
-      ce should be (correct)
+      assertEquals(ce, correct)
     }
+  }
 
-  it should "parse expressions with leading ampersands" in
+  test("parse expressions with leading ampersands") {
     testParse("&time>0") { ce =>
       val correct = ConstraintExpression(
         List(Selection(id"time", Gt, "0"))
       )
-      ce should be (correct)
+      assertEquals(ce, correct)
     }
+  }
 
-  it should "parse two selections joined by an ampersand" in
+  test("parse two selections joined by an ampersand") {
     testParse("time>0&time<10") { ce =>
       val correct = ConstraintExpression(
         List(
@@ -82,51 +88,56 @@ class ConstraintParserSpec extends AnyFlatSpec {
           Selection(id"time", Lt, "10")
         )
       )
-      ce should be (correct)
+      assertEquals(ce, correct)
     }
+  }
 
-  it should "parse selections with text values" in
+  test("parse selections with text values") {
     testParse("&time>text") { ce =>
       val correct = ConstraintExpression(
         List(Selection(id"time", Gt, "text"))
       )
-      ce should be (correct)
+      assertEquals(ce, correct)
     }
+  }
 
-  it should "parse selections with double-quoted values" in {
+  test("parse selections with double-quoted values") {
     testParse("&time>\"text\"") { ce =>
       val correct = ConstraintExpression(
         List(Selection(id"time", Gt, "\"text\""))
       )
-      ce should be (correct)
+      assertEquals(ce, correct)
     }
   }
 
-  it should "parse a single-variable projection" in
+  test("parse a single-variable projection") {
     testParse("time") { ce =>
       val correct = ConstraintExpression(
         List(Projection(List(id"time")))
       )
-      ce should be (correct)
+      assertEquals(ce, correct)
     }
+  }
 
-  it should "parse a multi-variable projection" in
+  test("parse a multi-variable projection") {
     testParse("time,value") { ce =>
       val correct = ConstraintExpression(
         List(Projection(List(id"time", id"value")))
       )
-      ce should be (correct)
+      assertEquals(ce, correct)
     }
+  }
 
-  it should "parse a single operation" in
+  test("parse a single operation") {
     testParse("&first()") { ce =>
       val correct = ConstraintExpression(
         List(Operation("first", List()))
       )
-      ce should be (correct)
+      assertEquals(ce, correct)
     }
+  }
 
-  it should "parse multiple operations" in
+  test("parse multiple operations") {
     testParse("&first()&last()") { ce =>
       val correct = ConstraintExpression(
         List(
@@ -134,43 +145,47 @@ class ConstraintParserSpec extends AnyFlatSpec {
           Operation("last", List())
         )
       )
-      ce should be (correct)
+      assertEquals(ce, correct)
     }
+  }
 
-  it should "parse an operation with an argument" in
+  test("parse an operation with an argument") {
     testParse("&take(5)") { ce =>
       val correct = ConstraintExpression(
         List(Operation("take", List("5")))
       )
-      ce should be (correct)
+      assertEquals(ce, correct)
     }
+  }
 
-  it should "parse an operation with a double-quoted argument" in {
+  test("parse an operation with a double-quoted argument") {
     testParse("&op(\"a\")") { ce =>
       val correct = ConstraintExpression(
         List(Operation("op", List("\"a\"")))
       )
-      ce should be (correct)
+      assertEquals(ce, correct)
     }
   }
 
-  it should "parse an operation with multiple arguments" in
+  test("parse an operation with multiple arguments") {
     testParse("&op(a,b)") { ce =>
       val correct = ConstraintExpression(
         List(Operation("op", List("a", "b")))
       )
-      ce should be (correct)
+      assertEquals(ce, correct)
     }
+  }
 
-  it should "parse an operation with multiple arguments with white space" in
+  test("parse an operation with multiple arguments with white space") {
     testParse("&op( a, b )") { ce =>
       val correct = ConstraintExpression(
         List(Operation("op", List("a", "b")))
       )
-      ce should be (correct)
+      assertEquals(ce, correct)
     }
+  }
 
-  it should "parse a projection followed by selections and operations" in
+  test("parse a projection followed by selections and operations") {
     testParse("time&time<10&last()") { ce =>
       val correct = ConstraintExpression(
         List(
@@ -179,9 +194,11 @@ class ConstraintParserSpec extends AnyFlatSpec {
           Operation("last", List())
         )
       )
-      ce should be (correct)
+      assertEquals(ce, correct)
     }
+  }
 
-  it should "not parse expressions where projections aren't first" in
-    ConstraintParser.parse("time>10&time").fold(_ => succeed, _ => fail())
+  test("not parse expressions where projections aren't first") {
+    ConstraintParser.parse("time>10&time").fold(_ => assert(cond = true), _ => fail(""))
+  }
 }
