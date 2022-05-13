@@ -1,20 +1,17 @@
 package latis.dsl
 
-import atto._
 import atto.Atto._
+import atto._
+import munit.FunSuite
 import org.scalactic.Equality
-import org.scalatest.EitherValues._
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers._
-import org.scalatest.Assertion
-import org.scalatest.Inside.inside
+import org.scalactic.TripleEquals._
 
 import latis.model._
 import latis.util.Identifier.IdentifierStringContext
 import latis.util.LatisException
 
 
-class ModelParserSpec extends AnyFlatSpec {
+class ModelParserSuite extends FunSuite {
 
   private lazy val testScalar   = testParser(ModelParser.scalar)(_, _)
   private lazy val testTuple    = testParser(ModelParser.tuple)(_, _)
@@ -25,54 +22,56 @@ class ModelParserSpec extends AnyFlatSpec {
   private lazy val c = Scalar(id"c", StringValueType)
   private lazy val d = Scalar(id"d", LongValueType)
 
-  "The ModelParser" should "parse a scalar" in {
+  test("parse a scalar") {
     testScalar("b", b)
   }
 
-  it should "parse a scalar with a type" in {
+  test("parse a scalar with a type") {
     testScalar("a: double", a)
   }
 
-  it should "parse a tuple" in {
+  test("parse a tuple") {
     testTuple(
       "(a: double, b: int)",
-      Tuple.fromElements(a, b).value
+      Tuple.fromElements(a, b).getOrElse(fail("tuple not generated"))
     )
   }
 
-  it should "parse a tuple of more than two elements" in {
+  test("parse a tuple of more than two elements") {
     testTuple(
       "(a: double, b, c: string)",
-      Tuple.fromElements(a, b, c).value
+      Tuple.fromElements(a, b, c).getOrElse(fail("tuple not generated"))
     )
   }
 
-  it should "parse a nested tuple" in {
-    inside(ModelParser.unsafeParse("(a, (b, c))")) {
+  test("parse a nested tuple") {
+    ModelParser.unsafeParse("(a, (b, c))") match {
       case Tuple(a: Scalar, Tuple(b: Scalar, c: Scalar)) =>
-        a.id should be (id"a")
-        b.id should be (id"b")
-        c.id should be (id"c")
+        assertEquals(a.id, id"a")
+        assertEquals(b.id, id"b")
+        assertEquals(c.id, id"c")
+      case _ => fail("model is not tuple of correct type")
     }
   }
 
-  ignore should "parse a function in a tuple" in {
-    inside(ModelParser.unsafeParse("(a, b -> c)")) {
+  test("parse a function in a tuple".ignore) {
+    ModelParser.unsafeParse("(a, b -> c)") match {
       case Tuple(a: Scalar, Function(b: Scalar, c: Scalar)) =>
-        a.id should be (id"a")
-        b.id should be (id"b")
-        c.id should be (id"c")
+        assertEquals(a.id, id"a")
+        assertEquals(b.id, id"b")
+        assertEquals(c.id, id"c")
+      case _ => fail("model is not tuple of correct type")
     }
   }
 
-  it should "parse a function" in {
+  test("parse a function") {
     testFunction(
       "b: int -> a: double",
-      Function.from(b, a).value
+      Function.from(b, a).getOrElse(fail("tuple not generated"))
     )
   }
 
-  it should "parse a complex function" in {
+  test("parse a complex function") {
     val f = for {
       domain <- Tuple.fromElements(c, b)
       range <- Tuple.fromElements(a, d)
@@ -80,32 +79,33 @@ class ModelParserSpec extends AnyFlatSpec {
     } yield f
     testFunction(
       "(c: string, b: int) -> (a: double, d: long)",
-      f.value
+      f.getOrElse(fail("function not generated"))
     )
   }
 
-  it should "parse a nested function" in {
-    val inner = Function.from(b, c).value
-    val outer = Function.from(a, inner).value
+  test("parse a nested function") {
+    val inner = Function.from(b, c).getOrElse(fail("function not generated"))
+    val outer = Function.from(a, inner).getOrElse(fail("function not generated"))
     testFunction(
       "a: double -> b: int -> c: string",
       outer
     )
   }
 
-  it should "parse a nested function with parentheses" in {
-    val inner = Function.from(b, c).value
-    val outer = Function.from(a, inner).value
+  test("parse a nested function with parentheses") {
+    val inner = Function.from(b, c).getOrElse(fail("function not generated"))
+    val outer = Function.from(a, inner).getOrElse(fail("function not generated"))
     testFunction(
       "a: double -> (b: int -> c: string)",
       outer
     )
   }
 
-  it should "make an exception for an invalid model expression" in {
-    inside(ModelParser.parse("a <- b")) {
+  test("make an exception for an invalid model expression") {
+    ModelParser.parse("a <- b") match {
       case Left(le: LatisException) =>
-        le.message.take(6) should be("Failed")
+        assertEquals(le.message.take(6), "Failed")
+      case _ => fail("Model parsed incorrectly")
     }
   }
 
@@ -130,9 +130,9 @@ class ModelParserSpec extends AnyFlatSpec {
    * Partially apply with a parser to get a function that takes the string you
    * want to parse and the thing you expect to get back
    */
-  private def testParser[A](p: Parser[A])(s: String, d: A): Assertion = p.parseOnly(s) match {
-    case ParseResult.Done(_, result: DataType) => result should equal(d)
-    case ParseResult.Done(_, result)           => result should be(d)
+  private def testParser[A](p: Parser[A])(s: String, d: A): Unit = p.parseOnly(s) match {
+    case ParseResult.Done(_, result: DataType) => assert(result === d)
+    case ParseResult.Done(_, result)           => assertEquals(result, d)
     case ParseResult.Fail(_, _, m)             => fail(s"$m in $s")
     // parseOnly will never return anything but Done or Fail, but the types don't
     // know that so we get a warning without the following line.
