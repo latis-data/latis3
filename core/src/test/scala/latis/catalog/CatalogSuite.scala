@@ -1,16 +1,15 @@
 package latis.catalog
 
 import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import cats.syntax.all._
 import fs2.Stream
-import org.scalatest.funsuite.AnyFunSuite
+import munit.CatsEffectSuite
 
 import latis.dataset.Dataset
 import latis.dsl.DatasetGenerator
 import latis.util.Identifier._
 
-class CatalogSuite extends AnyFunSuite {
+class CatalogSuite extends CatsEffectSuite {
 
   val ds1 = DatasetGenerator("a: double -> b: double", id"ds1")
   val ds2 = DatasetGenerator("a: double -> b: double", id"ds2")
@@ -42,59 +41,57 @@ class CatalogSuite extends AnyFunSuite {
   test("list datasets in a single catalog") {
     val expected = List("ds1", "ds2")
 
-    assertResult(expected) {
-      c1.datasets.map(_.id.get.asString).compile.toList.unsafeRunSync()
+    c1.datasets.map(_.id.get.asString).compile.toList.map { lst =>
+      assertEquals(lst, expected)
     }
   }
 
   test("find datasets in a single catalog") {
     val expected = Option("ds2")
 
-    assertResult(expected) {
-      c1.findDataset(id"ds2").unsafeRunSync().map(_.id.get.asString)
+    c1.findDataset(id"ds2").map { ds =>
+      assertEquals(ds.map(_.id.get.asString), expected)
     }
   }
 
   test("list datasets in a combined catalog") {
     val expected = List("ds1", "ds2", "ds3")
 
-    assertResult(expected) {
-      combined.datasets.map(_.id.get.asString).compile.toList.unsafeRunSync()
+    combined.datasets.map(_.id.get.asString).compile.toList.map { lst =>
+      assertEquals(lst, expected)
     }
   }
 
   test("find datasets on the left side of a combined catalog") {
     val expected = Option("ds2")
 
-    assertResult(expected) {
-      combined.findDataset(id"ds2").unsafeRunSync().map(_.id.get.asString)
+    combined.findDataset(id"ds2").map { ds =>
+      assertEquals(ds.map(_.id.get.asString), expected)
     }
   }
 
   test("find datasets on the right side of a combined catalog") {
     val expected = Option("ds3")
 
-    assertResult(expected) {
-      combined.findDataset(id"ds3").unsafeRunSync().map(_.id.get.asString)
+    combined.findDataset(id"ds3").map { ds =>
+      assertEquals(ds.map(_.id.get.asString), expected)
     }
   }
 
   test("find catalog in a nested catalog") {
     nested.findCatalog(id"b.c")
-      .fold(fail("Failed to find catalog"))(assertResult(c2)(_))
+      .fold(fail("Failed to find catalog"))(assertEquals(_, c2))
   }
 
   test("find dataset in a nested catalog") {
-    nested.findDataset(id"b.c.ds3")
-      .unsafeRunSync()
-      .map(_.id.get)
-      .fold(fail("Failed to find dataset"))(assertResult(id"ds3")(_))
+    nested.findDataset(id"b.c.ds3").map { ds =>
+      ds.map(_.id.get)
+        .fold(fail("Failed to find dataset"))(assertEquals(_, id"ds3"))
+    }
   }
 
   test("filter(_ => true) is identity") {
-    assertResult(3) {
-      listAll(nested.filter(_ => true)).length
-    }
+    assertEquals(listAll(nested.filter(_ => true)).length, 3)
   }
 
   test("filter(_ => false) removes all datasets") {
