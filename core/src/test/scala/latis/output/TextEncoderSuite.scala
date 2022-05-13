@@ -2,20 +2,18 @@ package latis.output
 
 import scala.util.Properties.lineSeparator
 
-import cats.effect.unsafe.implicits.global
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers._
+import munit.CatsEffectSuite
 
 import latis.dataset.Dataset
 import latis.dsl._
 import latis.util.Identifier.IdentifierStringContext
 
-class TextEncoderSpec extends AnyFlatSpec {
+class TextEncoderSuite extends CatsEffectSuite {
 
   /** Instance of TextEncoder for testing. */
   val enc = new TextEncoder
 
-  "A Text encoder" should "encode a dataset to Text" in {
+  test("encode a dataset to Text") {
     val ds: Dataset = DatasetGenerator("x -> (a: int, b: double, c: string)", id"foo")
     val expectedOutput: Seq[String] = List(
       "foo: x -> (a, b, c)",
@@ -23,27 +21,29 @@ class TextEncoderSpec extends AnyFlatSpec {
       "1 -> (1, 1.0, b)",
       "2 -> (2, 2.0, c)"
     ).map(_ + lineSeparator)
-    val encodedList = enc.encode(ds).compile.toList.unsafeRunSync()
-    encodedList should be (expectedOutput)
+    enc.encode(ds).compile.toList.map { encodedList =>
+      assertEquals(encodedList, expectedOutput.toList)
+    }
   }
 
-  it should "increment index variable after sample is filtered out" in {
+  test("increment index variable after sample is filtered out") {
     val ds = DatasetGenerator("x -> a")
       .project("a")
       .select("a != 1")
 
-    val samples = ds.samples.compile.toList.unsafeRunSync()
-    enc.encodeSample(ds.model, samples(0)) should be ("0 -> 0")
-    enc.encodeSample(ds.model, samples(1)) should be ("1 -> 2")
+    ds.samples.compile.toList.map { samples =>
+      assertEquals(enc.encodeSample(ds.model, samples.head), "0 -> 0")
+      assertEquals(enc.encodeSample(ds.model, samples(1)), "1 -> 2")
+    }
   }
 
-  it should "start a new index generator for a new dataset encoding" in {
+  test("start a new index generator for a new dataset encoding") {
     val ds = DatasetGenerator("x -> a").project("a")
-    (for {
+    for {
       ss1 <- enc.encode(ds).compile.toList
       ss2 <- enc.encode(ds).compile.toList
     } yield {
-      ss1 should be (ss2)
-    }).unsafeRunSync()
+      assertEquals(ss1, ss2)
+    }
   }
 }
