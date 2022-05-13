@@ -1,7 +1,6 @@
 package latis.util
 
-import org.scalatest.EitherValues._
-import org.scalatest.funsuite.AnyFunSuite
+import munit.FunSuite
 
 import latis.dsl._
 import latis.metadata.Metadata
@@ -10,7 +9,7 @@ import latis.ops._
 import latis.time._
 import latis.util.Identifier._
 
-class SqlBuilderSuite extends AnyFunSuite {
+class SqlBuilderSuite extends FunSuite {
 
   private val table = "myTable"
   private val model = ModelParser.unsafeParse("(x, y) -> (a, b, c)")
@@ -70,7 +69,7 @@ class SqlBuilderSuite extends AnyFunSuite {
 
   test("no order clause for index domain") {
     val scalar = ModelParser.unsafeParse("a")
-    val model = Function.from(Index(id"_i"), scalar).value
+    val model = Function.from(Index(id"_i"), scalar).getOrElse(fail("function not generated"))
     val sql = SqlBuilder.buildQuery(table, model)
     assert(!sql.contains("ORDER"))
   }
@@ -78,14 +77,14 @@ class SqlBuilderSuite extends AnyFunSuite {
   //---- SQL with Time selections ----//
 
   private val modelWithNumericTime = Function.from(
-    Time.fromMetadata(Metadata("id" -> "t", "type" -> "int", "units" -> "days since 1970-01-01")).value,
+    Time.fromMetadata(Metadata("id" -> "t", "type" -> "int", "units" -> "days since 1970-01-01")).getOrElse(fail("time not generated")),
     Scalar(id"a", IntValueType)
-  ).value
+  ).getOrElse(fail("function not generated"))
 
   private val modelWithTextTime = Function.from(
-    Time.fromMetadata(Metadata("id" -> "t", "type" -> "string", "units" -> "yyyy-MM-dd")).value,
+    Time.fromMetadata(Metadata("id" -> "t", "type" -> "string", "units" -> "yyyy-MM-dd")).getOrElse(fail("time not generated")),
     Scalar(id"a", IntValueType)
-  ).value
+  ).getOrElse(fail("function not generated"))
 
   test("numeric time selection with numeric time") {
     val ops = List(
