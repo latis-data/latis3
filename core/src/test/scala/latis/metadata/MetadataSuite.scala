@@ -1,8 +1,8 @@
 package latis.metadata
 
-import org.scalatest.funsuite.AnyFunSuite
+import munit.FunSuite
 
-class MetadataSuite extends AnyFunSuite {
+class MetadataSuite extends FunSuite {
   
   /**
    * Instance of Metadata for testing.
@@ -20,15 +20,15 @@ class MetadataSuite extends AnyFunSuite {
 
   test("get metadata property") {
     testmd.getProperty("id") match {
-      case Some(id) => assert(id == "testds")
-      case _ => fail()
+      case Some(id) => assertEquals(id, "testds")
+      case _ => fail("id not generated")
     }
   }
   
   test("get metadata like property") {
     mlike("id") match {
-      case Some(id) => assert(id == "testds")
-      case _ => fail()
+      case Some(id) => assertEquals(id, "testds")
+      case _ => fail("id not generated")
     }
   }
   
