@@ -1,19 +1,19 @@
 package latis.dataset
 
-import org.scalatest.funsuite.AnyFunSuite
-import org.scalatest.Inside.inside
+import munit.FunSuite
 
 import latis.dsl._
 import latis.ops.Head
 
-class MemoizedDatasetSuite extends AnyFunSuite {
+class MemoizedDatasetSuite extends FunSuite {
 
   val ds: MemoizedDataset = DatasetGenerator("x -> a")
 
   test("apply operations when getting data") {
-    inside(ds.withOperation(Head())) {
+    ds.withOperation(Head()) match {
       case mds: MemoizedDataset =>
-        assert(mds.data.sampleSeq.length == 1)
+        assertEquals(mds.data.sampleSeq.length, 1)
+      case _ => fail("memoized dataset not generated")
     }
   }
 

@@ -1,12 +1,10 @@
 package latis.dataset
 
-import org.scalatest.Inside._
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers._
+import munit.CatsEffectSuite
 
-import latis.data._
 import latis.data.Data._
 import latis.data.Sample
+import latis.data._
 import latis.dsl._
 import latis.metadata.Metadata
 import latis.model._
@@ -14,10 +12,9 @@ import latis.ops.Append
 import latis.ops.Rename
 import latis.ops.Selection
 import latis.util.Identifier.IdentifierStringContext
-import latis.util.StreamUtils
 import latis.util.dap2.parser.ast
 
-class CompositeDatasetSpec extends AnyFlatSpec {
+class CompositeDatasetSuite extends CatsEffectSuite {
 
   private lazy val ds1 = {
     val metadata = Metadata(id"test1")
@@ -53,43 +50,44 @@ class CompositeDatasetSpec extends AnyFlatSpec {
 
   private lazy val compDs = CompositeDataset(id"test", Append(), ds1, ds2)
 
-  "A dataset" should "provide a composite model" in {
-    inside(compDs.model) {
+  test("provide a composite model") {
+    compDs.model match {
       case Function(t: Scalar, f: Scalar) =>
-        assert(t.valueType == IntValueType)
-        assert(t.id.asString == "time")
-        assert(f.valueType == DoubleValueType)
-        assert(f.id.asString == "flux")
+        assertEquals(t.valueType, IntValueType)
+        assertEquals(t.id.asString, "time")
+        assertEquals(f.valueType, DoubleValueType)
+        assertEquals(f.id.asString, "flux")
+      case _ => fail("model not of correct function type")
     }
   }
 
-  it should "provide a stream of samples" in {
-    inside(StreamUtils.unsafeStreamToSeq(compDs.samples)) {
+  test("provide a stream of samples") {
+    compDs.samples.compile.toList.map {
       case Seq(s1, s2, s3, s4) =>
-        s1 should be (Sample(DomainData(1), RangeData(1.2)))
-        s2 should be (Sample(DomainData(2), RangeData(2.4)))
-        s3 should be (Sample(DomainData(3), RangeData(3.6)))
-        s4 should be (Sample(DomainData(4), RangeData(4.8)))
-      case _ => fail()
+        assertEquals(s1, Sample(DomainData(1), RangeData(1.2)))
+        assertEquals(s2, Sample(DomainData(2), RangeData(2.4)))
+        assertEquals(s3, Sample(DomainData(3), RangeData(3.6)))
+        assertEquals(s4, Sample(DomainData(4), RangeData(4.8)))
+      case _ => fail("sequence format not correct")
     }
   }
 
-  it should "apply an operation that mutates data" in {
+  test("apply an operation that mutates data") {
     val select = Selection(id"time", ast.Gt, "1")
     val compDs2 = compDs.withOperation(select)
-    inside(StreamUtils.unsafeStreamToSeq(compDs2.samples)) {
+    compDs2.samples.compile.toList.map {
       case Seq(s2, s3, s4) =>
-        s2 should be (Sample(DomainData(2), RangeData(2.4)))
-        s3 should be (Sample(DomainData(3), RangeData(3.6)))
-        s4 should be (Sample(DomainData(4), RangeData(4.8)))
-      case _ => fail()
+        assertEquals(s2, Sample(DomainData(2), RangeData(2.4)))
+        assertEquals(s3, Sample(DomainData(3), RangeData(3.6)))
+        assertEquals(s4, Sample(DomainData(4), RangeData(4.8)))
+      case _ => fail("sequence format not correct")
     }
   }
 
-  it should "apply an operation that mutates the model" in {
+  test("apply an operation that mutates the model") {
     val rename = Rename(id"flux", id"foo")
     val compDs2 = compDs.withOperation(rename)
-    compDs2.model.toString should be (ModelParser.unsafeParse("time: int -> foo: double").toString)
+    assertEquals(compDs2.model.toString, ModelParser.unsafeParse("time: int -> foo: double").toString)
   }
 
 }
