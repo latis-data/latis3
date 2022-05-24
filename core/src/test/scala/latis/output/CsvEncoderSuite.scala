@@ -16,9 +16,7 @@ class CsvEncoderSuite extends CatsEffectSuite {
       "1,1,1.0,b",
       "2,2,2.0,c"
     ).map(_ + "\r\n")
-    enc.encode(ds).compile.toList.map { csvList =>
-      assertEquals(csvList, expectedCsv)
-    }
+    enc.encode(ds).compile.toList.assertEquals(expectedCsv)
   }
 
   test("encode a dataset to CSV with a header") {
