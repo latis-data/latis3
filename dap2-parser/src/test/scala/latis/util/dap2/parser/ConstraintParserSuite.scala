@@ -1,18 +1,18 @@
 package latis.util.dap2.parser
 
-import munit.CatsEffectSuite
+import munit.FunSuite
 
 import latis.util.Identifier._
 import latis.util.dap2.parser.ast._
 
-class ConstraintParserSuite extends CatsEffectSuite {
+class ConstraintParserSuite extends FunSuite {
 
   /**
    * Helper for reducing boilerplate.
    *
    * If the parser fails, the test will fail with the message given by
    * the parser. Otherwise, the assertion will be run with the result
-   * of the parse as the)put.
+   * of the parse as the input.
    *
    * @param expr expression to parse
    * @param assertion assertion for a successful parse
@@ -199,6 +199,6 @@ class ConstraintParserSuite extends CatsEffectSuite {
   }
 
   test("not parse expressions where projections aren't first") {
-    ConstraintParser.parse("time>10&time").fold(_ => assert(cond = true), _ => fail(""))
+    ConstraintParser.parse("time>10&time").fold(_ => assert(true), _ => fail(""))
   }
 }
