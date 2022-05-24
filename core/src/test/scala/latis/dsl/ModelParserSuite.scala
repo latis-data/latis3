@@ -2,14 +2,13 @@ package latis.dsl
 
 import atto.Atto._
 import atto._
+import cats.Eq
+import cats.syntax.all._
 import munit.FunSuite
-import org.scalactic.Equality
-import org.scalactic.TripleEquals._
 
 import latis.model._
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 import latis.util.LatisException
-
 
 class ModelParserSuite extends FunSuite {
 
@@ -67,7 +66,7 @@ class ModelParserSuite extends FunSuite {
   test("parse a function") {
     testFunction(
       "b: int -> a: double",
-      Function.from(b, a).getOrElse(fail("tuple not generated"))
+      Function.from(b, a).getOrElse(fail("function not generated"))
     )
   }
 
@@ -111,17 +110,16 @@ class ModelParserSuite extends FunSuite {
 
   /**
    * Applies custom equality to DataType for testing
-   * TODO: move to package object of type class instances for testing
    */
-  implicit val modelEq: Equality[DataType] = new Equality[DataType] {
-    override def areEqual(model: DataType, expected: Any): Boolean =
-      (model, expected) match {
+  implicit val modelEq: Eq[DataType] = new Eq[DataType] {
+    override def eqv(obtained: DataType, expected: DataType): Boolean =
+      (obtained, expected) match {
         case (m: Scalar, e: Scalar) =>
           (m.id == e.id) && (m.valueType == e.valueType)
         case (m: Tuple, e: Tuple) =>
-          (m.id == e.id) && m.elements.zip(e.elements).forall(t => areEqual(t._1, t._2))
+          (m.id == e.id) && m.elements.zip(e.elements).forall(t => eqv(t._1, t._2))
         case (m: Function, e: Function) =>
-          (m.id == e.id) && areEqual(m.domain, e.domain) && areEqual(m.range, e.range)
+          (m.id == e.id) && eqv(m.domain, e.domain) && eqv(m.range, e.range)
         case _ => false
       }
   }
@@ -130,10 +128,9 @@ class ModelParserSuite extends FunSuite {
    * Partially apply with a parser to get a function that takes the string you
    * want to parse and the thing you expect to get back
    */
-  private def testParser[A](p: Parser[A])(s: String, d: A): Unit = p.parseOnly(s) match {
-    case ParseResult.Done(_, result: DataType) => assert(result === d)
-    case ParseResult.Done(_, result)           => assertEquals(result, d)
-    case ParseResult.Fail(_, _, m)             => fail(s"$m in $s")
+  private def testParser[A: Eq](p: Parser[A])(s: String, d: A): Unit = p.parseOnly(s) match {
+    case ParseResult.Done(_, result) => assert(result === d)
+    case ParseResult.Fail(_, _, m)   => fail(s"$m in $s")
     // parseOnly will never return anything but Done or Fail, but the types don't
     // know that so we get a warning without the following line.
     case _ => fail(s"failed to parse $s")
