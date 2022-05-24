@@ -11,7 +11,7 @@ import latis.model._
 import latis.ops.Append
 import latis.ops.Rename
 import latis.ops.Selection
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 import latis.util.dap2.parser.ast
 
 class CompositeDatasetSuite extends CatsEffectSuite {
@@ -68,7 +68,7 @@ class CompositeDatasetSuite extends CatsEffectSuite {
         assertEquals(s2, Sample(DomainData(2), RangeData(2.4)))
         assertEquals(s3, Sample(DomainData(3), RangeData(3.6)))
         assertEquals(s4, Sample(DomainData(4), RangeData(4.8)))
-      case _ => fail("sequence format not correct")
+      case _ => fail("wrong number of samples")
     }
   }
 
@@ -80,14 +80,17 @@ class CompositeDatasetSuite extends CatsEffectSuite {
         assertEquals(s2, Sample(DomainData(2), RangeData(2.4)))
         assertEquals(s3, Sample(DomainData(3), RangeData(3.6)))
         assertEquals(s4, Sample(DomainData(4), RangeData(4.8)))
-      case _ => fail("sequence format not correct")
+      case _ => fail("wrong number of samples")
     }
   }
 
   test("apply an operation that mutates the model") {
     val rename = Rename(id"flux", id"foo")
     val compDs2 = compDs.withOperation(rename)
-    assertEquals(compDs2.model.toString, ModelParser.unsafeParse("time: int -> foo: double").toString)
+    assertEquals(
+      compDs2.model.toString,
+      ModelParser.unsafeParse("time: int -> foo: double").toString
+    )
   }
 
 }
