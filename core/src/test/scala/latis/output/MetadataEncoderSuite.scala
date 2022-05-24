@@ -9,7 +9,7 @@ import latis.metadata.Metadata
 import latis.model.Function
 import latis.model.IntValueType
 import latis.model.Scalar
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 
 final class MetadataEncoderSuite extends CatsEffectSuite {
 
@@ -19,7 +19,7 @@ final class MetadataEncoderSuite extends CatsEffectSuite {
     val model = Function.from(id"function",
       Scalar(id"a", IntValueType),
       Scalar(id"b", IntValueType),
-    ).getOrElse(fail("model not generated"))
+    ).getOrElse(fail("failed to create function"))
 
     val data = SampledFunction(Seq.empty)
 
