@@ -14,7 +14,7 @@ class TimeSuite extends FunSuite {
       "type"  -> "string",
       "units" -> "MMM dd, yyyy"
     )
-  ).getOrElse(fail("failed to create time"))
+  ).getOrElse(fail("failed to create Time"))
 
   private lazy val numericTime = Time.fromMetadata(
     Metadata(
@@ -22,7 +22,7 @@ class TimeSuite extends FunSuite {
       "type"  -> "double",
       "units" -> "seconds since 2000-01-01"
     )
-  ).getOrElse(fail("failed to create time"))
+  ).getOrElse(fail("failed to create Time"))
 
 
   test("convert an ISO string to a number") {
@@ -63,7 +63,7 @@ class TimeSuite extends FunSuite {
         "type"  -> "string",
         "units" -> "ddMMyyyy"
       )
-    ).getOrElse(fail("failed to create time"))
+    ).getOrElse(fail("failed to create Time"))
 
     assertEquals(
       time.convertValue("19990102"),
