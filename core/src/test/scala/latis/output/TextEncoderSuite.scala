@@ -6,7 +6,7 @@ import munit.CatsEffectSuite
 
 import latis.dataset.Dataset
 import latis.dsl._
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 
 class TextEncoderSuite extends CatsEffectSuite {
 
@@ -15,15 +15,13 @@ class TextEncoderSuite extends CatsEffectSuite {
 
   test("encode a dataset to Text") {
     val ds: Dataset = DatasetGenerator("x -> (a: int, b: double, c: string)", id"foo")
-    val expectedOutput: Seq[String] = List(
+    val expectedOutput = List(
       "foo: x -> (a, b, c)",
       "0 -> (0, 0.0, a)",
       "1 -> (1, 1.0, b)",
       "2 -> (2, 2.0, c)"
     ).map(_ + lineSeparator)
-    enc.encode(ds).compile.toList.map { encodedList =>
-      assertEquals(encodedList, expectedOutput.toList)
-    }
+    enc.encode(ds).compile.toList.assertEquals(expectedOutput)
   }
 
   test("increment index variable after sample is filtered out") {
