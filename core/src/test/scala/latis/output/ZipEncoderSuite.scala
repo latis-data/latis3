@@ -57,10 +57,8 @@ final class ZipEncoderSuite extends CatsEffectSuite {
       .encode(empty)
       .compile
       .count
-      .map { length =>
-        // An empty ZIP file is 22 bytes long.
-        assertEquals(length, 22L)
-      }
+      // An empty ZIP file is 22 bytes long.
+      .assertEquals(22L)
   }
 
   test("encode a non-empty dataset") {
@@ -76,9 +74,11 @@ final class ZipEncoderSuite extends CatsEffectSuite {
   }
 
   test("fail to encode invalid dataset") {
-    interceptMessage[LatisException]("Unsupported dataset") {
-      (new ZipEncoder).encode(invalid).compile.drain.unsafeRunSync()
-    }
+    (new ZipEncoder)
+      .encode(invalid)
+      .compile
+      .drain
+      .interceptMessage[LatisException]("Unsupported dataset")
   }
 
   private def testEntry(
