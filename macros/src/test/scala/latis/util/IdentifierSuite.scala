@@ -25,9 +25,23 @@ class IdentifierSuite extends FunSuite {
   }
 
   test("do not compile an invalid Identifier") {
-    assertNotEquals(compileErrors("val id = id\"my string\""), "", "id containing a space should not compile")
-    assertNotEquals(compileErrors("val id = id\"123_abc\""), "", "id starting with a number should not compile")
-    assertNotEquals(compileErrors("Identifier(\"myString\")"), "", "id constructed like this should not compile")
+    assertNotEquals(
+      compileErrors("""val id = id"my string""""),
+      "",
+      "id containing a space should not compile"
+    )
+
+    assertNotEquals(
+      compileErrors("""val id = id"123_abc""""),
+      "",
+      "id starting with a number should not compile"
+    )
+
+    assertNotEquals(
+      compileErrors("""Identifier("myString")""""),
+      "",
+      "id constructed like this should not compile"
+    )
   }
 
 }
