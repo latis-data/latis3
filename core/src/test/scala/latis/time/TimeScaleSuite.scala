@@ -7,38 +7,48 @@ import munit.FunSuite
 import latis.units.UnitConverter
 
 class TimeScaleSuite extends FunSuite {
-  
-  private lazy val timeScaleFromFormat = TimeScale.fromExpression("yyyy-MM-dd").getOrElse(fail("time not generated"))
-  
+
+  private lazy val timeScaleFromFormat =
+    TimeScale
+      .fromExpression("yyyy-MM-dd")
+      .getOrElse(fail("failed to create TimeScale"))
+
   test("have the default epoch from a time scale from a format") {
     assertEquals(timeScaleFromFormat.epoch, new Date(0L))
   }
-  
+
   test("have the default time unit from a time scale from a format") {
     assertEquals(timeScaleFromFormat.timeUnit, TimeUnit(0.001))
   }
-  
+
   test("have the default zero from a time scale from a format") {
     assertEquals(timeScaleFromFormat.zero, 0.0)
   }
 
 
-  private lazy val numericTimeScale = TimeScale.fromExpression("hours since 1970-002").getOrElse(fail("time not generated"))
-  
+  private lazy val numericTimeScale =
+    TimeScale
+      .fromExpression("hours since 1970-002")
+      .getOrElse(fail("failed to create TimeScale"))
+
   test("have the correct units from a numeric time scale") {
     assertEquals(numericTimeScale.timeUnit, TimeUnit(3600))
   }
-  
+
   test("have the correct zero from a numeric time scale") {
     assertEquals(numericTimeScale.zero, -24.0)
   }
 
 
   private lazy val timeConverter = UnitConverter(
-    TimeScale.fromExpression("seconds since 2000-01-01T00:00:01").getOrElse(fail("time not generated")),
-    TimeScale.fromExpression("milliseconds since 2000-01-01").getOrElse(fail("time not generated"))
+    TimeScale
+      .fromExpression("seconds since 2000-01-01T00:00:01")
+      .getOrElse(fail("failed to create TimeScale")),
+    TimeScale
+      .fromExpression("milliseconds since 2000-01-01")
+      .getOrElse(fail("failed to create TimeScale"))
   )
-  
+
   test("convert between numeric time scales from a time converter") {
     val z = timeConverter.convert(1)
     assertEquals(z, 2000.0)
