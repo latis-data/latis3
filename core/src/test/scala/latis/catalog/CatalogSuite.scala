@@ -31,19 +31,17 @@ class CatalogSuite extends CatsEffectSuite {
   // This is not useful in practice because we lose information about
   // which catalog a dataset came from, so there are no guarantees
   // that datasets in this list are unique.
-  private def listAll(c: Catalog): List[Dataset] = {
+  private def listAll(c: Catalog): IO[List[Dataset]] = {
     def go(c: Catalog): Stream[IO, Dataset] = {
       c.datasets ++ c.catalogs.toList.foldMap { case (_, c) => go(c) }
     }
-    go(c).compile.toList.unsafeRunSync()
+    go(c).compile.toList
   }
 
   test("list datasets in a single catalog") {
     val expected = List("ds1", "ds2")
 
-    c1.datasets.map(_.id.get.asString).compile.toList.map { lst =>
-      assertEquals(lst, expected)
-    }
+    c1.datasets.map(_.id.get.asString).compile.toList.assertEquals(expected)
   }
 
   test("find datasets in a single catalog") {
@@ -57,9 +55,7 @@ class CatalogSuite extends CatsEffectSuite {
   test("list datasets in a combined catalog") {
     val expected = List("ds1", "ds2", "ds3")
 
-    combined.datasets.map(_.id.get.asString).compile.toList.map { lst =>
-      assertEquals(lst, expected)
-    }
+    combined.datasets.map(_.id.get.asString).compile.toList.assertEquals(expected)
   }
 
   test("find datasets on the left side of a combined catalog") {
@@ -91,12 +87,10 @@ class CatalogSuite extends CatsEffectSuite {
   }
 
   test("filter(_ => true) is identity") {
-    assertEquals(listAll(nested.filter(_ => true)).length, 3)
+    listAll(nested.filter(_ => true)).map(_.length).assertEquals(3)
   }
 
   test("filter(_ => false) removes all datasets") {
-    assert {
-      listAll(nested.filter(_ => false)).isEmpty
-    }
+    listAll(nested.filter(_ => false)).map(_.isEmpty).assert
   }
 }
