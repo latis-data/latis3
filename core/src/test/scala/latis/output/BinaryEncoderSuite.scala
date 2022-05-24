@@ -1,10 +1,12 @@
 package latis.output
 
+import cats.syntax.all._
 import munit.CatsEffectSuite
 import scodec._
 import scodec.bits.BitVector
 import scodec.bits._
 import scodec.codecs.implicits._
+import scodec.interop.cats._
 import scodec.{Encoder => SEncoder}
 
 import latis.data.Data._
@@ -16,7 +18,7 @@ import latis.dsl.DatasetGenerator
 import latis.metadata.Metadata
 import latis.model._
 import latis.ops.Projection
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 
 class BinaryEncoderSuite extends CatsEffectSuite {
 
@@ -26,39 +28,42 @@ class BinaryEncoderSuite extends CatsEffectSuite {
   test("encode a dataset to binary") {
     val ds: Dataset = DatasetGenerator("x -> (a: int, b: double)")
 
-    val bitVec =
-      SEncoder.encode(0).require ++
-        SEncoder.encode(0).require ++
-        SEncoder.encode(0.0).require ++
-      SEncoder.encode(1).require ++
-        SEncoder.encode(1).require ++
-        SEncoder.encode(1.0).require ++
-      SEncoder.encode(2).require ++
-        SEncoder.encode(2).require ++
-        SEncoder.encode(2.0).require
+    val bitVec = List(
+      SEncoder.encode(0),
+      SEncoder.encode(0),
+      SEncoder.encode(0.0),
+      SEncoder.encode(1),
+      SEncoder.encode(1),
+      SEncoder.encode(1.0),
+      SEncoder.encode(2),
+      SEncoder.encode(2),
+      SEncoder.encode(2.0)
+    ).map(_.require).combineAll
     val expected: List[Byte] = bitVec.toByteArray.toList
 
-    enc.encode(ds).compile.toList.map { encodedList =>
-      assertEquals(encodedList, expected)
-    }
+    enc.encode(ds).compile.toList.assertEquals(expected)
   }
 
   test("encode a dataset with an Index variable") {
     val ds: Dataset = DatasetGenerator("x -> (a: int, b: double)")
-      .withOperation(Projection.fromExpression("a, b").getOrElse(fail("projection not generated")))
+      .withOperation(
+        Projection
+          .fromExpression("a, b")
+          .getOrElse(fail("failed to create projection")
+          )
+      )
 
-    val bitVec =
-        SEncoder.encode(0).require ++
-        SEncoder.encode(0.0).require ++
-        SEncoder.encode(1).require ++
-        SEncoder.encode(1.0).require ++
-        SEncoder.encode(2).require ++
-        SEncoder.encode(2.0).require
+    val bitVec = List(
+      SEncoder.encode(0),
+      SEncoder.encode(0.0),
+      SEncoder.encode(1),
+      SEncoder.encode(1.0),
+      SEncoder.encode(2),
+      SEncoder.encode(2.0)
+    ).map(_.require).combineAll
     val expected: List[Byte] = bitVec.toByteArray.toList
 
-    enc.encode(ds).compile.toList.map { encodedList =>
-      assertEquals(encodedList, expected)
-    }
+    enc.encode(ds).compile.toList.assertEquals(expected)
   }
 
   test("encode Data to binary") {
@@ -81,7 +86,13 @@ class BinaryEncoderSuite extends CatsEffectSuite {
       Scalar(id"a", LongValueType),
       Scalar(id"a", FloatValueType),
       Scalar(id"a", DoubleValueType),
-      Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "string", "size" -> "4")).getOrElse(fail("scalar not generated"))
+      Scalar.fromMetadata(
+        Metadata(
+          "id" -> "a",
+          "type" -> "string",
+          "size" -> "4"
+        )
+      ).getOrElse(fail("failed to create scalar"))
     )
 
     val expected = List(
@@ -110,7 +121,7 @@ class BinaryEncoderSuite extends CatsEffectSuite {
     codec.encode(bin) match {
       case Attempt.Successful(bv: BitVector) =>
         assertEquals(bv.toByteArray.map(_.toChar).mkString,"foo")
-      case _ => fail("BitVector not generated")
+      case _ => fail("failed to encode")
     }
   }
 
@@ -121,9 +132,15 @@ class BinaryEncoderSuite extends CatsEffectSuite {
       Tuple.fromElements(
         Scalar(id"r1", IntValueType),
         Scalar(id"r2", DoubleValueType),
-        Scalar.fromMetadata(Metadata("id" -> "r2", "type" -> "string", "size" -> "2")).getOrElse(fail("scalar not generated"))
-      ).getOrElse(fail("tuple not generated"))
-    ).getOrElse(fail("model not generated"))
+        Scalar.fromMetadata(
+          Metadata(
+            "id" -> "r2",
+            "type" -> "string",
+            "size" -> "2"
+          )
+        ).getOrElse(fail("failed to create scalar"))
+      ).getOrElse(fail("failed to create tuple"))
+    ).getOrElse(fail("failed to create function"))
 
     val encoded =
       SEncoder.encode(0).require ++
@@ -131,11 +148,10 @@ class BinaryEncoderSuite extends CatsEffectSuite {
         SEncoder.encode(1.1).require ++
         BitVector(hex"6100")
 
-    val decoded = enc.sampleCodec(model).decode(encoded) match {
-      case Attempt.Successful(DecodeResult(value, _)) => value
-      case _ => fail("Failed to decode")
+    enc.sampleCodec(model).decode(encoded) match {
+      case Attempt.Successful(DecodeResult(value, _)) => assertEquals(value, sample)
+      case _ => fail("failed to decode")
     }
-    assertEquals(decoded, sample)
   }
 
   test("encode a Sample to binary") {
@@ -145,9 +161,15 @@ class BinaryEncoderSuite extends CatsEffectSuite {
       Tuple.fromElements(
         Scalar(id"r1", IntValueType),
         Scalar(id"r2", DoubleValueType),
-        Scalar.fromMetadata(Metadata("id" -> "r2", "type" -> "string", "size" -> "2")).getOrElse(fail("scalar not generated"))
-      ).getOrElse(fail("tuple not generated"))
-    ).getOrElse(fail("model not generated"))
+        Scalar.fromMetadata(
+          Metadata(
+            "id" -> "r2",
+            "type" -> "string",
+            "size" -> "2"
+          )
+        ).getOrElse(fail("failed to create scalar"))
+      ).getOrElse(fail("failed to create tuple"))
+    ).getOrElse(fail("failed to create function"))
 
     val expected = Attempt.successful(
       SEncoder.encode(0).require ++
