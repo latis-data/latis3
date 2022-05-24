@@ -22,9 +22,7 @@ class JsonEncoderSuite extends CatsEffectSuite {
       Json.arr(2.asJson, 2.asJson, 2.0.asJson, "c".asJson),
     )
 
-    enc.encode(ds).compile.toList.map { encodedList =>
-      assertEquals(encodedList, expected)
-    }
+    enc.encode(ds).compile.toList.assertEquals(expected)
   }
 
   test("encode a Sample to JSON") {
