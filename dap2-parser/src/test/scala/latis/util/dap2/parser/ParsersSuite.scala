@@ -9,10 +9,26 @@ class ParsersSuite extends FunSuite {
 
   test("parse expressions to operations") {
     val testOperation = testParser(parsers.operation)(_, _)
-    testOperation("rename(Constantinople, Istanbul)", ast.Operation("rename", List("Constantinople", "Istanbul")))
-    testOperation("curry(1)", ast.Operation("curry", List("1")))
-    testOperation("pivot((1, 2), (Fe, Mg))", ast.Operation("pivot", List("(1,2)", "(Fe,Mg)")))
-    testOperation("foo((1, 2), ((a, b), (c)))", ast.Operation("foo", List("(1,2)", "((a,b),(c))")))
+
+    testOperation(
+      "rename(Constantinople, Istanbul)",
+      ast.Operation("rename", List("Constantinople", "Istanbul"))
+    )
+
+    testOperation(
+      "curry(1)",
+      ast.Operation("curry", List("1"))
+    )
+
+    testOperation(
+      "pivot((1, 2), (Fe, Mg))",
+      ast.Operation("pivot", List("(1,2)", "(Fe,Mg)"))
+    )
+
+    testOperation(
+      "foo((1, 2), ((a, b), (c)))",
+      ast.Operation("foo", List("(1,2)", "((a,b),(c))"))
+    )
   }
 
   /**
