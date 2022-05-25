@@ -1,7 +1,6 @@
 package latis.util
 
-import org.scalatest.EitherValues._
-import org.scalatest.funsuite.AnyFunSuite
+import munit.FunSuite
 
 import latis.dsl._
 import latis.metadata.Metadata
@@ -10,7 +9,7 @@ import latis.ops._
 import latis.time._
 import latis.util.Identifier._
 
-class SqlBuilderSuite extends AnyFunSuite {
+class SqlBuilderSuite extends FunSuite {
 
   private val table = "myTable"
   private val model = ModelParser.unsafeParse("(x, y) -> (a, b, c)")
@@ -20,7 +19,7 @@ class SqlBuilderSuite extends AnyFunSuite {
   test("make sql with no operations") {
     val ops = List()
     val sql = SqlBuilder.buildQuery(table, model, ops)
-    assert(sql == "SELECT x, y, a, b, c FROM myTable ORDER BY x, y ASC")
+    assertEquals(sql, "SELECT x, y, a, b, c FROM myTable ORDER BY x, y ASC")
   }
 
   test("make sql with selections and projection without domain") {
@@ -30,7 +29,7 @@ class SqlBuilderSuite extends AnyFunSuite {
       Projection.fromExpression("b, c").toTry.get
     )
     val sql = SqlBuilder.buildQuery(table, model, ops)
-    assert(sql == "SELECT b, c FROM myTable WHERE x > 1 AND a >= 2 ORDER BY x, y ASC")
+    assertEquals(sql, "SELECT b, c FROM myTable WHERE x > 1 AND a >= 2 ORDER BY x, y ASC")
   }
 
   test("preserve model variable order") {
@@ -56,7 +55,7 @@ class SqlBuilderSuite extends AnyFunSuite {
       Selection.makeSelection("z = 1").toTry.get
     )
     val sql = SqlBuilder.buildQuery(table, model, ops)
-    assert(sql == "SELECT x AS z, y, a, b, c FROM myTable WHERE x = 1 ORDER BY x, y ASC")
+    assertEquals(sql, "SELECT x AS z, y, a, b, c FROM myTable WHERE x = 1 ORDER BY x, y ASC")
   }
 
   test("project after rename") {
@@ -70,7 +69,7 @@ class SqlBuilderSuite extends AnyFunSuite {
 
   test("no order clause for index domain") {
     val scalar = ModelParser.unsafeParse("a")
-    val model = Function.from(Index(id"_i"), scalar).value
+    val model = Function.from(Index(id"_i"), scalar).getOrElse(fail("function not generated"))
     val sql = SqlBuilder.buildQuery(table, model)
     assert(!sql.contains("ORDER"))
   }
@@ -78,14 +77,26 @@ class SqlBuilderSuite extends AnyFunSuite {
   //---- SQL with Time selections ----//
 
   private val modelWithNumericTime = Function.from(
-    Time.fromMetadata(Metadata("id" -> "t", "type" -> "int", "units" -> "days since 1970-01-01")).value,
+    Time.fromMetadata(
+      Metadata(
+        "id" -> "t",
+        "type" -> "int",
+        "units" -> "days since 1970-01-01"
+      )
+    ).getOrElse(fail("failed to create time")),
     Scalar(id"a", IntValueType)
-  ).value
+  ).getOrElse(fail("failed to create function"))
 
   private val modelWithTextTime = Function.from(
-    Time.fromMetadata(Metadata("id" -> "t", "type" -> "string", "units" -> "yyyy-MM-dd")).value,
+    Time.fromMetadata(
+      Metadata(
+        "id" -> "t",
+        "type" -> "string",
+        "units" -> "yyyy-MM-dd"
+      )
+    ).getOrElse(fail("failed to create time")),
     Scalar(id"a", IntValueType)
-  ).value
+  ).getOrElse(fail("failed to create function"))
 
   test("numeric time selection with numeric time") {
     val ops = List(

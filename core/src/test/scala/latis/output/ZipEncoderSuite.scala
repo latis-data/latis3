@@ -5,8 +5,7 @@ import java.util.zip.ZipInputStream
 
 import cats.effect.IO
 import cats.effect.Resource
-import cats.effect.unsafe.implicits.global
-import org.scalatest.funsuite.AnyFunSuite
+import munit.CatsEffectSuite
 
 import latis.data.DomainData
 import latis.data.RangeData
@@ -20,7 +19,7 @@ import latis.metadata.Metadata
 import latis.util.Identifier._
 import latis.util.LatisException
 
-final class ZipEncoderSuite extends AnyFunSuite {
+final class ZipEncoderSuite extends CatsEffectSuite {
 
   private val empty: Dataset = {
     val metadata = Metadata(id"empty")
@@ -54,14 +53,12 @@ final class ZipEncoderSuite extends AnyFunSuite {
     DatasetGenerator("a: int -> b: int", id"invalid")
 
   test("encode an empty dataset") {
-    val length = (new ZipEncoder)
+    (new ZipEncoder)
       .encode(empty)
       .compile
       .count
-      .unsafeRunSync()
-
-    // An empty ZIP file is 22 bytes long.
-    assertResult(22)(length)
+      // An empty ZIP file is 22 bytes long.
+      .assertEquals(22L)
   }
 
   test("encode a non-empty dataset") {
@@ -73,29 +70,31 @@ final class ZipEncoderSuite extends AnyFunSuite {
       testEntry(zis, "first", "1st".getBytes(UTF_8)) >>
       testEntry(zis, "second", "2nd".getBytes(UTF_8)) >>
       testEntry(zis, "third", "3rd".getBytes(UTF_8))
-    }.unsafeRunSync()
+    }
   }
 
   test("fail to encode invalid dataset") {
-    assertThrows[LatisException] {
-      (new ZipEncoder).encode(invalid).compile.drain.unsafeRunSync()
-    }
+    (new ZipEncoder)
+      .encode(invalid)
+      .compile
+      .drain
+      .interceptMessage[LatisException]("Unsupported dataset")
   }
 
   private def testEntry(
     zis: ZipInputStream,
     name: String,
     bytes: Array[Byte]
-  ): IO[Unit] = {
-    IO.blocking(zis.getNextEntry()).map { entry =>
-      assertResult(name)(entry.getName())
+  )(implicit loc: munit.Location): IO[Unit] = {
+    IO.blocking(zis.getNextEntry).map { entry =>
+      assertEquals(entry.getName, name)
     } >>
     IO.blocking {
       val read = Array.ofDim[Byte](bytes.length)
       zis.read(read, 0, bytes.length)
       read
     }.map { read =>
-      assertResult(bytes)(read)
+      assertEquals(bytes.toList, read.toList)
     }.void
   }
 }
