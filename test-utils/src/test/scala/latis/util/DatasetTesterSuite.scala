@@ -8,7 +8,7 @@ import munit.CatsEffectSuite
 import latis.catalog.Catalog
 import latis.dataset.Dataset
 import latis.dsl.DatasetGenerator
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 
 class DatasetTesterSuite extends CatsEffectSuite {
 
@@ -29,6 +29,6 @@ class DatasetTesterSuite extends CatsEffectSuite {
   test("test data".ignore) {
     tester.flatMap { dsTester =>
       lines.traverse(dsTester.testLine)
-    }.unsafeRunSync()
+    }
   }
 }
