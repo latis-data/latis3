@@ -15,7 +15,7 @@ class NetcdfAdapterSuite extends CatsEffectSuite {
   test("read data") {
     val uri = new URI("https://lasp.colorado.edu/eve/data_access/evewebdata/misc/oneau/LASP_dailynoonUTC_1aufactors_VSOP87_full.nc")
     val model = ModelParser.unsafeParse("time: double -> au_factor: double")
-    val ops = List(Head() )
+    val ops = List(Head())
 
     new NetcdfAdapter(model).getData(uri, ops).samples.map {
       case Sample(DomainData(Number(t)), RangeData(Number(v))) =>
@@ -30,7 +30,7 @@ class NetcdfAdapterSuite extends CatsEffectSuite {
       "id" -> "foo",
       "type" -> "int",
       "sourceId" -> "foo.bar"
-    )).getOrElse(fail("Scalar not generated"))
+    )).getOrElse(fail("failed to create scalar"))
     assertEquals(s.ncName, raw"foo\.bar")
   }
 
