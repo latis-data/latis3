@@ -5,7 +5,7 @@ val attoVersion       = "0.9.5"
 val catsVersion       = "2.7.0"
 val catsEffectVersion = "3.3.12"
 val fs2Version        = "3.2.7"
-val http4sVersion     = "0.23.11"
+val http4sVersion     = "0.23.12"
 val log4catsVersion   = "2.3.1"
 val log4jVersion      = "2.17.2"
 val netcdfVersion     = "5.5.3"
@@ -136,7 +136,7 @@ lazy val `dap2-service` = project
       "org.http4s"     %% "http4s-core"      % http4sVersion % Provided,
       "org.http4s"     %% "http4s-dsl"       % http4sVersion % Provided,
       "org.http4s"     %% "http4s-circe"     % http4sVersion,
-      "org.http4s"     %% "http4s-scalatags" % http4sVersion
+      "org.http4s"     %% "http4s-scalatags" % "0.23.11"
     )
   )
 
