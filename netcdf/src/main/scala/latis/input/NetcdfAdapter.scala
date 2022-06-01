@@ -43,7 +43,7 @@ class NetcdfAdapter(
   model: DataType,
   config: NetcdfAdapter.Config = new NetcdfAdapter.Config()
 ) extends Adapter {
-  //TODO: add support for more than 2 dimensions
+  //TODO: add support for more than 3 dimensions
   //TODO: memoize to avoid re-reading nested domain variables
   //TODO: support Int domain variables when there is no coordinate variable
   //      due to limited support for Index (e.g. partial index for Cartesian domains)

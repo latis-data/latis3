@@ -21,6 +21,8 @@ object NetcdfValidator {
       case f: Function =>
         if (f.range.exists(_.isInstanceOf[Function]))
           errs += "NetcdfAdapter does not support nested Functions"
+        if (f.arity > 3)
+          errs += "NetcdfAdapter does not support more than 3 dimensions"
       case _ =>
         errs += "NetcdfAdapter expects a Function"
     }

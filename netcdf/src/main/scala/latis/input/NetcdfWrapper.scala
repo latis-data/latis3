@@ -85,7 +85,8 @@ protected class NetcdfWrapper private (ncFile: NetcdfFile, model: DataType, conf
     case 0 => Stream.raiseError[IO](LatisException("Zero-arity dataset not yet supported."))
     case 1 => streamDomain1D(section, domainScalars.head)
     case 2 => streamDomain2D(section, domainScalars.head, domainScalars(1))
-    case _ => Stream.raiseError[IO](LatisException("NetcdfAdapter supports up to 2 dimensions only, for now."))
+    case 3 => streamDomain3D(section, domainScalars.head, domainScalars(1), domainScalars(2))
+    case _ => Stream.raiseError[IO](LatisException("NetcdfAdapter supports up to 3 dimensions only, for now."))
   }
 
   /** Returns a stream of domain data for a one-dimensional domain. */
@@ -106,6 +107,21 @@ protected class NetcdfWrapper private (ncFile: NetcdfFile, model: DataType, conf
       d1     <- streamVariable(s1, slice1)
       d2     <- streamVariable(s2, slice2) //TODO: memoize to avoid re-reading nested domain variables
     } yield DomainData(d1, d2)
+
+  /**
+   * Returns a stream of 3D domain data with the appropriate slice of the given
+   * Section applied to each dimension.
+   */
+  private def streamDomain3D(section: Section, s1: Scalar, s2: Scalar, s3: Scalar): Stream[IO, DomainData] =
+    //TODO: deal with Index, not yet supported for multi-dimensional datasets
+    for {
+      slice1 <- Stream.fromEither[IO](section.slice(0))
+      slice2 <- Stream.fromEither[IO](section.slice(1))
+      slice3 <- Stream.fromEither[IO](section.slice(2))
+      d1     <- streamVariable(s1, slice1)
+      d2     <- streamVariable(s2, slice2) //TODO: memoize to avoid re-reading nested domain variables
+      d3     <- streamVariable(s3, slice3) //TODO: memoize to avoid re-reading nested domain variables
+    } yield DomainData(d1, d2, d3)
 
   /**
    * Combines the streams of each range variable into a stream of RangeData.
