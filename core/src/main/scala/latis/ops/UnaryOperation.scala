@@ -4,6 +4,8 @@ import cats.syntax.all._
 
 import latis.data.Data
 import latis.model.DataType
+import latis.ops.ConvertBinary._
+import latis.util.Identifier
 import latis.util.LatisException
 
 /**
@@ -49,6 +51,14 @@ object UnaryOperation {
     case "tail" => Tail().asRight
     case "take" => Take.fromArgs(args)
     case "takeRight" => TakeRight.fromArgs(args)
+    case "toBase64" => Either.fromOption(
+      args.headOption.flatMap(Identifier.fromString),
+      LatisException("Invalid Identifier")
+    ).map(ConvertBinary(_, Base64))
+    case "toHex" => Either.fromOption(
+      args.headOption.flatMap(Identifier.fromString),
+      LatisException("Invalid Identifier")
+    ).map(ConvertBinary(_, Base16))
     case "transpose" => Transpose().asRight
     case "timeTupleToTime" => TimeTupleToTime.fromArgs(args)
     case n => Left(LatisException(s"Unknown operation: $n"))
