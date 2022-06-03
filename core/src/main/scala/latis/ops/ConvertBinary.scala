@@ -68,7 +68,7 @@ object ConvertBinary {
         case _    => LatisException("ConvertBinary base must be 2, 16, or 64").asLeft
       }
     } yield ConvertBinary(id, base)
-    case _ => LatisException("ConvertBinary requires two argument: id, base").asLeft
+    case _ => LatisException("ConvertBinary requires two arguments: id, base").asLeft
   }
 
   sealed trait Base
