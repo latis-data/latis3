@@ -120,6 +120,18 @@ class SectionSuite extends AnyFunSuite {
     }
   }
 
+  ignore("subset outside section") {
+    println(sectionWithOffset.subsetDimension(0, 10, 20))
+    // 1:9:1 => 10:9:1, section should be empty
+    // presumably NcSection construction would fail
+  }
+
+  ignore("prevent from > to") {
+    println(sectionWithOffset.subsetDimension(0, 10, -1))
+    // => 10:*:1
+    // Can fool it into unlimited dimension (with -1) outside of original section!
+  }
+
   //---- Chunk ----//
 
   test("chunk") {
