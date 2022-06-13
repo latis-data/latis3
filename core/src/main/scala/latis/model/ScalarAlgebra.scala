@@ -77,6 +77,24 @@ trait ScalarAlgebra { scalar: Scalar =>
     if (scalar.ascending) DefaultDatumOrdering
     else DefaultDatumOrdering.reverse
 
+  /** Returns the numerical cadence as optionally defined in the metadata. */
+  def getCadence: Option[Double] =
+    metadata.getProperty("cadence").flatMap(_.toDoubleOption)
+
+  /** Returns the numeric coverage as optionally defined in the metadata. */
+  def getCoverage: Option[(Double,Double)] = {
+    metadata.getProperty("coverage").flatMap { c =>
+      c.split("/").toList match {
+        case s :: e :: Nil if s.nonEmpty && e.nonEmpty =>
+          for {
+            s <- s.toDoubleOption
+            e <- e.toDoubleOption
+          } yield (s, e)
+        case _ => None
+      }
+    }
+  }
+
   /** Defines the string representation as the Scalar id. */
   override def toString: String = id.asString
 }
