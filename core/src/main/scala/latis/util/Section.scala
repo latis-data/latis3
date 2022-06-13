@@ -128,6 +128,8 @@ class Section private (ranges: List[Range.Inclusive]) {
 
   /** Returns a new Section with a subset applied to the given dimension. */
   def subsetDimension(dim: Int, from: Int, to: Int, step: Int = 1): Either[LatisException, Section] =
+    //TODO: prevent from > to
+    //TODO: handle subset outside section with empty Section
     for {
       range <- getDimensionRange(dim)
       newStart = Math.max(range.start, from)
