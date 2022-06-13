@@ -1,5 +1,9 @@
 package latis.time
 
+import java.time.Duration
+
+import scala.util.Try
+
 import cats.syntax.all._
 
 import latis.data.Data
@@ -100,6 +104,47 @@ class Time protected (
     }
     case _ => super.valueAsDouble(data)
   }
+
+  /** Converts cadence in ISO 8601 duration format to milliseconds. */
+  override def getCadence: Option[Double] = {
+    //TODO: support cadence in millis for text times?
+    if (valueType == StringValueType) metadata.getProperty("cadence").flatMap { c =>
+      Try(Duration.parse(c).getSeconds * 1000d).toOption
+    } else super.getCadence
+  }
+
+  /** Adds support for text time and undefined end as now. */
+  override def getCoverage: Option[(Double,Double)] =
+    //TODO: apply latency offset when end time is open
+    if (valueType == StringValueType) metadata.getProperty("coverage").flatMap { c =>
+      c.split("/").toList match {
+        case s :: e :: Nil if s.nonEmpty && e.nonEmpty =>
+          for {
+            s <- timeFormat.flatMap(_.parse(s).toOption)
+            e <- timeFormat.flatMap(_.parse(e).toOption)
+          } yield (s.toDouble, e.toDouble)
+        case s :: Nil if s.nonEmpty && c.endsWith("/") =>
+          for {
+            s <- timeFormat.flatMap(_.parse(s).toOption)
+            e <- System.currentTimeMillis().some
+          } yield (s.toDouble, e.toDouble)
+        case _ => None
+      }
+    }
+    // Delegate to Scalar for numeric types but handle empty end if that fails
+    else super.getCoverage.orElse {
+      metadata.getProperty("coverage").flatMap { c =>
+        c.split("/").toList match {
+          case s :: Nil if s.nonEmpty && c.endsWith("/") =>
+            for {
+              s <- s.toDoubleOption
+              e <- System.currentTimeMillis().toDouble.some
+            } yield (s, e)
+          case _ => None
+        }
+      }
+    }
+
 }
 
 object Time extends ScalarFactory {
