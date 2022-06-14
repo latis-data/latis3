@@ -9,8 +9,11 @@ import latis.data._
 import latis.model._
 import latis.ops.Head
 import latis.ops.Operation
+import latis.ops.Selection
 import latis.ops.Stride
 import latis.util.ConfigLike
+import latis.util.Identifier
+import latis.util.dap2.parser.ast._
 
 /**
  * Adapter for accessing data from the netcdf-java API. This should
@@ -53,13 +56,41 @@ class NetcdfAdapter(
   //      there are cases of domain vars with extra dimension, could work if length 1
 
   override def canHandleOperation(op: Operation): Boolean = op match {
-    //TODO: handle domain variable selections with cadence
     //TODO: handle domain variable selections via binary search
     //TODO: handle projection, index complications
     //TODO: handle taking and dropping operations
-    case _: Head   => true
-    case _: Stride => true
-    case _         => false
+    case s: Selection => canHandleSelection(s)
+    case _: Head      => true
+    case _: Stride    => true
+    case _            => false
+  }
+
+  /**
+   * Selections on domain variables with cadence and coverage can be
+   * handled by computing index ranges.
+   *
+   * This is limited to selection operators: <, <=, >, >=.
+   */
+  private def canHandleSelection(sel: Selection): Boolean = {
+
+    def isOuterDomainVariable(id: Identifier): Boolean =
+      model.findPath(id).flatMap(_.headOption) match {
+        case Some(_: DomainPosition) => true
+        case _                       => false
+      }
+
+    def hasCadenceAndStart(id: Identifier): Boolean = {
+      model.findVariable(id) match {
+        case Some(s: Scalar) =>
+          s.metadata.getProperty("cadence").nonEmpty &&
+            s.metadata.getProperty("coverage").nonEmpty
+        case _ => false
+      }
+    }
+
+    List(Lt, LtEq, Gt, GtEq).contains(sel.operator) &&
+      isOuterDomainVariable(sel.id) &&
+      hasCadenceAndStart(sel.id)
   }
 
   def getData(uri: URI, ops: Seq[Operation]): Data = {

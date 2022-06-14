@@ -1,38 +1,65 @@
 package latis.input
 
-import cats.effect.unsafe.implicits.global
 import cats.effect.IO
 import cats.effect.Resource
 import fs2.io.file.Files
 import fs2.Stream
-import org.scalatest.Inside.inside
-import org.scalatest.funsuite.AnyFunSuite
-import org.scalatest.BeforeAndAfterAll
+import munit.CatsEffectSuite
 
 import latis.data._
 import latis.dataset.Dataset
+import latis.dataset.MemoizedDataset
 import latis.dsl._
+import latis.metadata.Metadata
+import latis.model._
 import latis.ops._
 import latis.output.NetcdfEncoder
+import latis.util.Identifier.IdentifierStringContext
 
-class NetcdfWrapperSuite extends AnyFunSuite with BeforeAndAfterAll {
+class NetcdfWrapperSuite extends CatsEffectSuite {
 
-  private val dataset: Dataset = DatasetGenerator("(x, y) -> (a, b)")
   /*
-    (x, y) -> (a, b)
-    (0, 0) -> (0, 1)
-    (0, 1) -> (2, 3)
-    (0, 2) -> (4, 5)
-    (1, 0) -> (6, 7)
-    (1, 1) -> (8, 9)
-    (1, 2) -> (10, 11)
-   */
+  (x, y) -> (a, b)
+  (0, 0) -> (0, 1)
+  (0, 1) -> (2, 3)
+  (0, 2) -> (4, 5)
+  (1, 0) -> (6, 7)
+  (1, 1) -> (8, 9)
+  (1, 2) -> (10, 11)
+  */
+  private lazy val dataset: Dataset = {
+    val model = (for {
+      x <- Scalar.fromMetadata(Metadata(
+        "id" -> "x",
+        "type" -> "int",
+        "cadence" -> "1",
+        "coverage" -> "0/1"
+      ))
+      y <- Scalar.fromMetadata(Metadata(
+        "id" -> "y",
+        "type" -> "int",
+        "cadence" -> "1",
+        "coverage" -> "0/2"
+      ))
+      d <- Tuple.fromElements(x, y)
+      r <- Tuple.fromElements(
+        Scalar(id"a", IntValueType),
+        Scalar(id"b", IntValueType)
+      )
+      f <- Function.from(d, r)
+    } yield f).getOrElse(fail("Bad model"))
+
+    val data = DatasetGenerator.generateData(model)
+
+    new MemoizedDataset(Metadata(id"test"), model, data)
+  }
 
   private val config = new NetcdfAdapter.Config("chunkSize" -> "1")
 
   private var ncWapper: NetcdfWrapper = _
   private var finalizer: IO[Unit] = _
 
+  //TODO: use ResourceSuiteLocalFixture?
   override def beforeAll(): Unit = {
     (for {
       path <- Files[IO].tempFile(None, "netcdf_test", ".nc", None)
@@ -53,21 +80,67 @@ class NetcdfWrapperSuite extends AnyFunSuite with BeforeAndAfterAll {
   test("default section") {
     ncWapper.makeSection(List()).map { s =>
       assert(s.toString == "0:1:1,0:2:1")
-    }.unsafeRunSync()
+    }
   }
 
   test("head section") {
     val ops = List(Head())
     ncWapper.makeSection(ops).map { s =>
       assert(s.toString == "0:0:1,0:0:1")
-    }.unsafeRunSync()
+    }
   }
 
   test("stride section") {
     val ops = List(Stride(List(2,2)))
     ncWapper.makeSection(ops).map { s =>
       assert(s.toString == "0:1:2,0:2:2")
-    }.unsafeRunSync()
+    }
+  }
+
+  test("selection with >") {
+    val ops = List(Selection.makeSelection("y > 1").getOrElse(fail("Bad selection")))
+    ncWapper.makeSection(ops).map { s =>
+      assert(s.toString == "0:1:1,2:2:1")
+    }
+  }
+
+  test("selection with >=") {
+    val ops = List(Selection.makeSelection("y >= 1").getOrElse(fail("Bad selection")))
+    ncWapper.makeSection(ops).map { s =>
+      assert(s.toString == "0:1:1,1:2:1")
+    }
+  }
+
+  test("selection with <") {
+    val ops = List(Selection.makeSelection("y < 1").getOrElse(fail("Bad selection")))
+    ncWapper.makeSection(ops).map { s =>
+      assert(s.toString == "0:1:1,0:0:1")
+    }
+  }
+
+  test("selection with <=") {
+    val ops = List(Selection.makeSelection("y <= 1").getOrElse(fail("Bad selection")))
+    ncWapper.makeSection(ops).map { s =>
+      assert(s.toString == "0:1:1,0:1:1")
+    }
+  }
+
+  test("two selections") {
+    val ops = List(
+      Selection.makeSelection("y >= 1").getOrElse(fail("Bad selection")),
+      Selection.makeSelection("y < 2").getOrElse(fail("Bad selection"))
+    )
+    ncWapper.makeSection(ops).map { s =>
+      assert(s.toString == "0:1:1,1:1:1")
+    }
+  }
+
+  //TODO: support empty Section
+  test("selection outside bounds".ignore) {
+    val ops = List(Selection.makeSelection("y > 9").getOrElse(fail("Bad selection")))
+    ncWapper.makeSection(ops).map { s =>
+      println(s) //0:1:1,10:2:1
+    }
   }
 
   test("chunk") {
@@ -76,24 +149,25 @@ class NetcdfWrapperSuite extends AnyFunSuite with BeforeAndAfterAll {
       ss  <- ncWapper.chunkSection(sec)
     } yield ss).compile.toList.map { list =>
       assert(list.length == 2)
-    }.unsafeRunSync()
+    }
   }
 
   test("first sample") {
     (for {
       sec <- ncWapper.makeSection(List(Head()))
       s   <- ncWapper.streamSamples(sec).compile.toList.map(_.head)
-    } yield s).map { s => inside(s) {
+    } yield s).map {
       case Sample(DomainData(Integer(x), Integer(y)), RangeData(Integer(a), Integer(b))) =>
         assert(x == 0)
         assert(y == 0)
         assert(a == 0)
         assert(b == 1)
-    }}.unsafeRunSync()
+      case _ => fail("Invalid Sample")
+    }
   }
 
   //TODO: Memoize inner domain variables to avoid re-reading data.
-  ignore("memoize") {
+  test("memoize".ignore) {
     val as = Stream.evalSeq(IO.println("Making As") >> IO(List(1,2,3)))
     val bs = Stream.evalSeq(IO.println("Making Bs") >> IO(List(1,2,3)))
 
@@ -103,6 +177,6 @@ class NetcdfWrapperSuite extends AnyFunSuite with BeforeAndAfterAll {
         b <- Stream.emits(bl) //evalSeq(IO(bl))
       } yield (a, b)
       s.map(println).compile.drain
-    }.unsafeRunSync()
+    }
   }
 }
