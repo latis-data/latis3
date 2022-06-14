@@ -75,7 +75,7 @@ class FileListAdapter(
   override def recordStream(uri: URI): Stream[IO, FileInfo] =
     for {
       root  <- Stream.fromEither[IO](NetUtils.getFilePath(uri))
-      files <- listFiles(Path.fromNioPath(root))
+      files <- listFiles(root)
     } yield files
 
   override def parseRecord(info: FileInfo): Option[Sample] =
@@ -271,7 +271,7 @@ object FileListAdapter extends AdapterFactory {
       baseDir <- cl.get("baseDir").traverse {
         NetUtils.parseUri(_).flatMap(NetUtils.getFilePath)
       }
-    } yield Config(pattern, columns, baseDir.map(Path.fromNioPath))
+    } yield Config(pattern, columns, baseDir)
 
     private def parseColumns(cols: String): Either[LatisException, List[List[Int]]] =
       Either.catchOnly[NumberFormatException] {

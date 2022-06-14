@@ -2,11 +2,10 @@ package latis.util
 
 import java.net.URI
 import java.net.URLDecoder
-import java.nio.file.Path
-import java.nio.file.Paths
 
 import cats.effect.unsafe.implicits.global
 import cats.syntax.all._
+import fs2.io.file.Path
 import fs2.text
 
 import latis.input.StreamSource
@@ -17,7 +16,9 @@ object NetUtils {
   def getFilePath(uri: URI): Either[LatisException, Path] =
     if (uri.getScheme() != "file") {
       LatisException("Only file URIs are supported").asLeft
-    } else Paths.get(uri).asRight
+    } else Option(uri.getPath()).map(Path(_)).toRight(
+      LatisException("Path was empty")
+    )
 
   /**
    * Creates a URI from the given string.
