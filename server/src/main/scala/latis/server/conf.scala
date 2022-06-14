@@ -1,9 +1,9 @@
 package latis.server
 
 import java.net.URL
-import java.nio.file.Path
 
 import com.comcast.ip4s.Port
+import fs2.io.file.Path
 import pureconfig.CamelCase
 import pureconfig.ConfigFieldMapping
 import pureconfig.KebabCase

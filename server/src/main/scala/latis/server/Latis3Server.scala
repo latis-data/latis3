@@ -4,7 +4,6 @@ import cats.effect.ExitCode
 import cats.effect.IO
 import cats.effect.IOApp
 import cats.effect.Resource
-import fs2.io.file.Path
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import pureconfig.generic.auto._
 import pureconfig.module.catseffect.syntax._
@@ -27,7 +26,7 @@ object Latis3Server extends IOApp {
       serverConf  <- Resource.eval(getServerConf)
       catalogConf <- Resource.eval(getCatalogConf)
       catalog     <- Resource.eval(
-        FdmlCatalog.fromDirectory(Path.fromNioPath(catalogConf.dir), catalogConf.validate)
+        FdmlCatalog.fromDirectory(catalogConf.dir, catalogConf.validate)
       )
       serviceConf <- Resource.eval(getServiceConf)
       interfaces  <- Resource.eval(loader.loadServices(serviceConf, catalog))
