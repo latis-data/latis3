@@ -96,7 +96,7 @@ lazy val `aws-lambda` = project
 
 lazy val core = project
   .dependsOn(`dap2-parser`)
-  .dependsOn(macros)
+  .dependsOn(macros.jvm)
   .settings(commonSettings)
   .settings(
     name := "latis3-core",
@@ -128,7 +128,7 @@ lazy val ftp = project
   )
 
 lazy val `dap2-parser` = project
-  .dependsOn(macros)
+  .dependsOn(macros.jvm)
   .settings(commonSettings)
   .settings(
     name := "dap2-parser",
@@ -199,8 +199,10 @@ lazy val `service-interface` = project
     }
   )
 
-lazy val macros = project
+lazy val macros = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
   .settings(commonSettings)
+  .jsSettings(commonJsSettings)
   .settings(
     name := "latis3-macros",
     libraryDependencies ++= Seq(
