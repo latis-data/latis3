@@ -95,7 +95,7 @@ lazy val `aws-lambda` = project
   )
 
 lazy val core = project
-  .dependsOn(`dap2-parser`)
+  .dependsOn(`dap2-parser`.jvm)
   .dependsOn(macros.jvm)
   .settings(commonSettings)
   .settings(
@@ -127,19 +127,21 @@ lazy val ftp = project
     )
   )
 
-lazy val `dap2-parser` = project
-  .dependsOn(macros.jvm)
+lazy val `dap2-parser` = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
+  .dependsOn(macros)
   .settings(commonSettings)
+  .jsSettings(commonJsSettings)
   .settings(
     name := "dap2-parser",
     libraryDependencies ++= Seq(
-      "org.tpolecat"   %% "atto-core"  % attoVersion
+      "org.tpolecat" %%% "atto-core" % attoVersion
     )
   )
 
 lazy val `dap2-service` = project
   .dependsOn(core)
-  .dependsOn(`dap2-parser`)
+  .dependsOn(`dap2-parser`.jvm)
   .dependsOn(netcdf)
   .dependsOn(`service-interface`)
   .settings(commonSettings)
