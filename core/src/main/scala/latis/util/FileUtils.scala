@@ -52,7 +52,7 @@ object FileUtils {
    * FileSystemAlreadyExistsException, this makes sure
    * we create it only once.
    */
-  def getOrCreateFileSystem(uri: URI): FileSystem =
+  private def getOrCreateFileSystem(uri: URI): FileSystem =
     try {
       FileSystems.getFileSystem(uri)
     } catch {
