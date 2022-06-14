@@ -4,9 +4,7 @@ import java.net.URI
 import java.net.URL
 import java.nio.file._
 
-import scala.jdk.CollectionConverters._
 import scala.util.Properties
-import scala.util.Try
 
 /**
  * Defines utility functions for working with files.
@@ -61,18 +59,6 @@ object FileUtils {
       case _: FileSystemNotFoundException =>
         val env = new java.util.HashMap[String, String]()
         FileSystems.newFileSystem(uri, env)
-    }
-
-  /**
-   * Searches a given directory for files of a given extension and returns the
-   * filenames.
-   * @param path path to search for files
-   * @param ext extension of files to filter on
-   */
-  def getFileList(path: Path, ext: String): Try[Seq[Path]] =
-    Try {
-      val fileIter = Files.list(path).iterator().asScala
-      fileIter.filter(_.toString.endsWith(ext)).toList
     }
 
   /**
