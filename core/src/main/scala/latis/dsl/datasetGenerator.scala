@@ -57,7 +57,7 @@ object DatasetGenerator {
   private def modelFromString(s: String): DataType =
     ModelParser.parse(s).fold(throw _, identity)
 
-  private def generateData(m: DataType): MemoizedFunction = m.arity match {
+  def generateData(m: DataType): MemoizedFunction = m.arity match {
     case 1 => generateData1D(m)
     case 2 => generateData2D(m)
     case 3 => generateData3D(m)
