@@ -101,8 +101,7 @@ lazy val core = project
       "org.scodec"             %% "scodec-core"         % "1.11.9",
       "org.scodec"             %% "scodec-stream"       % "3.0.2",
       "org.scodec"             %% "scodec-cats"         % "1.1.0",
-      "org.http4s"             %% "http4s-ember-client" % http4sVersion,
-      "com.github.regis-leray" %% "fs2-ftp"             % "0.8.3"
+      "org.http4s"             %% "http4s-ember-client" % http4sVersion
     )
   )
 
@@ -111,6 +110,16 @@ lazy val `fdml-validator` = project
   .settings(commonSettings)
   .settings(
     name := "fdml-validator"
+  )
+
+lazy val ftp = project
+  .dependsOn(core)
+  .settings(commonSettings)
+  .settings(
+    name := "latis3-ftp",
+    libraryDependencies ++= Seq(
+      "com.github.regis-leray" %% "fs2-ftp" % "0.8.3"
+    )
   )
 
 lazy val `dap2-parser` = project
