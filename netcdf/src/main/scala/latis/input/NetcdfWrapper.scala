@@ -18,9 +18,11 @@ import latis.data.Data._
 import latis.model._
 import latis.ops.Head
 import latis.ops.Operation
+import latis.ops.Selection
 import latis.ops.Stride
 import latis.util.LatisException
 import latis.util.Section
+import latis.util.dap2.parser.ast._
 
 /**
  * Helper class for reading data via the NetcdfFile API.
@@ -69,11 +71,57 @@ protected class NetcdfWrapper private (ncFile: NetcdfFile, model: DataType, conf
   /** Applies an operation to modify a Section. */
   private def applyOperationToSection(section: Section, op: Operation): Either[LatisException, Section] =
     op match {
+      case s: Selection   => applySelectionToSection(section, s)
       case _: Head        => section.head.asRight
       case Stride(stride) => section.stride(stride)
       case _              =>
         // Bug if we get here. NetcdfAdapter.canHandleOperation should not allow unsupported operation.
         LatisException(s"Unsupported operation: $op").asLeft
+    }
+
+  /**
+   * Expects the Selection is for a domain variable with cadence and coverage.
+   *
+   * The coverage does not constrain a Selection. It is only used to define the start value.
+   */
+  private def applySelectionToSection(section: Section, sel: Selection): Either[LatisException, Section] =
+    for {
+      scalar <- Either.fromOption(
+        model.findVariable(sel.id).collect { case s: Scalar => s },
+        LatisException("Variable not found")
+      )
+      bounds <- indexBounds(scalar, sel)
+      dim    <- Either.fromOption(
+        model.findPath(sel.id).flatMap(_.headOption).flatMap {
+          case DomainPosition(i) => Some(i)
+          case _                 => None
+        },
+        LatisException("Selection variable must be an outer domain variable")
+      )
+      sec <- section.subsetDimension(dim, bounds._1, bounds._2)
+      // Note that this could make an invalid Section with from > to if outside the original Section.
+      // This will likely result in an invalid NcSection error in the stream.
+      // This will be resolved by refactoring Section to support empty Sections.
+    } yield sec
+
+  /**
+   * Computes the index bounds for a Scalar with cadence and coverage for the given Selection.
+   */
+  private def indexBounds(s: Scalar, sel: Selection): Either[LatisException, (Int, Int)] =
+    //TODO: support bin semantics
+    for {
+      cadence <- Either.fromOption(s.getCadence, LatisException("Cadence not defined"))
+      start   <- Either.fromOption(s.getCoverage, LatisException("Coverage not defined")).map(_._1)
+      value   <- s.convertValue(sel.value).map(s.valueAsDouble)
+    } yield {
+      sel.operator match {
+        // Note that the initial Section should be finite with no unlimited dimension, so max is safe.
+        case Gt   => (Math.floor((value - start)/cadence + 1).toInt, Int.MaxValue)
+        case GtEq => (Math.ceil((value - start)/cadence).toInt, Int.MaxValue)
+        case Lt   => (0, Math.ceil((value - start)/cadence - 1).toInt)
+        case LtEq => (0, Math.floor((value - start)/cadence).toInt)
+        case _    => throw LatisException(s"Unsupported selection operator: ${sel.operator}") //Bug if we get here
+      }
     }
 
   /** Returns a stream of samples for the given subset. */

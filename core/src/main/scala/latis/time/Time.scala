@@ -1,8 +1,7 @@
 package latis.time
 
 import java.time.Duration
-
-import scala.util.Try
+import java.time.format.DateTimeParseException
 
 import cats.syntax.all._
 
@@ -109,12 +108,12 @@ class Time protected (
   override def getCadence: Option[Double] = {
     //TODO: support cadence in millis for text times?
     if (valueType == StringValueType) metadata.getProperty("cadence").flatMap { c =>
-      Try(Duration.parse(c).getSeconds * 1000d).toOption
+      Either.catchOnly[DateTimeParseException](Duration.parse(c).getSeconds * 1000d).toOption
     } else super.getCadence
   }
 
   /** Adds support for text time and undefined end as now. */
-  override def getCoverage: Option[(Double,Double)] =
+  override def getCoverage: Option[(Double, Double)] =
     //TODO: apply latency offset when end time is open
     if (valueType == StringValueType) metadata.getProperty("coverage").flatMap { c =>
       c.split("/").toList match {
