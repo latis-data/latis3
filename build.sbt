@@ -66,7 +66,7 @@ lazy val dockerSettings = Seq(
 //=== Sub-projects ============================================================
 
 lazy val `aws-lambda` = project
-  .dependsOn(core)
+  .dependsOn(core.jvm)
   .enablePlugins(DockerPlugin)
   .settings(commonSettings)
   .settings(
@@ -94,10 +94,12 @@ lazy val `aws-lambda` = project
     }
   )
 
-lazy val core = project
-  .dependsOn(`dap2-parser`.jvm)
-  .dependsOn(macros.jvm)
+lazy val core = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
+  .dependsOn(`dap2-parser`)
+  .dependsOn(macros)
   .settings(commonSettings)
+  .jsSettings(commonJsSettings)
   .settings(
     name := "latis3-core",
     libraryDependencies ++= Seq(
@@ -111,14 +113,14 @@ lazy val core = project
   )
 
 lazy val `fdml-validator` = project
-  .dependsOn(core)
+  .dependsOn(core.jvm)
   .settings(commonSettings)
   .settings(
     name := "fdml-validator"
   )
 
 lazy val ftp = project
-  .dependsOn(core)
+  .dependsOn(core.jvm)
   .settings(commonSettings)
   .settings(
     name := "latis3-ftp",
@@ -140,7 +142,7 @@ lazy val `dap2-parser` = crossProject(JSPlatform, JVMPlatform)
   )
 
 lazy val `dap2-service` = project
-  .dependsOn(core)
+  .dependsOn(core.jvm)
   .dependsOn(`dap2-parser`.jvm)
   .dependsOn(netcdf)
   .dependsOn(`service-interface`)
@@ -157,7 +159,7 @@ lazy val `dap2-service` = project
   )
 
 lazy val python = project
-  .dependsOn(core)
+  .dependsOn(core.jvm)
   .settings(commonSettings)
   .settings(
     name := "latis3-python",
@@ -167,7 +169,7 @@ lazy val python = project
   )
 
 lazy val server = project
-  .dependsOn(core)
+  .dependsOn(core.jvm)
   .dependsOn(`dap2-service`)
   .dependsOn(`service-interface`)
   .enablePlugins(DockerPlugin)
@@ -187,7 +189,7 @@ lazy val server = project
   )
 
 lazy val `service-interface` = project
-  .dependsOn(core)
+  .dependsOn(core.jvm)
   .settings(
     name := "latis3-service-interface",
     libraryDependencies ++= Seq(
@@ -214,7 +216,7 @@ lazy val macros = crossProject(JSPlatform, JVMPlatform)
   )
 
 lazy val netcdf = project
-  .dependsOn(core)
+  .dependsOn(core.jvm)
   .settings(commonSettings)
   .settings(
     name := "latis3-netcdf",
@@ -232,7 +234,7 @@ lazy val netcdf = project
   )
 
 lazy val jdbc = project
-  .dependsOn(core)
+  .dependsOn(core.jvm)
   .settings(commonSettings)
   .settings(
     name := "latis3-jdbc",
@@ -243,7 +245,7 @@ lazy val jdbc = project
   )
 
 lazy val `test-utils` = project
-  .dependsOn(core)
+  .dependsOn(core.jvm)
   .settings(commonSettings)
   .settings(
     name := "latis3-test-utils",
