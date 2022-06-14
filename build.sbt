@@ -15,16 +15,16 @@ val scalaTestVersion  = "3.2.12"
 
 lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
-    "org.typelevel" %% "cats-core"   % catsVersion,
-    "org.typelevel" %% "cats-effect" % catsEffectVersion,
-    "co.fs2"        %% "fs2-core"    % fs2Version,
-    "co.fs2"        %% "fs2-io"      % fs2Version,
+    "org.typelevel" %%% "cats-core"   % catsVersion,
+    "org.typelevel" %%% "cats-effect" % catsEffectVersion,
+    "co.fs2"        %%% "fs2-core"    % fs2Version,
+    "co.fs2"        %%% "fs2-io"      % fs2Version,
     "com.typesafe"   % "config"      % "1.4.2",
-    "org.scalatest" %% "scalatest"   % scalaTestVersion % Test,
-    "org.scalacheck" %% "scalacheck" % "1.15.4" % Test,
-    "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test,
-    "org.scalameta" %% "munit"       % "0.7.29" % Test,
-    "org.typelevel" %% "munit-cats-effect-3" % "1.0.7" % Test
+    "org.scalatest" %%% "scalatest"   % scalaTestVersion % Test,
+    "org.scalacheck" %%% "scalacheck" % "1.15.4" % Test,
+    "org.scalatestplus" %%% "scalacheck-1-15" % "3.2.11.0" % Test,
+    "org.scalameta" %%% "munit"       % "0.7.29" % Test,
+    "org.typelevel" %%% "munit-cats-effect-3" % "1.0.7" % Test
   ),
   Test / fork := true,
   scalacOptions -= "-Xfatal-warnings",
@@ -33,6 +33,10 @@ lazy val commonSettings = Seq(
   },
   Test / scalacOptions -= "-Wnonunit-statement",
   addCompilerPlugin("org.typelevel" % "kind-projector" % "0.13.2" cross CrossVersion.full)
+)
+
+lazy val commonJsSettings = Seq(
+  Test / fork := false
 )
 
 lazy val dockerSettings = Seq(
