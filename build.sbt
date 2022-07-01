@@ -145,7 +145,7 @@ lazy val `dap2-service` = project
       "org.http4s"     %% "http4s-core"      % http4sVersion % Provided,
       "org.http4s"     %% "http4s-dsl"       % http4sVersion % Provided,
       "org.http4s"     %% "http4s-circe"     % http4sVersion,
-      "org.http4s"     %% "http4s-scalatags" % "0.23.11"
+      "org.http4s"     %% "http4s-scalatags" % "0.24.0"
     )
   )
 
