@@ -2,7 +2,7 @@ ThisBuild / organization := "io.latis-data"
 ThisBuild / scalaVersion := "2.13.8"
 
 val attoVersion       = "0.9.5"
-val catsVersion       = "2.7.0"
+val catsVersion       = "2.8.0"
 val catsEffectVersion = "3.3.12"
 val fs2Version        = "3.2.7"
 val http4sVersion     = "0.23.12"
