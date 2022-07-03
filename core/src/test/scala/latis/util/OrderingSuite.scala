@@ -2,9 +2,7 @@ package latis.util
 
 import scala.collection.mutable
 
-import org.scalatest.EitherValues._
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers._
+import munit.FunSuite
 
 import latis.data._
 import latis.metadata.Metadata
@@ -13,54 +11,57 @@ import latis.model.IntValueType
 import latis.model.Scalar
 import latis.model.Tuple
 import latis.time.Time
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 
-class OrderingSpec extends AnyFlatSpec {
+class OrderingSuite extends FunSuite {
 
-  private lazy val time = Time.fromMetadata(
+  private val time = Time.fromMetadata(
     Metadata(
       "id" -> "time",
       "type" -> "string",
       "units" -> "MM/dd/yyyy"
     )
-  ).value
+  )
 
-  val model = Function.from(
-    Tuple.fromElements(
-      Scalar(id"x", IntValueType),
-      time
-    ).value,
-    Scalar(id"a", IntValueType)
-  ).value
+  private val model = time.flatMap {
+    Tuple.fromElements(Scalar(id"x", IntValueType), _)
+  }.flatMap {
+    Function.from(_, Scalar(id"a", IntValueType))
+  }.fold(fail("Failed to construct model", _), identity)
 
-  val samples = List(
+  private val samples = List(
     Sample(DomainData(0, "01/01/2001"), RangeData(2)),
     Sample(DomainData(1, "01/01/2001"), RangeData(4)),
     Sample(DomainData(1, "02/01/2000"), RangeData(3)),
     Sample(DomainData(0, "02/01/2000"), RangeData(1)),
   )
 
-  "2D samples with time" should "be sortable" in {
+  test("2D samples with time should be sortable") {
 
     val totalOrdering = LatisOrdering.partialToTotal(LatisOrdering.sampleOrdering(model))
 
-    samples.sorted(totalOrdering).map {
+    val res = samples.sorted(totalOrdering).map {
       case Sample(_, RangeData(Integer(x))) => x
-      case _ => fail()
-    } should be (List(1,2,3,4))
+      case _ => fail("unexpected sample")
+    }
+
+    assertEquals(res, List(1L, 2L, 3L, 4L))
   }
 
-  it should "go into a SortedMap ordered by keys" in {
+  test("2D samples with time should go into a SortedMap ordered by keys") {
     val ordering = LatisOrdering.partialToTotal(CartesianDomainOrdering(model.domain.getScalars.map(_.ordering)))
 
     val smap = mutable.SortedMap[DomainData, RangeData]()(ordering)
     samples.foreach {
       case Sample(dd, rd) => smap += (dd -> rd)
-      case _ => fail()
+      case _ => fail("unexpected sample")
     }
-    smap.map {
+
+    val res = smap.map {
       case Sample(_, RangeData(Integer(x))) => x
-      case _ => fail()
-    } should be (List(1,2,3,4))
+      case _ => fail("unexpected sample")
+    }
+
+    assertEquals(res.toList, List(1L, 2L, 3L, 4L))
   }
 }
