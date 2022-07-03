@@ -104,8 +104,7 @@ lazy val core = project
       "org.scodec"             %% "scodec-cats"         % "1.2.0",
       "org.http4s"             %% "http4s-ember-client" % http4sVersion,
       "org.gnieh"              %% "fs2-data-csv"        % "1.7.1",
-      "org.scalatest"          %% "scalatest"           % scalaTestVersion % Test,
-      "org.scalatestplus"      %% "scalacheck-1-15"     % "3.2.11.0" % Test
+      "org.scalatest"          %% "scalatest"           % scalaTestVersion % Test
     )
   )
 
