@@ -2,18 +2,18 @@ package latis.data
 
 import java.io._
 
-import org.scalatest.funsuite.AnyFunSuite
-import org.scalatest.Inside.inside
+import munit.FunSuite
 
-class SampleSuite extends AnyFunSuite {
+class SampleSuite extends FunSuite {
 
   val sample = (DomainData(1.0), RangeData(2))
 
   test("extract sample") {
-    inside(sample) {
+    sample match {
       case (DomainData(Real(a)), RangeData(IndexDatum(b))) =>
-        assert(a == 1.0)
-        assert(b == 2)
+        assertEquals(a, 1.0)
+        assertEquals(b, 2)
+      case _ => fail("wrong sample")
     }
   }
 
@@ -26,7 +26,7 @@ class SampleSuite extends AnyFunSuite {
     oos.writeObject(obj)
     val bytes = bos.toByteArray
     //println(bytes.length)
-    assert(bytes.length == 639)
+    assertEquals(bytes.length, 639)
   }
 
 }
