@@ -20,9 +20,7 @@ lazy val commonSettings = Seq(
     "co.fs2"        %% "fs2-core"    % fs2Version,
     "co.fs2"        %% "fs2-io"      % fs2Version,
     "com.typesafe"   % "config"      % "1.4.2",
-    "org.scalatest" %% "scalatest"   % scalaTestVersion % Test,
     "org.scalacheck" %% "scalacheck" % "1.15.4" % Test,
-    "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test,
     "org.scalameta" %% "munit"       % "0.7.29" % Test,
     "org.typelevel" %% "munit-cats-effect-3" % "1.0.7" % Test
   ),
@@ -103,7 +101,9 @@ lazy val core = project
       "org.scodec"             %% "scodec-stream"       % "3.0.2",
       "org.scodec"             %% "scodec-cats"         % "1.2.0",
       "org.http4s"             %% "http4s-ember-client" % http4sVersion,
-      "org.gnieh"              %% "fs2-data-csv"        % "1.7.1"
+      "org.gnieh"              %% "fs2-data-csv"        % "1.7.1",
+      "org.scalatest"          %% "scalatest"           % scalaTestVersion % Test,
+      "org.scalatestplus"      %% "scalacheck-1-15"     % "3.2.11.0" % Test
     )
   )
 
@@ -230,8 +230,9 @@ lazy val jdbc = project
   .settings(
     name := "latis3-jdbc",
     libraryDependencies ++= Seq(
-      "org.tpolecat"             %% "doobie-core" % "1.0.0-RC2",
-      "com.h2database"            % "h2"          % "2.1.214" % Test
+      "org.tpolecat"   %% "doobie-core" % "1.0.0-RC2",
+      "com.h2database"  % "h2"          % "2.1.214" % Test,
+      "org.scalatest"  %% "scalatest"   % scalaTestVersion % Test
     )
   )
 
