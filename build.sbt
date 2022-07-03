@@ -9,6 +9,7 @@ val http4sVersion     = "0.23.21"
 val log4catsVersion   = "2.6.0"
 val log4jVersion      = "2.20.0"
 val logbackVersion    = "1.3.8"
+val munitVersion      = "0.7.29"
 val netcdfVersion     = "5.5.3"
 val pureconfigVersion = "0.17.4"
 val scalaTestVersion  = "3.2.12"
@@ -21,8 +22,9 @@ lazy val commonSettings = Seq(
     "co.fs2"        %% "fs2-io"      % fs2Version,
     "com.typesafe"   % "config"      % "1.4.2",
     "org.scalacheck" %% "scalacheck" % "1.15.4" % Test,
-    "org.scalameta" %% "munit"       % "0.7.29" % Test,
-    "org.typelevel" %% "munit-cats-effect-3" % "1.0.7" % Test
+    "org.scalameta" %% "munit"       % munitVersion % Test,
+    "org.typelevel" %% "munit-cats-effect-3" % "1.0.7" % Test,
+    "org.scalameta" %% "munit-scalacheck" % munitVersion % Test
   ),
   Test / fork := true,
   scalacOptions -= "-Xfatal-warnings",
