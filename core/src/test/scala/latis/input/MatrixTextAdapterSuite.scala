@@ -1,11 +1,6 @@
 package latis.input
 
-import java.net.URI
-
-import cats.effect.unsafe.implicits.global
-import org.scalatest.EitherValues._
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers._
+import munit.CatsEffectSuite
 
 import latis.data.DomainData
 import latis.data.RangeData
@@ -15,29 +10,29 @@ import latis.dsl.ModelParser
 import latis.input
 import latis.metadata.Metadata
 import latis.model.DataType
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 import latis.util.NetUtils.resolveUri
 
-class MatrixTextAdapterSpec extends AnyFlatSpec {
+class MatrixTextAdapterSuite extends CatsEffectSuite {
 
-  val ds = {
+  val ds = resolveUri("data/matrixData.txt").map { uri =>
     val metadata = Metadata(id"matrixData")
     val model: DataType = ModelParser.unsafeParse("(row: int, col: int) -> v: double")
     val config = new input.TextAdapter.Config(("delimiter", ","))
     val adapter = new MatrixTextAdapter(model, config)
-    val uri: URI = resolveUri("data/matrixData.txt").value
     new AdaptedDataset(metadata, model, adapter, uri)
-  }
+  }.fold(fail("failed to create dataset", _), identity)
 
-  "A MatrixTextAdapter" should "read matix data" in {
-    val result = ds.samples.compile.toList.unsafeRunSync()
+  test("read matix data") {
+    val result = ds.samples.compile.toList
     val expected = List(
       Sample(DomainData(0, 0), RangeData(5.8e-03)),
       Sample(DomainData(0, 1), RangeData(5.4e03)),
       Sample(DomainData(1, 0), RangeData(5.8)),
       Sample(DomainData(1, 1), RangeData(-5.4))
     )
-    result should be (expected)
+
+    result.assertEquals(expected)
   }
 
 }
