@@ -1,16 +1,15 @@
 package latis.input
 
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers._
+import munit.FunSuite
 
 import latis.data._
 import latis.dsl.ModelParser
 
-class RegexAdapterSpec extends AnyFlatSpec {
+class RegexAdapterSuite extends FunSuite {
 
   private lazy val model = ModelParser.unsafeParse("time: string -> (myInt: int, myDouble: double, myString: string)")
 
-  "A RegexAdapter" should "parse a record given a pattern" in {
+  test("parse a record given a pattern") {
     val config = new RegexAdapter.Config(
       ("delimiter", " "),
       ("pattern", """(\S+)\s+(\S+)\s+(\S+)\s+(\S+)""")
@@ -20,10 +19,10 @@ class RegexAdapterSpec extends AnyFlatSpec {
     val sample         = regexAdapter.parseRecord(record)
     val expectedSample = Some(Sample(DomainData("1970/01/01"), RangeData(1, 1.1, "A")))
 
-    sample should be(expectedSample)
+    assertEquals(sample, expectedSample)
   }
 
-  "A RegexAdapter" should "ignore a record that doesn't match the given pattern" in {
+  test("ignore a record that doesn't match the given pattern") {
     val config = new RegexAdapter.Config(
       ("delimiter", " "),
       ("pattern", """(2000.*)\s+(\S+)\s+(\S+)\s+(\S+)""")
@@ -32,10 +31,10 @@ class RegexAdapterSpec extends AnyFlatSpec {
     val record       = "1970/01/01  1 1.1 A"
     val sample       = regexAdapter.parseRecord(record)
 
-    sample should be(None)
+    assertEquals(sample, None)
   }
 
-  "A RegexAdapter" should "parse a record given a pattern and column indices" in {
+  test("parse a record given a pattern and column indices") {
     val config = new RegexAdapter.Config(
       ("delimiter", " "),
       ("pattern", """(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)"""),
@@ -46,10 +45,10 @@ class RegexAdapterSpec extends AnyFlatSpec {
     val sample         = regexAdapter.parseRecord(record)
     val expectedSample = Some(Sample(DomainData("1970 1 1"), RangeData(1, 1.1, "A")))
 
-    sample should be(expectedSample)
+    assertEquals(sample, expectedSample)
   }
 
-  "A RegexAdapter" should "ignore a record with too few values" in {
+  test("ignore a record with too few values") {
     val config = new RegexAdapter.Config(
       ("delimiter", " "),
       ("pattern", """(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)"""),
@@ -59,6 +58,6 @@ class RegexAdapterSpec extends AnyFlatSpec {
     val record       = "1970 1 1 1.1 A"
     val sample       = regexAdapter.parseRecord(record)
 
-    sample should be(None)
+    assertEquals(sample, None)
   }
 }
