@@ -3,11 +3,9 @@ package latis.input
 import java.io.File
 
 import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import fs2.io.file.Files
 import fs2.io.file.Flags
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers._
+import munit.CatsEffectSuite
 
 import latis.data.DomainData
 import latis.data.RangeData
@@ -17,15 +15,18 @@ import latis.dsl.DatasetGenerator
 import latis.dsl.ModelParser
 import latis.metadata.Metadata
 import latis.model._
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 
-class BinaryAdapterSpec extends AnyFlatSpec {
+class BinaryAdapterSuite extends CatsEffectSuite {
 
-  "A BinaryAdapter" should "read binary data" in {
+  test("read binary data") {
     val genDataset = DatasetGenerator("a: int -> (b: int, c: double)")
+
     val encodedBytes = latis.output.BinaryEncoder().encode(genDataset)
+
     val tempFile = Files[IO].tempFile(None, "binData", ".bin", None)
-    val result = tempFile.use{ path =>
+
+    val result = tempFile.use { path =>
       for {
         _ <- encodedBytes.through(Files[IO].writeAll(path, Flags.Write)).compile.drain
         ds = {
@@ -37,13 +38,14 @@ class BinaryAdapterSpec extends AnyFlatSpec {
         }
         result <- ds.samples.compile.toList
       } yield result
-    }.unsafeRunSync()
+    }
 
-    val expected = List (
-      Sample (DomainData (0), RangeData (0, 0.0) ),
-      Sample (DomainData (1), RangeData (1, 1.0) ),
-      Sample (DomainData (2), RangeData (2, 2.0) ),
+    val expected = List(
+      Sample(DomainData(0), RangeData(0, 0.0)),
+      Sample(DomainData(1), RangeData(1, 1.0)),
+      Sample(DomainData(2), RangeData(2, 2.0)),
     )
-    result should be (expected)
+
+    result.assertEquals(expected)
   }
 }
