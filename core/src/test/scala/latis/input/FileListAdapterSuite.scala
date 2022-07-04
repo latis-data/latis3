@@ -1,23 +1,39 @@
 package latis.input
 
+import cats.Eq
 import cats.data.NonEmptyList
 import cats.effect.IO
-import cats.effect.unsafe.implicits.global
+import cats.syntax.all._
 import fs2.io.file._
-import org.scalactic.Equality
-import org.scalatest.EitherValues._
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers._
+import munit.CatsEffectSuite
 
 import latis.data._
 import latis.dsl.ModelParser
 import latis.input.FileListAdapter.Config
 import latis.model._
-import latis.util.LatisException
 
-class FileListAdapterSpec extends AnyFlatSpec {
+class FileListAdapterSuite extends CatsEffectSuite {
 
-  "A file list adapter" should "list matching files in a flat directory" in withFlatDir { root =>
+  private val flatDir = ResourceFixture {
+    Files[IO].tempDirectory.evalTap { dir =>
+      Files[IO].createFile(dir / "2010-a") >>
+      Files[IO].createFile(dir / "2011-b") >>
+      Files[IO].createFile(dir / "2012-c")
+    }
+  }
+
+  private val nestedDir = ResourceFixture {
+    Files[IO].tempDirectory.evalTap { dir =>
+      Files[IO].createDirectory(dir / "a") >>
+      Files[IO].createDirectory(dir / "b") >>
+      Files[IO].createDirectory(dir / "c") >>
+      Files[IO].createFile(dir / "a" / "2010-a") >>
+      Files[IO].createFile(dir / "b" / "2011-b") >>
+      Files[IO].createFile(dir / "c" / "2012-c")
+    }
+  }
+
+  flatDir.test("list matching files in a flat directory") { root =>
     val adapter = {
       val config = Config(NonEmptyList.of(raw"(\d{4})-[ac]".r), None, None)
       val model: DataType = ModelParser.unsafeParse("time: string -> uri: string")
@@ -29,12 +45,10 @@ class FileListAdapterSpec extends AnyFlatSpec {
       Sample(DomainData("2012"), RangeData(root.resolve("2012-c").toNioPath.toUri().toString()))
     )
 
-    adapter.getData(root.toNioPath.toUri()).samples.compile.toList.map { samples =>
-      samples should contain theSameElementsAs (expected)
-    }
-  }.unsafeRunSync()
+    adapter.getData(root.toNioPath.toUri()).samples.compile.toList.assertEquals(expected)
+  }
 
-  it should "list matching files in subdirectories" in withNestedDir { root =>
+  nestedDir.test("list matching files in subdirectories") { root =>
     val adapter = {
       val config = Config(NonEmptyList.of("[ac]".r, raw"(\d{4})-[ac]".r), None, None)
       val model: DataType = ModelParser.unsafeParse("time: string -> uri: string")
@@ -46,12 +60,10 @@ class FileListAdapterSpec extends AnyFlatSpec {
       Sample(DomainData("2012"), RangeData(root.resolve("c/2012-c").toNioPath.toUri().toString()))
     )
 
-    adapter.getData(root.toNioPath.toUri()).samples.compile.toList.map { samples =>
-      samples should contain theSameElementsAs (expected)
-    }
-  }.unsafeRunSync()
+    adapter.getData(root.toNioPath.toUri()).samples.compile.toList.assertEquals(expected)
+  }
 
-  it should "make URIs relative to baseDir config" in withNestedDir { root =>
+  nestedDir.test("make URIs relative to baseDir config") { root =>
     val adapter = {
       val config = Config(NonEmptyList.of("[abc]".r, raw"(\d{4})-[abc]".r), None, Option(root))
       val model: DataType = ModelParser.unsafeParse("time: string -> uri: string")
@@ -64,12 +76,10 @@ class FileListAdapterSpec extends AnyFlatSpec {
       Sample(DomainData("2012"), RangeData("c/2012-c"))
     )
 
-    adapter.getData(root.toNioPath.toUri()).samples.compile.toList.map { samples =>
-      samples should contain theSameElementsAs (expected)
-    }
-  }.unsafeRunSync()
+    adapter.getData(root.toNioPath.toUri()).samples.compile.toList.assertEquals(expected)
+  }
 
-  it should "include file size when size scalar is present" in withFlatDir { root =>
+  flatDir.test("include file size when size scalar is present") { root =>
     val adapter = {
       val config = Config(NonEmptyList.of(raw"(\d{4})-[abc]".r), None, None)
       val model: DataType = ModelParser.unsafeParse("time: string -> (uri: string, size: long)")
@@ -82,12 +92,10 @@ class FileListAdapterSpec extends AnyFlatSpec {
       Sample(DomainData("2012"), RangeData(root.resolve("2012-c").toNioPath.toUri().toString(), 0L))
     )
 
-    adapter.getData(root.toNioPath.toUri()).samples.compile.toList.map { samples =>
-      samples should contain theSameElementsAs (expected)
-    }
-  }.unsafeRunSync()
+    adapter.getData(root.toNioPath.toUri()).samples.compile.toList.assertEquals(expected)
+  }
 
-  it should "construct domains with multiple scalars from matches" in withFlatDir { root =>
+  flatDir.test("construct domains with multiple scalars from matches") { root =>
     val adapter = {
       val config = Config(NonEmptyList.of(raw"(\d{4})-([abc])".r), None, None)
       val model: DataType = ModelParser.unsafeParse("(time: string, type: string) -> uri: string")
@@ -100,12 +108,10 @@ class FileListAdapterSpec extends AnyFlatSpec {
       Sample(DomainData("2012", "c"), RangeData(root.resolve("2012-c").toNioPath.toUri().toString()))
     )
 
-    adapter.getData(root.toNioPath.toUri()).samples.compile.toList.map { samples =>
-      samples should contain theSameElementsAs (expected)
-    }
-  }.unsafeRunSync()
+    adapter.getData(root.toNioPath.toUri()).samples.compile.toList.assertEquals(expected)
+  }
 
-  it should "capture matches from any part of the pattern" in {
+  test("capture matches from any part of the pattern") {
     val adapter = {
       val config = Config(NonEmptyList.of(raw"(\d{4})".r, "a".r), None, None)
       val model: DataType = ModelParser.unsafeParse("time: string -> uri: string")
@@ -124,13 +130,11 @@ class FileListAdapterSpec extends AnyFlatSpec {
         Sample(DomainData("2010"), RangeData(root.resolve("2010/a").toNioPath.toUri().toString()))
       )
 
-      adapter.getData(root.toNioPath.toUri()).samples.compile.toList.map { samples =>
-        samples should contain theSameElementsAs (expected)
-      }
-    }.unsafeRunSync()
+      adapter.getData(root.toNioPath.toUri()).samples.compile.toList.assertEquals(expected)
+    }
   }
 
-  it should "arrange matches based on the column specification" in withFlatDir { root =>
+  flatDir.test("arrange matches based on the column specification") { root =>
     val adapter = {
       val config = Config(
         NonEmptyList.of(raw"(\d{4})-([abc])".r),
@@ -147,12 +151,10 @@ class FileListAdapterSpec extends AnyFlatSpec {
       Sample(DomainData("c", "2012"), RangeData(root.resolve("2012-c").toNioPath.toUri().toString()))
     )
 
-    adapter.getData(root.toNioPath.toUri()).samples.compile.toList.map { samples =>
-      samples should contain theSameElementsAs (expected)
-    }
-  }.unsafeRunSync()
+    adapter.getData(root.toNioPath.toUri()).samples.compile.toList.assertEquals(expected)
+  }
 
-  it should "join columns separated by commas in the specifiation" in {
+  test("join columns separated by commas in the specifiation") {
     // Create the adapter.
     val adapter = {
       val config = Config(
@@ -173,26 +175,21 @@ class FileListAdapterSpec extends AnyFlatSpec {
           Sample(DomainData("2011 06 02"), RangeData(dir.resolve("02201106-b").toNioPath.toUri().toString())),
           Sample(DomainData("2012 12 03"), RangeData(dir.resolve("03201212-c").toNioPath.toUri().toString()))
         )
-        adapter.getData(dir.toNioPath.toUri()).samples.compile.toList.map { samples =>
-          samples should contain theSameElementsAs (expected)
-        }
+        adapter.getData(dir.toNioPath.toUri()).samples.compile.toList.assertEquals(expected)
       }
-    }.unsafeRunSync()
+    }
   }
 
   // We need to override how Configs are compared for equality because
   // we can't compare regular expressions for equality.
-  private implicit val configEquality: Equality[Config] = new Equality[Config] {
-    override def areEqual(a: Config, b: Any): Boolean = b match {
-      case b: Config =>
-        a.pattern.toString() == b.pattern.toString() &&
-        a.columns == b.columns &&
-        a.baseDir == b.baseDir
-      case _         => false
-    }
+  private implicit val configEq: Eq[Config] = new Eq[Config] {
+    override def eqv(a: Config, b: Config): Boolean =
+      a.pattern.toString() == b.pattern.toString() &&
+      a.columns == b.columns &&
+      a.baseDir == b.baseDir
   }
 
-  "A file list adapter config" should "be buildable from a ConfigLike" in {
+  test("config is buildable from a ConfigLike") {
     val conf = Config.fromConfigLike(
       AdapterConfig(
         "class" -> "",
@@ -208,10 +205,11 @@ class FileListAdapterSpec extends AnyFlatSpec {
       Option(Path("/base/dir"))
     )
 
-    conf should equal (expected)
+    // need to use custom equality
+    assert(conf === expected)
   }
 
-  it should "split pattern by '/'" in {
+  test("config splits pattern by '/'") {
     val conf = Config.fromConfigLike(
       AdapterConfig(
         "class" -> "",
@@ -227,48 +225,29 @@ class FileListAdapterSpec extends AnyFlatSpec {
       Option(Path("/base/dir"))
     )
 
-    conf should equal (expected)
+    // need to use custom equality
+    assert(conf === expected)
   }
 
-  it should "require a pattern definition" in {
+  test("config requires a pattern definition") {
     val conf = Config.fromConfigLike(AdapterConfig("class" -> ""))
 
-    conf.left.value shouldBe a [LatisException]
+    assert(conf.isLeft)
   }
 
-  it should "require numeric columns" in {
+  test("config requires numeric columns") {
     val conf = Config.fromConfigLike(
       AdapterConfig("class" -> "", "columns" -> "1; a; 3")
     )
 
-    conf.left.value shouldBe a [LatisException]
+    assert(conf.isLeft)
   }
 
-  it should "require file URI for baseDir" in {
+  test("config requires file URI for baseDir") {
     val conf = Config.fromConfigLike(
       AdapterConfig("class" -> "", "baseDir" -> "base dir")
     )
 
-    conf.left.value shouldBe a [LatisException]
+    assert(conf.isLeft)
   }
-
-
-  private def withFlatDir(f: Path => IO[Any]): IO[Any] =
-    Files[IO].tempDirectory.use { dir =>
-      Files[IO].createFile(dir / "2010-a") >>
-      Files[IO].createFile(dir / "2011-b") >>
-      Files[IO].createFile(dir / "2012-c") >>
-      f(dir)
-    }
-
-  private def withNestedDir(f: Path => IO[Any]): IO[Any] =
-    Files[IO].tempDirectory.use { dir =>
-      Files[IO].createDirectory(dir / "a") >>
-      Files[IO].createDirectory(dir / "b") >>
-      Files[IO].createDirectory(dir / "c") >>
-      Files[IO].createFile(dir / "a" / "2010-a") >>
-      Files[IO].createFile(dir / "b" / "2011-b") >>
-      Files[IO].createFile(dir / "c" / "2012-c") >>
-      f(dir)
-    }
 }
