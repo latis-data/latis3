@@ -1,27 +1,24 @@
 package latis.ops
 
-import cats.effect.unsafe.implicits.global
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers._
-import org.scalatest.Inside.inside
+import munit.CatsEffectSuite
 
 import latis.data._
 import latis.dsl._
 
-class EvaluationSpec extends AnyFlatSpec {
+class EvaluationSuite extends CatsEffectSuite {
 
-  "Evaluation" should "evaluate a 1D dataset" in {
+  test("evaluate a 1D dataset") {
     DatasetGenerator.generate1DDataset(
       Vector(0, 1, 2),
       Vector(10, 20, 30)
     ).withOperation(Evaluation("1")).samples.head.map {
       case Sample(_, RangeData(Number(d))) =>
-        d should be (20)
-      case _ => ???
-    }.compile.drain.unsafeRunSync()
+        assertEquals(d, 20.0)
+      case _ => fail("unexpected sample")
+    }.compile.drain
   }
 
-  "Evaluation" should "evaluate a nested dataset" in {
+  test("evaluate a nested dataset") {
     val ds = DatasetGenerator.generate2DDataset(
       Vector(0, 1, 2),
       Vector(100, 200, 300),
@@ -32,11 +29,13 @@ class EvaluationSpec extends AnyFlatSpec {
       )
     ).curry(1)
      .eval("1")
-    inside(ds.unsafeForce().data.sampleSeq.head) {
+
+    ds.samples.take(1).map {
       case Sample(DomainData(Number(x)), RangeData(Number(a))) =>
-        x should be (100)
-        a should be (12)
-    }
+        assertEquals(x, 100.0)
+        assertEquals(a, 12.0)
+      case _ => fail("unexpected sample")
+    }.compile.drain
   }
 
   //TODO verify failure modes
