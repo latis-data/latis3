@@ -1,15 +1,14 @@
 package latis.ops
 
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers._
+import munit.FunSuite
 
 import latis.data._
 import latis.dataset._
 import latis.dsl.ModelParser
 import latis.metadata.Metadata
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 
-class GroupByVariableSpec extends AnyFlatSpec {
+class GroupByVariableSuite extends FunSuite {
 
   // (x, y) -> a
   private lazy val model = ModelParser.unsafeParse("(x, y) -> a")
@@ -23,9 +22,8 @@ class GroupByVariableSpec extends AnyFlatSpec {
 
   private lazy val ds = new MemoizedDataset(Metadata(id"test"), model, data)
       .withOperation(new GroupByVariable(id"y"))
-      .unsafeForce()
 
-  "GroupByVariable" should "unProject the grouped variables" in {
-    ds.model.toString should be ("y -> x -> a")
+  test("unProject the grouped variables") {
+    assertEquals(ds.model.toString, "y -> x -> a")
   }
 }
