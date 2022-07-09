@@ -1,20 +1,18 @@
 package latis.ops
 
-import cats.effect.unsafe.implicits.global
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers._
+import munit.CatsEffectSuite
 
 import latis.data._
 import latis.dataset.Dataset
 import latis.dsl._
 
-class TailSpec extends AnyFlatSpec {
+class TailSuite extends CatsEffectSuite {
 
-  "The Tail Operation" should "drop the first sample from a simple dataset" in {
+  test("drop the first sample from a simple dataset") {
     val ds: Dataset = DatasetGenerator("a -> b")
     val dsTail      = ds.withOperation(Tail())
-    val samples     = dsTail.samples.compile.toList.unsafeRunSync()
-    samples should be(
+    val samples     = dsTail.samples.compile.toList
+    samples.assertEquals(
       List(
         Sample(DomainData(1), RangeData(1)),
         Sample(DomainData(2), RangeData(2))
@@ -22,9 +20,9 @@ class TailSpec extends AnyFlatSpec {
     )
   }
 
-  it should "drop the first sample from a dataset with a nested function" in {
+  test("drop the first sample from a dataset with a nested function") {
     val ds      = DatasetGenerator("(a, b) -> c").curry(1).withOperation(Tail())
-    val samples = ds.samples.compile.toList.unsafeRunSync()
+    val samples = ds.samples.compile.toList
     val sf = SampledFunction(
       Seq(
         Sample(DomainData(0), RangeData(3)),
@@ -32,6 +30,6 @@ class TailSpec extends AnyFlatSpec {
         Sample(DomainData(2), RangeData(5))
       )
     )
-    samples should be(List(Sample(DomainData(1), Seq(sf))))
+    samples.assertEquals(List(Sample(DomainData(1), Seq(sf))))
   }
 }
