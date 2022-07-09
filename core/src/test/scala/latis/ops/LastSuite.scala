@@ -1,8 +1,6 @@
 package latis.ops
 
-import cats.effect.unsafe.implicits.global
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers._
+import munit.CatsEffectSuite
 
 import latis.data.DomainData
 import latis.data.RangeData
@@ -14,20 +12,20 @@ import latis.dsl._
 import latis.metadata.Metadata
 import latis.model.IntValueType
 import latis.model.Scalar
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 
-class LastSpec extends AnyFlatSpec {
+class LastSuite extends CatsEffectSuite {
 
-  "The Last Operation" should "return the last sample of a simple dataset" in {
+  test("return the last sample of a simple dataset") {
     val ds: Dataset = DatasetGenerator("a -> b")
     val dsTake      = ds.withOperation(Last())
-    val samples     = dsTake.samples.compile.toList.unsafeRunSync()
-    samples should be(List(Sample(DomainData(2), RangeData(2))))
+    val samples     = dsTake.samples.compile.toList
+    samples.assertEquals(List(Sample(DomainData(2), RangeData(2))))
   }
 
-  it should "return the last sample of a dataset with a nested function" in {
+  test("return the last sample of a dataset with a nested function") {
     val ds      = DatasetGenerator("(a, b) -> c").curry(1).withOperation(Last())
-    val samples = ds.samples.compile.toList.unsafeRunSync()
+    val samples = ds.samples.compile.toList
     val sf = SampledFunction(
       Seq(
         Sample(DomainData(0), RangeData(3)),
@@ -35,17 +33,17 @@ class LastSpec extends AnyFlatSpec {
         Sample(DomainData(2), RangeData(5))
       )
     )
-    samples should be(List(Sample(DomainData(1), Seq(sf))))
+    samples.assertEquals(List(Sample(DomainData(1), Seq(sf))))
   }
 
-  it should "return an empty dataset when applied to an empty dataset" in {
+  test("return an empty dataset when applied to an empty dataset") {
     val md = new MemoizedDataset(
       Metadata(id"MT"),
       Scalar(id"id", IntValueType),
       SampledFunction(Seq.empty),
       Seq(Last())
     )
-    val samples = md.samples.compile.toList.unsafeRunSync()
-    samples should be(List.empty)
+    val samples = md.samples.compile.toList
+    samples.assertEquals(List.empty)
   }
 }
