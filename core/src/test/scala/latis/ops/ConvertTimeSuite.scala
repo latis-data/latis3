@@ -1,9 +1,6 @@
 package latis.ops
 
-import org.scalatest.EitherValues._
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers._
-import org.scalatest.Inside.inside
+import munit.FunSuite
 
 import latis.data._
 import latis.metadata.Metadata
@@ -11,7 +8,7 @@ import latis.model._
 import latis.time.Time
 import latis.time.TimeScale
 
-class ConvertTimeSpec extends AnyFlatSpec {
+class ConvertTimeSuite extends FunSuite {
 
   private lazy val numericTime = Time.fromMetadata(
     Metadata(
@@ -19,7 +16,7 @@ class ConvertTimeSpec extends AnyFlatSpec {
       "type" -> "int",
       "units" -> "days since 2020-01-01"
     )
-  ).value
+  ).fold(fail("failed to construct time", _), identity)
 
   private lazy val textTime = Time.fromMetadata(
     Metadata(
@@ -27,49 +24,53 @@ class ConvertTimeSpec extends AnyFlatSpec {
       "type" -> "string",
       "units" -> "yyyy-MM-dd"
     )
-  ).value
+  ).fold(fail("failed to construct time", _), identity)
 
   private lazy val convertTime = TimeScale.fromExpression("weeks since 2020-01-08")
-    .map(ConvertTime(_)).value
+    .map(ConvertTime(_)).fold(fail("failed to construct operation", _), identity)
 
-  "The ConvertTime Operation" should "update the metadata of the time variable" in {
-    inside(convertTime.applyToModel(numericTime)) {
+  test("update the metadata of the time variable") {
+    convertTime.applyToModel(numericTime) match {
       case Right(t: Time) =>
-        t.valueType should be(DoubleValueType)
+        assertEquals(t.valueType, DoubleValueType)
         //Note TimeScale.toString uses default ISO format
-        t.units should be(Some("weeks since 2020-01-08T00:00:00.000Z"))
+        assertEquals(t.units, Some("weeks since 2020-01-08T00:00:00.000Z"))
+      case _ => fail("incorrect model")
     }
   }
 
-  it should "convert a numeric time variable" in {
+  test("convert a numeric time variable") {
     val f = convertTime.mapFunction(numericTime)
     val sample = Sample(DomainData(), RangeData(14))
-    inside(f(sample)) {
+    f(sample) match {
       case Sample(_, RangeData(Number(t))) =>
-        t should be(1.0)
+        assertEquals(t, 1.0)
+      case _ => fail("incorrect sample")
     }
   }
 
-  it should "convert a text time variable" in {
+  test("convert a text time variable") {
     val f = convertTime.mapFunction(textTime)
     val sample = Sample(DomainData(), RangeData("2020-01-15"))
-    inside(f(sample)) {
+    f(sample) match {
       case Sample(_, RangeData(Number(t))) =>
-        t should be(1.0 +- 1e-9)
+        assertEqualsDouble(t, 1.0, 1e-9)
+      case _ => fail("incorrect sample")
     }
   }
 
-  it should "convert multiple time variables" in {
+  test("convert multiple time variables") {
     val model = Function.from(
       textTime,
       numericTime
-    ).value
+    ).fold(fail("failed to construct model", _), identity)
     val f = convertTime.mapFunction(model)
     val sample = Sample(DomainData("2020-01-15"), RangeData(14))
-    inside(f(sample)) {
+    f(sample) match {
       case Sample(DomainData(Number(t1)), RangeData(Number(t2))) =>
-        t1 should be(1.0 +- 1e-9)
-        t2 should be(1.0)
+        assertEqualsDouble(t1, 1.0, 1e-9)
+        assertEquals(t2, 1.0)
+      case _ => fail("incorrect sample")
     }
   }
 
