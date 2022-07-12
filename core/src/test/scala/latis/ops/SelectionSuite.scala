@@ -1,17 +1,15 @@
 package latis.ops
 
-import org.scalatest.funsuite.AnyFunSuite
-import org.scalatest.EitherValues._
+import munit.FunSuite
 
-import latis.data.Data
+import latis.data._
 import latis.metadata.Metadata
-import latis.model.BooleanValueType
-import latis.model.Scalar
+import latis.model._
 import latis.time.Time
 import latis.util.dap2.parser.ast
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 
-class SelectionSuite extends AnyFunSuite {
+class SelectionSuite extends FunSuite {
   //TODO: test regular selections...
 
   //-- Selection with bin semantics --//
@@ -20,7 +18,7 @@ class SelectionSuite extends AnyFunSuite {
     "id" -> "x",
     "type" -> "double",
     "binWidth" -> "1"
-  )).value
+  )).fold(fail("failed to construct scalar", _), identity)
 
   // Data value at start of bin: [1, 2)
   lazy val datum = Data.DoubleValue(1.0)
@@ -137,14 +135,14 @@ class SelectionSuite extends AnyFunSuite {
     "type"     -> "double",
     "units"    -> "seconds since 2000-01-01",
     "binWidth" -> "1" //seconds, matching units
-  )).value
+  )).fold(fail("failed to construct time", _), identity)
 
   private lazy val binnedNonIsoFormattedTime: Time = Time.fromMetadata(Metadata(
     "id"       -> "time",
     "type"     -> "string",
     "units"    -> "MMM dd, yyyy",
     "binWidth" -> "100000000" //ms, native time units
-  )).value
+  )).fold(fail("failed to construct time", _), identity)
 
   test("binnedNumericTime eq in bin") {
     val datum = Data.DoubleValue(2.0)
@@ -186,5 +184,36 @@ class SelectionSuite extends AnyFunSuite {
 
   test("true not equal false") {
     assert(! Selection.datumPredicate(boolean, ast.Eq, falseDatum)(trueDatum))
+  }
+
+  //-- Time selection --//
+  test("time selection should filter formatted times") {
+    val time = Time.fromMetadata(
+      Metadata(
+        "id" -> "time",
+        "type" -> "string",
+        "units" -> "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+      )
+    )
+
+    val model = time.flatMap { t =>
+      Function.from(t, Scalar(id"a", IntValueType))
+    }.fold(fail("failed to construct model", _), identity)
+
+    val sample = Sample(
+      DomainData("2000-01-01T00:00:00.000Z"),
+      RangeData(1)
+    )
+
+    val p1 = Selection.makeSelection("time > 1999")
+      .flatMap(_.predicate(model))
+      .fold(fail("failed to construct selection", _), identity)
+
+    val p2= Selection.makeSelection("time > 2001")
+      .flatMap(_.predicate(model))
+      .fold(fail("failed to construct selection", _), identity)
+
+    assert(p1(sample))
+    assert(!p2(sample))
   }
 }
