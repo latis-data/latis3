@@ -12,7 +12,6 @@ val logbackVersion    = "1.3.8"
 val munitVersion      = "0.7.29"
 val netcdfVersion     = "5.5.3"
 val pureconfigVersion = "0.17.4"
-val scalaTestVersion  = "3.2.12"
 
 lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
@@ -103,8 +102,7 @@ lazy val core = project
       "org.scodec"             %% "scodec-stream"       % "3.0.2",
       "org.scodec"             %% "scodec-cats"         % "1.2.0",
       "org.http4s"             %% "http4s-ember-client" % http4sVersion,
-      "org.gnieh"              %% "fs2-data-csv"        % "1.7.1",
-      "org.scalatest"          %% "scalatest"           % scalaTestVersion % Test
+      "org.gnieh"              %% "fs2-data-csv"        % "1.7.1"
     )
   )
 
@@ -242,6 +240,6 @@ lazy val `test-utils` = project
   .settings(
     name := "latis3-test-utils",
     libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % scalaTestVersion
+      "org.scalatest" %% "scalatest" % "3.2.12"
     ),
   )
