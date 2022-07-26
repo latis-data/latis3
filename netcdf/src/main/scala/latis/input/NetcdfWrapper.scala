@@ -63,8 +63,11 @@ protected class NetcdfWrapper private (ncFile: NetcdfFile, model: DataType, conf
       case i: Index => IO.pure(findDimension(i).getLength)    //Index uses dimension name
       case s        => IO.pure(findVariable(s).getSize.toInt) //assume single dimension < max int
     }.flatMap { shape =>
-      val init = Section.fromShape(shape) //original section before operations
-      IO.fromEither(ops.foldM(init)(applyOperationToSection))
+      IO.fromEither(
+        Section.fromShape(shape).flatMap { init =>  //original section before operations
+          ops.foldM(init)(applyOperationToSection)
+        }
+      )
     }
   }
 
@@ -99,9 +102,6 @@ protected class NetcdfWrapper private (ncFile: NetcdfFile, model: DataType, conf
         LatisException("Selection variable must be an outer domain variable")
       )
       sec <- section.subsetDimension(dim, bounds._1, bounds._2)
-      // Note that this could make an invalid Section with from > to if outside the original Section.
-      // This will likely result in an invalid NcSection error in the stream.
-      // This will be resolved by refactoring Section to support empty Sections.
     } yield sec
 
   /**
@@ -126,7 +126,8 @@ protected class NetcdfWrapper private (ncFile: NetcdfFile, model: DataType, conf
 
   /** Returns a stream of samples for the given subset. */
   private[input] def streamSamples(section: Section): Stream[IO, Sample] =
-    streamDomain(section).zip(streamRange(section))
+    if (section.isEmpty) Stream.empty
+    else streamDomain(section).zip(streamRange(section))
 
   /** Returns a stream of domain data for the given subset. */
   private def streamDomain(section: Section): Stream[IO, DomainData] = domainScalars.length match {
@@ -150,8 +151,8 @@ protected class NetcdfWrapper private (ncFile: NetcdfFile, model: DataType, conf
   private def streamDomain2D(section: Section, s1: Scalar, s2: Scalar): Stream[IO, DomainData] =
     //TODO: deal with Index, not yet supported for multi-dimensional datasets
     for {
-      slice1 <- Stream.fromEither[IO](section.slice(0))
-      slice2 <- Stream.fromEither[IO](section.slice(1))
+      slice1 <- Stream.fromEither[IO](section.range(0).flatMap(r => Section.fromRanges(List(r))))
+      slice2 <- Stream.fromEither[IO](section.range(1).flatMap(r => Section.fromRanges(List(r))))
       d1     <- streamVariable(s1, slice1)
       d2     <- streamVariable(s2, slice2) //TODO: memoize to avoid re-reading nested domain variables
     } yield DomainData(d1, d2)
@@ -163,9 +164,9 @@ protected class NetcdfWrapper private (ncFile: NetcdfFile, model: DataType, conf
   private def streamDomain3D(section: Section, s1: Scalar, s2: Scalar, s3: Scalar): Stream[IO, DomainData] =
     //TODO: deal with Index, not yet supported for multi-dimensional datasets
     for {
-      slice1 <- Stream.fromEither[IO](section.slice(0))
-      slice2 <- Stream.fromEither[IO](section.slice(1))
-      slice3 <- Stream.fromEither[IO](section.slice(2))
+      slice1 <- Stream.fromEither[IO](section.range(0).flatMap(r => Section.fromRanges(List(r))))
+      slice2 <- Stream.fromEither[IO](section.range(1).flatMap(r => Section.fromRanges(List(r))))
+      slice3 <- Stream.fromEither[IO](section.range(2).flatMap(r => Section.fromRanges(List(r))))
       d1     <- streamVariable(s1, slice1)
       d2     <- streamVariable(s2, slice2) //TODO: memoize to avoid re-reading nested domain variables
       d3     <- streamVariable(s3, slice3) //TODO: memoize to avoid re-reading nested domain variables
@@ -186,7 +187,6 @@ protected class NetcdfWrapper private (ncFile: NetcdfFile, model: DataType, conf
    * Streams the data for a subset of the given variable.
    */
   private def streamVariable(scalar: Scalar, section: Section): Stream[IO, Datum] = {
-
     // Make a lean function to get data of the right type from a ucar.ma2.Array
     def makeValueGetter(arr: NcArray): Int => Datum = {
       scalar.valueType match {
@@ -204,16 +204,20 @@ protected class NetcdfWrapper private (ncFile: NetcdfFile, model: DataType, conf
       }
     }
 
-    // Read a section of the array for this variable
-    val io = for {
-      variable <- IO.pure(findVariable(scalar))
-      section  <- IO(new NcSection(section.toString())) //may throw
-      array    <- IO.blocking(variable.read(section))
-    } yield {
-      val getValue: Int => Datum = makeValueGetter(array) //function to get the ith value from the array
-      (0 until array.getSize.toInt).map(getValue)
+    // Make Stream of data
+    if (section.isEmpty) Stream.empty
+    else {
+      // Read a section of the array for this variable
+      val io = for {
+        variable <- IO.pure(findVariable(scalar))
+        section <- IO(new NcSection(section.toString())) //may throw
+        array <- IO.blocking(variable.read(section))
+      } yield {
+        val getValue: Int => Datum = makeValueGetter(array) //function to get the ith value from the array
+        (0 until array.getSize.toInt).map(getValue)
+      }
+      Stream.evalSeq(io)
     }
-    Stream.evalSeq(io)
   }
 
   /** Breaks the Section up into manageable contiguous Sections. */

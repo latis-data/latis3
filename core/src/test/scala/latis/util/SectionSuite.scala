@@ -1,6 +1,5 @@
 package latis.util
 
-import cats.effect.unsafe.implicits.global
 import org.scalatest.EitherValues._
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.Inside.inside
@@ -63,7 +62,7 @@ class SectionSuite extends AnyFunSuite {
 
   test("stride by dimension") {
     inside(sectionWithStride.strideDimension(0, 2)) {
-      case Right(s: Section) => assert(s.toString == "0:9:4")
+      case Right(s: Section) => assert(s.toString == "0:8:4")
     }
   }
 
@@ -78,7 +77,7 @@ class SectionSuite extends AnyFunSuite {
 
   test("one-dimensional stride") {
     inside(sectionWithStride.stride(List(2))) {
-      case Right(s: Section) => assert(s.toString == "0:9:4")
+      case Right(s: Section) => assert(s.toString == "0:8:4")
     }
   }
 
@@ -104,13 +103,13 @@ class SectionSuite extends AnyFunSuite {
 
   test("subset complex section") {
     inside(sectionWithOffsetAndStride.subsetDimension(0, 4, 7)) {
-      case Right(s) => assert(s.toString == "4:7:2")
+      case Right(s) => assert(s.toString == "5:7:2")
     }
   }
 
   test("subset with stride") {
     inside(sectionWithStride.subsetDimension(0, 2, 8, 2)) {
-      case Right(s) => assert(s.toString == "2:8:4")
+      case Right(s) => assert(s.toString == "2:6:4")
     }
   }
 
@@ -120,26 +119,68 @@ class SectionSuite extends AnyFunSuite {
     }
   }
 
-  ignore("subset outside section") {
-    println(sectionWithOffset.subsetDimension(0, 10, 20))
-    // 1:9:1 => 10:9:1, section should be empty
-    // presumably NcSection construction would fail
+  test("subset outside section") {
+    val s = sectionWithOffset.subsetDimension(0, 10, 20).fold(e => fail(e.getMessage), identity)
+    assert(s.isEmpty)
   }
 
-  ignore("prevent from > to") {
-    println(sectionWithOffset.subsetDimension(0, 10, -1))
-    // => 10:*:1
-    // Can fool it into unlimited dimension (with -1) outside of original section!
+  test("prevent from > to") {
+    assert(sectionWithOffset.subsetDimension(0, 10, -1).isLeft)
   }
 
   //---- Chunk ----//
 
   test("chunk") {
     val s = Section.fromExpression("1:9:2,0:2").value
-    s.chunk(4).compile.toList.map { ss =>
-      assert(ss(0).toString == "1:3:2,0:2:1")
-      assert(ss(1).toString == "5:7:2,0:2:1")
-      assert(ss(2).toString == "9:9:2,0:2:1")
-    }.unsafeRunSync()
+    val ss = s.chunk(4).compile.toList
+    assert(ss(0).toString == "1:3:2,0:2:1")
+    assert(ss(1).toString == "5:7:2,0:2:1")
+    assert(ss(2).toString == "9:9:2,0:2:1")
   }
+
+  //---- Empty ----//
+
+  test("empty section length") {
+    assert(Section.empty.length.contains(0))
+  }
+
+  test("empty section rank") {
+    assert(Section.empty.rank == 0)
+  }
+
+  test("empty section shape") {
+    assert(Section.empty.shape.isEmpty)
+  }
+
+  test("empty section is empty") {
+    assert(Section.empty.isEmpty)
+  }
+
+  test("empty section head") {
+    assert(Section.empty.head.isEmpty)
+  }
+
+  test("empty section range") {
+    assert(Section.empty.range(0).isLeft)
+  }
+
+  test("empty section strideDimension") {
+    val s = Section.empty.strideDimension(0,2).fold(e => fail(e.getMessage), identity)
+    assert(s.isEmpty)
+  }
+
+  test("empty section stride") {
+    val s = Section.empty.stride(List(2,2)).fold(e => fail(e.getMessage), identity)
+    assert(s.isEmpty)
+  }
+
+  test("empty section chunk") {
+    assert(Section.empty.chunk(10).compile.toList.isEmpty)
+  }
+
+  test("empty section subsetDimension") {
+    val s = Section.empty.subsetDimension(0, 2, 3).fold(e => fail(e.getMessage), identity)
+    assert(s.isEmpty)
+  }
+
 }
