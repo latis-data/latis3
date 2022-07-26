@@ -79,49 +79,49 @@ class NetcdfWrapperSuite extends CatsEffectSuite {
 
   test("default section") {
     ncWapper.makeSection(List()).map { s =>
-      assert(s.toString == "0:1:1,0:2:1")
+      assertEquals(s.toString, "0:1:1,0:2:1")
     }
   }
 
   test("head section") {
     val ops = List(Head())
     ncWapper.makeSection(ops).map { s =>
-      assert(s.toString == "0:0:1,0:0:1")
+      assertEquals(s.toString, "0:0:1,0:0:1")
     }
   }
 
   test("stride section") {
     val ops = List(Stride(List(2,2)))
     ncWapper.makeSection(ops).map { s =>
-      assert(s.toString == "0:1:2,0:2:2")
+      assertEquals(s.toString, "0:0:2,0:2:2")
     }
   }
 
   test("selection with >") {
     val ops = List(Selection.makeSelection("y > 1").getOrElse(fail("Bad selection")))
     ncWapper.makeSection(ops).map { s =>
-      assert(s.toString == "0:1:1,2:2:1")
+      assertEquals(s.toString, "0:1:1,2:2:1")
     }
   }
 
   test("selection with >=") {
     val ops = List(Selection.makeSelection("y >= 1").getOrElse(fail("Bad selection")))
     ncWapper.makeSection(ops).map { s =>
-      assert(s.toString == "0:1:1,1:2:1")
+      assertEquals(s.toString, "0:1:1,1:2:1")
     }
   }
 
   test("selection with <") {
     val ops = List(Selection.makeSelection("y < 1").getOrElse(fail("Bad selection")))
     ncWapper.makeSection(ops).map { s =>
-      assert(s.toString == "0:1:1,0:0:1")
+      assertEquals(s.toString, "0:1:1,0:0:1")
     }
   }
 
   test("selection with <=") {
     val ops = List(Selection.makeSelection("y <= 1").getOrElse(fail("Bad selection")))
     ncWapper.makeSection(ops).map { s =>
-      assert(s.toString == "0:1:1,0:1:1")
+      assertEquals(s.toString, "0:1:1,0:1:1")
     }
   }
 
@@ -131,15 +131,24 @@ class NetcdfWrapperSuite extends CatsEffectSuite {
       Selection.makeSelection("y < 2").getOrElse(fail("Bad selection"))
     )
     ncWapper.makeSection(ops).map { s =>
-      assert(s.toString == "0:1:1,1:1:1")
+      assertEquals(s.toString, "0:1:1,1:1:1")
     }
   }
 
-  //TODO: support empty Section
-  test("selection outside bounds".ignore) {
+  test("selection outside bounds") {
     val ops = List(Selection.makeSelection("y > 9").getOrElse(fail("Bad selection")))
     ncWapper.makeSection(ops).map { s =>
-      println(s) //0:1:1,10:2:1
+      assert(s.isEmpty)
+    }
+  }
+
+  test("stride then selection with truncation") {
+    val ops = List(
+      Stride(List(1, 2)),
+      Selection.makeSelection("y >= 1").getOrElse(fail("Bad selection"))
+    )
+    ncWapper.makeSection(ops).map { s =>
+      assertEquals(s.toString, "0:1:1,2:2:2")
     }
   }
 
@@ -148,7 +157,7 @@ class NetcdfWrapperSuite extends CatsEffectSuite {
       sec <- Stream.eval(ncWapper.makeSection(List()))
       ss  <- ncWapper.chunkSection(sec)
     } yield ss).compile.toList.map { list =>
-      assert(list.length == 2)
+      assertEquals(list.length, 2)
     }
   }
 
@@ -158,10 +167,10 @@ class NetcdfWrapperSuite extends CatsEffectSuite {
       s   <- ncWapper.streamSamples(sec).compile.toList.map(_.head)
     } yield s).map {
       case Sample(DomainData(Integer(x), Integer(y)), RangeData(Integer(a), Integer(b))) =>
-        assert(x == 0)
-        assert(y == 0)
-        assert(a == 0)
-        assert(b == 1)
+        assertEquals(x, 0L)
+        assertEquals(y, 0L)
+        assertEquals(a, 0L)
+        assertEquals(b, 1L)
       case _ => fail("Invalid Sample")
     }
   }

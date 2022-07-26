@@ -127,10 +127,20 @@ sealed trait NonEmptyRange extends IndexRange {
 }
 
 /** Represents an IndexRange with a specified end. */
-final case class FiniteRange private[util] (start: Int, end: Int, step: Int) extends NonEmptyRange
+sealed abstract case class FiniteRange private[util] (start: Int, end: Int, step: Int) extends NonEmptyRange
+
+object FiniteRange {
+  private[util] def apply(start: Int, end: Int, step: Int): FiniteRange =
+    new FiniteRange(start, end, step) {}
+}
 
 /** Represents an IndexRange without a specified end. */
-final case class UnlimitedRange private (start: Int, step: Int) extends NonEmptyRange
+sealed abstract case class UnlimitedRange private (start: Int, step: Int) extends NonEmptyRange
+
+object UnlimitedRange {
+  private[util] def apply(start: Int, step: Int): UnlimitedRange =
+    new UnlimitedRange(start, step) {}
+}
 
 /** Represents an empty IndexRange. */
 object EmptyRange extends IndexRange
