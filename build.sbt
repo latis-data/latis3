@@ -10,7 +10,7 @@ val log4catsVersion   = "2.4.0"
 val log4jVersion      = "2.18.0"
 val netcdfVersion     = "5.5.3"
 val pureconfigVersion = "0.17.1"
-val scalaTestVersion  = "3.2.12"
+val scalaTestVersion  = "3.2.13"
 
 lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
