@@ -100,7 +100,7 @@ lazy val core = project
       "io.circe"               %% "circe-core"          % "0.14.2",
       "org.scodec"             %% "scodec-core"         % "1.11.9",
       "org.scodec"             %% "scodec-stream"       % "3.0.2",
-      "org.scodec"             %% "scodec-cats"         % "1.1.0",
+      "org.scodec"             %% "scodec-cats"         % "1.2.0",
       "org.http4s"             %% "http4s-ember-client" % http4sVersion
     )
   )
