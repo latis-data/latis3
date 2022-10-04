@@ -8,6 +8,7 @@ val fs2Version        = "3.3.0"
 val http4sVersion     = "0.23.15"
 val log4catsVersion   = "2.4.0"
 val log4jVersion      = "2.18.0"
+val logbackVersion    = "1.4.1"
 val netcdfVersion     = "5.5.3"
 val pureconfigVersion = "0.17.1"
 val scalaTestVersion  = "3.2.12"
@@ -176,7 +177,6 @@ lazy val server = project
       "com.github.pureconfig" %% "pureconfig-cats-effect" % pureconfigVersion,
       "com.github.pureconfig" %% "pureconfig-ip4s"        % pureconfigVersion,
       "org.typelevel"         %% "log4cats-slf4j"         % log4catsVersion,
-      "ch.qos.logback"         % "logback-classic"        % "1.2.8" % Runtime
     )
   )
 
@@ -212,7 +212,7 @@ lazy val netcdf = project
     name := "latis3-netcdf",
     libraryDependencies ++= Seq(
       "edu.ucar"       % "netcdf4"          % netcdfVersion,
-      "ch.qos.logback" % "logback-classic"  % "1.2.6"  % Test
+      "ch.qos.logback" % "logback-classic"  % logbackVersion  % Test
     ),
     resolvers ++= Seq(
       "Unidata" at "https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases"
