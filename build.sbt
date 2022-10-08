@@ -97,8 +97,11 @@ lazy val awsS3 = project
   .settings(
     name := "latis3-aws-s3",
     libraryDependencies ++= Seq(
+      "com.amazonaws" % "aws-java-sdk-core" % "1.12.319" % Test,
+      "ch.qos.logback" % "logback-classic" % logbackVersion % Test,
       "com.github.fs2-blobstore" %% "s3" % "0.9.6",
-      "software.amazon.awssdk" % "s3" % "2.17.229"
+      "software.amazon.awssdk" % "s3" % "2.17.290",
+      "com.dimafeng" %% "testcontainers-scala-localstack-v2" % "0.40.10" % Test
     )
   )
 
