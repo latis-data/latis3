@@ -1,6 +1,6 @@
 package latis.catalog
 
-import java.nio.file.Path
+import java.nio.file.Paths
 
 import scala.concurrent.duration.Duration
 
@@ -62,7 +62,7 @@ final class S3FdmlCatalogSuite extends munit.CatsEffectSuite {
               .bucket("nonempty")
               .key("data.fdml")
               .build(),
-            Path.of(getClass().getResource("/data.fdml").toURI())
+            Paths.get(getClass().getResource("/data.fdml").toURI())
           )
         }
       } >> IO.fromCompletableFuture {
@@ -73,7 +73,7 @@ final class S3FdmlCatalogSuite extends munit.CatsEffectSuite {
               .bucket("nonempty")
               .key("data2.fdml")
               .build(),
-            Path.of(getClass().getResource("/data2.fdml").toURI())
+            Paths.get(getClass().getResource("/data2.fdml").toURI())
           )
         }
       }
