@@ -141,7 +141,7 @@ class SectionSuite extends AnyFunSuite {
   //---- Empty ----//
 
   test("empty section length") {
-    assert(Section.empty.length.contains(0))
+    assert(Section.empty.length.contains(0L))
   }
 
   test("empty section rank") {
