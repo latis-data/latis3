@@ -153,6 +153,15 @@ class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4
     case "bin"   => new BinaryEncoder().encode(ds).asRight.map((_, `Content-Type`(MediaType.application.`octet-stream`)))
     case "csv"   => CsvEncoder.withColumnName.encode(ds).through(text.utf8.encode).asRight
       .map((_, `Content-Type`(MediaType.text.csv)))
+    case "dds"   => Dds.fromDataset(ds).bimap(
+      latisException => ParseFailure(latisException.message),
+      dds => {
+        val bytes = dds.toString.getBytes.toSeq
+        val str = Stream.emits[IO, Byte](bytes)
+        val ct = `Content-Type`(MediaType.text.plain)
+        (str, ct)
+      }
+    )
     case "jsonl" => new JsonEncoder().encode(ds).map(_.noSpaces).intersperse("\n").through(text.utf8.encode).asRight
       .map((_, `Content-Type`(MediaType.unsafeParse("application/jsonl"))))
     case "meta"  => new MetadataEncoder().encode(ds).map(_.noSpaces).through(text.utf8.encode).asRight
