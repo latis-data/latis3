@@ -4,6 +4,7 @@ ThisBuild / scalaVersion := "2.13.10"
 val attoVersion       = "0.9.5"
 val catsVersion       = "2.8.0"
 val catsEffectVersion = "3.3.14"
+val feralVersion      = "0.1.0-M13"
 val fs2Version        = "3.3.0"
 val http4sVersion     = "0.23.16"
 val log4catsVersion   = "2.5.0"
@@ -61,32 +62,41 @@ lazy val dockerSettings = Seq(
 
 //=== Sub-projects ============================================================
 
-lazy val `aws-lambda` = project
+lazy val awsLambda = project
+  .in(file("aws-lambda"))
   .dependsOn(core)
+  .dependsOn(awsS3)
+  .dependsOn(`dap2-service`)
   .enablePlugins(DockerPlugin)
   .settings(commonSettings)
   .settings(
     name := "latis3-aws-lambda",
     libraryDependencies ++= Seq(
-      "com.amazonaws"             % "aws-lambda-java-core"   % "1.2.1",
-      "com.amazonaws"             % "aws-lambda-java-events" % "3.11.0",
-      "com.amazonaws"             % "aws-lambda-java-log4j2" % "1.5.1" % Runtime,
-      "org.apache.logging.log4j"  % "log4j-core"             % log4jVersion,
+      "com.amazonaws"             % "aws-lambda-java-log4j2" % "1.5.0" % Runtime,
+      "org.typelevel"            %% "feral-lambda"           % feralVersion,
+      "org.typelevel"            %% "feral-lambda-http4s"    % feralVersion,
+      "org.http4s"               %% "http4s-core"            % http4sVersion,
+      "org.http4s"               %% "http4s-dsl"             % http4sVersion,
+      // "org.apache.logging.log4j"  % "log4j-core"             % log4jVersion,
       "org.apache.logging.log4j"  % "log4j-slf4j-impl"       % log4jVersion % Runtime,
       "org.typelevel"            %% "log4cats-slf4j"         % log4catsVersion
     ),
-    docker / imageNames := {
-      Seq(ImageName(s"${organization.value}/latis3-lambda:${version.value}"))
-    },
+    docker / buildOptions := BuildOptions(
+      additionalArguments = Seq("--platform", "linux/amd64"),
+      pullBaseImage = BuildOptions.Pull.Always
+    ),
     docker / dockerfile := {
       val depClasspath = (Runtime / managedClasspath).value
       val intClasspath = (Runtime / internalDependencyAsJars).value
       new Dockerfile {
-        from("public.ecr.aws/lambda/java:8")
+        from("public.ecr.aws/lambda/java:11")
         copy(depClasspath.files, "/var/task/lib/")
         copy(intClasspath.files, "/var/task/lib/")
         cmd("latis.lambda.LatisLambdaHandler")
       }
+    },
+    docker / imageNames := {
+      Seq(ImageName(s"${organization.value}/latis3-aws-lambda:${version.value}"))
     }
   )
 
