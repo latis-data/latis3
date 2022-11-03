@@ -10,28 +10,28 @@ import latis.util.Identifier.IdentifierStringContext
 
 class DdsSuite extends CatsEffectSuite {
   test("correct AtomicType toString representation") {
-    assertEquals(Byte().toString, "Byte")
-    assertEquals(Int16().toString, "Int16")
-    assertEquals(UInt16().toString, "UInt16")
-    assertEquals(Int32().toString, "Int32")
-    assertEquals(UInt32().toString, "UInt32")
-    assertEquals(Float32().toString, "Float32")
-    assertEquals(Float64().toString, "Float64")
-    assertEquals(String().toString, "String")
-    assertEquals(Url().toString, "Url")
+    assertEquals(Byte.toString, "Byte")
+    assertEquals(Int16.toString, "Int16")
+    assertEquals(UInt16.toString, "UInt16")
+    assertEquals(Int32.toString, "Int32")
+    assertEquals(UInt32.toString, "UInt32")
+    assertEquals(Float32.toString, "Float32")
+    assertEquals(Float64.toString, "Float64")
+    assertEquals(String.toString, "String")
+    assertEquals(Url.toString, "Url")
   }
 
   test("correct AtomicDecl toDoc representation") {
-    assertEquals(AtomicDecl(id"testByte", Byte()).toDoc.render(1), "Byte testByte;")
-    assertEquals(AtomicDecl(id"testInt", UInt32()).toDoc.render(1), "UInt32 testInt;")
-    assertEquals(AtomicDecl(id"testFloat", Float32()).toDoc.render(1), "Float32 testFloat;")
-    assertEquals(AtomicDecl(id"testString", String()).toDoc.render(1), "String testString;")
+    assertEquals(AtomicDecl(id"testByte", Byte).toDoc.render(1), "Byte testByte;")
+    assertEquals(AtomicDecl(id"testInt", UInt32).toDoc.render(1), "UInt32 testInt;")
+    assertEquals(AtomicDecl(id"testFloat", Float32).toDoc.render(1), "Float32 testFloat;")
+    assertEquals(AtomicDecl(id"testString", String).toDoc.render(1), "String testString;")
   }
 
-  val decl1: AtomicDecl = AtomicDecl(id"byte1", Byte())
-  val decl2: AtomicDecl = AtomicDecl(id"byte2", Byte())
-  val decl3 = StructureDecl(id"innerStruct", List(AtomicDecl(id"byte3", Byte()), AtomicDecl(id"byte4", Byte())))
-  val decl4 = SequenceDecl(id"innerSeq", List(AtomicDecl(id"byte5", Byte()), AtomicDecl(id"byte6", Byte())))
+  val decl1: AtomicDecl = AtomicDecl(id"byte1", Byte)
+  val decl2: AtomicDecl = AtomicDecl(id"byte2", Byte)
+  val decl3 = StructureDecl(id"innerStruct", List(AtomicDecl(id"byte3", Byte), AtomicDecl(id"byte4", Byte)))
+  val decl4 = SequenceDecl(id"innerSeq", List(AtomicDecl(id"byte5", Byte), AtomicDecl(id"byte6", Byte)))
 
   test("correct StructureDecl toDoc representation") {
     val struct = StructureDecl(id"testStruct", List(decl1, decl2, decl3, decl4))
