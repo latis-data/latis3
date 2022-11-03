@@ -169,6 +169,12 @@ class Dap2ServiceSuite extends CatsEffectSuite {
         case Some(ct) => assertEquals(ct.mediaType, MediaType.text.plain)
         case None => fail("missing content-type header")
       }
+      response.headers.get(ci"Content-Description") match {
+        case Some(cd) =>
+          assertEquals(cd.get(0).get.value, "dods-dds")
+          assertEquals(cd.length, 1)
+        case None => fail("missing content-type header")
+      }
     }
   }
 
