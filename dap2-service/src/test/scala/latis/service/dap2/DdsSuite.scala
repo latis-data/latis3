@@ -92,28 +92,28 @@ class DdsSuite extends CatsEffectSuite {
 
   test("correct fromDatatype Scalar Dds type declarations") {
     assert(fromDataType(Scalar(id"boolean1", BooleanValueType)).isLeft)
-    assertEquals(fromDataType(Scalar(id"byte1", ByteValueType)).getOrElse(null).toDoc.render(1), "Byte byte1;")
+    assertEquals(fromDataType(Scalar(id"byte1", ByteValueType)).getOrElse(???).toDoc.render(1), "Byte byte1;")
     assert(fromDataType(Scalar(id"char1", CharValueType)).isLeft)
-    assertEquals(fromDataType(Scalar(id"short1", ShortValueType)).getOrElse(null).toDoc.render(1), "Int16 short1;")
-    assertEquals(fromDataType(Scalar(id"int1", IntValueType)).getOrElse(null).toDoc.render(1), "Int32 int1;")
+    assertEquals(fromDataType(Scalar(id"short1", ShortValueType)).getOrElse(???).toDoc.render(1), "Int16 short1;")
+    assertEquals(fromDataType(Scalar(id"int1", IntValueType)).getOrElse(???).toDoc.render(1), "Int32 int1;")
     assert(fromDataType(Scalar(id"long1", LongValueType)).isLeft)
-    assertEquals(fromDataType(Scalar(id"float1", FloatValueType)).getOrElse(null).toDoc.render(1), "Float32 float1;")
-    assertEquals(fromDataType(Scalar(id"double1", DoubleValueType)).getOrElse(null).toDoc.render(1), "Float64 double1;")
+    assertEquals(fromDataType(Scalar(id"float1", FloatValueType)).getOrElse(???).toDoc.render(1), "Float32 float1;")
+    assertEquals(fromDataType(Scalar(id"double1", DoubleValueType)).getOrElse(???).toDoc.render(1), "Float64 double1;")
     assert(fromDataType(Scalar(id"bin1", BinaryValueType)).isLeft)
-    assertEquals(fromDataType(Scalar(id"str1", StringValueType)).getOrElse(null).toDoc.render(1), "String str1;")
+    assertEquals(fromDataType(Scalar(id"str1", StringValueType)).getOrElse(???).toDoc.render(1), "String str1;")
     assert(fromDataType(Scalar(id"big1", BigIntValueType)).isLeft)
     assert(fromDataType(Scalar(id"big2", BigDecimalValueType)).isLeft)
   }
 
   val s1 = Scalar(id"s1", StringValueType)
   val s2 = Scalar(id"s2", DoubleValueType)
-  val t1 = Tuple.fromSeq(id"t1", Seq(s1, s2)).getOrElse(null)
+  val t1 = Tuple.fromSeq(id"t1", Seq(s1, s2)).getOrElse(???)
   val s3 = Scalar(id"s3", ByteValueType)
 
   test("correct fromDatatype Tuple Dds type declarations") {
-    val t2 = Tuple.fromSeq(id"t2", Seq[DataType](t1, s3)).getOrElse(null)
+    val t2 = Tuple.fromSeq(id"t2", Seq[DataType](t1, s3)).getOrElse(???)
     assertEquals(
-      fromDataType(t2).getOrElse(null).toDoc.render(1),
+      fromDataType(t2).getOrElse(???).toDoc.render(1),
       """Structure {
         |  Structure {
         |    String s1;
@@ -125,9 +125,9 @@ class DdsSuite extends CatsEffectSuite {
   }
 
   test("correct fromDatatype Function Dds type declarations") {
-    val f1 = Function.from(s3, t1).getOrElse(null)
+    val f1 = Function.from(s3, t1).getOrElse(???)
     assertEquals(
-      fromDataType(f1).getOrElse(null).toDoc.render(1),
+      fromDataType(f1).getOrElse(???).toDoc.render(1),
       """Sequence {
         |  Byte s3;
         |  Structure {
@@ -143,19 +143,19 @@ class DdsSuite extends CatsEffectSuite {
     val inner = Function.from(
       id"spectrum",
       Scalar(id"wavelength", DoubleValueType),
-      tuple.getOrElse(null)
-    ).getOrElse(null)
+      tuple.getOrElse(???)
+    ).getOrElse(???)
     val dataset = new MemoizedDataset(
       Metadata(id"nrl2_ssi_P1Y"),
       Function.from(
         id"samples",
         Scalar(id"time", DoubleValueType),
         inner
-      ).getOrElse(null),
+      ).getOrElse(???),
       null
     )
     assertEquals(
-      fromDataset(dataset).getOrElse(null).asString,
+      fromDataset(dataset).getOrElse(???).asString,
       """Dataset {
         |  Sequence {
         |    Float64 time;
