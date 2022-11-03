@@ -67,17 +67,14 @@ object Dds {
     }
   }
 
-  def fromTuple(tuple: Tuple): Either[LatisException, StructureDecl] = {
-    tuple.elements.map { elem => fromDataType(elem) }
-      .traverse(identity)
-      .map { lst => StructureDecl(tuple.id.getOrElse(id"unknown"), lst) }
-  }
+  def fromTuple(tuple: Tuple): Either[LatisException, StructureDecl] =
+    tuple.elements.traverse(fromDataType)
+      .map(StructureDecl(tuple.id.getOrElse(id"unknown"), _))
 
-  def fromFunction(func: Function): Either[LatisException, SequenceDecl] = {
+  def fromFunction(func: Function): Either[LatisException, SequenceDecl] =
     List(fromDataType(func.domain), fromDataType(func.range))
       .traverse(identity)
-      .map { lst => SequenceDecl(func.id.getOrElse(id"unknown"), lst) }
-  }
+      .map(SequenceDecl(func.id.getOrElse(id"unknown"), _))
 
   def fromDataType(dt: DataType): Either[LatisException, TypeDecl] = dt match {
     case s: Scalar => fromScalar(s)
@@ -85,8 +82,7 @@ object Dds {
     case f: Function => fromFunction(f)
   }
 
-  def fromDataset(dataset: Dataset): Either[LatisException, Dds] = {
+  def fromDataset(dataset: Dataset): Either[LatisException, Dds] =
     fromDataType(dataset.model)
-      .map { typeDecl => Dds(dataset.id.getOrElse(id"unknown"), List(typeDecl))}
-  }
+      .map(typeDecl => Dds(dataset.id.getOrElse(id"unknown"), List(typeDecl)))
 }
