@@ -10,13 +10,13 @@ import latis.util.Identifier.IdentifierStringContext
 import latis.util.LatisException
 
 final case class Dds(id: Identifier, typeDecls: List[Dds.TypeDecl]) {
-  override val toString: String = {
+  val toDoc: Doc = {
     val prefix = Doc.text("Dataset {")
     val suffix = Doc.char('}') + Doc.space + Doc.text(id.asString) + Doc.char(';')
     val body = Doc.intercalate(Doc.line, typeDecls.map(_.toDoc)).indent(2)
-    val doc = prefix / body / suffix
-    doc.render(1)
+    prefix / body / suffix
   }
+  val asString: String = toDoc.render(1)
 }
 
 /* TODO: Support DDS's Array and Grid type declarations */
@@ -28,7 +28,7 @@ object Dds {
     override val toDoc: Doc = Doc.str(ty) + Doc.space + Doc.text(id.asString) + Doc.char(';')
   }
   final case class StructureDecl(id: Identifier, typeDecls: List[TypeDecl]) extends TypeDecl {
-    override val toDoc = {
+    override val toDoc: Doc = {
       val prefix = Doc.text("Structure {")
       val suffix = Doc.char('}') + Doc.space + Doc.text(id.asString) + Doc.char(';')
       val body = Doc.intercalate(Doc.line, typeDecls.map(_.toDoc)).indent(2)
@@ -36,7 +36,7 @@ object Dds {
     }
   }
   final case class SequenceDecl(id: Identifier, typeDecls: List[TypeDecl]) extends TypeDecl {
-    override val toDoc = {
+    override val toDoc: Doc = {
       val prefix = Doc.text("Sequence {")
       val suffix = Doc.char('}') + Doc.space + Doc.text(id.asString) + Doc.char(';')
       val body = Doc.intercalate(Doc.line, typeDecls.map(_.toDoc)).indent(2)

@@ -71,10 +71,10 @@ class DdsSuite extends CatsEffectSuite {
     )
   }
 
-  test("correct Dds toString representation") {
+  test("correct Dds asString representation") {
     val dds = Dds(id"testDDS", List(decl1, decl2, decl3, decl4))
     assertEquals(
-      dds.toString,
+      dds.asString,
       """Dataset {
         |  Byte byte1;
         |  Byte byte2;
@@ -155,7 +155,7 @@ class DdsSuite extends CatsEffectSuite {
       null
     )
     assertEquals(
-      fromDataset(dataset).getOrElse(null).toString,
+      fromDataset(dataset).getOrElse(null).asString,
       """Dataset {
         |  Sequence {
         |    Float64 time;
