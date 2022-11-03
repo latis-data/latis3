@@ -1,6 +1,6 @@
 package latis.service.dap2
 
-import cats.implicits.toTraverseOps
+import cats.syntax.all._
 import org.typelevel.paiges.Doc
 
 import latis.dataset.Dataset
@@ -13,9 +13,7 @@ final case class Dds(id: Identifier, typeDecls: List[Dds.TypeDecl]) {
   override val toString: String = {
     val prefix = Doc.text("Dataset {")
     val suffix = Doc.char('}') + Doc.space + Doc.text(id.asString) + Doc.char(';')
-    val body = Doc.intercalate(Doc.line, typeDecls.map {
-      _.toDoc
-    }).indent(2)
+    val body = Doc.intercalate(Doc.line, typeDecls.map(_.toDoc)).indent(2)
     val doc = prefix / body / suffix
     doc.render(1)
   }
@@ -33,7 +31,7 @@ object Dds {
     override val toDoc = {
       val prefix = Doc.text("Structure {")
       val suffix = Doc.char('}') + Doc.space + Doc.text(id.asString) + Doc.char(';')
-      val body = Doc.intercalate(Doc.line, typeDecls.map { _.toDoc }).indent(2)
+      val body = Doc.intercalate(Doc.line, typeDecls.map(_.toDoc)).indent(2)
       prefix / body / suffix
     }
   }
@@ -41,9 +39,7 @@ object Dds {
     override val toDoc = {
       val prefix = Doc.text("Sequence {")
       val suffix = Doc.char('}') + Doc.space + Doc.text(id.asString) + Doc.char(';')
-      val body = Doc.intercalate(Doc.line, typeDecls.map {
-        _.toDoc
-      }).indent(2)
+      val body = Doc.intercalate(Doc.line, typeDecls.map(_.toDoc)).indent(2)
       prefix / body / suffix
     }
   }
