@@ -24,8 +24,7 @@ lazy val commonSettings = Seq(
     "org.scalacheck" %% "scalacheck" % "1.15.4" % Test,
     "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test,
     "org.scalameta" %% "munit"       % "0.7.29" % Test,
-    "org.typelevel" %% "munit-cats-effect-3" % "1.0.7" % Test,
-    "org.typelevel" %% "paiges-cats" % "0.4.2"
+    "org.typelevel" %% "munit-cats-effect-3" % "1.0.7" % Test
   ),
   Test / fork := true,
   scalacOptions -= "-Xfatal-warnings",
@@ -146,7 +145,8 @@ lazy val `dap2-service` = project
       "org.http4s"     %% "http4s-core"      % http4sVersion % Provided,
       "org.http4s"     %% "http4s-dsl"       % http4sVersion % Provided,
       "org.http4s"     %% "http4s-circe"     % http4sVersion,
-      "org.http4s"     %% "http4s-scalatags" % "0.25.0"
+      "org.http4s"     %% "http4s-scalatags" % "0.25.0",
+      "org.typelevel"  %% "paiges-cats"      % "0.4.2"
     )
   )
 
