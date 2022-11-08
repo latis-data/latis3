@@ -54,29 +54,29 @@ object Dds {
   final case object String extends AtomicType
   final case object Url extends AtomicType
 
-  def fromScalar(scalar: Scalar): Either[LatisException, AtomicDecl] = {
+  private def fromScalar(scalar: Scalar): Either[LatisException, AtomicDecl] = {
     val id = scalar.id
     scalar.valueType match {
-      case _: DoubleValueType.type => Right(AtomicDecl(id, Float64))
-      case _: FloatValueType.type => Right(AtomicDecl(id, Float32))
-      case _: IntValueType.type => Right(AtomicDecl(id, Int32))
-      case _: ShortValueType.type => Right(AtomicDecl(id, Int16))
-      case _: ByteValueType.type => Right(AtomicDecl(id, Byte))
-      case _: StringValueType.type => Right(AtomicDecl(id, String))
+      case DoubleValueType => Right(AtomicDecl(id, Float64))
+      case FloatValueType => Right(AtomicDecl(id, Float32))
+      case IntValueType => Right(AtomicDecl(id, Int32))
+      case ShortValueType => Right(AtomicDecl(id, Int16))
+      case ByteValueType => Right(AtomicDecl(id, Byte))
+      case StringValueType => Right(AtomicDecl(id, String))
       case _ => Left(LatisException("Scalar could not be parsed to a DDS atomic type."))
     }
   }
 
-  def fromTuple(tuple: Tuple): Either[LatisException, StructureDecl] =
+  private def fromTuple(tuple: Tuple): Either[LatisException, StructureDecl] =
     tuple.elements.traverse(fromDataType)
       .map(StructureDecl(tuple.id.getOrElse(id"unknown"), _))
 
-  def fromFunction(func: Function): Either[LatisException, SequenceDecl] =
+  private def fromFunction(func: Function): Either[LatisException, SequenceDecl] =
     List(fromDataType(func.domain), fromDataType(func.range))
-      .traverse(identity)
+      .sequence
       .map(SequenceDecl(func.id.getOrElse(id"unknown"), _))
 
-  def fromDataType(dt: DataType): Either[LatisException, TypeDecl] = dt match {
+  private[dap2] def fromDataType(dt: DataType): Either[LatisException, TypeDecl] = dt match {
     case s: Scalar => fromScalar(s)
     case t: Tuple => fromTuple(t)
     case f: Function => fromFunction(f)

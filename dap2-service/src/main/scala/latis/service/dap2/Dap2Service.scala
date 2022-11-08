@@ -17,7 +17,7 @@ import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.Accept
 import org.http4s.scalatags.scalatagsEncoder
-import org.typelevel.ci.CIStringSyntax
+import org.typelevel.ci._
 
 import latis.catalog.Catalog
 import latis.dataset.Dataset

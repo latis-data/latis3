@@ -8,5 +8,5 @@ import latis.output.Encoder
 
 class DdsEncoder extends Encoder[IO, String]{
   override def encode(dataset: Dataset): Stream[IO, String] =
-    Stream.emit(Dds.fromDataset(dataset).fold(_.message, _.asString))
+    Stream.fromEither[IO](Dds.fromDataset(dataset).map(_.asString))
 }

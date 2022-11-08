@@ -1,5 +1,6 @@
 package latis.service.dap2
 
+import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.syntax.all._
 import munit.CatsEffectSuite
@@ -171,8 +172,10 @@ class Dap2ServiceSuite extends CatsEffectSuite {
       }
       response.headers.get(ci"Content-Description") match {
         case Some(cd) =>
-          assertEquals(cd.get(0).get.value, "dods-dds")
-          assertEquals(cd.length, 1)
+          assertEquals(
+            cd,
+            NonEmptyList(Header.Raw(ci"Content-Description", "dods-dds"), Nil)
+          )
         case None => fail("missing content-type header")
       }
     }
