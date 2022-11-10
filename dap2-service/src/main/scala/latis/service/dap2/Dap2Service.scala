@@ -5,18 +5,19 @@ import java.net.URLDecoder
 import cats.effect._
 import cats.syntax.all._
 import fs2.Stream
-import fs2.io.file.{Path => FPath}
 import fs2.io.file.Files
+import fs2.io.file.{Path => FPath}
 import fs2.text
-import org.http4s.circe._
-import org.http4s.dsl.Http4sDsl
-import org.http4s.headers.`Content-Type`
+import org.http4s.Header.Raw
 import org.http4s.Headers
 import org.http4s.HttpRoutes
 import org.http4s.MediaType
 import org.http4s.Response
+import org.http4s.circe._
+import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.Accept
 import org.http4s.scalatags.scalatagsEncoder
+import org.typelevel.ci._
 
 import latis.catalog.Catalog
 import latis.dataset.Dataset
@@ -116,8 +117,8 @@ class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4
       ds        = dataset.withOperations(ops)
       encoding <- IO.fromEither(encodeDataset(ds, ext))
       bytes     = encoding._1
-      content   = encoding._2
-      response <- Ok(bytes).map(_.withContentType(content))
+      headers   = encoding._2
+      response <- Ok(bytes).map(_.withHeaders(headers))
     } yield response).recoverWith {
       case err: Dap2Error => handleDap2Error(err)
     }
@@ -147,24 +148,27 @@ class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4
   private def encodeDataset(
     ds: Dataset,
     ext: Option[String]
-  ): Either[Dap2Error, (Stream[IO, Byte], `Content-Type`)] = ext.getOrElse("meta") match {
+  ): Either[Dap2Error, (Stream[IO, Byte], Headers)] = ext.getOrElse("meta") match {
     case "asc"   => new TextEncoder().encode(ds).through(text.utf8.encode).asRight
-      .map((_,`Content-Type`(MediaType.text.plain)))
-    case "bin"   => new BinaryEncoder().encode(ds).asRight.map((_, `Content-Type`(MediaType.application.`octet-stream`)))
+      .map((_,Headers(Raw(ci"Content-Type", "text/plain"))))
+    case "bin"   => new BinaryEncoder().encode(ds).asRight
+      .map((_, Headers(Raw(ci"Content-Type", "application/octet-stream"))))
     case "csv"   => CsvEncoder.withColumnName.encode(ds).through(text.utf8.encode).asRight
-      .map((_, `Content-Type`(MediaType.text.csv)))
+      .map((_, Headers(Raw(ci"Content-Type", "text/csv"))))
+    case "dds"   => new DdsEncoder().encode(ds).through(text.utf8.encode).asRight
+      .map((_, Headers(Raw(ci"Content-Type", "text/plain"), Raw(ci"Content-Description", "dods-dds"))))
     case "jsonl" => new JsonEncoder().encode(ds).map(_.noSpaces).intersperse("\n").through(text.utf8.encode).asRight
-      .map((_, `Content-Type`(MediaType.unsafeParse("application/jsonl"))))
+      .map((_, Headers(Raw(ci"Content-Type", "application/jsonl"))))
     case "meta"  => new MetadataEncoder().encode(ds).map(_.noSpaces).through(text.utf8.encode).asRight
-      .map((_,`Content-Type`(MediaType.application.json)))
+      .map((_, Headers(Raw(ci"Content-Type", "application/json"))))
     case "nc"    =>
       (for {
         tmpFile <- Stream.resource(Files[IO].tempFile)
         file    <- new NetcdfEncoder(tmpFile.toNioPath.toFile()).encode(ds)
         bytes   <- Files[IO].readAll(FPath.fromNioPath(file.toPath()))
-      } yield bytes).asRight.map((_, `Content-Type`(MediaType.application.`x-netcdf`)))
+      } yield bytes).asRight.map((_, Headers(Raw(ci"Content-Type", "application/x-netcdf"))))
     case "txt"   => CsvEncoder().encode(ds).through(text.utf8.encode).asRight
-      .map((_, `Content-Type`(MediaType.text.plain)))
+      .map((_, Headers(Raw(ci"Content-Type", "text/plain"))))
     case _       => UnknownExtension(s"Unknown extension: $ext").asLeft
   }
 
