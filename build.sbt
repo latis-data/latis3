@@ -10,7 +10,7 @@ val log4catsVersion   = "2.5.0"
 val log4jVersion      = "2.19.0"
 val logbackVersion    = "1.3.4"
 val netcdfVersion     = "5.5.3"
-val pureconfigVersion = "0.17.1"
+val pureconfigVersion = "0.17.2"
 val scalaTestVersion  = "3.2.12"
 
 lazy val commonSettings = Seq(
@@ -25,7 +25,6 @@ lazy val commonSettings = Seq(
     "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test,
     "org.scalameta" %% "munit"       % "0.7.29" % Test,
     "org.typelevel" %% "munit-cats-effect-3" % "1.0.7" % Test
-
   ),
   Test / fork := true,
   scalacOptions -= "-Xfatal-warnings",
@@ -146,7 +145,8 @@ lazy val `dap2-service` = project
       "org.http4s"     %% "http4s-core"      % http4sVersion % Provided,
       "org.http4s"     %% "http4s-dsl"       % http4sVersion % Provided,
       "org.http4s"     %% "http4s-circe"     % http4sVersion,
-      "org.http4s"     %% "http4s-scalatags" % "0.25.0"
+      "org.http4s"     %% "http4s-scalatags" % "0.25.0",
+      "org.typelevel"  %% "paiges-cats"      % "0.4.2"
     )
   )
 

@@ -1,5 +1,6 @@
 package latis.service.dap2
 
+import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.syntax.all._
 import munit.CatsEffectSuite
@@ -156,6 +157,25 @@ class Dap2ServiceSuite extends CatsEffectSuite {
 
       response.headers.get[`Content-Type`] match {
         case Some(ct) => assertEquals(ct.mediaType, MediaType.application.json)
+        case None => fail("missing content-type header")
+      }
+    }
+  }
+
+  test("dataset with .dds extension") {
+    service(Request[IO](Method.GET, uri"/ds0.dds")).map { response =>
+      assertEquals(response.status, Status.Ok)
+
+      response.headers.get[`Content-Type`] match {
+        case Some(ct) => assertEquals(ct.mediaType, MediaType.text.plain)
+        case None => fail("missing content-type header")
+      }
+      response.headers.get(ci"Content-Description") match {
+        case Some(cd) =>
+          assertEquals(
+            cd,
+            NonEmptyList(Header.Raw(ci"Content-Description", "dods-dds"), Nil)
+          )
         case None => fail("missing content-type header")
       }
     }
