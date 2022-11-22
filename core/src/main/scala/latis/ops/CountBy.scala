@@ -18,6 +18,8 @@ class CountBy(ids: NonEmptyList[Identifier]) extends GroupByVariable(ids.toList:
 
 object CountBy {
 
+  def builder: OperationBuilder = (args: List[String]) => fromArgs(args)
+
   def fromArgs(args: List[String]): Either[LatisException, CountBy] = args match {
     case id :: ids =>
       NonEmptyList(id, ids).traverse { id =>

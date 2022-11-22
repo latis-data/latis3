@@ -125,6 +125,8 @@ case class Projection(ids: Identifier*) extends MapOperation {
 
 object Projection {
 
+  def builder: OperationBuilder = (args: List[String]) => fromArgs(args)
+
   def fromExpression(exp: String): Either[LatisException, Projection] =
     fromArgs(exp.split("""\s*,\s*""").toList)
 

@@ -6,8 +6,12 @@ import cats.effect.IO
 import org.http4s.HttpRoutes
 
 import latis.catalog.Catalog
+import latis.ops.OperationRegistry
 
-abstract class ServiceInterface(@unused catalog: Catalog) {
+abstract class ServiceInterface(
+  @unused catalog: Catalog,
+  @unused operationRegistry: OperationRegistry
+) {
 
   def routes: HttpRoutes[IO]
 }
