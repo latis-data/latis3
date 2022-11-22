@@ -17,6 +17,7 @@ import latis.dataset.MemoizedDataset
 import latis.dsl.DatasetGenerator
 import latis.metadata.Metadata
 import latis.model._
+import latis.ops.OperationRegistry
 import latis.util.Identifier._
 
 class Dap2ServiceSuite extends CatsEffectSuite {
@@ -30,7 +31,7 @@ class Dap2ServiceSuite extends CatsEffectSuite {
       val ds1 = DatasetGenerator("y -> b", id"ds1")
       Catalog(ds0).addCatalog(id"cat1", Catalog(ds1))
     }
-    new Dap2Service(catalog).routes.orNotFound
+    new Dap2Service(catalog, OperationRegistry.default).routes.orNotFound
   }
 
   test("create a non-zero length '200 OK' response") {
@@ -218,7 +219,7 @@ class Dap2ServiceSuite extends CatsEffectSuite {
         ))
       )
 
-      new Dap2Service(Catalog(filelist)).routes.orNotFound
+      new Dap2Service(Catalog(filelist), OperationRegistry.default).routes.orNotFound
     }.use { service =>
       service(Request[IO](Method.GET, uri"/filelist.zip")).flatMap { response =>
         assertEquals(response.status, Status.Ok)

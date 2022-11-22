@@ -81,6 +81,8 @@ case class Selection(id: Identifier, operator: ast.SelectionOp, value: String) e
 
 object Selection {
 
+  def builder: OperationBuilder = (args: List[String]) => fromArgs(args)
+
   def fromArgs(args: List[String]): Either[LatisException, Selection] = args match {
     case expr :: Nil => makeSelection(expr)
     case i :: o :: v :: Nil => for {

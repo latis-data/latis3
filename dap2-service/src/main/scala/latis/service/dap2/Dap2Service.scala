@@ -21,6 +21,7 @@ import org.typelevel.ci._
 import latis.catalog.Catalog
 import latis.dataset.Dataset
 import latis.ops
+import latis.ops.OperationRegistry
 import latis.ops.UnaryOperation
 import latis.output._
 import latis.server.ServiceInterface
@@ -33,7 +34,8 @@ import latis.util.dap2.parser.ast.ConstraintExpression
 /**
  * A service interface implementing the DAP 2 specification.
  */
-class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4sDsl[IO] {
+class Dap2Service(catalog: Catalog, operationRegistry: OperationRegistry)
+  extends ServiceInterface(catalog, operationRegistry) with Http4sDsl[IO] {
 
   override def routes: HttpRoutes[IO] =
     HttpRoutes.of {
@@ -133,9 +135,16 @@ class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4
           case ast.Projection(vs)      => Right(ops.Projection(vs:_*))
           case ast.Selection(n, op, v) => Right(ops.Selection(n, op, stripQuotes(v)))
           // Delegate to Operation factory
-          case ast.Operation(name, args) =>
-            UnaryOperation.makeOperation(name, args.map(stripQuotes))
-              .leftMap(le => InvalidOperation(le.message))
+          case ast.Operation(name, args) => {
+            operationRegistry.get(name).toRight {
+              InvalidOperation(s"Operation not found: $name")
+            }.flatMap { ob =>
+              ob.build(args.map(stripQuotes)).leftMap { _ =>
+                val msg = s"Failed to make operation $name with arguments ${args.mkString(", ")}"
+                InvalidOperation(msg)
+              }
+            }
+          }
         }
       }
   }

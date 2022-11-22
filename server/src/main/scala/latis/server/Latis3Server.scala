@@ -9,8 +9,8 @@ import pureconfig.generic.auto._
 import pureconfig.module.catseffect.syntax._
 
 import latis.catalog.FdmlCatalog
-
-import Latis3ServerBuilder._
+import latis.ops.OperationRegistry
+import latis.server.Latis3ServerBuilder._
 
 object Latis3Server extends IOApp {
 
@@ -20,16 +20,19 @@ object Latis3Server extends IOApp {
   private val getServiceConf: IO[ServiceConf] =
     latisConfigSource.loadF[IO, ServiceConf]()
 
+  private val operationRegistry: OperationRegistry =
+    OperationRegistry.default
+
   def run(args: List[String]): IO[ExitCode] =
     (for {
       logger      <- Resource.eval(Slf4jLogger.create[IO])
       serverConf  <- Resource.eval(getServerConf)
       catalogConf <- Resource.eval(getCatalogConf)
       catalog     <- Resource.eval(
-        FdmlCatalog.fromDirectory(catalogConf.dir, catalogConf.validate)
+        FdmlCatalog.fromDirectory(catalogConf.dir, catalogConf.validate, operationRegistry)
       )
       serviceConf <- Resource.eval(getServiceConf)
-      interfaces  <- Resource.eval(loader.loadServices(serviceConf, catalog))
+      interfaces  <- Resource.eval(loader.loadServices(serviceConf, catalog, operationRegistry))
       server      <- mkServer(serverConf, interfaces, logger)
     } yield server)
       .use(_ => IO.never)

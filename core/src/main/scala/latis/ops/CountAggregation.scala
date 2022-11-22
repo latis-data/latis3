@@ -23,5 +23,10 @@ class CountAggregation() extends Aggregation {
 
 object CountAggregation {
 
+  def builder: OperationBuilder = (args: List[String]) => {
+    if (args.nonEmpty) LatisException("CountAggregation does not take arguments").asLeft
+    else CountAggregation().asRight
+  }
+
   def apply(): CountAggregation = new CountAggregation()
 }

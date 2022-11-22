@@ -35,6 +35,8 @@ case class Stride(stride: Seq[Int]) extends StreamOperation {
 
 object Stride {
 
+  def builder: OperationBuilder = (args: List[String]) => fromArgs(args)
+
   def apply(n: Int): Stride = Stride(Seq(n))
 
   def fromArgs(args: List[String]): Either[LatisException, Stride] = args match {

@@ -21,3 +21,11 @@ case class Last() extends StreamOperation with Taking {
   def applyToModel(model: DataType): Either[LatisException, DataType] =
     model.asRight
 }
+
+object Last {
+
+  def builder: OperationBuilder = (args: List[String]) => {
+    if (args.nonEmpty) LatisException("Last does not take arguments").asLeft
+    else Last().asRight
+  }
+}

@@ -13,6 +13,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import latis.input.fdml.Fdml
 import latis.input.fdml.FdmlParser
 import latis.input.fdml.FdmlReader
+import latis.ops.OperationRegistry
 import latis.ops.Selection
 import latis.util.LatisException
 
@@ -72,7 +73,7 @@ class GranuleAppendDatasetSuite extends AnyFunSuite {
     withGranules { dir =>
       (for {
         fdml <- makeFdml(dir)
-        ds   <- FdmlReader.read(fdml)
+        ds   <- FdmlReader.read(fdml, OperationRegistry.default)
       } yield {
         ds.samples.compile.toList.map { samples =>
           assert(9 == samples.length)
@@ -85,7 +86,7 @@ class GranuleAppendDatasetSuite extends AnyFunSuite {
     withGranules { dir =>
       (for {
         fdml <- makeFdml(dir)
-        ds   <- FdmlReader.read(fdml)
+        ds   <- FdmlReader.read(fdml, OperationRegistry.default)
       } yield {
         val ops = List(
           Selection.makeSelection("x > 1.5").value,
