@@ -169,6 +169,8 @@ class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4
       } yield bytes).asRight.map((_, Headers(Raw(ci"Content-Type", "application/x-netcdf"))))
     case "txt"   => CsvEncoder().encode(ds).through(text.utf8.encode).asRight
       .map((_, Headers(Raw(ci"Content-Type", "text/plain"))))
+    case "zip"   => new ZipEncoder().encode(ds.withOperation(ops.FileListToZipList())).asRight
+      .map((_, Headers(Raw(ci"Content-Type", "application/zip"))))
     case _       => UnknownExtension(s"Unknown extension: $ext").asLeft
   }
 

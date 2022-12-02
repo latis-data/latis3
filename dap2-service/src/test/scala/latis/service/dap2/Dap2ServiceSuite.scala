@@ -3,6 +3,7 @@ package latis.service.dap2
 import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.syntax.all._
+import fs2.io.file.Files
 import munit.CatsEffectSuite
 import org.http4s._
 import org.http4s.headers.`Content-Length`
@@ -11,9 +12,11 @@ import org.http4s.implicits._
 import org.typelevel.ci._
 
 import latis.catalog.Catalog
+import latis.data._
 import latis.dataset.MemoizedDataset
 import latis.dsl.DatasetGenerator
 import latis.metadata.Metadata
+import latis.model._
 import latis.util.Identifier._
 
 class Dap2ServiceSuite extends CatsEffectSuite {
@@ -177,6 +180,39 @@ class Dap2ServiceSuite extends CatsEffectSuite {
             NonEmptyList(Header.Raw(ci"Content-Description", "dods-dds"), Nil)
           )
         case None => fail("missing content-type header")
+      }
+    }
+  }
+
+  test("dataset with .zip extension") {
+    Files[IO].tempDirectory.flatMap { dir =>
+      Files[IO].tempFile(dir.some, "", "", None)
+    }.map { p =>
+      val filelist = new MemoizedDataset(
+        Metadata("id" -> "filelist"),
+        Function.from(
+          Scalar(id"time", IntValueType),
+          Scalar(id"uri", StringValueType)
+        ).getOrElse(???),
+        SampledFunction(List(
+          Sample(List(Data.IntValue(0)), List(Data.StringValue(p.toString)))
+        ))
+      )
+
+      new Dap2Service(Catalog(filelist)).routes.orNotFound
+    }.use { service =>
+      service(Request[IO](Method.GET, uri"/filelist.zip")).flatMap { response =>
+        assertEquals(response.status, Status.Ok)
+
+        response.headers.get[`Content-Type`] match {
+          case Some(ct) => assertEquals(ct.mediaType, MediaType.application.zip)
+          case None => fail("missing content-type header")
+        }
+
+        // look for PK34 magic bytes
+        response.body.take(4).compile.toList.assertEquals(
+          List(0x50, 0x4b, 0x03, 0x04).map(_.toByte)
+        )
       }
     }
   }
