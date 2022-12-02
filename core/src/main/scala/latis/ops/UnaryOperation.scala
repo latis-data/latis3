@@ -48,6 +48,7 @@ object UnaryOperation {
     case "pivot" => Pivot.fromArgs(args)
     case "project" => Projection.fromArgs(args)
     case "rename" => Rename.fromArgs(args)
+    case "stride" => Stride.fromArgs(args)
     case "tail" => Tail().asRight
     case "take" => Take.fromArgs(args)
     case "takeRight" => TakeRight.fromArgs(args)

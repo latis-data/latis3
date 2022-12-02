@@ -1,6 +1,7 @@
 package latis.ops
 
 import cats.effect.IO
+import cats.syntax.all._
 import fs2._
 
 import latis.data.Sample
@@ -33,5 +34,13 @@ case class Stride(stride: Seq[Int]) extends StreamOperation {
 }
 
 object Stride {
+
   def apply(n: Int): Stride = Stride(Seq(n))
+
+  def fromArgs(args: List[String]): Either[LatisException, Stride] = args match {
+    case n :: Nil =>
+      n.toIntOption.map(Stride(_).asRight)
+        .getOrElse(LatisException("Stride argument must be an integer").asLeft)
+    case _ => LatisException("Stride expects a single integer argument").asLeft
+  }
 }
