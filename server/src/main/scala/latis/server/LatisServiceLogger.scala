@@ -7,6 +7,7 @@ import cats.effect.Async
 import cats.effect.Clock
 import cats.effect.Sync
 import cats.syntax.all._
+import fs2.Stream
 import org.http4s.HttpApp
 import org.http4s.Request
 import org.http4s.Response
@@ -15,7 +16,7 @@ import org.typelevel.log4cats.StructuredLogger
 
 /**
  * Middleware that logs requests and responses (without bodies) and
- * the time elapsed between receiving the request and starting the
+ * the time elapsed between receiving the request and finishing the
  * response.
  */
 object LatisServiceLogger {
@@ -32,12 +33,16 @@ object LatisServiceLogger {
       )(ctxLogger.info(_))
       t0       <- Clock[F].monotonic
       res      <- app(req)
-      t1       <- Clock[F].monotonic
-      _        <- Http4sLogger.logMessage[F, Response[F]](res)(
+      timedBody = res.body ++ Stream.exec {
+        Clock[F].monotonic.flatMap { t1 =>
+          val elapsed = t1 - t0
+          ctxLogger.info(s"Elapsed (ms): ${elapsed.toMillis}")
+        }
+      }
+      res2      = res.copy(body = timedBody)
+      _        <- Http4sLogger.logMessage[F, Response[F]](res2)(
         logHeaders = true, logBody = false
       )(ctxLogger.info(_))
-      elapsed   = t1 - t0
-      _        <- ctxLogger.info(s"Elapsed (ms): ${elapsed.toMillis}")
-    } yield res
+    } yield res2
   }
 }
