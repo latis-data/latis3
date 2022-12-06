@@ -19,7 +19,7 @@ case class Stride(stride: Seq[Int]) extends StreamOperation {
   def pipe(model: DataType): Pipe[IO, Sample, Sample] =
     (stream: Stream[IO, Sample]) => stream.filter(predicate)
 
-  private val predicate: Sample => Boolean = {
+  private def predicate: Sample => Boolean = {
     var count = -1
     (_: Sample) => {
       count = count + 1
