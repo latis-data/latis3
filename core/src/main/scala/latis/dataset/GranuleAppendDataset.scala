@@ -219,7 +219,7 @@ object GranuleAppendDataset {
           case Some(Text(u)) =>
             val md = Metadata(id) //TODO: generate unique granule id?
             val uri = new URI(u) //may throw URISyntaxException
-            new AdaptedDataset(md, model, adapter, uri, ops)
+            new AdaptedDataset(md, model, adapter, uri)
           case _ => throw LatisException("Invalid Sample") //TODO: log warning
         }
       GranuleAppendDataset(id, granuleList, model, granuleToDataset).withOperations(ops)
