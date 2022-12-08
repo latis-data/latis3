@@ -92,7 +92,7 @@ class CompositeDataset private (
       (dat, ds) => joinOperation.applyToData(dat, StreamFunction(ds.samples))
     }
     // Apply other operations
-    newData <- afterOps.foldM((model, data)) {
+    newData <- afterOps.foldM((dss.head.model, data)) {
       case ((mod, dat), op) =>
         (op.applyToModel(mod), op.applyToData(dat, mod)).mapN((_, _))
     }.map(_._2) //drop model, keep data
