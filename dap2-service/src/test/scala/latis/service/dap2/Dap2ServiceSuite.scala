@@ -162,6 +162,25 @@ class Dap2ServiceSuite extends CatsEffectSuite {
     }
   }
 
+  test("dataset with .das extension") {
+    service(Request[IO](Method.GET, uri"/ds0.das")).map { response =>
+      assertEquals(response.status, Status.Ok)
+
+      response.headers.get[`Content-Type`] match {
+        case Some(ct) => assertEquals(ct.mediaType, MediaType.text.plain)
+        case None => fail("missing content-type header")
+      }
+      response.headers.get(ci"Content-Description") match {
+        case Some(cd) =>
+          assertEquals(
+            cd,
+            NonEmptyList(Header.Raw(ci"Content-Description", "dods-das"), Nil)
+          )
+        case None => fail("missing content-type header")
+      }
+    }
+  }
+
   test("dataset with .dds extension") {
     service(Request[IO](Method.GET, uri"/ds0.dds")).map { response =>
       assertEquals(response.status, Status.Ok)
