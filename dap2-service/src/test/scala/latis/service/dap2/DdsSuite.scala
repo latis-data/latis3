@@ -5,22 +5,11 @@ import munit.CatsEffectSuite
 import latis.dataset.MemoizedDataset
 import latis.metadata.Metadata
 import latis.model._
+import latis.service.dap2.AtomicType._
 import latis.service.dap2.Dds._
 import latis.util.Identifier.IdentifierStringContext
 
 class DdsSuite extends CatsEffectSuite {
-  test("correct AtomicType toString representation") {
-    assertEquals(Byte.toString, "Byte")
-    assertEquals(Int16.toString, "Int16")
-    assertEquals(UInt16.toString, "UInt16")
-    assertEquals(Int32.toString, "Int32")
-    assertEquals(UInt32.toString, "UInt32")
-    assertEquals(Float32.toString, "Float32")
-    assertEquals(Float64.toString, "Float64")
-    assertEquals(String.toString, "String")
-    assertEquals(Url.toString, "Url")
-  }
-
   test("correct AtomicDecl toDoc representation") {
     assertEquals(AtomicDecl(id"testByte", Byte).toDoc.render(1), "Byte testByte;")
     assertEquals(AtomicDecl(id"testInt", UInt32).toDoc.render(1), "UInt32 testInt;")
