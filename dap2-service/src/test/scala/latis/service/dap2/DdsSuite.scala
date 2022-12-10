@@ -137,7 +137,6 @@ class DdsSuite extends CatsEffectSuite {
     val dataset = new MemoizedDataset(
       Metadata(id"nrl2_ssi_P1Y"),
       Function.from(
-        id"samples",
         Scalar(id"time", DoubleValueType),
         inner
       ).getOrElse(???),
