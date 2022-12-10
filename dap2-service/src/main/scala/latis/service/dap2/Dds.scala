@@ -59,21 +59,21 @@ object Dds {
   }
 
   private def fromTuple(tuple: Tuple): Either[LatisException, StructureDecl] =
-    tuple.elements.traverse(fromDataType)
+    tuple.elements.traverse(fromDataType(_))
       .map(StructureDecl(tuple.id.getOrElse(id"unknown"), _))
 
-  private def fromFunction(func: Function): Either[LatisException, SequenceDecl] =
+  private def fromFunction(func: Function, root: Boolean): Either[LatisException, SequenceDecl] =
     List(fromDataType(func.domain), fromDataType(func.range))
       .sequence
-      .map(SequenceDecl(func.id.getOrElse(id"unknown"), _))
+      .map(SequenceDecl(func.id.getOrElse(if (root) id"samples" else id"unknown"), _))
 
-  private[dap2] def fromDataType(dt: DataType): Either[LatisException, TypeDecl] = dt match {
+  private[dap2] def fromDataType(dt: DataType, root: Boolean = false): Either[LatisException, TypeDecl] = dt match {
     case s: Scalar => fromScalar(s)
     case t: Tuple => fromTuple(t)
-    case f: Function => fromFunction(f)
+    case f: Function => fromFunction(f, root)
   }
 
   def fromDataset(dataset: Dataset): Either[LatisException, Dds] =
-    fromDataType(dataset.model)
+    fromDataType(dataset.model, true)
       .map(typeDecl => Dds(dataset.id.getOrElse(id"unknown"), List(typeDecl)))
 }
