@@ -5,6 +5,7 @@ import org.typelevel.paiges.Doc
 
 import latis.dataset.Dataset
 import latis.model._
+import latis.service.dap2.AtomicType._
 import latis.util.Identifier
 import latis.util.Identifier.IdentifierStringContext
 import latis.util.LatisException
@@ -24,7 +25,7 @@ object Dds {
   sealed trait TypeDecl {
     def toDoc: Doc
   }
-  final case class AtomicDecl(id: Identifier, ty: AtomicType) extends TypeDecl {
+  final case class AtomicDecl(id: Identifier, ty: AtomicType[_,_]) extends TypeDecl {
     override val toDoc: Doc = Doc.str(ty) + Doc.space + Doc.text(id.asString) + Doc.char(';')
   }
   final case class StructureDecl(id: Identifier, typeDecls: List[TypeDecl]) extends TypeDecl {
@@ -43,16 +44,6 @@ object Dds {
       prefix / body / suffix
     }
   }
-  sealed trait AtomicType
-  final case object Byte extends AtomicType
-  final case object Int16 extends AtomicType
-  final case object UInt16 extends AtomicType
-  final case object Int32 extends AtomicType
-  final case object UInt32 extends AtomicType
-  final case object Float32 extends AtomicType
-  final case object Float64 extends AtomicType
-  final case object String extends AtomicType
-  final case object Url extends AtomicType
 
   private def fromScalar(scalar: Scalar): Either[LatisException, AtomicDecl] = {
     val id = scalar.id
