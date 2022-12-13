@@ -32,7 +32,7 @@ object Das {
     }
   }
 
-  final case class ItemAttributeCont(id: Identifier, attributes: List[Attribute[_,_,_]]) extends AttributeCont {
+  final case class ItemAttributeCont(id: Identifier, attributes: List[Attribute[_,_]]) extends AttributeCont {
     override val toDoc: Doc = {
       val prefix = Doc.text(id.asString) + Doc.space + Doc.char('{')
       val suffix = Doc.char('}')
@@ -41,7 +41,7 @@ object Das {
     }
   }
 
-  case class Attribute[A<:AtomicType[F,D],F,D](id: Identifier, ty: A, values: NonEmptyList[F]) {
+  case class Attribute[A<:AtomicType[F],F](id: Identifier, ty: A, values: NonEmptyList[F]) {
     val toDoc: Doc = Doc.str(ty) + Doc.space + Doc.text(id.asString) + Doc.space +
       Doc.text(values.tail.foldLeft(ty.asDasString(values.head))((acc, v) => acc + ", " + ty.asDasString(v))) +
       Doc.char(';')
@@ -51,7 +51,7 @@ object Das {
     case s: Scalar => ItemAttributeCont(
       s.id,
       s.metadata.properties.toList.filterNot(prop => prop._1 == "id" || prop._1 == "class").map { prop =>
-        Attribute[AtomicType.String.type,String,String](
+        Attribute(
           Identifier.fromString(prop._1).getOrElse(id"unknown"),
           AtomicType.String,
           NonEmptyList(prop._2, List())

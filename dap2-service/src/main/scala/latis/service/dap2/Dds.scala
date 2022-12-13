@@ -25,7 +25,7 @@ object Dds {
   sealed trait TypeDecl {
     def toDoc: Doc
   }
-  final case class AtomicDecl(id: Identifier, ty: AtomicType[_,_]) extends TypeDecl {
+  final case class AtomicDecl(id: Identifier, ty: AtomicType[_]) extends TypeDecl {
     override val toDoc: Doc = Doc.str(ty) + Doc.space + Doc.text(id.asString) + Doc.char(';')
   }
   final case class StructureDecl(id: Identifier, typeDecls: List[TypeDecl]) extends TypeDecl {
