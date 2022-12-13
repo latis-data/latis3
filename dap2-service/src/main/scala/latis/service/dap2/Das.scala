@@ -12,8 +12,10 @@ final case class Das(containers: List[Das.AttributeCont]) {
   val toDoc: Doc = {
     val prefix = Doc.text("Attributes {")
     val suffix = Doc.char('}')
-    val body = Doc.intercalate(Doc.line, containers.map(_.toDoc)).indent(2)
-    prefix / body / suffix
+    if (containers.nonEmpty)
+      prefix / Doc.intercalate(Doc.line, containers.map(_.toDoc)).indent(2) / suffix
+    else
+      prefix / suffix
   }
   val asString: String = toDoc.render(1)
 }
@@ -27,8 +29,10 @@ object Das {
     override val toDoc: Doc = {
       val prefix = Doc.text(id.asString) + Doc.space + Doc.char('{')
       val suffix = Doc.char('}')
-      val body = Doc.intercalate(Doc.line, containers.map(_.toDoc)).indent(2)
-      prefix / body / suffix
+      if (containers.nonEmpty)
+        prefix / Doc.intercalate(Doc.line, containers.map(_.toDoc)).indent(2) / suffix
+      else
+        prefix / suffix
     }
   }
 
@@ -36,8 +40,10 @@ object Das {
     override val toDoc: Doc = {
       val prefix = Doc.text(id.asString) + Doc.space + Doc.char('{')
       val suffix = Doc.char('}')
-      val body = Doc.intercalate(Doc.line, attributes.map(_.toDoc)).indent(2)
-      prefix / body / suffix
+      if (attributes.nonEmpty)
+        prefix / Doc.intercalate(Doc.line, attributes.map(_.toDoc)).indent(2) / suffix
+      else
+        prefix / suffix
     }
   }
 
