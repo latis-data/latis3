@@ -12,12 +12,12 @@ import latis.time.Time
 import latis.util.Identifier.IdentifierStringContext
 
 class DasSuite extends CatsEffectSuite {
-  val byteAttr: Attribute[Byte.type,Byte,Int] = Attribute(id"testByte", Byte, NonEmptyList(42, List()))
-  val uintAttr: Attribute[UInt32.type,Int,Int] = Attribute(id"testInt", UInt32, NonEmptyList(42, List()))
-  val floatAttr: Attribute[Float32.type,Float,Double] = Attribute(id"testFloat", Float32, NonEmptyList(13.14159265359f, List()))
-  val stringAttr: Attribute[String.type,String,String] = Attribute(id"testString", String, NonEmptyList("str1", List()))
-  val stringsAttr: Attribute[String.type,String,String] = Attribute(id"testStrings", String, NonEmptyList("str1", List("str2", "str3")))
-  val itemAttrCont: ItemAttributeCont = ItemAttributeCont(id"items", List(byteAttr, uintAttr, floatAttr, stringAttr, stringsAttr))
+  val byteAttr = Attribute(id"testByte", Byte, NonEmptyList(42:Byte, List()))
+  val uintAttr = Attribute(id"testInt", UInt32, NonEmptyList(42, List()))
+  val floatAttr = Attribute(id"testFloat", Float32, NonEmptyList(13.14159265359f, List()))
+  val stringAttr = Attribute(id"testString", String, NonEmptyList("str1", List()))
+  val stringsAttr = Attribute(id"testStrings", String, NonEmptyList("str1", List("str2", "str3")))
+  val itemAttrCont = ItemAttributeCont(id"items", List(byteAttr, uintAttr, floatAttr, stringAttr, stringsAttr))
   val itemAttrStr: String =
     """items {
       |  Byte testByte 42;
