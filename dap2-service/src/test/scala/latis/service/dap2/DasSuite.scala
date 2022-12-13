@@ -57,13 +57,11 @@ class DasSuite extends CatsEffectSuite {
       |      }
       |    }
       |    nothing {
-      |    ?
       |    }
       |    more_nothing {
-      |    ?
       |    }
       |  }
-      |}""".stripMargin.replace("\r", "").replace("?", "  ")
+      |}""".stripMargin.replace("\r", "")
 
   test("correct Attribute toDoc representation") {
     assertEquals(byteAttr.toDoc.render(1), "Byte testByte 42;")
@@ -74,7 +72,7 @@ class DasSuite extends CatsEffectSuite {
   }
 
   test("correct ItemAttributeCont toDoc representation") {
-    assertEquals(ItemAttributeCont(id"empty", List()).toDoc.render(1), "empty {\n  \n}")
+    assertEquals(ItemAttributeCont(id"empty", List()).toDoc.render(1), "empty {\n}")
     assertEquals(
       itemAttrCont.toDoc.render(1),
       itemAttrStr
@@ -82,7 +80,7 @@ class DasSuite extends CatsEffectSuite {
   }
 
   test("correct NestedAttributeCont toDoc representation") {
-    assertEquals(NestedAttributeCont(id"empty", List()).toDoc.render(1), "empty {\n  \n}")
+    assertEquals(NestedAttributeCont(id"empty", List()).toDoc.render(1), "empty {\n}")
     assertEquals(
       nestedAttrCont.toDoc.render(1),
       nestedAttrStr
@@ -90,7 +88,7 @@ class DasSuite extends CatsEffectSuite {
   }
 
   test("correct Das asString representation") {
-    assertEquals(Das(List()).asString, "Attributes {\n  \n}")
+    assertEquals(Das(List()).asString, "Attributes {\n}")
     val das = Das(List(itemAttrCont, nestedAttrCont))
     assertEquals(
       das.asString,
