@@ -159,6 +159,8 @@ class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4
       .map((_, Headers(Raw(ci"Content-Type", "text/plain"), Raw(ci"Content-Description", "dods-das"))))
     case "dds"   => new DdsEncoder().encode(ds).through(text.utf8.encode).asRight
       .map((_, Headers(Raw(ci"Content-Type", "text/plain"), Raw(ci"Content-Description", "dods-dds"))))
+    case "dods" => new DdsEncoder().encode(ds).through(text.utf8.encode).asRight
+      .map((_, Headers(Raw(ci"Content-Type", "application/octet-stream"), Raw(ci"Content-Description", "dods-data"))))
     case "jsonl" => new JsonEncoder().encode(ds).map(_.noSpaces).intersperse("\n").through(text.utf8.encode).asRight
       .map((_, Headers(Raw(ci"Content-Type", "application/jsonl"))))
     case "meta"  => new MetadataEncoder().encode(ds).map(_.noSpaces).through(text.utf8.encode).asRight
