@@ -177,7 +177,7 @@ class Dap2ServiceSuite extends CatsEffectSuite {
         case Some(cd) =>
           assertEquals(
             cd,
-            NonEmptyList(Header.Raw(ci"Content-Description", "dods-das"), Nil)
+            NonEmptyList.one(Header.Raw(ci"Content-Description", "dods-das"))
           )
         case None => fail("missing content-type header")
       }
@@ -196,7 +196,7 @@ class Dap2ServiceSuite extends CatsEffectSuite {
         case Some(cd) =>
           assertEquals(
             cd,
-            NonEmptyList(Header.Raw(ci"Content-Description", "dods-dds"), Nil)
+            NonEmptyList.one(Header.Raw(ci"Content-Description", "dods-dds"))
           )
         case None => fail("missing content-type header")
       }
