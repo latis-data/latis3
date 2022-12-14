@@ -12,11 +12,11 @@ import latis.time.Time
 import latis.util.Identifier.IdentifierStringContext
 
 class DasSuite extends CatsEffectSuite {
-  val byteAttr = Attribute(id"testByte", Byte, NonEmptyList(42:Byte, List()))
-  val uintAttr = Attribute(id"testInt", UInt32, NonEmptyList(42, List()))
-  val floatAttr = Attribute(id"testFloat", Float32, NonEmptyList(13.14159265359f, List()))
-  val stringAttr = Attribute(id"testString", String, NonEmptyList("str1", List()))
-  val stringsAttr = Attribute(id"testStrings", String, NonEmptyList("str1", List("str2", "str3")))
+  val byteAttr = Attribute(id"testByte", Byte, NonEmptyList.one(42:Byte))
+  val uintAttr = Attribute(id"testInt", UInt32, NonEmptyList.one(42))
+  val floatAttr = Attribute(id"testFloat", Float32, NonEmptyList.one(13.14159265359f))
+  val stringAttr = Attribute(id"testString", String, NonEmptyList.one("str1"))
+  val stringsAttr = Attribute(id"testStrings", String, NonEmptyList.fromListUnsafe(List("str1", "str2", "str3")))
   val itemAttrCont = ItemAttributeCont(id"items", List(byteAttr, uintAttr, floatAttr, stringAttr, stringsAttr))
   val itemAttrStr: String =
     """items {

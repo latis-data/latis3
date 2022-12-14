@@ -58,9 +58,9 @@ object Das {
       s.id,
       s.metadata.properties.toList.filterNot(prop => prop._1 == "id" || prop._1 == "class" || prop._1 == "type").map { prop =>
         Attribute(
-          Identifier.fromString(prop._1).getOrElse(id"unknown"),
+          Identifier.fromString(prop._1).get, // Should be safe, since the Identifier is being constructed from a source with a valid Identifier
           AtomicType.String,
-          NonEmptyList(prop._2, List())
+          NonEmptyList.one(prop._2)
         )
       }
     )
@@ -74,6 +74,5 @@ object Das {
     )
   }
 
-  def fromDataset(dataset: Dataset): Das =
-    Das(List(fromDataType(dataset.model, true)))
+  def fromDataset(dataset: Dataset): Das = Das(List(fromDataType(dataset.model, true)))
 }
