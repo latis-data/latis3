@@ -56,7 +56,7 @@ object Das {
   private[dap2] def fromDataType(dt: DataType, root: Boolean = false): AttributeCont = dt match {
     case s: Scalar => ItemAttributeCont(
       s.id,
-      s.metadata.properties.toList.filterNot(prop => prop._1 == "id" || prop._1 == "class").map { prop =>
+      s.metadata.properties.toList.filterNot(prop => prop._1 == "id" || prop._1 == "class" || prop._1 == "type").map { prop =>
         Attribute(
           Identifier.fromString(prop._1).getOrElse(id"unknown"),
           AtomicType.String,

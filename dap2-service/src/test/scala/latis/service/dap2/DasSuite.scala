@@ -98,19 +98,26 @@ class DasSuite extends CatsEffectSuite {
   }
 
   test("correct fromDatatype Scalar attributes") {
-    val scalar = Scalar(id"test", StringValueType)
+    val basicScalar = Scalar(id"test", StringValueType)
     assertEquals(
-      fromDataType(scalar).toDoc.render(1),
-    """test {
-        |  String type "string";
+      fromDataType(basicScalar).toDoc.render(1),
+      "test {\n}"
+    )
+    val metadataScalar = Scalar.fromMetadata(Metadata(("id","test2"), ("type","string"), ("missingValue", "N/A"), ("units", "YYYY-mm-dd")))
+      .getOrElse(???)
+    assertEquals(
+      fromDataType(metadataScalar).toDoc.render(1),
+      """test2 {
+        |  String missingValue "N/A";
+        |  String units "YYYY-mm-dd";
         |}""".stripMargin.replace("\r", "")
     )
   }
 
-  val s1 = Scalar(id"s1", StringValueType)
-  val s2 = Scalar(id"s2", DoubleValueType)
+  val s1 = Scalar.fromMetadata(Metadata(("id","s1"), ("type","string"))).getOrElse(???)
+  val s2 = Scalar.fromMetadata(Metadata(("id","s2"), ("type","double"), ("missingValue", "-99.0"))).getOrElse(???)
   val t1 = Tuple.fromSeq(id"t1", Seq(s1, s2)).getOrElse(???)
-  val s3 = Scalar(id"s3", ByteValueType)
+  val s3 = Scalar.fromMetadata(Metadata(("id","s3"), ("type","byte"), ("missingValue", "42"), ("units", "meters"))).getOrElse(???)
   test("correct fromDatatype Tuple attributes") {
     val t2 = Tuple.fromSeq(id"t2", Seq[DataType](t1, s3)).getOrElse(???)
     assertEquals(
@@ -118,14 +125,14 @@ class DasSuite extends CatsEffectSuite {
       """t2 {
         |  t1 {
         |    s1 {
-        |      String type "string";
         |    }
         |    s2 {
-        |      String type "double";
+        |      String missingValue "-99.0";
         |    }
         |  }
         |  s3 {
-        |    String type "byte";
+        |    String missingValue "42";
+        |    String units "meters";
         |  }
         |}""".stripMargin.replace("\r", "")
     )
@@ -137,14 +144,14 @@ class DasSuite extends CatsEffectSuite {
       fromDataType(f1).toDoc.render(1),
       """unknown {
         |  s3 {
-        |    String type "byte";
+        |    String missingValue "42";
+        |    String units "meters";
         |  }
         |  t1 {
         |    s1 {
-        |      String type "string";
         |    }
         |    s2 {
-        |      String type "double";
+        |      String missingValue "-99.0";
         |    }
         |  }
         |}""".stripMargin.replace("\r", "")
@@ -153,14 +160,14 @@ class DasSuite extends CatsEffectSuite {
       fromDataType(f1, true).toDoc.render(1),
       """samples {
         |  s3 {
-        |    String type "byte";
+        |    String missingValue "42";
+        |    String units "meters";
         |  }
         |  t1 {
         |    s1 {
-        |      String type "string";
         |    }
         |    s2 {
-        |      String type "double";
+        |      String missingValue "-99.0";
         |    }
         |  }
         |}""".stripMargin.replace("\r", "")
@@ -197,23 +204,19 @@ class DasSuite extends CatsEffectSuite {
       """Attributes {
         |  samples {
         |    time {
-        |      String type "double";
         |      String units "days since 1610-01-01";
         |    }
         |    spectrum {
         |      wavelength {
-        |        String type "double";
         |        String missingValue "-99.0";
         |        String units "nm";
         |      }
         |      unknown {
         |        irradiance {
-        |          String type "double";
         |          String missingValue "-99.0";
         |          String units "W/m^2/nm";
         |        }
         |        uncertainty {
-        |          String type "double";
         |          String missingValue "-99.0";
         |          String units "W/m^2/nm";
         |        }
