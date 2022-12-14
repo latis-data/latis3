@@ -5,7 +5,6 @@ object StringUtils {
   private[this] val doubleQuote: Char = '"'
   private[this] val singleQuote: Char = '\''
   private[this] val backslash:   Char = '\\'
-  private[this] val space:       Char = ' '
 
   /**
    * Ensures that the given string is surrounded by the given quote character.
