@@ -2,14 +2,15 @@ package latis.service.dap2
 
 import java.net.URL
 
+import latis.util.StringUtils._
+
 sealed trait AtomicType[F] {
   type D
   def toDasValue(value: F): D
   def asDasString(value: F): String = this.toDasValue(value) match {
       case int: Int => int.toString
       case float: Double => f"${float.toDouble}%.6g"
-      case string: String => "\"" +
-        string.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+      case string: String => ensureQuotedAndEscaped(string)
       case other => other.toString
   }
 }
