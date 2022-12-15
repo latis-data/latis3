@@ -29,4 +29,11 @@ class AtomicTypeSuite extends CatsEffectSuite {
     assertEquals(String.asDasString("test\\string\"quote\""), "\"test\\\\string\\\"quote\\\"\"")
     assertEquals(Url.asDasString(new URL("https://lasp.colorado.edu")), "\"https://lasp.colorado.edu\"")
   }
+
+  test("asDasString correctly maps out-of-range UInts to the correct min/max") {
+    assertEquals(UInt16.asDasString(-42), "0")
+    assertEquals(UInt16.asDasString(123456), "65535")
+    assertEquals(UInt32.asDasString(-42L), "0")
+    assertEquals(UInt32.asDasString(9876543210L), "4294967295")
+  }
 }
