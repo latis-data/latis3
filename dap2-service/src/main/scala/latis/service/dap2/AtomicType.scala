@@ -5,59 +5,38 @@ import java.net.URL
 import latis.util.StringUtils._
 
 sealed trait AtomicType[F] {
-  type D
-  def toDasValue(value: F): D
-  def asDasString(value: F): String = this.toDasValue(value) match {
-      case int: Int => int.toString
-      case float: Double => f"${float.toDouble}%.6g"
-      case string: String => ensureQuotedAndEscaped(string)
+  private val fmtInt: AnyVal => String = i => i.toString
+  private val fmtFloat: Double => String = f => f"$f%.6g"
+  private val fmtString: String => String = ensureQuotedAndEscaped
+
+  def ofValue(value: F): F = value
+  def asDasString(value: F): String = this.ofValue(value) match {
+      case int: Byte => fmtInt(int)
+      case int: Short => fmtInt(int)
+      case int: Int => fmtInt(int)
+      case int: Long => fmtInt(int)
+      case float: Float => fmtFloat(float.toDouble)
+      case float: Double => fmtFloat(float)
+      case string: String => fmtString(string)
+      case string: URL => fmtString(string.toString)
       case other => other.toString
   }
 }
 
 object AtomicType {
-  final case object Byte extends AtomicType[Byte] {
-    type D = Int
-    override def toDasValue(value: Byte): Int = value.toInt
-  }
-
-  final case object Int16 extends AtomicType[Int] {
-    type D = Int
-    override def toDasValue(value: Int): Int = value
-  }
-
+  final case object Byte extends AtomicType[Byte]
+  final case object Int16 extends AtomicType[Short]
   final case object UInt16 extends AtomicType[Int] {
-    type D = Int
-    override def toDasValue(value: Int): Int = value
+    val max: Int = Integer.parseInt("FFFF",16)
+    override def ofValue(value: Int): Int = value.min(max).max(0)
   }
-
-  final case object Int32 extends AtomicType[Int] {
-    type D = Int
-    override def toDasValue(value: Int): Int = value
+  final case object Int32 extends AtomicType[Int]
+  final case object UInt32 extends AtomicType[Long] {
+    val max: Long = java.lang.Long.parseLong("FFFFFFFF",16)
+    override def ofValue(value: Long): Long = value.min(max).max(0)
   }
-
-  final case object UInt32 extends AtomicType[Int] {
-    type D = Int
-    override def toDasValue(value: Int): Int = value
-  }
-
-  final case object Float32 extends AtomicType[Float] {
-    type D = Double
-    override def toDasValue(value: Float): Double = value.toDouble
-  }
-
-  final case object Float64 extends AtomicType[Double] {
-    type D = Double
-    override def toDasValue(value: Double): Double = value
-  }
-
-  final case object String extends AtomicType[String] {
-    type D = String
-    override def toDasValue(value: String): String = value
-  }
-
-  final case object Url extends AtomicType[URL] {
-    type D = String
-    override def toDasValue(value: URL): String = value.toString
-  }
+  final case object Float32 extends AtomicType[Float]
+  final case object Float64 extends AtomicType[Double]
+  final case object String extends AtomicType[String]
+  final case object Url extends AtomicType[URL]
 }
