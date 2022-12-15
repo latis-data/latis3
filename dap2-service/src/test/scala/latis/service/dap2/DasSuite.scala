@@ -13,7 +13,7 @@ import latis.util.Identifier.IdentifierStringContext
 
 class DasSuite extends CatsEffectSuite {
   val byteAttr = Attribute(id"testByte", Byte, NonEmptyList.one(42:Byte))
-  val uintAttr = Attribute(id"testInt", UInt32, NonEmptyList.one(42))
+  val uintAttr = Attribute(id"testInt", UInt32, NonEmptyList.one(42L))
   val floatAttr = Attribute(id"testFloat", Float32, NonEmptyList.one(13.14159265359f))
   val stringAttr = Attribute(id"testString", String, NonEmptyList.one("str1"))
   val stringsAttr = Attribute(id"testStrings", String, NonEmptyList.fromListUnsafe(List("str1", "str2", "str3")))
