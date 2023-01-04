@@ -5,7 +5,6 @@ import org.typelevel.paiges.Doc
 
 import latis.dataset.Dataset
 import latis.model._
-import latis.service.dap2.AtomicType._
 import latis.util.Identifier
 import latis.util.Identifier.IdentifierStringContext
 import latis.util.LatisException

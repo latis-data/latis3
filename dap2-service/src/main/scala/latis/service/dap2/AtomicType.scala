@@ -5,8 +5,6 @@ import java.nio.charset.StandardCharsets
 
 import scodec._
 
-import latis.data.Data
-import latis.data.Data._
 import latis.model._
 import latis.util.LatisException
 import latis.util.StringUtils._
@@ -33,18 +31,16 @@ sealed trait AtomicType[F] {
 }
 
 object AtomicType {
-  private val zeroByte1 = Codec[Byte].unit(0)
-  private val zeroByte2 = zeroByte1 ~ zeroByte1
-  private val zeroByte3 = zeroByte1 ~ zeroByte1 ~ zeroByte1
+  val zeroByte = codecs.byte.unit(0)
 
   final case object Byte extends AtomicType[Byte] {
-    override val codec = codecs.byte ~ zeroByte3
+    override val codec = codecs.byte ~ zeroByte ~ zeroByte ~ zeroByte
   }
   final case object Int16 extends AtomicType[Short] {
-    override val codec = codecs.short16 ~ zeroByte2
+    override val codec = codecs.short16 ~ zeroByte ~ zeroByte
   }
   final case object UInt16 extends AtomicType[Int] {
-    override val codec = codecs.uint16 ~ zeroByte2
+    override val codec = codecs.uint16 ~ zeroByte ~ zeroByte
     val max: Int = Integer.parseInt("FFFF",16)
     override def ofValue(value: Int): Int = value.min(max).max(0)
   }

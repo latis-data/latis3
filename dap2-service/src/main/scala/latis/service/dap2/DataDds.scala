@@ -6,24 +6,26 @@ import cats.effect.IO
 import cats.syntax.all._
 import fs2.Stream
 import scodec.Codec
+import scodec.codecs
 import scodec.stream.StreamEncoder
 
 import latis.data.Sample
 import latis.dataset.Dataset
 import latis.model._
 import latis.output.BinaryEncoder
+import latis.service.dap2.AtomicType.zeroByte
 import latis.service.dap2.DataDds.DdsValue
 import latis.util.LatisException
 
-final case class DataDds(dds: Dds, ddsValue: DdsValue, data: Stream[IO, Sample]) {
-  val encoder: StreamEncoder[Sample] = StreamEncoder.many(ddsValue.codec)
+final case class DataDds(dds: Dds, ddsValue: DdsValue, data: Stream[IO, _]) {
+  val encoder: StreamEncoder[_] = StreamEncoder.many(ddsValue.codec)
 
   def asBytes(): Stream[IO, Byte] = {
     val ddsString = dds.asString
     val separator = "\r\nData:\r\n"
-    val binData = data.through(encoder.toPipeByte[IO])
-    val binary = (ddsString + separator).getBytes(StandardCharsets.UTF_8) ++ binData
-    Stream.emits(binary)
+    val stringBinary = (ddsString + separator).getBytes(StandardCharsets.UTF_8)
+    val dataBinary = data.through(encoder.toPipeByte[IO])
+    Stream.emits(stringBinary) ++ dataBinary
   }
 }
 
@@ -41,18 +43,15 @@ object DataDds {
     override val codec = BinaryEncoder.codecOfList(fields.map(_.codec))
   }
   final case class SequenceConstructor(fields: List[DdsValue]) extends ConstructorValue {
-    val START_OF_INSTANCE: Array[Byte] = Array(0x5A.toByte, 0, 0, 0)
-    val END_OF_SEQUENCE: Array[Byte] = Array(0xA5.toByte, 0, 0, 0)
+    val START_OF_INSTANCE = codecs.byte.unit(0x5A.toByte) ~ zeroByte ~ zeroByte ~ zeroByte
+    val END_OF_SEQUENCE = codecs.byte.unit(0xA5.toByte) ~ zeroByte ~ zeroByte ~ zeroByte
 
     override val codec = {
-      val start = Codec[Array[Byte]].unit(START_OF_INSTANCE)
-      val end = Codec[Array[Byte]].unit(END_OF_SEQUENCE)
       if (fields.nonEmpty) {
-        val fieldsCodec = BinaryEncoder.codecOfList(fields.map(_.codec))
-        start ~ fieldsCodec ~ end
+        START_OF_INSTANCE ~ BinaryEncoder.codecOfList(fields.map(_.codec)) ~ END_OF_SEQUENCE
       }
       else {
-        end
+        END_OF_SEQUENCE
       }
     }
   }
