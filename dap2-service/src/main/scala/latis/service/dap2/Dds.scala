@@ -47,15 +47,7 @@ object Dds {
 
   private def fromScalar(scalar: Scalar): Either[LatisException, AtomicDecl] = {
     val id = scalar.id
-    scalar.valueType match {
-      case DoubleValueType => Right(AtomicDecl(id, Float64))
-      case FloatValueType => Right(AtomicDecl(id, Float32))
-      case IntValueType => Right(AtomicDecl(id, Int32))
-      case ShortValueType => Right(AtomicDecl(id, Int16))
-      case ByteValueType => Right(AtomicDecl(id, Byte))
-      case StringValueType => Right(AtomicDecl(id, String))
-      case _ => Left(LatisException("Scalar could not be parsed to a DDS atomic type."))
-    }
+    AtomicType.fromScalar(scalar).map(AtomicDecl(id, _))
   }
 
   private def fromTuple(tuple: Tuple): Either[LatisException, StructureDecl] =
