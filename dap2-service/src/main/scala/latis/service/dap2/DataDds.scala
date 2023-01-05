@@ -13,7 +13,6 @@ import latis.data.Sample
 import latis.dataset.Dataset
 import latis.model._
 import latis.output.BinaryEncoder
-import latis.service.dap2.AtomicType.zeroByte
 import latis.service.dap2.DataDds.DdsValue
 import latis.util.LatisException
 
@@ -32,27 +31,28 @@ final case class DataDds(dds: Dds, ddsValue: DdsValue, data: Stream[IO, _]) {
 /* TODO: Support DDS's Array and Grid type declarations */
 object DataDds {
   sealed trait DdsValue {
-    val codec: Codec[_]
+    val codec: Codec[Array[Byte]]
   }
   final case class AtomicValue[F](ty: AtomicType[F]) extends DdsValue {
-    override val codec = ty.codec
+    override val codec: Codec[Array[Byte]] = ty.codec
   }
   sealed trait ConstructorValue extends DdsValue
 
   final case class StructureConstructor(fields: List[DdsValue]) extends ConstructorValue {
-    override val codec = BinaryEncoder.codecOfList(fields.map(_.codec))
+    override val codec: Codec[Array[Byte]] = BinaryEncoder.codecOfList(fields.map(_.codec)).xmap(
+      lst => lst.flatten.toArray,
+      arr => List(arr)
+    )
   }
   final case class SequenceConstructor(fields: List[DdsValue]) extends ConstructorValue {
-    val START_OF_INSTANCE = codecs.byte.unit(0x5A.toByte) ~ zeroByte ~ zeroByte ~ zeroByte
-    val END_OF_SEQUENCE = codecs.byte.unit(0xA5.toByte) ~ zeroByte ~ zeroByte ~ zeroByte
+    val START_OF_INSTANCE: Array[Byte] = AtomicType.Byte.asByteArray(0x5a.toByte)
+    val END_OF_SEQUENCE: Array[Byte] = AtomicType.Byte.asByteArray(0xA5.toByte)
 
     override val codec = {
-      if (fields.nonEmpty) {
-        START_OF_INSTANCE ~ BinaryEncoder.codecOfList(fields.map(_.codec)) ~ END_OF_SEQUENCE
-      }
-      else {
-        END_OF_SEQUENCE
-      }
+      BinaryEncoder.codecOfList(fields.map(_.codec)).xmap(
+        lst => START_OF_INSTANCE ++ lst.flatten.toArray ++ END_OF_SEQUENCE,
+        arr => List(arr).fil
+      )
     }
   }
 
