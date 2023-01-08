@@ -124,6 +124,7 @@ object NetcdfEncoder {
 
   private type Accumulator = List[Any]
 
+  @annotation.nowarn("msg=unused value")
   private def accumulate(acc: Accumulator, ss: Seq[Scalar], data: Seq[Sample]): Accumulator = {
     for (i <- data.indices) yield {
       data(i) match {
