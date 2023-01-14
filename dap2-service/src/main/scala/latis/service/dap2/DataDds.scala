@@ -3,91 +3,82 @@ package latis.service.dap2
 import java.nio.charset.StandardCharsets
 
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import cats.syntax.all._
 import fs2.Stream
-import scodec.Attempt
-import scodec.Codec
-import scodec.DecodeResult
-import scodec.Err
-import scodec.SizeBound
+import scodec._
 import scodec.bits.BitVector
-import scodec.stream.StreamEncoder
 
 import latis.data.Data
-import latis.data.Datum
-import latis.data.NullData
 import latis.data.Sample
-import latis.data.SampledFunction
-import latis.data.TupleData
+import latis.data._
 import latis.dataset.Dataset
 import latis.model._
-import latis.output.BinaryEncoder
 import latis.output.BinaryEncoder.codecOfList
+import latis.service.dap2.AtomicTypeValue.ByteValue
 import latis.service.dap2.DataDds.DdsValue
 import latis.util.LatisException
 
-final case class DataDds(dds: Dds, ddsValue: DdsValue, data: Stream[IO, Array[Byte]]) {
+final case class DataDds(dds: Dds, ddsValue: DdsValue, data: Stream[IO, AtomicTypeValue[_]]) {
 
   def asBytes(): Stream[IO, Byte] = {
     val ddsString = dds.asString
     val separator = "\r\nData:\r\n"
     val stringBinary = (ddsString + separator).getBytes(StandardCharsets.UTF_8)
-    val dataBinary = data.through(ddsValue.encoder.toPipeByte[IO])
-    Stream.emits(stringBinary) ++ dataBinary
+    val dataBinary = ddsValue.codec.encode(data.compile.toList.unsafeRunSync()).require.toByteArray /** Yuck... */
+    Stream.emits(stringBinary) ++ Stream.emits(dataBinary)
   }
 }
 
 /* TODO: Support DDS's Array and Grid type declarations */
 object DataDds {
   sealed trait DdsValue {
-    val codec: Codec[_]
+    val codecs: List[Codec[AtomicTypeValue[_]]] = List()
+    val codec: Codec[List[AtomicTypeValue[_]]] = codecOfList(codecs)
   }
-  final case class AtomicValue[F](ty: AtomicType[F]) extends DdsValue {
-    override val codec: Codec[F] = ty.codec
+  final case class AtomicValue(ty: AtomicType[AtomicTypeValue[_]]) extends DdsValue {
+    override val codecs: List[Codec[AtomicTypeValue[_]]] = List(ty.codec)
   }
-  sealed trait ConstructorValue extends DdsValue
+  sealed class ConstructorValue(fields: List[DdsValue]) extends DdsValue {
+    override val codecs: List[Codec[AtomicTypeValue[_]]] = fields.flatMap(_.codecs)
+    lazy val flatten: List[AtomicValue] = fields.foldLeft(List.empty[AtomicValue]) { (lst, f) =>
+      val newLst = f match {
+        case av: AtomicValue => List(av)
+        case cv: ConstructorValue => cv.flatten
+      }
+      lst ++ newLst
+    }
+  }
 
-  final case class StructureConstructor(fields: List[DdsValue]) extends ConstructorValue {
-    override val codec: Codec[List[_]] = codecOfList(fields.map(_.codec))
-  }
-  final case class SequenceConstructor(fields: List[DdsValue]) extends ConstructorValue {
-    val START_OF_INSTANCE: Array[Byte] = AtomicType.Byte.padBytes(Array(0x5a.toByte))
-    val END_OF_SEQUENCE: Array[Byte] = AtomicType.Byte.padBytes(Array(0xA5.toByte))
+  final case class StructureConstructor(fields: List[DdsValue]) extends ConstructorValue(fields)
 
-    override val codec: Codec[List[List[_]]] = {
-      val elemCodec = codecOfList(fields.map(_.codec))
-      new Codec[List[List[_]]] {
-        override def decode(bits: BitVector): Attempt[DecodeResult[List[List[_]]]] = {
+  final case class SequenceConstructor(fields: List[DdsValue]) extends ConstructorValue(fields) {
+    val START_OF_INSTANCE: Array[Byte] = AtomicType.Byte.codec.encode(ByteValue(0x5A.toByte)).require.toByteArray
+    val END_OF_SEQUENCE: Array[Byte] = AtomicType.Byte.codec.encode(ByteValue(0xA5.toByte)).require.toByteArray
+
+    override val codec: Codec[List[AtomicTypeValue[_]]] = {
+      val elemCodec = codecOfList(codecs)
+      new Codec[List[List[AtomicTypeValue[_]]]] {
+        override def decode(bits: BitVector): Attempt[DecodeResult[List[List[AtomicTypeValue[_]]]]] = {
           val bytes = bits.toByteArray
           if (bytes.startsWith(END_OF_SEQUENCE)) {
             Attempt.successful(DecodeResult(
-              List(List()),
+              List(),
               BitVector(bytes.slice(END_OF_SEQUENCE.length, bytes.length))
             ))
           }
           else if (bytes.startsWith(START_OF_INSTANCE)) {
             val end = bytes.lastIndexOfSlice(END_OF_SEQUENCE)
             if (end >= 0) {
-              val toDecode = bytes.slice(START_OF_INSTANCE.length, end)
-              val remain = bytes.slice(end + END_OF_SEQUENCE.length, bytes.length)
-              val res = toDecode.foldLeft((Attempt.successful(List(List.empty[_])), Array[Byte]())) { (acc, byte) =>
-                val decoded: Attempt[List[List[_]]] = acc._1
-                val queue: Array[Byte] = acc._2 ++ byte
-                val newChunk = elemCodec.decode(BitVector(queue))
-                newChunk.fold(
-                  err => (decoded, queue),
-                  value => (decoded.map(_ :+ value.value), value.remainder.toByteArray)
+              val result = bytes.grouped(4).foldLeft((List.empty[List[AtomicTypeValue[_]]], BitVector.empty)) { (acc, byteGroup) =>
+                val decoded = acc._1
+                val queue = acc._2 ++ BitVector(byteGroup)
+                elemCodec.decode(queue).fold(
+                  _ => (decoded, queue),
+                  lst => (decoded :+ lst.value, BitVector.empty)
                 )
               }
-              if (res._1.isFailure || res._2.nonEmpty) {
-                Attempt.failure(Err("Sequence could not be decoded properly"))
-              }
-              else {
-                Attempt.successful(DecodeResult(
-                  res._1.require,
-                  BitVector(remain)
-                ))
-              }
+              Attempt.successful(DecodeResult(result._1, result._2))
             }
             else {
               Attempt.failure(Err("Sequence did not end with a valid suffix"))
@@ -98,7 +89,7 @@ object DataDds {
           }
         }
 
-        override def encode(value: List[List[_]]): Attempt[BitVector] = {
+        override def encode(value: List[List[AtomicTypeValue[_]]]): Attempt[BitVector] = {
           if (value.nonEmpty) {
             value.foldLeft(Attempt.successful(BitVector.empty)) { (combo, lst) =>
               for {
@@ -108,17 +99,21 @@ object DataDds {
                 c ++ l
               }
             }.map(BitVector(START_OF_INSTANCE) ++ _ ++ BitVector(END_OF_SEQUENCE))
+          } else {
+            Attempt.successful(BitVector(END_OF_SEQUENCE))
           }
-          else Attempt.successful(BitVector(END_OF_SEQUENCE))
         }
 
         override def sizeBound: SizeBound = SizeBound(0, None)
       }
-    }
+    }.xmap[List[AtomicTypeValue[_]]](
+      sqLst => sqLst.flatten,
+      ftLst => List(ftLst) /**DANGER WRONG*/
+    )
   }
 
-  private def fromScalar(scalar: Scalar): Either[LatisException, AtomicValue[_]] =
-    AtomicType.fromScalar(scalar).map(AtomicValue(_))
+  private def fromScalar[F<:AtomicTypeValue[T], T](scalar: Scalar): Either[LatisException, AtomicValue] =
+    AtomicType.fromScalar(scalar).map(at => AtomicValue(at.asInstanceOf[AtomicType[AtomicTypeValue[_]]]))
 
   private def fromTuple(tuple: Tuple): Either[LatisException, StructureConstructor] =
     tuple.elements.traverse(fromDataType).map(StructureConstructor)
@@ -132,24 +127,27 @@ object DataDds {
     case f: Function => fromFunction(f)
   }
 
-  private[dap2] def arrayFromData(data: Data): Stream[IO, Array[Byte]] = data match {
+  private def convertData(data: Data): Stream[IO, AtomicTypeValue[_]] = data match {
     case NullData => Stream.empty
-    case datum: Datum => Stream.fromEither(AtomicType.encodeDatum(datum))
-    case tuple: TupleData => Stream.emits(tuple.elements.map(arrayFromData)).flatten
-    case func: SampledFunction => arrayFromSamples(func.samples)
+    case datum: Datum => Stream.fromEither[IO](AtomicTypeValue.fromDatum(datum))
+    case tuple: TupleData => Stream.emits(tuple.elements.map(convertData)).flatten
+    case func: SampledFunction => streamSamples(func.samples)
   }
-
-  private[dap2] def arrayFromSamples(samples: Stream[IO, Sample]): Stream[IO, Array[Byte]] =
-    samples.map(s => s._1.traverse(arrayFromData) ++ s._2.traverse(arrayFromData))
-      .flatten.map(s => s.flatten.toArray)
+  private[dap2] def streamSamples(samples: Stream[IO, Sample]): Stream[IO, AtomicTypeValue[_]] =
+    samples.flatMap { s =>
+      val domain = s._1
+      val range = s._2
+      val converted = (domain ++ range).map(convertData)
+      converted.foldLeft(Stream[IO,AtomicTypeValue[_]]())((acc, str) => acc.append(str))
+    }
 
   def fromDataset(dataset: Dataset): Either[LatisException, DataDds] = {
     for {
       dds <- Dds.fromDataset(dataset)
-      ddsValues <- fromDataType(dataset.model)
-      data = ddsValues.
+      ddsValue <- fromDataType(dataset.model)
+      data = streamSamples(dataset.samples)
     } yield {
-      DataDds(dds, ddsValues, data)
+      DataDds(dds, ddsValue, data)
     }
   }
 }
