@@ -2,9 +2,13 @@ package latis.service.dap2
 
 import java.nio.charset.StandardCharsets
 
+import scala.collection.immutable.Queue
+
+import cats.Id
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import cats.syntax.all._
+import fs2.Pure
 import fs2.Stream
 import scodec._
 import scodec.bits.BitVector
@@ -25,91 +29,90 @@ final case class DataDds(dds: Dds, ddsValue: DdsValue, data: Stream[IO, AtomicTy
     val ddsString = dds.asString
     val separator = "\r\nData:\r\n"
     val stringBinary = (ddsString + separator).getBytes(StandardCharsets.UTF_8)
-    val dataBinary = ddsValue.codec.encode(data.compile.toList.unsafeRunSync()).require.toByteArray /** Yuck... */
-    Stream.emits(stringBinary) ++ Stream.emits(dataBinary)
+    val dataBinary = ddsValue.streamBuilder(data.compile.toList.unsafeRunSync()) /* TODO: Remove unsafeRun */
+    Stream.emits(stringBinary) ++ Stream.fromEither[IO](dataBinary).flatMap(_._1)
   }
 }
 
 /* TODO: Support DDS's Array and Grid type declarations */
 object DataDds {
+  val START_OF_INSTANCE: ByteValue = ByteValue(0x5A.toByte)
+  val END_OF_SEQUENCE: ByteValue = ByteValue(0xA5.toByte)
+
   sealed trait DdsValue {
-    val codecs: List[Codec[AtomicTypeValue[_]]] = List()
-    val codec: Codec[List[AtomicTypeValue[_]]] = codecOfList(codecs)
+    /* TODO: Use a Stream[IO, AtomicTypeValue[_]] as the input instead of List[AtomicTypeValue[_]] */
+    val streamBuilder: List[AtomicTypeValue[_]] => Either[LatisException, (Stream[IO, Byte], List[AtomicTypeValue[_]])]
   }
+
   final case class AtomicValue(ty: AtomicType[AtomicTypeValue[_]]) extends DdsValue {
-    override val codecs: List[Codec[AtomicTypeValue[_]]] = List(ty.codec)
-  }
-  sealed class ConstructorValue(fields: List[DdsValue]) extends DdsValue {
-    override val codecs: List[Codec[AtomicTypeValue[_]]] = fields.flatMap(_.codecs)
-    lazy val flatten: List[AtomicValue] = fields.foldLeft(List.empty[AtomicValue]) { (lst, f) =>
-      val newLst = f match {
-        case av: AtomicValue => List(av)
-        case cv: ConstructorValue => cv.flatten
+    override val streamBuilder: List[AtomicTypeValue[_]] => Either[LatisException, (Stream[IO, Byte], List[AtomicTypeValue[_]])] =
+      (atvs: List[AtomicTypeValue[_]]) => {
+        val head = atvs.head
+        val tail = atvs.tail
+        ty.codec.encode(head).fold(
+          err => Left(LatisException(err.message)),
+          bits => Right((Stream.emits(bits.toByteArray), tail))
+        )
       }
-      lst ++ newLst
-    }
+  }
+
+  abstract sealed class ConstructorValue(fields: List[DdsValue]) extends DdsValue {
+    override val streamBuilder: List[AtomicTypeValue[_]] => Either[LatisException, (Stream[IO, Byte], List[AtomicTypeValue[_]])] =
+      (atvs: List[AtomicTypeValue[_]]) => {
+        fields.foldLeft(
+          Right[LatisException, (Stream[IO, Byte], List[AtomicTypeValue[_]])](Stream.empty, atvs).withLeft
+        ) { (either, ddsVal) =>
+          either.fold(err => Left(err), { pair =>
+            val builtStream = pair._1
+            val remainder = pair._2
+            ddsVal.streamBuilder(remainder).map { newPair =>
+              val newStream = newPair._1
+              val newRem = newPair._2
+              (builtStream ++ newStream, newRem)
+            }
+          })
+        }
+      }
   }
 
   final case class StructureConstructor(fields: List[DdsValue]) extends ConstructorValue(fields)
 
   final case class SequenceConstructor(fields: List[DdsValue]) extends ConstructorValue(fields) {
-    val START_OF_INSTANCE: Array[Byte] = AtomicType.Byte.codec.encode(ByteValue(0x5A.toByte)).require.toByteArray
-    val END_OF_SEQUENCE: Array[Byte] = AtomicType.Byte.codec.encode(ByteValue(0xA5.toByte)).require.toByteArray
-
-    override val codec: Codec[List[AtomicTypeValue[_]]] = {
-      val elemCodec = codecOfList(codecs)
-      new Codec[List[List[AtomicTypeValue[_]]]] {
-        override def decode(bits: BitVector): Attempt[DecodeResult[List[List[AtomicTypeValue[_]]]]] = {
-          val bytes = bits.toByteArray
-          if (bytes.startsWith(END_OF_SEQUENCE)) {
-            Attempt.successful(DecodeResult(
-              List(),
-              BitVector(bytes.slice(END_OF_SEQUENCE.length, bytes.length))
-            ))
-          }
-          else if (bytes.startsWith(START_OF_INSTANCE)) {
-            val end = bytes.lastIndexOfSlice(END_OF_SEQUENCE)
-            if (end >= 0) {
-              val result = bytes.grouped(4).foldLeft((List.empty[List[AtomicTypeValue[_]]], BitVector.empty)) { (acc, byteGroup) =>
-                val decoded = acc._1
-                val queue = acc._2 ++ BitVector(byteGroup)
-                elemCodec.decode(queue).fold(
-                  _ => (decoded, queue),
-                  lst => (decoded :+ lst.value, BitVector.empty)
-                )
-              }
-              Attempt.successful(DecodeResult(result._1, result._2))
-            }
-            else {
-              Attempt.failure(Err("Sequence did not end with a valid suffix"))
-            }
-          }
+    override val streamBuilder: List[AtomicTypeValue[_]] => Either[LatisException, (Stream[IO, Byte], List[AtomicTypeValue[_]])] =
+      (atvs: List[AtomicTypeValue[_]]) => {
+        if (atvs.head != START_OF_INSTANCE)
+          Left(LatisException("Sequence must start with a START_OF_INSTANCE marker"))
+        else {
+          val end = atvs.indexOf(END_OF_SEQUENCE)
+          if (end == -1)
+            Left(LatisException("Sequence must have an END_OF_SEQUENCE marker"))
           else {
-            Attempt.failure(Err("Sequence did not start with a valid prefix"))
+            val remainderForSeq = atvs.slice(1, end)
+            val remainderPassAlong = atvs.slice(end+1, atvs.length)
+            val p = remainderForSeq.foldLeft(
+              (Stream[IO, Byte](), List.empty[AtomicTypeValue[_]])
+            ) { (pair, currAtv) =>
+              val builtStream = pair._1
+              val currRem = pair._2
+              val newRem = currRem :+ currAtv
+              super.streamBuilder(newRem).fold(
+                err => (builtStream, newRem),
+                newPair => {
+                  val newStream: Stream[IO, Byte] = newPair._1
+                  val newRem = newPair._2
+                  (builtStream ++ newStream, newRem)
+                }
+              )
+            }
+            val newStream = p._1
+            val newRem = p._2
+            if (newRem.isEmpty)
+              Right(newStream, remainderPassAlong)
+            else
+              Left(LatisException("Sequence must use all bytes between the markers"))
           }
         }
-
-        override def encode(value: List[List[AtomicTypeValue[_]]]): Attempt[BitVector] = {
-          if (value.nonEmpty) {
-            value.foldLeft(Attempt.successful(BitVector.empty)) { (combo, lst) =>
-              for {
-                c <- combo
-                l <- elemCodec.encode(lst)
-              } yield {
-                c ++ l
-              }
-            }.map(BitVector(START_OF_INSTANCE) ++ _ ++ BitVector(END_OF_SEQUENCE))
-          } else {
-            Attempt.successful(BitVector(END_OF_SEQUENCE))
-          }
-        }
-
-        override def sizeBound: SizeBound = SizeBound(0, None)
       }
-    }.xmap[List[AtomicTypeValue[_]]](
-      sqLst => sqLst.flatten,
-      ftLst => List(ftLst) /**DANGER WRONG*/
-    )
   }
 
   private def fromScalar[F<:AtomicTypeValue[T], T](scalar: Scalar): Either[LatisException, AtomicValue] =
@@ -130,7 +133,7 @@ object DataDds {
   private def convertData(data: Data): Stream[IO, AtomicTypeValue[_]] = data match {
     case NullData => Stream.empty
     case datum: Datum => Stream.fromEither[IO](AtomicTypeValue.fromDatum(datum))
-    case tuple: TupleData => Stream.emits(tuple.elements.map(convertData)).flatten
+    case tuple: TupleData => streamSamples(tuple.samples)
     case func: SampledFunction => streamSamples(func.samples)
   }
   private[dap2] def streamSamples(samples: Stream[IO, Sample]): Stream[IO, AtomicTypeValue[_]] =
@@ -138,7 +141,14 @@ object DataDds {
       val domain = s._1
       val range = s._2
       val converted = (domain ++ range).map(convertData)
-      converted.foldLeft(Stream[IO,AtomicTypeValue[_]]())((acc, str) => acc.append(str))
+        .foldLeft(Stream[IO,AtomicTypeValue[_]]())((acc, str) => acc.append(str))
+      val ioStream = converted.head.compile.toList.map { lst =>
+        if (lst.isEmpty)
+          Stream.emit(END_OF_SEQUENCE)
+        else
+          Stream.emit(START_OF_INSTANCE) ++ converted ++ Stream.emit(END_OF_SEQUENCE)
+      }
+      Stream.evalSeq(ioStream)
     }
 
   def fromDataset(dataset: Dataset): Either[LatisException, DataDds] = {
