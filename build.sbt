@@ -200,9 +200,9 @@ lazy val macros = project
   .settings(
     name := "latis3-macros",
     libraryDependencies ++= Seq(
+      "org.typelevel" %% "literally" % "1.1.0",
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
-    ),
-    scalacOptions += "-language:experimental.macros"
+    )
   )
 
 lazy val netcdf = project
