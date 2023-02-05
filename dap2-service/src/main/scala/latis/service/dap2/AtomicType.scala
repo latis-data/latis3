@@ -75,13 +75,13 @@ object AtomicType {
     }
   }
 
-  def fromScalar(scalar: Scalar): Either[LatisException, AtomicType[_]] = scalar.valueType match {
-    case DoubleValueType => Right(Float64)
-    case FloatValueType => Right(Float32)
-    case IntValueType => Right(Int32)
-    case ShortValueType => Right(Int16)
-    case ByteValueType => Right(Byte)
-    case StringValueType => Right(String)
+  def fromScalar[AT<:AtomicType[ATV],ATV<:AtomicTypeValue[_]](scalar: Scalar): Either[LatisException, AT] = scalar.valueType match {
+    case DoubleValueType => Right(Float64.asInstanceOf[AT])
+    case FloatValueType => Right(Float32.asInstanceOf[AT])
+    case IntValueType => Right(Int32.asInstanceOf[AT])
+    case ShortValueType => Right(Int16.asInstanceOf[AT])
+    case ByteValueType => Right(Byte.asInstanceOf[AT])
+    case StringValueType => Right(String.asInstanceOf[AT])
     case _ => Left(LatisException("Scalar could not be parsed to a DDS atomic type."))
   }
 }

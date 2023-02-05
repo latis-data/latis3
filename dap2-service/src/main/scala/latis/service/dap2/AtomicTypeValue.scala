@@ -45,11 +45,12 @@ object AtomicTypeValue {
   final case class StringValue(override val value: String) extends AtomicTypeValue[String] {
     override val dasStr: String = fmtString(value)
   }
+
   final case class UrlValue(override val value: URL) extends AtomicTypeValue[URL] {
     override val dasStr: String = fmtString(value.toString)
   }
 
-  def fromDatum(datum: Datum): Either[LatisException, AtomicTypeValue[_]] = datum match {
+  def fromDatum(datum: Datum): Either[LatisException, AtomicTypeValue[Any]] = datum match {
     case double: DoubleValue => Right(Float64Value(double.value))
     case float: FloatValue => Right(Float32Value(float.value))
     case int: IntValue => Right(Int32Value(int.value))
