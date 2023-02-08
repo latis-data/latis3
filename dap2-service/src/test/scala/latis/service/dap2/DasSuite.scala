@@ -7,16 +7,17 @@ import latis.dataset.MemoizedDataset
 import latis.metadata.Metadata
 import latis.model._
 import latis.service.dap2.AtomicType._
+import latis.service.dap2.AtomicTypeValue._
 import latis.service.dap2.Das._
 import latis.time.Time
 import latis.util.Identifier.IdentifierStringContext
 
 class DasSuite extends CatsEffectSuite {
-  val byteAttr = Attribute(id"testByte", Byte, NonEmptyList.one(42:Byte))
-  val uintAttr = Attribute(id"testInt", UInt32, NonEmptyList.one(42L))
-  val floatAttr = Attribute(id"testFloat", Float32, NonEmptyList.one(13.14159265359f))
-  val stringAttr = Attribute(id"testString", String, NonEmptyList.one("str1"))
-  val stringsAttr = Attribute(id"testStrings", String, NonEmptyList.fromListUnsafe(List("str1", "str2", "str3")))
+  val byteAttr = Attribute(id"testByte", Byte, NonEmptyList.one(ByteValue(42)))
+  val uintAttr = Attribute(id"testInt", UInt32, NonEmptyList.one(UInt32Value(42L)))
+  val floatAttr = Attribute(id"testFloat", Float32, NonEmptyList.one(Float32Value(13.14159265359f)))
+  val stringAttr = Attribute(id"testString", String, NonEmptyList.one(StringValue("str1")))
+  val stringsAttr = Attribute(id"testStrings", String, NonEmptyList.fromListUnsafe(List(StringValue("str1"), StringValue("str1"), StringValue("str1"))))
   val itemAttrCont = ItemAttributeCont(id"items", List(byteAttr, uintAttr, floatAttr, stringAttr, stringsAttr))
   val itemAttrStr: String =
     """items {

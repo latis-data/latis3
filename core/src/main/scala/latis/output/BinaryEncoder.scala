@@ -31,7 +31,26 @@ class BinaryEncoder(val dataCodec: Scalar => Codec[Data] = DataCodec.defaultData
   def sampleStreamEncoder(model: DataType): StreamEncoder[Sample] =
     StreamEncoder.many(sampleCodec(model))
 
-  private def codecOfList[A](cs: List[Codec[A]]): Codec[List[A]] = new Codec[List[A]] {
+  def sampleCodec(model: DataType): Codec[Sample] = {
+    val (domainScalars: List[Scalar], rangeScalars: List[Scalar]) = model match {
+      case s: Scalar =>
+        (List[Scalar](), List[Scalar](s))
+      case t: Tuple =>
+        val tuples: List[Scalar] = t.flatElements.collect { case s: Scalar => s }
+        (List[Scalar](), tuples)
+      case Function(d, r) =>
+        (d.getScalars.filterNot(_.isInstanceOf[Index]), r.getScalars)
+    }
+    val domainList: List[Codec[Datum]] = domainScalars.map(s => dataCodec(s).downcast[Datum])
+    val rangeList: List[Codec[Data]] = rangeScalars.map(s => dataCodec(s))
+    BinaryEncoder.codecOfList(domainList) ~ BinaryEncoder.codecOfList(rangeList)
+  }
+}
+
+object BinaryEncoder {
+  def apply(dataCodec: Scalar => Codec[Data] = DataCodec.defaultDataCodec): BinaryEncoder = new BinaryEncoder(dataCodec)
+
+  def codecOfList[A](cs: List[Codec[A]]): Codec[List[A]] = new Codec[List[A]] {
 
     override def sizeBound: SizeBound =
       cs.map(_.sizeBound).foldLeft(SizeBound.exact(0))(_ + _)
@@ -46,23 +65,4 @@ class BinaryEncoder(val dataCodec: Scalar => Codec[Data] = DataCodec.defaultData
         Attempt.failure(Err("wrong length"))
       }
   }
-
-  def sampleCodec(model: DataType): Codec[Sample] = {
-    val (domainScalars: List[Scalar], rangeScalars: List[Scalar]) = model match {
-      case s: Scalar =>
-        (List[Scalar](), List[Scalar](s))
-      case t: Tuple =>
-        val tuples: List[Scalar] = t.flatElements.collect { case s: Scalar => s }
-        (List[Scalar](), tuples)
-      case Function(d, r) =>
-        (d.getScalars.filterNot(_.isInstanceOf[Index]), r.getScalars)
-    }
-    val domainList: List[Codec[Datum]] = domainScalars.map(s => dataCodec(s).downcast[Datum])
-    val rangeList: List[Codec[Data]] = rangeScalars.map(s => dataCodec(s))
-    codecOfList(domainList) ~ codecOfList(rangeList)
-  }
-}
-
-object BinaryEncoder {
-  def apply(dataCodec: Scalar => Codec[Data] = DataCodec.defaultDataCodec): BinaryEncoder = new BinaryEncoder(dataCodec)
 }

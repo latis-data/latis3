@@ -5,6 +5,7 @@ import org.typelevel.paiges.Doc
 
 import latis.dataset.Dataset
 import latis.model._
+import latis.service.dap2.AtomicTypeValue.StringValue
 import latis.util.Identifier
 import latis.util.Identifier.IdentifierStringContext
 
@@ -47,9 +48,9 @@ object Das {
     }
   }
 
-  case class Attribute[A<:AtomicType[F],F](id: Identifier, ty: A, values: NonEmptyList[F]) {
+  case class Attribute[A<:AtomicType[F],F<:AtomicTypeValue[_]](id: Identifier, ty: A, values: NonEmptyList[F]) {
     val toDoc: Doc = Doc.str(ty) + Doc.space + Doc.text(id.asString) + Doc.space +
-      Doc.text(values.tail.foldLeft(ty.asDasString(values.head))((acc, v) => acc + ", " + ty.asDasString(v))) +
+      Doc.text(values.tail.foldLeft(values.head.dasStr)((acc, v) => acc + ", " + v.dasStr)) +
       Doc.char(';')
   }
 
@@ -60,7 +61,7 @@ object Das {
         Attribute(
           Identifier.fromString(prop._1).get, // Should be safe, since the Identifier is being constructed from a source with a valid Identifier
           AtomicType.String,
-          NonEmptyList.one(prop._2)
+          NonEmptyList.one(StringValue(prop._2))
         )
       }
     )
