@@ -173,7 +173,7 @@ class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4
       .map((_, Headers(Raw(ci"Content-Type", "text/plain"))))
     case "zip"   => new ZipEncoder().encode(ds.withOperation(ops.FileListToZipList())).asRight
       .map((_, Headers(Raw(ci"Content-Type", "application/zip"))))
-    case _       => UnknownExtension(s"Unknown extension: $ext").asLeft
+    case name    => UnknownExtension(s"Unknown extension: $name").asLeft
   }
 
   private def handleDap2Error(err: Dap2Error): IO[Response[IO]] =
