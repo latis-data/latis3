@@ -65,7 +65,7 @@ object HtmlCatalogEncoder {
             th("id"),
             th("title")
           ),
-          catalogDatasets
+          catalogDatasets.sortBy(_.toString)
         )
       }
     }
@@ -96,7 +96,7 @@ object HtmlCatalogEncoder {
       } else {
         table(`class` := "subcatalog",
           caption(i("Subcatalogs")),
-          catalogSubcatalogs
+          catalogSubcatalogs.sortBy(_.toString)
         )
       }
     }
