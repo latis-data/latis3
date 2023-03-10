@@ -9,7 +9,6 @@ import latis.data._
 import latis.metadata.Metadata
 import latis.model.DataType
 import latis.ops._
-import latis.util.Identifier
 import latis.util.LatisException
 
 /**
@@ -19,7 +18,7 @@ import latis.util.LatisException
  * This assumes that each dataset has the same model, for now.
  */
 class CompositeDataset private (
-  dsIdentifier: Identifier,
+  md: Metadata,
   datasets: NonEmptyList[Dataset],
   joinOperation: Join,
   granuleOps: List[UnaryOperation] = List.empty, //ops to be applied to granules before the join
@@ -28,7 +27,7 @@ class CompositeDataset private (
   //TODO: support "horizontal" joins: datasets with different models (i.e. diff set of variables, combine "columns")
 
   //TODO: make richer metadata, prov
-  override def metadata: Metadata = Metadata(dsIdentifier)
+  override def metadata: Metadata = md
 
   /**
    * Returns a new Dataset with the given Operation *logically*
@@ -49,19 +48,19 @@ class CompositeDataset private (
   }
 
   private def copyWithOperationForGranule(op: UnaryOperation): CompositeDataset =
-    new CompositeDataset(dsIdentifier, datasets, joinOperation,
+    new CompositeDataset(md, datasets, joinOperation,
       granuleOps :+ op,
       afterOps
     )
 
   private def copyWithOperationAfterJoin(op: UnaryOperation): CompositeDataset =
-    new CompositeDataset(dsIdentifier, datasets, joinOperation,
+    new CompositeDataset(md, datasets, joinOperation,
       granuleOps,
       afterOps :+ op
     )
 
   private def copyWithOperationForBoth(op: UnaryOperation): CompositeDataset =
-    new CompositeDataset(dsIdentifier, datasets, joinOperation,
+    new CompositeDataset(md, datasets, joinOperation,
       granuleOps :+ op,
       afterOps :+ op
     )
@@ -124,12 +123,12 @@ object CompositeDataset {
    * to be applied to at least two datasets.
    */
   def apply(
-    id: Identifier,
+    md: Metadata,
     joinOperation: Join,
     ds1: Dataset,
     ds2: Dataset,
     rest: List[Dataset] = List.empty
   ): CompositeDataset =
-    new CompositeDataset(id, NonEmptyList.of(ds1, (ds2 :: rest): _*), joinOperation)
+    new CompositeDataset(md, NonEmptyList.of(ds1, (ds2 :: rest): _*), joinOperation)
 
 }
