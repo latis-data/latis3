@@ -65,7 +65,7 @@ class GranuleAppendDatasetSuite extends AnyFunSuite {
   }
 
   private lazy val dataset = GranuleAppendDataset(
-    id"myDataset",
+    Metadata(id"myDataset"),
     granuleList,
     model,
     granuleToDataset
@@ -261,7 +261,7 @@ class GranuleAppendDatasetSuite extends AnyFunSuite {
         if (cnt == 1) throw new RuntimeException("Boom")
         else granuleToDataset(sample)
     }
-    val ds = GranuleAppendDataset(id"myDataset", granuleList, model, f)
+    val ds = GranuleAppendDataset(Metadata(id"myDataset"), granuleList, model, f)
     ds.samples.compile.toList.map { ss =>
       assert(4 == ss.length)
     }.unsafeRunSync()
@@ -281,7 +281,7 @@ class GranuleAppendDatasetSuite extends AnyFunSuite {
         ))
       }
     }
-    val ds = GranuleAppendDataset.withAdapter(id"myDataset", granuleList, model, adapter).value
+    val ds = GranuleAppendDataset.withAdapter(Metadata(id"myDataset"), granuleList, model, adapter).value
     ds.samples.compile.toList.map { ss =>
       assert(6 == ss.length)
     }.unsafeRunSync()
