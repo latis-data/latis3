@@ -63,9 +63,9 @@ class NetcdfWrapperSuite extends CatsEffectSuite {
   override def beforeAll(): Unit = {
     (for {
       path <- Files[IO].tempFile(None, "netcdf_test", ".nc", None)
-      enc   = NetcdfEncoder(path.toNioPath.toFile)
+      enc   = NetcdfEncoder(path)
       file <- Resource.eval(enc.encode(dataset).compile.toList.map(_.head))
-      nc   <- NetcdfWrapper.open(file.toURI, dataset.model, config)
+      nc   <- NetcdfWrapper.open(file.toNioPath.toUri(), dataset.model, config)
     } yield nc).allocated.map { case (nc, io) =>
       ncWapper = nc
       finalizer = io

@@ -1,11 +1,10 @@
 package latis.output
 
-import java.io.File
-
 import cats.effect.IO
 import cats.effect.Resource
 import cats.syntax.all._
 import fs2.Stream
+import fs2.io.file.Path
 import ucar.ma2.{Array => NcArray}
 import ucar.ma2.{DataType => NcDataType}
 import ucar.nc2.Attribute
@@ -39,10 +38,10 @@ import latis.util.LatisException
  *
  * @param file location to write to.
  */
-class NetcdfEncoder(file: File) extends Encoder[IO, File] {
+class NetcdfEncoder(file: Path) extends Encoder[IO, Path] {
   //TODO: deal with NullData, require replaceMissing?
   import NetcdfEncoder._
-  private val path = file.getAbsolutePath
+  private val path = file.absolute.toString
   private val ncFileWriter: Resource[IO, NetcdfFileWriter] =
     Resource.fromAutoCloseable(IO(NetcdfFileWriter.createNew(netcdf4, path)))
 
@@ -50,7 +49,7 @@ class NetcdfEncoder(file: File) extends Encoder[IO, File] {
    * Encodes a [[latis.dataset.Dataset]] to netCDF4
    * @param dataset dataset to encode
    */
-  override def encode(dataset: Dataset): Stream[IO, File] = {
+  override def encode(dataset: Dataset): Stream[IO, Path] = {
     val uncurriedDataset = dataset.withOperation(Uncurry())
     Stream
       .resource(ncFileWriter)
@@ -119,7 +118,7 @@ class NetcdfEncoder(file: File) extends Encoder[IO, File] {
 }
 
 object NetcdfEncoder {
-  def apply(file: File): NetcdfEncoder =
+  def apply(file: Path): NetcdfEncoder =
     new NetcdfEncoder(file)
 
   private type Accumulator = List[Any]
