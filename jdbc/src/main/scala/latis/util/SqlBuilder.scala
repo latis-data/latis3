@@ -105,12 +105,15 @@ case class SqlBuilder(
       case list => list.mkString(" WHERE ", " AND ", "")
     }
 
-    //TODO: support other databases
-    //  This works for oracle and h2
-    //  PostgreSQL and others use "limit n"
-    val lim = limit.map(n => s" FETCH FIRST $n ROWS ONLY").getOrElse("")
+    // TODO: More complete support for different databases.
+    val lim = vendor match {
+      case Some("SQLite") =>
+        limit.map(n => s" LIMIT $n")
+      case _ =>
+        limit.map(n => s" FETCH FIRST $n ROWS ONLY")
+    }
 
-    select + from + where + order + lim
+    select + from + where + order + lim.getOrElse("")
   }
 }
 
