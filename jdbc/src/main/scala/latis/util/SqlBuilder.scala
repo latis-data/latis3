@@ -13,7 +13,8 @@ case class SqlBuilder(
   otherPredicate: Option[String],
   limit: Option[Int],
   model: DataType,
-  order: String
+  order: String,
+  vendor: Option[String]
 ) {
 
   def addOp(op: UnaryOperation): SqlBuilder = op match {
@@ -119,7 +120,8 @@ object SqlBuilder {
     table: String, //TODO: use model ID?
     model: DataType,
     ops: List[UnaryOperation] = List.empty,
-    otherPredicate: Option[String] = None
+    otherPredicate: Option[String] = None,
+    vendor: Option[String] = None
   ): String = {
     // Order by domain variables even if not projected.
     // We must do it here before they are projected away.
@@ -140,7 +142,8 @@ object SqlBuilder {
       otherPredicate = otherPredicate,
       limit = None,
       model = model,
-      order = order
+      order = order,
+      vendor = vendor
     )
 
     ops.foldLeft(init)((b, op) => b.addOp(op)).result
