@@ -1,10 +1,12 @@
 package latis.output
 
-import java.io.File
 import java.nio.DoubleBuffer
 import java.nio.IntBuffer
 
+import cats.effect.IO
+import cats.effect.Resource
 import cats.effect.unsafe.implicits.global
+import fs2.io.file.Files
 import org.scalatest.EitherValues._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
@@ -22,126 +24,144 @@ class NetcdfEncoderSpec extends AnyFlatSpec {
   import NetcdfEncoderSpec._
 
   "A NetCDF encoder" should "encode a 1-D dataset with a single range variable to NetCDF" in {
-    val enc          = NetcdfEncoder(File.createTempFile("netcdf_test", ".nc", null))
-    val expectedTime = Array(1, 2, 3)
-    val expectedFlux = Array(1.0, 2.5, 5.1e-2)
+    Files[IO].tempFile(None, "", ".nc", None).use { file =>
+      val enc          = NetcdfEncoder(file)
+      val expectedTime = Array(1, 2, 3)
+      val expectedFlux = Array(1.0, 2.5, 5.1e-2)
 
-    val file   = enc.encode(time_series_1D).compile.toList.unsafeRunSync().head
-    val ncFile = NetcdfFiles.open(file.getAbsolutePath)
-    try {
-      val arrs    = ncFile.readArrays(ncFile.getVariables)
-      val timeArr = arrs.get(0).getDataAsByteBuffer.asIntBuffer
-      val fluxArr = arrs.get(1).getDataAsByteBuffer.asDoubleBuffer
-      timeArr should be(IntBuffer.wrap(expectedTime))
-      fluxArr should be(DoubleBuffer.wrap(expectedFlux))
-    } finally {
-      ncFile.close()
-      val _ = file.delete()
-    }
+      enc.encode(time_series_1D).compile.onlyOrError.flatTap { file =>
+        Resource.fromAutoCloseable(
+          IO(NetcdfFiles.open(file.absolute.toString))
+        ).use { ncFile =>
+          IO {
+            val arrs    = ncFile.readArrays(ncFile.getVariables)
+            val timeArr = arrs.get(0).getDataAsByteBuffer.asIntBuffer
+            val fluxArr = arrs.get(1).getDataAsByteBuffer.asDoubleBuffer
+            timeArr should be(IntBuffer.wrap(expectedTime))
+            fluxArr should be(DoubleBuffer.wrap(expectedFlux))
+          }
+        }
+      }
+    }.unsafeRunSync()
   }
 
   it should "encode a 1-D dataset with multiple range variables to NetCDF" in {
-    val enc          = NetcdfEncoder(File.createTempFile("netcdf_test", ".nc", null))
-    val expectedTime = Array(1, 2, 3)
-    val expectedFlag = Array[Byte](0, 0, -1)
-    val expectedFlux = Array(1.0, 2.5, 5.1e-2)
-    val expectedLong = Array[Long](9001, 9001, 9001)
-    val expectedStr  = Array("foo", "bar", "baz")
+    Files[IO].tempFile(None, "", ".nc", None).use { file =>
+      val enc          = NetcdfEncoder(file)
+      val expectedTime = Array(1, 2, 3)
+      val expectedFlag = Array[Byte](0, 0, -1)
+      val expectedFlux = Array(1.0, 2.5, 5.1e-2)
+      val expectedLong = Array[Long](9001, 9001, 9001)
+      val expectedStr  = Array("foo", "bar", "baz")
 
-    val file   = enc.encode(time_series_1D_multi_range).compile.toList.unsafeRunSync().head
-    val ncFile = NetcdfFiles.open(file.getAbsolutePath)
-    try {
-      ncFile.readSection("time").get1DJavaArray(NcDataType.INT) should be(expectedTime)
-      ncFile.readSection("flag").get1DJavaArray(NcDataType.BYTE) should be(expectedFlag)
-      ncFile.readSection("flux").get1DJavaArray(NcDataType.DOUBLE) should be(expectedFlux)
-      ncFile.readSection("long").get1DJavaArray(NcDataType.LONG) should be(expectedLong)
-      ncFile.readSection("str").get1DJavaArray(NcDataType.STRING) should be(expectedStr)
-    } finally {
-      ncFile.close()
-      val _ = file.delete()
-    }
+      enc.encode(time_series_1D_multi_range).compile.onlyOrError.flatTap { file =>
+        Resource.fromAutoCloseable(
+          IO(NetcdfFiles.open(file.absolute.toString))
+        ).use { ncFile =>
+          IO {
+            ncFile.readSection("time").get1DJavaArray(NcDataType.INT) should be(expectedTime)
+            ncFile.readSection("flag").get1DJavaArray(NcDataType.BYTE) should be(expectedFlag)
+            ncFile.readSection("flux").get1DJavaArray(NcDataType.DOUBLE) should be(expectedFlux)
+            ncFile.readSection("long").get1DJavaArray(NcDataType.LONG) should be(expectedLong)
+            ncFile.readSection("str").get1DJavaArray(NcDataType.STRING) should be(expectedStr)
+          }
+        }
+      }
+    }.unsafeRunSync()
   }
 
   it should "encode a 2-D dataset to NetCDF" in {
-    val enc                = NetcdfEncoder(File.createTempFile("netcdf_test", ".nc", null))
-    val expectedTime       = Array(1, 2, 3)
-    val expectedWavelength = Array(430.1, 538.5)
-    val expectedFlag       = Array[Byte](0, 0, 0, -1, 0, 0)
-    val expectedFlux       = Array(1.0, 2.5, 1.2, 5.1e-2, 0.9, 2.1)
+    Files[IO].tempFile(None, "", ".nc", None).use { file =>
+      val enc                = NetcdfEncoder(file)
+      val expectedTime       = Array(1, 2, 3)
+      val expectedWavelength = Array(430.1, 538.5)
+      val expectedFlag       = Array[Byte](0, 0, 0, -1, 0, 0)
+      val expectedFlux       = Array(1.0, 2.5, 1.2, 5.1e-2, 0.9, 2.1)
 
-    val file   = enc.encode(time_series_2D).compile.toList.unsafeRunSync().head
-    val ncFile = NetcdfFiles.open(file.getAbsolutePath)
-    try {
-      ncFile.readSection("time").get1DJavaArray(NcDataType.INT) should be(expectedTime)
-      ncFile.readSection("wavelength").get1DJavaArray(NcDataType.DOUBLE) should be(
-        expectedWavelength
-      )
-      ncFile.readSection("flag").get1DJavaArray(NcDataType.BYTE) should be(expectedFlag)
-      ncFile.readSection("flux").get1DJavaArray(NcDataType.DOUBLE) should be(expectedFlux)
-    } finally {
-      ncFile.close()
-      val _ = file.delete()
-    }
+      enc.encode(time_series_2D).compile.onlyOrError.flatTap { file =>
+        Resource.fromAutoCloseable(
+          IO(NetcdfFiles.open(file.absolute.toString))
+        ).use { ncFile =>
+          IO {
+            ncFile.readSection("time").get1DJavaArray(NcDataType.INT) should be(expectedTime)
+            ncFile.readSection("wavelength").get1DJavaArray(NcDataType.DOUBLE) should be(
+              expectedWavelength
+            )
+            ncFile.readSection("flag").get1DJavaArray(NcDataType.BYTE) should be(expectedFlag)
+            ncFile.readSection("flux").get1DJavaArray(NcDataType.DOUBLE) should be(expectedFlux)
+          }
+        }
+      }
+    }.unsafeRunSync()
   }
 
   it should "encode a 3-D dataset to NetCDF" in {
-    val enc                = NetcdfEncoder(File.createTempFile("netcdf_test", ".nc", null))
-    val expectedTime       = Array(1, 2)
-    val expectedWavelength = Array(430.1, 538.5)
-    val expectedAnother    = Array(1.1, 2.2)
-    val expectedFlux       = Array(1.0, 2.5, 1.2, 5.1e-2, 0.9, 2.1, 0.9, 2.1)
+    Files[IO].tempFile(None, "", ".nc", None).use { file =>
+      val enc                = NetcdfEncoder(file)
+      val expectedTime       = Array(1, 2)
+      val expectedWavelength = Array(430.1, 538.5)
+      val expectedAnother    = Array(1.1, 2.2)
+      val expectedFlux       = Array(1.0, 2.5, 1.2, 5.1e-2, 0.9, 2.1, 0.9, 2.1)
 
-    val file   = enc.encode(time_series_3D).compile.toList.unsafeRunSync().head
-    val ncFile = NetcdfFiles.open(file.getAbsolutePath)
-    try {
-      ncFile.readSection("time").get1DJavaArray(NcDataType.INT) should be(expectedTime)
-      ncFile.readSection("wavelength").get1DJavaArray(NcDataType.DOUBLE) should be(
-        expectedWavelength
-      )
-      ncFile.readSection("another").get1DJavaArray(NcDataType.DOUBLE) should be(expectedAnother)
-      ncFile.readSection("flux").get1DJavaArray(NcDataType.DOUBLE) should be(expectedFlux)
-    } finally {
-      ncFile.close()
-      val _ = file.delete()
-    }
+      enc.encode(time_series_3D).compile.onlyOrError.flatTap { file =>
+        Resource.fromAutoCloseable(
+          IO(NetcdfFiles.open(file.absolute.toString))
+        ).use { ncFile =>
+          IO {
+            ncFile.readSection("time").get1DJavaArray(NcDataType.INT) should be(expectedTime)
+            ncFile.readSection("wavelength").get1DJavaArray(NcDataType.DOUBLE) should be(
+              expectedWavelength
+            )
+            ncFile.readSection("another").get1DJavaArray(NcDataType.DOUBLE) should be(expectedAnother)
+            ncFile.readSection("flux").get1DJavaArray(NcDataType.DOUBLE) should be(expectedFlux)
+          }
+        }
+      }
+    }.unsafeRunSync()
   }
 
   it should "include global metadata in the file" in {
-    val enc              = NetcdfEncoder(File.createTempFile("netcdf_test", ".nc", null))
-    val expectedMetadata = Metadata(id"dataset_with_metadata") + ("globalFoo" -> "globalBar") + ("history" -> "Uncurry()")
+    Files[IO].tempFile(None, "", ".nc", None).use { file =>
+      val enc              = NetcdfEncoder(file)
+      val expectedMetadata = Metadata(id"dataset_with_metadata") + ("globalFoo" -> "globalBar") + ("history" -> "Uncurry()")
 
-    val file   = enc.encode(dataset_with_metadata).compile.toList.unsafeRunSync().head
-    val ncFile = NetcdfFiles.open(file.getAbsolutePath)
-    try {
-      expectedMetadata.properties.foreach {
-        case (k, v) => ncFile.findGlobalAttribute(k).getStringValue should be(v)
+      enc.encode(dataset_with_metadata).compile.onlyOrError.flatTap { file =>
+        Resource.fromAutoCloseable(
+          IO(NetcdfFiles.open(file.absolute.toString))
+        ).use { ncFile =>
+          IO {
+            expectedMetadata.properties.foreach {
+              case (k, v) => ncFile.findGlobalAttribute(k).getStringValue should be(v)
+            }
+          }
+        }
       }
-    } finally {
-      ncFile.close()
-      val _ = file.delete()
-    }
+    }.unsafeRunSync()
   }
 
   it should "include variable metadata in the file" in {
-    val enc                  = NetcdfEncoder(File.createTempFile("netcdf_test", ".nc", null))
-    val expectedTimeMetadata = Metadata(id"time") + ("type" -> "int") + ("scalarFoo" -> "scalarBar")
-    val expectedFluxMetadata = Metadata(id"flux") + ("type" -> "double") + ("Foo" -> "Bar")
+    Files[IO].tempFile(None, "", ".nc", None).use { file =>
+      val enc              = NetcdfEncoder(file)
+      val expectedTimeMetadata = Metadata(id"time") + ("type" -> "int") + ("scalarFoo" -> "scalarBar")
+      val expectedFluxMetadata = Metadata(id"flux") + ("type" -> "double") + ("Foo" -> "Bar")
 
-    val file   = enc.encode(dataset_with_metadata).compile.toList.unsafeRunSync().head
-    val ncFile = NetcdfFiles.open(file.getAbsolutePath)
-    try {
-      val timeVar = ncFile.findVariable("time")
-      expectedTimeMetadata.properties.foreach {
-        case (k, v) => timeVar.findAttribute(k).getStringValue should be(v)
+      enc.encode(dataset_with_metadata).compile.onlyOrError.flatTap { file =>
+        Resource.fromAutoCloseable(
+          IO(NetcdfFiles.open(file.absolute.toString))
+        ).use { ncFile =>
+          IO {
+            val timeVar = ncFile.findVariable("time")
+            expectedTimeMetadata.properties.foreach {
+              case (k, v) => timeVar.findAttribute(k).getStringValue should be(v)
+            }
+            val fluxVar = ncFile.findVariable("flux")
+            expectedFluxMetadata.properties.foreach {
+              case (k, v) => fluxVar.findAttribute(k).getStringValue should be(v)
+            }
+          }
+        }
       }
-      val fluxVar = ncFile.findVariable("flux")
-      expectedFluxMetadata.properties.foreach {
-        case (k, v) => fluxVar.findAttribute(k).getStringValue should be(v)
-      }
-    } finally {
-      ncFile.close()
-      val _ = file.delete()
-    }
+    }.unsafeRunSync()
   }
 }
 

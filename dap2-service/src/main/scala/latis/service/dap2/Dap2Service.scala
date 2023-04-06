@@ -6,7 +6,6 @@ import cats.effect._
 import cats.syntax.all._
 import fs2.Stream
 import fs2.io.file.Files
-import fs2.io.file.{Path => FPath}
 import fs2.text
 import org.http4s.Header.Raw
 import org.http4s.Headers
@@ -166,8 +165,8 @@ class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4
     case "nc"    =>
       (for {
         tmpFile <- Stream.resource(Files[IO].tempFile)
-        file    <- new NetcdfEncoder(tmpFile.toNioPath.toFile()).encode(ds)
-        bytes   <- Files[IO].readAll(FPath.fromNioPath(file.toPath()))
+        file    <- new NetcdfEncoder(tmpFile).encode(ds)
+        bytes   <- Files[IO].readAll(file)
       } yield bytes).asRight.map((_, Headers(Raw(ci"Content-Type", "application/x-netcdf"))))
     case "txt"   => CsvEncoder().encode(ds).through(text.utf8.encode).asRight
       .map((_, Headers(Raw(ci"Content-Type", "text/plain"))))
