@@ -111,8 +111,8 @@ class TimeFormatSuite extends FunSuite {
     )
     assertEquals(
       TimeFormat
-        .fromExpression("yyyy-MM-dd'T'HH:mm:ss.SSS")
-        .flatMap(_.parse("1970-01-01T00:00:00.000")),
+        .fromExpression("yyyy-MM-dd'T'HH:mm:ss.SSSS")
+        .flatMap(_.parse("1970-01-01T00:00:00.0000")),
       Right(0L)
     )
     assertEquals(
