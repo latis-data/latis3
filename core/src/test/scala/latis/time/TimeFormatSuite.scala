@@ -151,14 +151,14 @@ class TimeFormatSuite extends FunSuite {
 
   test("parse with no padding") {
     assertEquals(
-      TimeFormat.fromExpression("yyyy M[M] d[d]").flatMap(_.parse("1970 1 1")),
+      TimeFormat.fromExpression("y M d").flatMap(_.parse("1970 1 1")),
       Right(0L)
     )
   }
 
   test("parse with padding") {
     assertEquals(
-      TimeFormat.fromExpression("yyyy [ ]M[M] dd").flatMap(_.parse("1970  1 01")),
+      TimeFormat.fromExpression("y [ ]M d").flatMap(_.parse("1970  1 01")),
       Right(0L)
     )
   }
