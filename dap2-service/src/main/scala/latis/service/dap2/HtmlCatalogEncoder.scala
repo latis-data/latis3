@@ -51,10 +51,11 @@ object HtmlCatalogEncoder {
     catalog.datasets.map { ds =>
       val id = ds.id.fold("")(_.asString)
       val title = ds.metadata.getProperty("title").getOrElse(id)
-      tr(
+      // Build table row, preserve id for sorting
+      (id, tr(
         td(id),
         td(a(href := prefix + id + ".meta")(title))
-      )
+      ))
     }.compile.toList.map { catalogDatasets =>
       if (catalogDatasets.isEmpty) {
         div()
@@ -65,7 +66,7 @@ object HtmlCatalogEncoder {
             th("id"),
             th("title")
           ),
-          catalogDatasets
+          catalogDatasets.sortBy(_._1).map(_._2)
         )
       }
     }
@@ -80,7 +81,8 @@ object HtmlCatalogEncoder {
         datasets <- datasetTable(cat, prefix + id + "/")
         subcatalogs <- subcatalogTable(cat, prefix + id + "/")
       } yield {
-        tr(
+        // Build table row, preserve id for sorting
+        (id, tr(
           td(details(
             summary(b(i(u(id))), emptyTab,
               a(href := prefix + id + "/")(forwardArrow)
@@ -88,7 +90,7 @@ object HtmlCatalogEncoder {
             div(datasets,
               subcatalogs)
           ))
-        )
+        ))
       }
     }.compile.toList.map { catalogSubcatalogs =>
       if (catalogSubcatalogs.isEmpty) {
@@ -96,7 +98,7 @@ object HtmlCatalogEncoder {
       } else {
         table(`class` := "subcatalog",
           caption(i("Subcatalogs")),
-          catalogSubcatalogs
+          catalogSubcatalogs.sortBy(_._1).map(_._2)
         )
       }
     }

@@ -13,7 +13,8 @@ case class SqlBuilder(
   otherPredicate: Option[String],
   limit: Option[Int],
   model: DataType,
-  order: String
+  order: String,
+  vendor: Option[String]
 ) {
 
   def addOp(op: UnaryOperation): SqlBuilder = op match {
@@ -104,12 +105,15 @@ case class SqlBuilder(
       case list => list.mkString(" WHERE ", " AND ", "")
     }
 
-    //TODO: support other databases
-    //  This works for oracle and h2
-    //  PostgreSQL and others use "limit n"
-    val lim = limit.map(n => s" FETCH FIRST $n ROWS ONLY").getOrElse("")
+    // TODO: More complete support for different databases.
+    val lim = vendor match {
+      case Some("SQLite") =>
+        limit.map(n => s" LIMIT $n")
+      case _ =>
+        limit.map(n => s" FETCH FIRST $n ROWS ONLY")
+    }
 
-    select + from + where + order + lim
+    select + from + where + order + lim.getOrElse("")
   }
 }
 
@@ -119,7 +123,8 @@ object SqlBuilder {
     table: String, //TODO: use model ID?
     model: DataType,
     ops: List[UnaryOperation] = List.empty,
-    otherPredicate: Option[String] = None
+    otherPredicate: Option[String] = None,
+    vendor: Option[String] = None
   ): String = {
     // Order by domain variables even if not projected.
     // We must do it here before they are projected away.
@@ -140,7 +145,8 @@ object SqlBuilder {
       otherPredicate = otherPredicate,
       limit = None,
       model = model,
-      order = order
+      order = order,
+      vendor = vendor
     )
 
     ops.foldLeft(init)((b, op) => b.addOp(op)).result

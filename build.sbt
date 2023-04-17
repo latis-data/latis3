@@ -3,14 +3,14 @@ ThisBuild / scalaVersion := "2.13.10"
 
 val attoVersion       = "0.9.5"
 val catsVersion       = "2.9.0"
-val catsEffectVersion = "3.4.4"
-val fs2Version        = "3.4.0"
-val http4sVersion     = "0.23.16"
+val catsEffectVersion = "3.4.8"
+val fs2Version        = "3.6.1"
+val http4sVersion     = "0.23.18"
 val log4catsVersion   = "2.5.0"
-val log4jVersion      = "2.19.0"
-val logbackVersion    = "1.3.5"
+val log4jVersion      = "2.20.0"
+val logbackVersion    = "1.3.6"
 val netcdfVersion     = "5.5.3"
-val pureconfigVersion = "0.17.2"
+val pureconfigVersion = "0.17.3"
 val scalaTestVersion  = "3.2.12"
 
 lazy val commonSettings = Seq(
@@ -31,6 +31,7 @@ lazy val commonSettings = Seq(
   scalacOptions += {
     if (insideCI.value) "-Wconf:any:e" else "-Wconf:any:w"
   },
+  Test / scalacOptions -= "-Wnonunit-statement",
   addCompilerPlugin("org.typelevel" % "kind-projector" % "0.13.2" cross CrossVersion.full)
 )
 
@@ -97,7 +98,7 @@ lazy val core = project
     name := "latis3-core",
     libraryDependencies ++= Seq(
       "org.scala-lang.modules" %% "scala-xml"           % "2.1.0",
-      "io.circe"               %% "circe-core"          % "0.14.3",
+      "io.circe"               %% "circe-core"          % "0.14.5",
       "org.scodec"             %% "scodec-core"         % "1.11.10",
       "org.scodec"             %% "scodec-stream"       % "3.0.2",
       "org.scodec"             %% "scodec-cats"         % "1.2.0",
@@ -128,8 +129,7 @@ lazy val `dap2-parser` = project
   .settings(
     name := "dap2-parser",
     libraryDependencies ++= Seq(
-      "org.tpolecat"   %% "atto-core"  % attoVersion,
-      "com.github.alexarchambault" %% "scalacheck-shapeless_1.15" % "1.3.0" % Test
+      "org.tpolecat"   %% "atto-core"  % attoVersion
     )
   )
 
@@ -145,7 +145,7 @@ lazy val `dap2-service` = project
       "org.http4s"     %% "http4s-core"      % http4sVersion % Provided,
       "org.http4s"     %% "http4s-dsl"       % http4sVersion % Provided,
       "org.http4s"     %% "http4s-circe"     % http4sVersion,
-      "org.http4s"     %% "http4s-scalatags" % "0.25.1",
+      "org.http4s"     %% "http4s-scalatags" % "0.25.2",
       "org.typelevel"  %% "paiges-cats"      % "0.4.2"
     )
   )
@@ -200,9 +200,9 @@ lazy val macros = project
   .settings(
     name := "latis3-macros",
     libraryDependencies ++= Seq(
+      "org.typelevel" %% "literally" % "1.1.0",
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
-    ),
-    scalacOptions += "-language:experimental.macros"
+    )
   )
 
 lazy val netcdf = project

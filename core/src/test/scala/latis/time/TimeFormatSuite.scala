@@ -111,8 +111,8 @@ class TimeFormatSuite extends FunSuite {
     )
     assertEquals(
       TimeFormat
-        .fromExpression("yyyy-MM-dd'T'HH:mm:ss.SSS")
-        .flatMap(_.parse("1970-01-01T00:00:00.000")),
+        .fromExpression("yyyy-MM-dd'T'HH:mm:ss.SSSS")
+        .flatMap(_.parse("1970-01-01T00:00:00.0000")),
       Right(0L)
     )
     assertEquals(
@@ -147,5 +147,19 @@ class TimeFormatSuite extends FunSuite {
     )
     assertEquals(
       TimeFormat.fromExpression("yyyy").flatMap(_.parse("1970")), Right(0L))
+  }
+
+  test("parse with no padding") {
+    assertEquals(
+      TimeFormat.fromExpression("y M d").flatMap(_.parse("1970 1 1")),
+      Right(0L)
+    )
+  }
+
+  test("parse with padding") {
+    assertEquals(
+      TimeFormat.fromExpression("y [ ]M d").flatMap(_.parse("1970  1 01")),
+      Right(0L)
+    )
   }
 }
