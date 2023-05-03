@@ -1,15 +1,19 @@
 package latis.output
 
+import cats.data.NonEmptyList
 import cats.effect.IO
+import cats.syntax.all._
 import fs2.Stream
+import fs2.data.csv
+import fs2.data.csv.Row
+import fs2.data.csv.RowEncoder
 
-import latis.data.Data
 import latis.data.Sample
 import latis.dataset.Dataset
-import latis.model.DataType
 import latis.model.Index
 import latis.model.Scalar
 import latis.ops.Uncurry
+import latis.util.LatisException
 
 class CsvEncoder(header: Dataset => Stream[IO, String]) extends Encoder[IO, String] {
 
@@ -20,24 +24,41 @@ class CsvEncoder(header: Dataset => Stream[IO, String]) extends Encoder[IO, Stri
    */
   override def encode(dataset: Dataset): Stream[IO, String] = {
     val uncurriedDataset = dataset.withOperation(Uncurry())
+
+    // CSV encoding ignores Index scalars
+    val scalars = NonEmptyList.fromList(
+      uncurriedDataset
+        .model
+        .getScalars
+        .filterNot(_.isInstanceOf[Index])
+    )
+
     // Encode each Sample as a String in the Stream
-    header(dataset).map(_ + "\r\n") ++ uncurriedDataset.samples
-      .map(encodeSample(uncurriedDataset.model, _) + "\r\n")
+    scalars.liftTo[Stream[IO, *]](
+      LatisException("No non-Index scalars in model")
+    ).flatMap { ss =>
+      header(dataset).map(_ + "\r\n") ++ uncurriedDataset.samples.through(
+        csv.encodeWithoutHeaders(
+          fullRows = true,
+          newline = "\r\n"
+        )(sampleEncoder(ss))
+      )
+    }
   }
 
-  /**
-   * Encodes a single Sample to a String of comma separated values.
-   */
-  def encodeSample(model: DataType, sample: Sample): String = {
-    // Note that the dataset has been uncurried so there are no nested functions.
-    val scalars: List[Scalar] = model.getScalars.filterNot(_.isInstanceOf[Index])
-    val datas: List[Data] = sample.domain ++ sample.range
-    //TODO: assert that the lengths are the same? should be ensured earlier
-    scalars.zip(datas).map { case (s, d) =>
-      s.formatValue(d)
-    }.mkString(",")
-  }
+  // This assumes Index scalars have already been removed
+  private def sampleEncoder(scalars: NonEmptyList[Scalar]): RowEncoder[Sample] =
+    new RowEncoder[Sample] {
+      override def apply(sample: Sample): Row = {
+        // NOTE: Assuming there are the same number of samples as
+        // scalars and that there is more than one scalar.
+        val values = scalars.toList.zip(sample.domain ++ sample.range).map {
+          case (s, d) => s.formatValue(d)
+        }
 
+        Row(NonEmptyList.fromListUnsafe(values))
+      }
+    }
 }
 
 object CsvEncoder {

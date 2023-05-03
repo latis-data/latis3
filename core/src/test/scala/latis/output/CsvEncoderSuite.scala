@@ -3,7 +3,14 @@ package latis.output
 import munit.CatsEffectSuite
 
 import latis.dataset.Dataset
+import latis.dataset.MemoizedDataset
+import latis.data.Data
+import latis.data.Sample
+import latis.data.SampledFunction
 import latis.dsl.DatasetGenerator
+import latis.metadata.Metadata
+import latis.model._
+import latis.util.Identifier._
 
 class CsvEncoderSuite extends CatsEffectSuite {
 
@@ -34,6 +41,89 @@ class CsvEncoderSuite extends CatsEffectSuite {
       assertEquals(csvList.head, expectedHeader + "\r\n")
       assertEquals(csvList, expectedCsv)
     }
+  }
 
+  test("drop Index scalars when encoding") {
+    val ds = {
+      val model: DataType = Function.from(
+        Index(),
+        Scalar(id"value", StringValueType)
+      ).fold(throw _, identity)
+
+      val data = SampledFunction(
+        List(
+          Sample(List(), List(Data.StringValue("a")))
+        )
+      )
+
+      new MemoizedDataset(Metadata(id"dataset"), model, data)
+    }
+
+    val expected = List("value\r\n", "a\r\n")
+
+    CsvEncoder.withColumnName.encode(ds).compile.toList.assertEquals(expected)
+  }
+
+  test("encode a dataset containing commas") {
+    val ds = {
+      val model: DataType = Function.from(
+        Index(),
+        Scalar(id"value", StringValueType)
+      ).fold(throw _, identity)
+
+      val data = SampledFunction(
+        List(
+          Sample(List(), List(Data.StringValue("a,b")))
+        )
+      )
+
+      new MemoizedDataset(Metadata(id"dataset"), model, data)
+    }
+
+    val expected = List("\"a,b\"\r\n")
+
+    CsvEncoder().encode(ds).compile.toList.assertEquals(expected)
+  }
+
+  test("encode a dataset containing double quotes") {
+    val ds = {
+      val model: DataType = Function.from(
+        Index(),
+        Scalar(id"value", StringValueType)
+      ).fold(throw _, identity)
+
+      val data = SampledFunction(
+        List(
+          Sample(List(), List(Data.StringValue("a\"b")))
+        )
+      )
+
+      new MemoizedDataset(Metadata(id"dataset"), model, data)
+    }
+
+    val expected = List("\"a\"\"b\"\r\n")
+
+    CsvEncoder().encode(ds).compile.toList.assertEquals(expected)
+  }
+
+  test("encode a dataset containing CRLFs") {
+    val ds = {
+      val model: DataType = Function.from(
+        Index(),
+        Scalar(id"value", StringValueType)
+      ).fold(throw _, identity)
+
+      val data = SampledFunction(
+        List(
+          Sample(List(), List(Data.StringValue("a\r\nb")))
+        )
+      )
+
+      new MemoizedDataset(Metadata(id"dataset"), model, data)
+    }
+
+    val expected = List("\"a\r\nb\"\r\n")
+
+    CsvEncoder().encode(ds).compile.toList.assertEquals(expected)
   }
 }
