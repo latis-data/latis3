@@ -50,8 +50,8 @@ class CsvEncoder(header: Dataset => Stream[IO, String]) extends Encoder[IO, Stri
   private def sampleEncoder(scalars: NonEmptyList[Scalar]): RowEncoder[Sample] =
     new RowEncoder[Sample] {
       override def apply(sample: Sample): Row = {
-        // NOTE: Assuming there are the same number of samples as
-        // scalars and that there is more than one scalar.
+        // NOTE: Assuming there are the same number of sample elements
+        // as scalars and that there is more than one scalar.
         val values = scalars.toList.zip(sample.domain ++ sample.range).map {
           case (s, d) => s.formatValue(d)
         }
