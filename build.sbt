@@ -22,7 +22,7 @@ lazy val commonSettings = Seq(
     "com.typesafe"   % "config"      % "1.4.2",
     "org.scalatest" %% "scalatest"   % scalaTestVersion % Test,
     "org.scalacheck" %% "scalacheck" % "1.15.4" % Test,
-    "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test,
+    "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test,
     "org.scalameta" %% "munit"       % "0.7.29" % Test,
     "org.typelevel" %% "munit-cats-effect-3" % "1.0.7" % Test
   ),
