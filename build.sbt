@@ -3,14 +3,14 @@ ThisBuild / scalaVersion := "2.13.10"
 
 val attoVersion       = "0.9.5"
 val catsVersion       = "2.9.0"
-val catsEffectVersion = "3.4.10"
+val catsEffectVersion = "3.4.11"
 val fs2Version        = "3.6.1"
 val http4sVersion     = "0.23.18"
 val log4catsVersion   = "2.6.0"
 val log4jVersion      = "2.20.0"
 val logbackVersion    = "1.3.7"
 val netcdfVersion     = "5.5.3"
-val pureconfigVersion = "0.17.3"
+val pureconfigVersion = "0.17.4"
 val scalaTestVersion  = "3.2.12"
 
 lazy val commonSettings = Seq(
@@ -103,7 +103,7 @@ lazy val core = project
       "org.scodec"             %% "scodec-stream"       % "3.0.2",
       "org.scodec"             %% "scodec-cats"         % "1.2.0",
       "org.http4s"             %% "http4s-ember-client" % http4sVersion,
-      "org.gnieh"              %% "fs2-data-csv"        % "1.7.0"
+      "org.gnieh"              %% "fs2-data-csv"        % "1.7.1"
     )
   )
 
