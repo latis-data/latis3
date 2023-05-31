@@ -39,6 +39,7 @@ case class ConvertBinary(id: Identifier, base: Base) extends MapOperation {
     }
     (sample: Sample) => sample.getValue(pos) match {
       case Some(b: Data.BinaryValue) => sample.updatedValue(pos, convert(b.value))
+      case Some(NullData) => sample
       case _ => throw LatisException("Target variable must be Binary")
     }
   }
