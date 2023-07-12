@@ -2,13 +2,11 @@ package latis.input
 
 import scala.xml.XML
 
-import cats.effect._
 import cats.effect.IO
-import cats.effect.unsafe.implicits.global
+import cats.syntax.all._
 import fs2._
 import fs2.io.file._
-import org.scalatest.EitherValues._
-import org.scalatest.funsuite.AnyFunSuite
+import munit.CatsEffectSuite
 
 import latis.input.fdml.Fdml
 import latis.input.fdml.FdmlParser
@@ -17,7 +15,11 @@ import latis.ops.OperationRegistry
 import latis.ops.Selection
 import latis.util.LatisException
 
-class GranuleAppendDatasetSuite extends AnyFunSuite {
+class GranuleAppendDatasetSuite extends CatsEffectSuite {
+
+  private val granules = ResourceFixture(
+    Files[IO].tempDirectory.evalTap(makeGranules(_))
+  )
 
   // Make three csv files with threes samples each.
   private def makeGranules(dir: Path): IO[Unit] = {
@@ -30,15 +32,6 @@ class GranuleAppendDatasetSuite extends AnyFunSuite {
         .through(text.utf8.encode)
         .through(Files[IO].writeAll(dir / Path(s"file$n.csv")))
     }.compile.drain
-  }
-
-  // Loan a set of granules in a tmp directory.
-  private def withGranules(f: Path => IO[Any]): IO[Any] = {
-    val resource = for {
-      dir <- Files[IO].tempDirectory
-      _   <- Resource.eval(makeGranules(dir))
-    } yield dir
-    resource.use(f)
   }
 
   // Make fdml for a granule append dataset.
@@ -68,34 +61,25 @@ class GranuleAppendDatasetSuite extends AnyFunSuite {
       </dataset>
     """))
 
-
-  test("length of granule append dataset from fdml") {
-    withGranules { dir =>
-      (for {
-        fdml <- makeFdml(dir)
-        ds   <- FdmlReader.read(fdml, OperationRegistry.default)
-      } yield {
-        ds.samples.compile.toList.map { samples =>
-          assert(9 == samples.length)
-        }
-      }).value
-    }.unsafeRunSync()
+  granules.test("length of granule append dataset from fdml") { dir =>
+    IO.fromEither(makeFdml(dir)
+      .flatMap(FdmlReader.read(_, OperationRegistry.default)))
+      .flatMap(_.samples.compile.toList)
+      .map(ss => assertEquals(ss.length, 9))
   }
 
-  test("selection with bin semantics") {
-    withGranules { dir =>
-      (for {
-        fdml <- makeFdml(dir)
-        ds   <- FdmlReader.read(fdml, OperationRegistry.default)
-      } yield {
-        val ops = List(
-          Selection.makeSelection("x > 1.5").value,
-          Selection.makeSelection("x < 2.5").value,
-        )
-        ds.withOperations(ops).samples.compile.toList.map { samples =>
-          assert(3 == samples.length) //1.8,2.0,2.4
-        }
-      }).value
-    }.unsafeRunSync()
+  granules.test("selection with bin semantics") { dir =>
+    (
+      IO.fromEither(makeFdml(dir).flatMap(
+        FdmlReader.read(_, OperationRegistry.default))
+      ),
+      IO.fromEither {
+        List(
+          Selection.makeSelection("x > 1.5"),
+          Selection.makeSelection("x < 2.5")
+        ).sequence
+      }
+    ).flatMapN(_.withOperations(_).samples.compile.toList)
+      .map(ss => assertEquals(ss.length, 3))
   }
 }

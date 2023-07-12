@@ -1,20 +1,18 @@
 package latis.input
 
-import org.scalatest.funsuite.AnyFunSuite
-//import org.scalatest.matchers.should.Matchers._
-//import org.scalatest.Inside.inside
-//
+import munit.FunSuite
+
 //import latis.data._
 //import latis.dataset._
 //import latis.metadata.Metadata
 //import latis.model._
 //import latis.ops.GranuleListJoin
 //import latis.ops.Selection
-//import latis.util.Identifier.IdentifierStringContext
+//import latis.util.Identifier._
 //import latis.util.StreamUtils
 //import latis.util.dap2.parser.ast
 
-class GranuleListJoinSuite extends AnyFunSuite {
+class GranuleListJoinSuite extends FunSuite {
 
 //  ignore("granule list join") {
 //    //granule list dataset: i -> uri

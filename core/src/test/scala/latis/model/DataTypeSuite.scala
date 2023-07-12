@@ -1,16 +1,14 @@
 package latis.model
 
-import org.scalatest.EitherValues._
-import org.scalatest.funsuite.AnyFunSuite
-import org.scalatest.Inside.inside
+import munit.FunSuite
 
 import latis.data.DomainPosition
 import latis.data.NullData
 import latis.data.RangePosition
 import latis.data.TupleData
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 
-class DataTypeSuite extends AnyFunSuite {
+class DataTypeSuite extends FunSuite {
 
   //TODO: property based test: generate model with "a" at random path
   //  make sure we can find it
@@ -24,17 +22,24 @@ class DataTypeSuite extends AnyFunSuite {
   private lazy val a = Scalar(id"a", IntValueType)
   private lazy val b = Scalar(id"b", DoubleValueType)
   private lazy val c = Scalar(id"c", StringValueType)
-  private lazy val namedTup  = Tuple.fromElements(id"t", a, b).value       // t: (a, b)
+  private lazy val namedTup  = Tuple.fromElements(id"t", a, b)             // t: (a, b)
+    .fold(fail("failed to construct tuple", _), identity)
   //private lazy val anonTup   = Tuple.fromElements(a, b).value              // (a, b)
-  private lazy val nestedTup = Tuple.fromElements(namedTup, c).value       // (t: (a, b), c)
-  private lazy val f = Function.from(id"f", x, a).value                    // f: x -> a
-  private lazy val fWithTup = Function.from(id"f", x, namedTup).value      // f: x -> t: (a, b)
-  private lazy val tupWithF = Tuple.fromElements(a, fWithTup).value        // (a, f: x -> t: (a, b))
-  private lazy val nestedF = Function.from(id"g", z, f).value              // g: z -> f: x -> a
-  private lazy val nestedFInTup = Function.from(id"g", i, tupWithF).value  // g: _i -> (a, f: x -> t: (a, b))
+  private lazy val nestedTup = Tuple.fromElements(namedTup, c)             // (t: (a, b), c)
+    .fold(fail("failed to construct tuple", _), identity)
+  private lazy val f = Function.from(id"f", x, a)                          // f: x -> a
+    .fold(fail("failed to construct function", _), identity)
+  private lazy val fWithTup = Function.from(id"f", x, namedTup)            // f: x -> t: (a, b)
+    .fold(fail("failed to construct function", _), identity)
+  private lazy val tupWithF = Tuple.fromElements(a, fWithTup)              // (a, f: x -> t: (a, b))
+    .fold(fail("failed to construct tuple", _), identity)
+  private lazy val nestedF = Function.from(id"g", z, f)                    // g: z -> f: x -> a
+    .fold(fail("failed to construct function", _), identity)
+  private lazy val nestedFInTup = Function.from(id"g", i, tupWithF)        // g: _i -> (a, f: x -> t: (a, b))
+    .fold(fail("failed to construct function", _), identity)
 
   test("to string") {
-    assert(nestedFInTup.toString == "g: _i -> (a, f: x -> t: (a, b))")
+    assertEquals(nestedFInTup.toString, "g: _i -> (a, f: x -> t: (a, b))")
   }
 
   test("find tuple") {
@@ -84,7 +89,10 @@ class DataTypeSuite extends AnyFunSuite {
   test("path in nested tuple with function") {
     // (z, t: (f: x -> a, b), c)
     //  0  1   1  0    0  2   3
-    val model = Tuple.fromElements(z, Tuple.fromElements(id"t", f, b).value, c).value
+    val model = Tuple.fromElements(id"t", f, b).flatMap {
+      Tuple.fromElements(z, _, c)
+    }.fold(fail("failed to construct model", _), identity)
+
     assert(model.findPath(id"c").contains(List(RangePosition(3))))
   }
 
@@ -111,10 +119,11 @@ class DataTypeSuite extends AnyFunSuite {
   }
 
   test("tuple with function fill data") {
-    inside(tupWithF.fillData ) {
+    tupWithF.fillData match {
       case TupleData(a, f) =>
-        assert(a == NullData)
-        assert(f == NullData)
+        assertEquals(a, NullData)
+        assertEquals(f, NullData)
+      case _ => fail("unexpected tuple")
     }
   }
 
