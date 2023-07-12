@@ -4,7 +4,7 @@ import cats.syntax.all._
 
 import latis.data._
 import latis.model._
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 import latis.util.LatisException
 
 /**

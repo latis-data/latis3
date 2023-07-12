@@ -7,7 +7,7 @@ import latis.dataset.Dataset
 import latis.model._
 import latis.service.dap2.AtomicType._
 import latis.util.Identifier
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 import latis.util.LatisException
 
 final case class Dds(id: Identifier, typeDecls: List[Dds.TypeDecl]) {

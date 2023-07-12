@@ -8,7 +8,7 @@ import latis.dataset.TappedDataset
 import latis.metadata.Metadata
 import latis.model._
 import latis.ops.ConvertBinary._
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 
 class ConvertBinarySuite extends CatsEffectSuite {
 

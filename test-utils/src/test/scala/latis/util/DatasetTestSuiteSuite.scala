@@ -11,7 +11,7 @@ import latis.dataset.Dataset
 import latis.dsl._
 import latis.model._
 import latis.ops._
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 
 class DatasetTestSuiteSuite extends AnyFunSuite {
 

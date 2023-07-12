@@ -7,7 +7,7 @@ import latis.metadata.Metadata
 import latis.model._
 import latis.service.dap2.AtomicType._
 import latis.service.dap2.Dds._
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 
 class DdsSuite extends CatsEffectSuite {
   test("correct AtomicDecl toDoc representation") {

@@ -18,7 +18,7 @@ import latis.model.DataType
 import latis.model.Function
 import latis.model.Scalar
 import latis.util.ConfigLike
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 import latis.util.LatisException
 import latis.util.NetUtils
 

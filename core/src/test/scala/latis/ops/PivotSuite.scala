@@ -8,7 +8,7 @@ import latis.dataset.MemoizedDataset
 import latis.dsl._
 import latis.metadata.Metadata
 import latis.model._
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier.*
 
 class PivotSuite extends CatsEffectSuite {
 

@@ -14,7 +14,7 @@ import latis.metadata.Metadata
 import latis.model._
 import latis.ops._
 import latis.output.NetcdfEncoder
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 
 class NetcdfWrapperSuite extends CatsEffectSuite {
 

@@ -9,7 +9,7 @@ import latis.model._
 import latis.service.dap2.AtomicType._
 import latis.service.dap2.Das._
 import latis.time.Time
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 
 class DasSuite extends CatsEffectSuite {
   val byteAttr = Attribute(id"testByte", Byte, NonEmptyList.one(42:Byte))
