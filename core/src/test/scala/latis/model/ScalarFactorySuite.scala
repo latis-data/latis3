@@ -1,35 +1,35 @@
 package latis.model
 
-import org.scalatest.EitherValues._
-import org.scalatest.funsuite.AnyFunSuite
-import org.scalatest.Inside.inside
+import munit.FunSuite
 
 import latis.data.Data
 import latis.data.NullData
 import latis.metadata.Metadata
 import latis.model.IntValueType
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 
-class ScalarFactorySuite extends AnyFunSuite {
+class ScalarFactorySuite extends FunSuite {
 
   //---- id ----//
 
   test("id") {
     Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int")) match {
-      case Right(s) => assert(s.id == id"a")
+      case Right(s) => assertEquals(s.id, id"a")
       case Left(le) => fail(s"Construction with id failed: ${le.message}")
     }
   }
 
   test("no id") {
-    inside(Scalar.fromMetadata(Metadata())) {
-      case Left(le) => assert(le.message == "No id defined")
+    Scalar.fromMetadata(Metadata()) match {
+      case Left(le) => assertEquals(le.message, "No id defined")
+      case _ => fail("Constructed Scalar with no ID")
     }
   }
 
   test("invalid id") {
-    inside(Scalar.fromMetadata(Metadata("id" -> "123"))) {
-      case Left(le) => assert(le.message == "Invalid id: 123")
+    Scalar.fromMetadata(Metadata("id" -> "123")) match {
+      case Left(le) => assertEquals(le.message, "Invalid id: 123")
+      case _ => fail("Constructed Scalar with invalid ID")
     }
   }
 
@@ -37,106 +37,121 @@ class ScalarFactorySuite extends AnyFunSuite {
 
   test("value type") {
     Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int")) match {
-      case Right(s) => assert(s.valueType == IntValueType)
+      case Right(s) => assertEquals(s.valueType, IntValueType)
       case Left(le) => fail(s"Construction with type failed: ${le.message}")
     }
   }
 
   test("no value type") {
-    inside(Scalar.fromMetadata(Metadata("id" -> "a"))) {
-      case Left(le) => assert(le.message == "No type defined")
+    Scalar.fromMetadata(Metadata("id" -> "a")) match {
+      case Left(le) => assertEquals(le.message, "No type defined")
+      case _ => fail("Constructed Scalar without type")
     }
   }
 
   test("invalid value type") {
-    inside(Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "foo"))) {
-      case Left(le) => assert(le.message == "Invalid Scalar value type: foo")
+    Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "foo")) match {
+      case Left(le) => assertEquals(le.message, "Invalid Scalar value type: foo")
+      case _ => fail("Constructed Scalar with invalid type")
     }
   }
 
   //---- missing ----//
 
   test("missing") {
-    inside(Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int", "missingValue" -> "-999"))) {
+    Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int", "missingValue" -> "-999")) match {
       case Right(s) => assert(s.missingValue.contains(Data.IntValue(-999)))
+      case _ => fail("Failed to construct Scalar")
     }
   }
 
   test("null as missing") {
-    inside(Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int", "missingValue" -> "null"))) {
+    Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int", "missingValue" -> "null")) match {
       case Right(s) => assert(s.missingValue.contains(NullData))
+      case _ => fail("Failed to construct Scalar")
     }
   }
 
   test("invalid missing") {
-    inside(Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int", "missingValue" -> "-9.9"))) {
-      case Left(le) => assert(le.message == "Failed to parse IntValue: -9.9")
+    Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int", "missingValue" -> "-9.9")) match {
+      case Left(le) => assertEquals(le.message, "Failed to parse IntValue: -9.9")
+      case _ => fail("Constructed Scalar with invalid missing value")
     }
   }
 
   //---- fill ----//
 
   test("fill") {
-    inside(Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int", "fillValue" -> "-999"))) {
+    Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int", "fillValue" -> "-999")) match {
       case Right(s) => assert(s.fillValue.contains(Data.IntValue(-999)))
+      case _ => fail("Failed to construct Scalar")
     }
   }
 
   test("no null as fill") {
-    inside(Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int", "fillValue" -> "null"))) {
-      case Left(le) => assert(le.message == "FillValue must not be 'null'")
+    Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int", "fillValue" -> "null")) match {
+      case Left(le) => assertEquals(le.message, "FillValue must not be 'null'")
+      case _ => fail("Constructed Scalar with null fill value")
     }
   }
 
   test("invalid fill") {
-    inside(Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int", "fillValue" -> "-9.9"))) {
-      case Left(le) => assert(le.message == "Failed to parse IntValue: -9.9")
+    Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int", "fillValue" -> "-9.9")) match {
+      case Left(le) => assertEquals(le.message, "Failed to parse IntValue: -9.9")
+      case _ => fail("Constructed Scalar with invalid fill value")
     }
   }
 
   //---- precision ----//
 
   test("precision must be non-negative") {
-    inside(Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "double", "precision" -> "-1"))) {
-      case Left(le) => assert(le.message == "Precision must not be negative")
+    Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "double", "precision" -> "-1")) match {
+      case Left(le) => assertEquals(le.message, "Precision must not be negative")
+      case _ => fail("Constructed Scalar with negative precision")
     }
   }
 
   test("precision must be an integer") {
-    inside(Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "double", "precision" -> "1.2"))) {
-      case Left(le) => assert(le.message == "Precision must be an integer")
+    Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "double", "precision" -> "1.2")) match {
+      case Left(le) => assertEquals(le.message, "Precision must be an integer")
+      case _ => fail("Constructed Scalar with non-integer precision")
     }
   }
 
   test("invalid value type for precision") {
-    inside(Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int", "precision" -> "2"))) {
-      case Left(le) => assert(le.message == "Precision is not supported for value type: int")
+    Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int", "precision" -> "2")) match {
+      case Left(le) => assertEquals(le.message, "Precision is not supported for value type: int")
+      case _ => fail("Constructed Scalar with precision for unsupported type")
     }
   }
 
   //---- order ----//
 
   test("default ascending") {
-    inside(Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int"))) {
+    Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int")) match {
       case Right(s) => assert(s.ascending)
+      case _ => fail("Failed to construct Scalar")
     }
   }
 
   test("explicit ascending") {
-    inside(Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int", "order" -> "asc"))) {
+    Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int", "order" -> "asc")) match {
       case Right(s) => assert(s.ascending)
+      case _ => fail("Failed to construct Scalar")
     }
   }
 
   test("descending") {
-    inside(Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int", "order" -> "desc"))) {
+    Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int", "order" -> "desc")) match {
       case Right(s) => assert(!s.ascending)
+      case _ => fail("Failed to construct Scalar")
     }
   }
 
   test("invalid order") {
-    inside(Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int", "order" -> "foo"))) {
-      case Left(le) => assert(le.message == "Order must be 'asc' or 'desc'")
+    Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int", "order" -> "foo")) match {
+      case Left(le) => assertEquals(le.message, "Order must be 'asc' or 'desc'")
+      case _ => fail("Constructed Scalar with invalid order")
     }
   }
 
@@ -144,6 +159,8 @@ class ScalarFactorySuite extends AnyFunSuite {
 
   test("construct time") {
     val md = Metadata("id" -> "a", "type" -> "string", "units" -> "yyyy", "class" -> "latis.time.Time")
-    Scalar.fromMetadata(md).value.isInstanceOf[latis.time.Time]
+    val scalar = Scalar.fromMetadata(md).fold(fail("Failed to construct Scalar", _), identity)
+
+    assert(scalar.isInstanceOf[latis.time.Time])
   }
 }

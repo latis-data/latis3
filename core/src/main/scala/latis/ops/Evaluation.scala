@@ -35,6 +35,8 @@ case class Evaluation(value: String) extends UnaryOperation {
 
 object Evaluation {
 
+  def builder: OperationBuilder = (args: List[String]) => fromArgs(args)
+
   def fromArgs(args: List[String]): Either[LatisException, Evaluation] = args match {
     case arg :: Nil => Right(Evaluation(arg))
     case _ => Left(LatisException("Evaluation requires exactly one argument"))

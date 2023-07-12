@@ -1,45 +1,42 @@
 package latis.ops
 
-import cats.effect.unsafe.implicits.global
-import org.scalatest.EitherValues._
-import org.scalatest.Inside._
-import org.scalatest.funsuite.AnyFunSuite
+import munit.CatsEffectSuite
 
 import latis.data._
 import latis.dsl._
 import latis.model._
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 
-class UncurrySuite extends AnyFunSuite {
+class UncurrySuite extends CatsEffectSuite {
 
   // x -> y -> a
   val dataset2D = DatasetGenerator("(x, y) -> a").curry(1)
 
   test("uncurry nested dataset") {
     val ds = dataset2D.uncurry()
-    inside(ds.model) {
+    ds.model match {
       case Function(Tuple(x: Scalar, y: Scalar), a: Scalar) =>
-        assert(x.id == id"x")
-        assert(y.id == id"y")
-        assert(a.id == id"a")
+        assertEquals(x.id, id"x")
+        assertEquals(y.id, id"y")
+        assertEquals(a.id, id"a")
+      case _ => fail("unexpected model")
     }
     //Test all "a" to make sure order is preserved
-    val as = ds.samples.map {
+    ds.samples.map {
       case Sample(DomainData(_, _), RangeData(Integer(a))) => a
-      case _ => fail()
-    }.compile.toList.unsafeRunSync()
-    assert(as == List(0,1,2,3,4,5))
+      case _ => fail("")
+    }.compile.toList.assertEquals(List(0L, 1L, 2L, 3L, 4L, 5L))
   }
 
-  ignore("uncurry multiple nested functions") {}
+  test("uncurry multiple nested functions".ignore) {}
 
   //TODO: prevent 2D domain with one Index until we support Cartesian
-  ignore("uncurry with index") {
+  test("uncurry with index".ignore) {
     // _i -> y -> a
     val model = Function.from(
       Index(id"_i"),
       ModelParser.unsafeParse("y -> a")
-    ).value
+    ).fold(fail("failed to construct function", _), identity)
     Uncurry().applyToModel(model).map {
       println(_)
     }

@@ -73,6 +73,8 @@ case class Curry(arity: Int = 1) extends GroupOperation {
 
 object Curry {
 
+  def builder: OperationBuilder = (args: List[String]) => fromArgs(args)
+
   def fromArgs(args: List[String]): Either[LatisException, Curry] = args match {
     case arity :: Nil => Either.catchOnly[NumberFormatException](Curry(arity.toInt))
       .leftMap(LatisException(_))

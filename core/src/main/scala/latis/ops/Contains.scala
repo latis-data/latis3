@@ -63,6 +63,8 @@ case class Contains(id: Identifier, values: String*) extends Filter {
 
 object Contains {
 
+  def builder: OperationBuilder = (args: List[String]) => fromArgs(args)
+
   def fromArgs(args: List[String]): Either[LatisException, Contains] = args match {
     case id :: value :: values =>
       Either.fromOption(

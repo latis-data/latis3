@@ -34,6 +34,9 @@ case class Rename(origId: Identifier, newId: Identifier) extends UnaryOperation 
 
 object Rename {
 
+  def builder: OperationBuilder = (args: List[String]) =>
+    fromArgs(args)
+
   def fromArgs(args: List[String]): Either[LatisException, Rename] = Either.catchOnly[LatisException] {
     args.map { arg =>
       Identifier.fromString(arg)

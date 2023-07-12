@@ -18,6 +18,8 @@ class Take private (val n: Int) extends StreamOperation with Taking {
 
 object Take {
 
+  def builder: OperationBuilder = (args: List[String]) => fromArgs(args)
+
   /**
    * Constructs a Take operation.
    * A negative number will be treated as zero.
