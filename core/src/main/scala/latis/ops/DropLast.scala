@@ -15,3 +15,11 @@ case class DropLast() extends StreamOperation {
   def applyToModel(model: DataType): Either[LatisException, DataType] =
     model.asRight
 }
+
+object DropLast {
+
+  def builder: OperationBuilder = (args: List[String]) => {
+    if (args.nonEmpty) LatisException("DropLast does not take arguments").asLeft
+    else DropLast().asRight
+  }
+}

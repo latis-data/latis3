@@ -11,7 +11,6 @@ import latis.input.Adapter
 import latis.metadata.Metadata
 import latis.model._
 import latis.ops._
-import latis.util.Identifier
 import latis.util.Identifier._
 import latis.util.dap2.parser.ast
 import latis.util.LatisException
@@ -48,7 +47,7 @@ import latis.util.LatisException
  * properties of operations that precede it.
  */
 class GranuleAppendDataset private (
-  dsIdentifier: Identifier,
+  md: Metadata,
   granuleList: Dataset,
   granuleModel: DataType,
   granuleToDataset: Sample => Dataset,
@@ -56,7 +55,7 @@ class GranuleAppendDataset private (
   operations: List[UnaryOperation] = List.empty
 ) extends Dataset {
 
-  def metadata: Metadata = Metadata(dsIdentifier) //TODO: add prov, see AbstractDataset
+  def metadata: Metadata = md //TODO: add prov, see AbstractDataset
 
   def model: DataType = operations.foldLeft(granuleModel)((mod, op) => op.applyToModel(mod).fold(throw _, identity))
 
@@ -64,7 +63,7 @@ class GranuleAppendDataset private (
    * Combines a List of granule Datasets into a single Dataset.
    */
   private def makeDataset(granules: List[Dataset]): Dataset = granules match {
-    case ds1 :: ds2 :: dss => CompositeDataset(dsIdentifier, Append(), ds1, ds2, dss)
+    case ds1 :: ds2 :: dss => CompositeDataset(md, Append(), ds1, ds2, dss)
     case ds :: Nil         => ds //just one granule, TODO: rename it with dsIdentifier?
     case Nil               => new TappedDataset(metadata, granuleModel, SeqFunction(Seq.empty)) //empty dataset
   }
@@ -154,7 +153,7 @@ class GranuleAppendDataset private (
         case _ => op
       }
       new GranuleAppendDataset(
-        dsIdentifier,
+        md,
         granuleList,
         granuleModel,
         granuleToDataset,
@@ -163,7 +162,7 @@ class GranuleAppendDataset private (
       )
     } else {
       new GranuleAppendDataset(
-        dsIdentifier,
+        md,
         granuleList,
         granuleModel,
         granuleToDataset,
@@ -179,12 +178,12 @@ class GranuleAppendDataset private (
 object GranuleAppendDataset {
 
   def apply(
-    id: Identifier,
+    md: Metadata,
     granuleList: Dataset,
     model: DataType,
     granuleToDataset: Sample => Dataset
   ): GranuleAppendDataset = new GranuleAppendDataset(
-    id,
+    md,
     granuleList,
     model,
     granuleToDataset
@@ -200,7 +199,7 @@ object GranuleAppendDataset {
    * Dataset and invoke the Adapter to generate Data for that granule.
    */
   def withAdapter(
-    id: Identifier,
+    md: Metadata,
     granuleList: Dataset,
     model: DataType,
     adapter: Adapter,
@@ -217,12 +216,12 @@ object GranuleAppendDataset {
       val granuleToDataset: Sample => Dataset = (sample: Sample) =>
         sample.getValue(pos) match {
           case Some(Text(u)) =>
-            val md = Metadata(id) //TODO: generate unique granule id?
+            //TODO: generate unique granule id?
             val uri = new URI(u) //may throw URISyntaxException
-            new AdaptedDataset(md, model, adapter, uri, ops)
+            new AdaptedDataset(md, model, adapter, uri)
           case _ => throw LatisException("Invalid Sample") //TODO: log warning
         }
-      GranuleAppendDataset(id, granuleList, model, granuleToDataset).withOperations(ops)
+      GranuleAppendDataset(md, granuleList, model, granuleToDataset).withOperations(ops)
     }
 
 }

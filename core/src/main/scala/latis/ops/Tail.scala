@@ -15,3 +15,11 @@ case class Tail() extends StreamOperation {
   def applyToModel(model: DataType): Either[LatisException, DataType] =
     model.asRight
 }
+
+object Tail {
+
+  def builder: OperationBuilder = (args: List[String]) => {
+    if (args.nonEmpty) LatisException("Tail does not take arguments").asLeft
+    else Tail().asRight
+  }
+}

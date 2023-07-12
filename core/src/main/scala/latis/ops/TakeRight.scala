@@ -17,6 +17,9 @@ case class TakeRight(n: Int) extends StreamOperation with Taking {
 }
 
 object TakeRight {
+
+  def builder: OperationBuilder = (args: List[String]) => fromArgs(args)
+
   def fromArgs(args: List[String]): Either[LatisException, TakeRight] = args match {
     case n :: Nil => Either.catchOnly[NumberFormatException](TakeRight(n.toInt))
       .leftMap(LatisException(_))

@@ -1,9 +1,8 @@
 package latis.util
 
-import org.scalatest.funsuite.AnyFunSuite
-import org.scalatest.Inside.inside
+import munit.FunSuite
 
-class BoundsSuite extends AnyFunSuite {
+class BoundsSuite extends FunSuite {
 
   val bounds: Bounds[Double] = Bounds.of(-1.0, 2.0).get
 
@@ -67,10 +66,11 @@ class BoundsSuite extends AnyFunSuite {
   }
 
   test("extract bounds") {
-    inside(bounds) {
+    bounds match {
       case Bounds(l, u) =>
         assert(l == -1)
         assert(u == 2)
+      case _ => fail("")
     }
   }
 }

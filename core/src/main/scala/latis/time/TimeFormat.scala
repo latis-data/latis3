@@ -108,9 +108,25 @@ object TimeFormat {
    *   - HHmm
    *   - HH:mm
    *   - HHmmss
+   *   - HHmmss.S
+   *   - HHmmss.SS
    *   - HHmmss.SSS
+   *   - HHmmss.SSSS
+   *   - HHmmss.SSSSS
+   *   - HHmmss.SSSSSS
+   *   - HHmmss.SSSSSSS
+   *   - HHmmss.SSSSSSSS
+   *   - HHmmss.SSSSSSSSS
    *   - HH:mm:ss
+   *   - HH:mm:ss.S
+   *   - HH:mm:ss.SS
    *   - HH:mm:ss.SSS
+   *   - HH:mm:ss.SSSS
+   *   - HH:mm:ss.SSSSS
+   *   - HH:mm:ss.SSSSSS
+   *   - HH:mm:ss.SSSSSSS
+   *   - HH:mm:ss.SSSSSSSS
+   *   - HH:mm:ss.SSSSSSSSS
    *
    *   with an optional "Z" time zone designator.
    *
@@ -156,9 +172,25 @@ object TimeFormat {
     // Strip off the optional "Z" time zone designation to add back later
     val (s2, z) = if (s.endsWith("Z")) (s.dropRight(1), "'Z'") else (s, "")
 
-    (if     (s2.matches(raw"\d{2}:\d{2}:\d{2}\.\d{3}")) "HH:mm:ss.SSS".asRight
+    (if (s2.matches(raw"\d{2}:\d{2}:\d{2}\.\d{9}"))     "HH:mm:ss.SSSSSSSSS".asRight
+    else if (s2.matches(raw"\d{2}:\d{2}:\d{2}\.\d{8}")) "HH:mm:ss.SSSSSSSS".asRight
+    else if (s2.matches(raw"\d{2}:\d{2}:\d{2}\.\d{7}")) "HH:mm:ss.SSSSSSS".asRight
+    else if (s2.matches(raw"\d{2}:\d{2}:\d{2}\.\d{6}")) "HH:mm:ss.SSSSSS".asRight
+    else if (s2.matches(raw"\d{2}:\d{2}:\d{2}\.\d{5}")) "HH:mm:ss.SSSSS".asRight
+    else if (s2.matches(raw"\d{2}:\d{2}:\d{2}\.\d{4}")) "HH:mm:ss.SSSS".asRight
+    else if (s2.matches(raw"\d{2}:\d{2}:\d{2}\.\d{3}")) "HH:mm:ss.SSS".asRight
+    else if (s2.matches(raw"\d{2}:\d{2}:\d{2}\.\d{2}")) "HH:mm:ss.SS".asRight
+    else if (s2.matches(raw"\d{2}:\d{2}:\d{2}\.\d{1}")) "HH:mm:ss.S".asRight
     else if (s2.matches(raw"\d{2}:\d{2}:\d{2}"))        "HH:mm:ss".asRight
+    else if (s2.matches(raw"\d{6}\.\d{9}"))             "HHmmss.SSSSSSSSS".asRight
+    else if (s2.matches(raw"\d{6}\.\d{8}"))             "HHmmss.SSSSSSSS".asRight
+    else if (s2.matches(raw"\d{6}\.\d{7}"))             "HHmmss.SSSSSSS".asRight
+    else if (s2.matches(raw"\d{6}\.\d{6}"))             "HHmmss.SSSSSS".asRight
+    else if (s2.matches(raw"\d{6}\.\d{5}"))             "HHmmss.SSSSS".asRight
+    else if (s2.matches(raw"\d{6}\.\d{4}"))             "HHmmss.SSSS".asRight
     else if (s2.matches(raw"\d{6}\.\d{3}"))             "HHmmss.SSS".asRight
+    else if (s2.matches(raw"\d{6}\.\d{2}"))             "HHmmss.SS".asRight
+    else if (s2.matches(raw"\d{6}\.\d{1}"))             "HHmmss.S".asRight
     else if (s2.matches(raw"\d{6}"))                    "HHmmss".asRight
     else if (s2.matches(raw"\d{2}:\d{2}"))              "HH:mm".asRight
     else if (s2.matches(raw"\d{4}"))                    "HHmm".asRight
@@ -194,4 +226,3 @@ object TimeFormat {
     }
   }
 }
-

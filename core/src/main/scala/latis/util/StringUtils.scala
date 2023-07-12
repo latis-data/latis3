@@ -47,6 +47,27 @@ object StringUtils {
     else string
   }
 
+  /**
+   * Ensures that all backslashes in a string are escaped, by converting each single
+   * backslash into a double backslash.
+   */
+  def ensureBackslashEscaped(string: String): String =
+    string.replace(backslash.toString, backslash.toString + backslash.toString)
+
+  /**
+   * Ensures that all double quotes in a string are escaped, by converting each double quote
+   * into a backslash double quote.
+   */
+  def ensureDoubleQuoteEscaped(string: String): String =
+    string.replace(doubleQuote.toString, backslash.toString + doubleQuote.toString)
+
+  /**
+   * Ensures that the string is quoted and escaped by always adding new double quotes,
+   * and escaping all prior backslashes and quotes
+   */
+  def ensureQuotedAndEscaped(string: String): String =
+    s"${doubleQuote}${ensureDoubleQuoteEscaped(ensureBackslashEscaped(string))}${doubleQuote}"
+
   /** Implicit class to enable color console output. */
   implicit class ColoredString(s: String) {
     import Console._

@@ -1,17 +1,17 @@
 ThisBuild / organization := "io.latis-data"
-ThisBuild / scalaVersion := "2.13.10"
+ThisBuild / scalaVersion := "2.13.11"
 
 val attoVersion       = "0.9.5"
-val catsVersion       = "2.8.0"
-val catsEffectVersion = "3.3.14"
-val fs2Version        = "3.3.0"
-val http4sVersion     = "0.23.16"
-val log4catsVersion   = "2.5.0"
-val log4jVersion      = "2.19.0"
-val logbackVersion    = "1.3.4"
+val catsVersion       = "2.9.0"
+val catsEffectVersion = "3.5.0"
+val fs2Version        = "3.7.0"
+val http4sVersion     = "0.23.21"
+val log4catsVersion   = "2.6.0"
+val log4jVersion      = "2.20.0"
+val logbackVersion    = "1.3.8"
+val munitVersion      = "0.7.29"
 val netcdfVersion     = "5.5.3"
-val pureconfigVersion = "0.17.1"
-val scalaTestVersion  = "3.2.12"
+val pureconfigVersion = "0.17.4"
 
 lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
@@ -20,18 +20,17 @@ lazy val commonSettings = Seq(
     "co.fs2"        %% "fs2-core"    % fs2Version,
     "co.fs2"        %% "fs2-io"      % fs2Version,
     "com.typesafe"   % "config"      % "1.4.2",
-    "org.scalatest" %% "scalatest"   % scalaTestVersion % Test,
     "org.scalacheck" %% "scalacheck" % "1.15.4" % Test,
-    "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test,
-    "org.scalameta" %% "munit"       % "0.7.29" % Test,
-    "org.typelevel" %% "munit-cats-effect-3" % "1.0.7" % Test
-
+    "org.scalameta" %% "munit"       % munitVersion % Test,
+    "org.typelevel" %% "munit-cats-effect-3" % "1.0.7" % Test,
+    "org.scalameta" %% "munit-scalacheck" % munitVersion % Test
   ),
   Test / fork := true,
   scalacOptions -= "-Xfatal-warnings",
   scalacOptions += {
     if (insideCI.value) "-Wconf:any:e" else "-Wconf:any:w"
   },
+  Test / scalacOptions -= "-Wnonunit-statement",
   addCompilerPlugin("org.typelevel" % "kind-projector" % "0.13.2" cross CrossVersion.full)
 )
 
@@ -98,11 +97,12 @@ lazy val core = project
     name := "latis3-core",
     libraryDependencies ++= Seq(
       "org.scala-lang.modules" %% "scala-xml"           % "2.1.0",
-      "io.circe"               %% "circe-core"          % "0.14.3",
+      "io.circe"               %% "circe-core"          % "0.14.5",
       "org.scodec"             %% "scodec-core"         % "1.11.10",
       "org.scodec"             %% "scodec-stream"       % "3.0.2",
       "org.scodec"             %% "scodec-cats"         % "1.2.0",
-      "org.http4s"             %% "http4s-ember-client" % http4sVersion
+      "org.http4s"             %% "http4s-ember-client" % http4sVersion,
+      "org.gnieh"              %% "fs2-data-csv"        % "1.7.1"
     )
   )
 
@@ -129,8 +129,7 @@ lazy val `dap2-parser` = project
   .settings(
     name := "dap2-parser",
     libraryDependencies ++= Seq(
-      "org.tpolecat"   %% "atto-core"  % attoVersion,
-      "com.github.alexarchambault" %% "scalacheck-shapeless_1.15" % "1.3.0" % Test
+      "org.tpolecat"   %% "atto-core"  % attoVersion
     )
   )
 
@@ -146,7 +145,8 @@ lazy val `dap2-service` = project
       "org.http4s"     %% "http4s-core"      % http4sVersion % Provided,
       "org.http4s"     %% "http4s-dsl"       % http4sVersion % Provided,
       "org.http4s"     %% "http4s-circe"     % http4sVersion,
-      "org.http4s"     %% "http4s-scalatags" % "0.25.0"
+      "org.http4s"     %% "http4s-scalatags" % "0.25.2",
+      "org.typelevel"  %% "paiges-cats"      % "0.4.3"
     )
   )
 
@@ -200,9 +200,9 @@ lazy val macros = project
   .settings(
     name := "latis3-macros",
     libraryDependencies ++= Seq(
+      "org.typelevel" %% "literally" % "1.1.0",
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
-    ),
-    scalacOptions += "-language:experimental.macros"
+    )
   )
 
 lazy val netcdf = project
@@ -229,8 +229,8 @@ lazy val jdbc = project
   .settings(
     name := "latis3-jdbc",
     libraryDependencies ++= Seq(
-      "org.tpolecat"             %% "doobie-core" % "1.0.0-RC2",
-      "com.h2database"            % "h2"          % "2.1.214" % Test
+      "org.tpolecat"   %% "doobie-core" % "1.0.0-RC2",
+      "com.h2database"  % "h2"          % "2.1.214" % Test
     )
   )
 
@@ -240,6 +240,6 @@ lazy val `test-utils` = project
   .settings(
     name := "latis3-test-utils",
     libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % scalaTestVersion
+      "org.scalatest" %% "scalatest" % "3.2.12"
     ),
   )

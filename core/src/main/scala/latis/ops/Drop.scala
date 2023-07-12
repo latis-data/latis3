@@ -17,6 +17,9 @@ case class Drop(n: Long) extends StreamOperation {
 }
 
 object Drop {
+
+  def builder: OperationBuilder = (args: List[String]) => fromArgs(args)
+
   def fromArgs(args: List[String]): Either[LatisException, Drop] = args match {
     case n :: Nil => Either.catchOnly[NumberFormatException](Drop(n.toLong))
       .leftMap(LatisException(_))

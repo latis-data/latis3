@@ -96,6 +96,8 @@ case class Pivot(values: Seq[String], vids: Seq[String]) extends MapOperation {
 
 object Pivot {
 
+  def builder: OperationBuilder = (args: List[String]) => fromArgs(args)
+
   def fromArgs(args: List[String]): Either[LatisException, Pivot] = {
     // define a parser that doesn't allow nested lists
     val argParser = parens(sepBy(scalarArg.token, char(',').token))

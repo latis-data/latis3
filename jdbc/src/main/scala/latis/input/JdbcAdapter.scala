@@ -244,12 +244,14 @@ case class JdbcAdapter(
       config.password
     )
 
-    val sql = SqlBuilder.buildQuery(config.table, model, uops, config.predicate)
-
     // processGeneric and the functions it calls were adapted from Doobie's
     // example.GenericStream to return Samples
-    val result = processGeneric(sql, ().pure[PreparedStatementIO], fetchSize)
-      .transact(xa)
+    val result = Stream.eval(
+      HC.getMetaData(FDMD.getDatabaseProductName).map(Option(_))
+    ).flatMap { vendor =>
+      val sql = SqlBuilder.buildQuery(config.table, model, uops, config.predicate, vendor)
+      processGeneric(sql, ().pure[PreparedStatementIO], fetchSize)
+    }.transact(xa)
 
     SampledFunction(result)
   }

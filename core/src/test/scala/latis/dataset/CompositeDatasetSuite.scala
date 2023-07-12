@@ -2,8 +2,6 @@ package latis.dataset
 
 import munit.CatsEffectSuite
 
-import latis.data.Data._
-import latis.data.Sample
 import latis.data._
 import latis.dsl._
 import latis.metadata.Metadata
@@ -48,7 +46,7 @@ class CompositeDatasetSuite extends CatsEffectSuite {
     new MemoizedDataset(metadata, model, data)
   }
 
-  private lazy val compDs = CompositeDataset(id"test", Append(), ds1, ds2)
+  private lazy val compDs = CompositeDataset(Metadata(id"test"), Append(), ds1, ds2)
 
   test("provide a composite model") {
     compDs.model match {

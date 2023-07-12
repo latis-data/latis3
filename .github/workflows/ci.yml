@@ -6,7 +6,7 @@ jobs:
   test:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: coursier/setup-action@v1
         with:
           jvm: adopt:8
@@ -21,7 +21,7 @@ jobs:
         run: echo "NETCDF_PATH=$HOME/netcdf" >> $GITHUB_ENV
       - name: Cache NetCDF installation
         id: cache-netcdf
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ env.NETCDF_PATH }}
           key: ${{ runner.os }}-netcdf-4.7.4

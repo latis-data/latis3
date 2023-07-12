@@ -127,7 +127,7 @@ class SqlBuilderSuite extends FunSuite {
   test("no limit") {
     val ops = List()
     val sql = SqlBuilder.buildQuery(table, model, ops)
-    assert(!sql.contains("FETCH"))
+    assert(!sql.contains("FETCH") && !sql.contains("LIMIT"))
   }
 
   test("limit with take") {
@@ -158,5 +158,11 @@ class SqlBuilderSuite extends FunSuite {
     val ops = List(Take(0), Head())
     val sql = SqlBuilder.buildQuery(table, model, ops)
     assert(sql.contains("0 ROWS")) //yes, oracle does allow this
+  }
+
+  test("limit with LIMIT") {
+    val ops = List(Head())
+    val sql = SqlBuilder.buildQuery(table, model, ops, vendor = Option("SQLite"))
+    assert(sql.contains("LIMIT 1"))
   }
 }

@@ -1,7 +1,6 @@
 package latis.util.dap2.parser
 
 import org.scalacheck._
-import org.scalacheck.ScalacheckShapeless._
 
 import latis.util.Identifier
 
@@ -30,7 +29,7 @@ object ConstraintParserProps extends Properties("DAP 2 Constraint Parser") {
   } yield init.asString + rest
 
   val operator: Gen[SelectionOp] =
-    implicitly[Arbitrary[SelectionOp]].arbitrary
+    Gen.oneOf(Gt, Lt, Eq, GtEq, LtEq, EqEq, NeEq, Tilde, EqTilde, NeEqTilde)
 
   val sign: Gen[String] = Gen.oneOf("+", "-", "")
 

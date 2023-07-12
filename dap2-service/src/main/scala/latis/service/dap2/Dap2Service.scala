@@ -5,22 +5,23 @@ import java.net.URLDecoder
 import cats.effect._
 import cats.syntax.all._
 import fs2.Stream
-import fs2.io.file.{Path => FPath}
 import fs2.io.file.Files
 import fs2.text
-import org.http4s.circe._
-import org.http4s.dsl.Http4sDsl
-import org.http4s.headers.`Content-Type`
+import org.http4s.Header.Raw
 import org.http4s.Headers
 import org.http4s.HttpRoutes
 import org.http4s.MediaType
 import org.http4s.Response
+import org.http4s.circe._
+import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.Accept
 import org.http4s.scalatags.scalatagsEncoder
+import org.typelevel.ci._
 
 import latis.catalog.Catalog
 import latis.dataset.Dataset
 import latis.ops
+import latis.ops.OperationRegistry
 import latis.ops.UnaryOperation
 import latis.output._
 import latis.server.ServiceInterface
@@ -33,7 +34,8 @@ import latis.util.dap2.parser.ast.ConstraintExpression
 /**
  * A service interface implementing the DAP 2 specification.
  */
-class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4sDsl[IO] {
+class Dap2Service(catalog: Catalog, operationRegistry: OperationRegistry)
+  extends ServiceInterface(catalog, operationRegistry) with Http4sDsl[IO] {
 
   override def routes: HttpRoutes[IO] =
     HttpRoutes.of {
@@ -116,8 +118,8 @@ class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4
       ds        = dataset.withOperations(ops)
       encoding <- IO.fromEither(encodeDataset(ds, ext))
       bytes     = encoding._1
-      content   = encoding._2
-      response <- Ok(bytes).map(_.withContentType(content))
+      headers   = encoding._2
+      response <- Ok(bytes).map(_.withHeaders(headers))
     } yield response).recoverWith {
       case err: Dap2Error => handleDap2Error(err)
     }
@@ -133,9 +135,16 @@ class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4
           case ast.Projection(vs)      => Right(ops.Projection(vs:_*))
           case ast.Selection(n, op, v) => Right(ops.Selection(n, op, stripQuotes(v)))
           // Delegate to Operation factory
-          case ast.Operation(name, args) =>
-            UnaryOperation.makeOperation(name, args.map(stripQuotes))
-              .leftMap(le => InvalidOperation(le.message))
+          case ast.Operation(name, args) => {
+            operationRegistry.get(name).toRight {
+              InvalidOperation(s"Operation not found: $name")
+            }.flatMap { ob =>
+              ob.build(args.map(stripQuotes)).leftMap { _ =>
+                val msg = s"Failed to make operation $name with arguments ${args.mkString(", ")}"
+                InvalidOperation(msg)
+              }
+            }
+          }
         }
       }
   }
@@ -147,25 +156,32 @@ class Dap2Service(catalog: Catalog) extends ServiceInterface(catalog) with Http4
   private def encodeDataset(
     ds: Dataset,
     ext: Option[String]
-  ): Either[Dap2Error, (Stream[IO, Byte], `Content-Type`)] = ext.getOrElse("meta") match {
+  ): Either[Dap2Error, (Stream[IO, Byte], Headers)] = ext.getOrElse("meta") match {
     case "asc"   => new TextEncoder().encode(ds).through(text.utf8.encode).asRight
-      .map((_,`Content-Type`(MediaType.text.plain)))
-    case "bin"   => new BinaryEncoder().encode(ds).asRight.map((_, `Content-Type`(MediaType.application.`octet-stream`)))
+      .map((_,Headers(Raw(ci"Content-Type", "text/plain"))))
+    case "bin"   => new BinaryEncoder().encode(ds).asRight
+      .map((_, Headers(Raw(ci"Content-Type", "application/octet-stream"))))
     case "csv"   => CsvEncoder.withColumnName.encode(ds).through(text.utf8.encode).asRight
-      .map((_, `Content-Type`(MediaType.text.csv)))
+      .map((_, Headers(Raw(ci"Content-Type", "text/csv"))))
+    case "das"   => new DasEncoder().encode(ds).through(text.utf8.encode).asRight
+      .map((_, Headers(Raw(ci"Content-Type", "text/plain"), Raw(ci"Content-Description", "dods-das"))))
+    case "dds"   => new DdsEncoder().encode(ds).through(text.utf8.encode).asRight
+      .map((_, Headers(Raw(ci"Content-Type", "text/plain"), Raw(ci"Content-Description", "dods-dds"))))
     case "jsonl" => new JsonEncoder().encode(ds).map(_.noSpaces).intersperse("\n").through(text.utf8.encode).asRight
-      .map((_, `Content-Type`(MediaType.unsafeParse("application/jsonl"))))
+      .map((_, Headers(Raw(ci"Content-Type", "application/jsonl"))))
     case "meta"  => new MetadataEncoder().encode(ds).map(_.noSpaces).through(text.utf8.encode).asRight
-      .map((_,`Content-Type`(MediaType.application.json)))
+      .map((_, Headers(Raw(ci"Content-Type", "application/json"))))
     case "nc"    =>
       (for {
         tmpFile <- Stream.resource(Files[IO].tempFile)
-        file    <- new NetcdfEncoder(tmpFile.toNioPath.toFile()).encode(ds)
-        bytes   <- Files[IO].readAll(FPath.fromNioPath(file.toPath()))
-      } yield bytes).asRight.map((_, `Content-Type`(MediaType.application.`x-netcdf`)))
+        file    <- new NetcdfEncoder(tmpFile).encode(ds)
+        bytes   <- Files[IO].readAll(file)
+      } yield bytes).asRight.map((_, Headers(Raw(ci"Content-Type", "application/x-netcdf"))))
     case "txt"   => CsvEncoder().encode(ds).through(text.utf8.encode).asRight
-      .map((_, `Content-Type`(MediaType.text.plain)))
-    case _       => UnknownExtension(s"Unknown extension: $ext").asLeft
+      .map((_, Headers(Raw(ci"Content-Type", "text/plain"))))
+    case "zip"   => new ZipEncoder().encode(ds.withOperation(ops.FileListToZipList())).asRight
+      .map((_, Headers(Raw(ci"Content-Type", "application/zip"))))
+    case name    => UnknownExtension(s"Unknown extension: $name").asLeft
   }
 
   private def handleDap2Error(err: Dap2Error): IO[Response[IO]] =

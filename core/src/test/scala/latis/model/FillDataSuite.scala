@@ -1,30 +1,34 @@
 package latis.model
 
-import org.scalatest.EitherValues._
-import org.scalatest.funsuite.AnyFunSuite
-import org.scalatest.Inside.inside
+import cats.syntax.all._
+import munit.FunSuite
 
 import latis.data._
 import latis.metadata.Metadata
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 
-class FillDataSuite extends AnyFunSuite {
+class FillDataSuite extends FunSuite {
 
   private lazy val nonNullableScalar = Scalar(id"nns", IntValueType)
-  private lazy val scalarWithFill    = Scalar.fromMetadata(Metadata("id" -> "swf", "type" -> "int", "fillValue" -> "-1")).value
-  private lazy val scalarWithMissing = Scalar.fromMetadata(Metadata("id" -> "swm", "type" -> "int", "missingValue" -> "-9")).value
+  private lazy val scalarWithFill    = Scalar.fromMetadata(Metadata("id" -> "swf", "type" -> "int", "fillValue" -> "-1"))
+    .fold(fail("failed to construct scalar", _), identity)
+  private lazy val scalarWithMissing = Scalar.fromMetadata(Metadata("id" -> "swm", "type" -> "int", "missingValue" -> "-9"))
+    .fold(fail("failed to construct scalar", _), identity)
   private lazy val scalarWithFillAndMissing =
-    Scalar.fromMetadata(Metadata("id" -> "swfm", "type" -> "int", "fillValue" -> "-1", "missingValue" -> "-9")).value
+    Scalar.fromMetadata(Metadata("id" -> "swfm", "type" -> "int", "fillValue" -> "-1", "missingValue" -> "-9"))
+      .fold(fail("failed to construct scalar", _), identity)
 
-  private lazy val tuple: Tuple = Tuple.fromElements(
-    nonNullableScalar,
-    scalarWithFill,
-    Tuple.fromElements(
-      scalarWithMissing,
-      scalarWithFillAndMissing
-    ).value,
-    Function.from(nonNullableScalar, scalarWithFill).value
-  ).value
+  private lazy val tuple: Tuple =
+    (
+      nonNullableScalar.asRight,
+      scalarWithFill.asRight,
+      Tuple.fromElements(
+        scalarWithMissing,
+        scalarWithFillAndMissing
+      ),
+      Function.from(nonNullableScalar, scalarWithFill)
+    ).flatMapN(Tuple.fromElements(_, _, _, _))
+      .fold(fail("failed to construct tuple", _), identity)
 
   test("fillable only if fillValue is defined") {
     assert(!nonNullableScalar.isFillable)
@@ -34,35 +38,28 @@ class FillDataSuite extends AnyFunSuite {
   }
 
   test("fill non-nullable Scalar with null") {
-    inside(nonNullableScalar.fillData) {
-      case NullData => assert(true)
-    }
+    assertEquals(nonNullableScalar.fillData, NullData)
   }
 
   test("fill Scalar with fill value") {
-    inside(scalarWithFill.fillData) {
-      case Integer(fv) => assert(fv == -1)
-    }
+    assertEquals(scalarWithFill.fillData, Data.IntValue(-1))
   }
 
   test("fill Scalar with missing value") {
-    inside(scalarWithMissing.fillData) {
-      case Integer(fv) => assert(fv == -9)
-    }
+    assertEquals(scalarWithMissing.fillData, Data.IntValue(-9))
   }
 
   test("fill Scalar with fill value over missing") {
-    inside(scalarWithFillAndMissing.fillData) {
-      case Integer(fv) => assert(fv == -1)
-    }
+    assertEquals(scalarWithFillAndMissing.fillData, Data.IntValue(-1))
   }
 
   test("tuple") {
-    inside(tuple.fillData) {
+    tuple.fillData match {
       case TupleData(NullData, Integer(f), Integer(m), Integer(fm), NullData) =>
-        assert(f  == -1)
-        assert(m  == -9)
-        assert(fm == -1)
+        assertEquals(f, -1L)
+        assertEquals(m, -9L)
+        assertEquals(fm, -1L)
+      case _ => fail("unexpected TupleData")
     }
   }
 }

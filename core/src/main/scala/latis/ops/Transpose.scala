@@ -61,5 +61,10 @@ class Transpose extends UnaryOperation {
 
 object Transpose {
 
+  def builder: OperationBuilder = (args: List[String]) => {
+    if (args.nonEmpty) LatisException("Transpose does not take arguments").asLeft
+    else Transpose().asRight
+  }
+
   def apply(): Transpose = new Transpose()
 }

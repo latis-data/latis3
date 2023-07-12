@@ -10,6 +10,7 @@ import latis.dataset.GranuleAppendDataset
 import latis.input.Adapter
 import latis.model._
 import latis.ops
+import latis.ops.OperationRegistry
 import latis.ops.UnaryOperation
 import latis.util.LatisException
 import latis.util.ReflectionUtils
@@ -20,23 +21,30 @@ import latis.util.Identifier
 object FdmlReader {
 
   /** Creates a dataset from a URI pointing to FDML. */
-  def read(uri: URI, validate: Boolean = false): Dataset = (for {
+  def read(uri: URI,
+    validate: Boolean = false,
+    opReg: OperationRegistry = OperationRegistry.default
+  ): Dataset = (for {
     fdml    <- FdmlParser.parseUri(uri, validate)
-    dataset <- read(fdml)
+    dataset <- read(fdml, opReg)
   } yield dataset).fold(throw _, identity)
 
   /** Creates a dataset from FDML. */
-  def read(fdml: Fdml): Either[LatisException, Dataset] = fdml match {
-    case fdml: DatasetFdml       => readDatasetFdml(fdml)
-    case fdml: GranuleAppendFdml => readGranuleAppendFdml(fdml)
+  def read(
+    fdml: Fdml,
+    opReg: OperationRegistry
+  ): Either[LatisException, Dataset] = fdml match {
+    case fdml: DatasetFdml       => readDatasetFdml(fdml, opReg)
+    case fdml: GranuleAppendFdml => readGranuleAppendFdml(fdml, opReg)
   }
 
   private def readDatasetFdml(
-    fdml: DatasetFdml
+    fdml: DatasetFdml,
+    opReg: OperationRegistry
   ): Either[LatisException, Dataset] = for {
     model      <- makeFunction(fdml.model)
     adapter    <- makeAdapter(fdml.adapter, model)
-    operations <- fdml.operations.traverse(makeOperation)
+    operations <- fdml.operations.traverse(expr => makeOperation(expr, opReg))
   } yield new AdaptedDataset(
     fdml.metadata,
     model,
@@ -46,22 +54,15 @@ object FdmlReader {
   )
 
   private def readGranuleAppendFdml(
-    fdml: GranuleAppendFdml
+    fdml: GranuleAppendFdml,
+    opReg: OperationRegistry
   ): Either[LatisException, Dataset] = for {
-    sid        <- Either.fromOption(
-      fdml.metadata.getProperty("id"),
-      LatisException("Missing identifier")
-    )
-    id         <- Either.fromOption(
-      Identifier.fromString(sid),
-      LatisException(s"Invalid identifier: $sid")
-    )
-    granules   <- readDatasetFdml(fdml.source.fdml)
+    granules   <- readDatasetFdml(fdml.source.fdml, opReg)
     model      <- makeFunction(fdml.model)
     adapter    <- makeAdapter(fdml.adapter, model)
-    operations <- fdml.operations.traverse(makeOperation)
+    operations <- fdml.operations.traverse(expr => makeOperation(expr, opReg))
     dataset    <- GranuleAppendDataset.withAdapter(
-                    id,
+                    fdml.metadata,
                     granules,
                     model,
                     adapter,
@@ -112,13 +113,16 @@ object FdmlReader {
   }.leftMap(LatisException(_))
 
   private def makeOperation(
-    expression: ast.CExpr
+    expression: ast.CExpr,
+    opReg: OperationRegistry
   ): Either[LatisException, UnaryOperation] =
     expression match {
       case ast.Projection(vs) => Right(ops.Projection(vs: _*))
       case ast.Selection(n, op, v) =>
         Right(ops.Selection(n, op, v))
       case ast.Operation(name, args) =>
-        UnaryOperation.makeOperation(name, args)
+        opReg.get(name)
+          .toRight(LatisException(s"Unsupported operation: $name"))
+          .flatMap(_.build(args))
     }
 }

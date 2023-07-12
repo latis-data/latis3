@@ -39,6 +39,7 @@ case class ConvertBinary(id: Identifier, base: Base) extends MapOperation {
     }
     (sample: Sample) => sample.getValue(pos) match {
       case Some(b: Data.BinaryValue) => sample.updatedValue(pos, convert(b.value))
+      case Some(NullData) => sample
       case _ => throw LatisException("Target variable must be Binary")
     }
   }
@@ -75,4 +76,25 @@ object ConvertBinary {
   object Base2  extends Base { override def toString: String = "base2" }
   object Base16 extends Base { override def toString: String = "base16" }
   object Base64 extends Base { override def toString: String = "base64" }
+}
+
+object ToBase64 {
+  def builder: OperationBuilder = (args: List[String]) => {
+    if (args.length != 1) LatisException("ToBase64 takes one argument, the target variable id.").asLeft
+    else ConvertBinary.fromArgs(List(args.head, "64"))
+  }
+}
+
+object ToHex {
+  def builder: OperationBuilder = (args: List[String]) => {
+    if (args.length != 1) LatisException("ToHex takes one argument, the target variable id.").asLeft
+    else ConvertBinary.fromArgs(List(args.head, "16"))
+  }
+}
+
+object ToBinary {
+  def builder: OperationBuilder = (args: List[String]) => {
+    if (args.length != 1) LatisException("ToBinary takes one argument, the target variable id.").asLeft
+    else ConvertBinary.fromArgs(List(args.head, "2"))
+  }
 }

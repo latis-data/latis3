@@ -1,30 +1,31 @@
 package latis.model
 
-import org.scalatest.EitherValues._
-import org.scalatest.funsuite.AnyFunSuite
-import org.scalatest.Inside.inside
+import munit.FunSuite
 
 import latis.data.Data._
 
-class ValueTypeSuite extends AnyFunSuite {
+class ValueTypeSuite extends FunSuite {
 
   test("value type equality") {
-    val svt = ValueType.fromName("string").value
-    assert(svt == StringValueType)
-    assert(svt != IntValueType)
+    val svt = ValueType.fromName("string").fold(fail("failed to construct ValueType", _), identity)
+
+    assertEquals(svt, StringValueType)
+    assertNotEquals(svt, IntValueType.asInstanceOf[ValueType])
   }
 
   //-- BooleanValueType --//
 
   test("'true' is true") {
-    inside (BooleanValueType.parseValue("true")) {
+    BooleanValueType.parseValue("true") match {
       case Right(bv: BooleanValue) => assert(bv.value)
+      case _ => fail("")
     }
   }
 
   test("mixed case 'tRuE' is true") {
-    inside (BooleanValueType.parseValue("tRuE")) {
+    BooleanValueType.parseValue("tRuE") match {
       case Right(bv: BooleanValue) => assert(bv.value)
+      case _ => fail("")
     }
   }
 
@@ -33,14 +34,16 @@ class ValueTypeSuite extends AnyFunSuite {
   }
 
   test("'false' is false") {
-    inside (BooleanValueType.parseValue("false")) {
+    BooleanValueType.parseValue("false") match {
       case Right(bv: BooleanValue) => assert(! bv.value)
+      case _ => fail("")
     }
   }
 
   test("mixed case 'fAlSe' is false") {
-    inside (BooleanValueType.parseValue("fAlSe")) {
+    BooleanValueType.parseValue("fAlSe") match {
       case Right(bv: BooleanValue) => assert(! bv.value)
+      case _ => fail("")
     }
   }
 
