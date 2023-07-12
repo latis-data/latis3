@@ -89,6 +89,8 @@ case class TimeTupleToTime(id: Identifier = id"time") extends MapOperation {
 
 object TimeTupleToTime {
 
+  def builder: OperationBuilder = (args: List[String]) => fromArgs(args)
+
   def fromArgs(args: List[String]): Either[LatisException, TimeTupleToTime] = Either.catchOnly[LatisException] {
     args match {
       case Nil => TimeTupleToTime()

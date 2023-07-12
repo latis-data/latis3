@@ -9,6 +9,7 @@ import fs2.io.file._
 
 import latis.dataset.Dataset
 import latis.input.fdml.FdmlReader
+import latis.ops.OperationRegistry
 import latis.util.LatisException
 
 object FdmlCatalog {
@@ -19,8 +20,12 @@ object FdmlCatalog {
    * This catalog will only include files with the "fdml" extension
    * and does not recurse into subdirectories.
    */
-  def fromDirectory(path: Path, validate: Boolean = true): IO[Catalog] =
-    dirDatasetStream(path, validate)
+  def fromDirectory(
+    path: Path,
+    validate: Boolean = true,
+    opReg: OperationRegistry = OperationRegistry.default
+  ): IO[Catalog] =
+    dirDatasetStream(path, validate, opReg)
       .compile
       .toVector
       .map(Catalog.fromFoldable(_))
@@ -35,17 +40,18 @@ object FdmlCatalog {
   def fromClasspath(
     cl: ClassLoader,
     path: Path,
-    validate: Boolean = true
+    validate: Boolean = true,
+    opReg: OperationRegistry = OperationRegistry.default
   ): IO[Catalog] =
     for {
       url <- getResource(cl, path.toString)
       dir <- IO.fromEither(urlToPath(url))
-      dss <- dirDatasetStream(dir, validate).compile.toVector
+      dss <- dirDatasetStream(dir, validate, opReg).compile.toVector
     } yield Catalog.fromFoldable(dss)
 
-  private def dirDatasetStream(dir: Path, validate: Boolean): Stream[IO, Dataset] =
+  private def dirDatasetStream(dir: Path, validate: Boolean, opReg: OperationRegistry): Stream[IO, Dataset] =
     Files[IO].list(dir, "*.fdml").flatMap { f =>
-      pathToDataset(f, validate).fold(
+      pathToDataset(f, validate, opReg).fold(
         t => {
           Stream.eval(IO.println(s"[WARN] Fdml dataset dropped: $f. $t")) >> //TODO: log
           Stream.empty
@@ -64,9 +70,9 @@ object FdmlCatalog {
     case Some(url) => IO.pure(url)
   }
 
-  private def pathToDataset(path: Path, validate: Boolean): Either[Throwable, Dataset] =
+  private def pathToDataset(path: Path, validate: Boolean, opReg: OperationRegistry): Either[Throwable, Dataset] =
     Either.catchNonFatal {
-      FdmlReader.read(path.toNioPath.toUri(), validate)
+      FdmlReader.read(path.toNioPath.toUri(), validate, opReg)
     }
 
   private def urlToPath(url: URL): Either[Throwable, Path] =

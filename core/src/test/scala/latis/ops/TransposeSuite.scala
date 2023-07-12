@@ -1,14 +1,12 @@
 package latis.ops
 
-import cats.effect.unsafe.implicits.global
-import org.scalatest.funsuite.AnyFunSuite
-import org.scalatest.Inside.inside
+import munit.CatsEffectSuite
 
 import latis.data._
 import latis.dsl._
 import latis.model._
 
-class TransposeSuite extends AnyFunSuite {
+class TransposeSuite extends CatsEffectSuite {
 
   val ds = DatasetGenerator("(x, y) -> a")
   // 2 x 3 x-y grid:
@@ -17,20 +15,20 @@ class TransposeSuite extends AnyFunSuite {
   //   0    3
 
   test("model domain transposed") {
-    inside(ds.transpose().model) {
+    ds.transpose().model match {
       case Function(Tuple(y: Scalar, x: Scalar), a: Scalar) =>
-        assert(y.id.asString == "y")
-        assert(x.id.asString == "x")
-        assert(a.id.asString == "a")
+        assertEquals(y.id.asString, "y")
+        assertEquals(x.id.asString, "x")
+        assertEquals(a.id.asString, "a")
+      case _ => fail("unexpected model")
     }
   }
 
   test("samples are reordered") {
-    val as = ds.transpose().samples.map {
+    ds.transpose().samples.map {
       case Sample(_, RangeData(Integer(a))) => a
       case _ => 0
-    }.compile.toList.unsafeRunSync()
-    assert(as == List(0,3,1,4,2,5))
+    }.compile.toList.assertEquals(List(0L, 3L, 1L, 4L, 2L, 5L))
   }
 
 }

@@ -1,20 +1,19 @@
 package latis.model
 
-import org.scalatest.EitherValues._
-import org.scalatest.funsuite.AnyFunSuite
-import org.scalatest.Inside.inside
+import munit.FunSuite
 
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 
-class FunctionSuite extends AnyFunSuite {
+class FunctionSuite extends FunSuite {
 
   private lazy val i = Index(id"_i")
   private lazy val x = Scalar(id"x", IntValueType)
   private lazy val a = Scalar(id"a", IntValueType)
-  private lazy val f = Function.from(id"f", x, a).value
+  private lazy val f = Function.from(id"f", x, a)
+    .fold(fail("failed to construct function", _), identity)
 
   test("to string") {
-    assert(f.toString == "f: x -> a") //TODO: add parens?
+    assertEquals(f.toString, "f: x -> a") //TODO: add parens?
   }
 
   test("function with id") {
@@ -37,15 +36,16 @@ class FunctionSuite extends AnyFunSuite {
     assert(Function.from(x, i).isLeft)
   }
 
-  ignore("no duplicate") {
+  test("no duplicate".ignore) {
     assert(Function.from(x, x).isLeft)
   }
 
   test("extract domain and range") {
-    inside(f) {
+    f match {
       case Function(d: Scalar, r: Scalar) =>
-        assert(d.id == id"x")
-        assert(r.id == id"a")
+        assertEquals(d.id, id"x")
+        assertEquals(r.id, id"a")
+      case _ => fail("unexpected function")
     }
   }
 }

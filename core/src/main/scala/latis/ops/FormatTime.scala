@@ -64,6 +64,8 @@ case class FormatTime(format: TimeFormat) extends TimeOperation {
 
 object FormatTime {
 
+  def builder: OperationBuilder = (args: List[String]) => fromArgs(args)
+
   def fromArgs(args: List[String]): Either[LatisException, FormatTime] = args match {
     case format :: Nil =>
       TimeFormat.fromExpression(format).map(FormatTime(_))

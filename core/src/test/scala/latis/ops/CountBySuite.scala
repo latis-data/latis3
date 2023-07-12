@@ -1,16 +1,14 @@
 package latis.ops
 
-import cats.effect.unsafe.implicits.global
-import org.scalatest.funsuite.AnyFunSuite
-import org.scalatest.EitherValues._
+import munit.CatsEffectSuite
 
 import latis.data._
 import latis.dataset._
 import latis.dsl._
 import latis.metadata._
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 
-class CountBySuite extends AnyFunSuite {
+class CountBySuite extends CatsEffectSuite {
 
   // (x, y) -> a
   private lazy val model = ModelParser.unsafeParse("(x, y) -> a")
@@ -27,36 +25,39 @@ class CountBySuite extends AnyFunSuite {
   private lazy val ds = new MemoizedDataset(Metadata(id"test"), model, data)
 
   test("count by first domain variable") {
-    val cb = CountBy.fromArgs(List("x")).value
-    val counts = ds.withOperation(cb)
+    val cb = CountBy.fromArgs(List("x"))
+      .fold(fail("failed to construct operation", _), identity)
+
+    ds.withOperation(cb)
       .samples.compile.toList.map {
         _.collect {
           case Sample(_, RangeData(Integer(count))) => count
         }
-      }.unsafeRunSync()
-    assertResult(List(1,2,3))(counts)
+      }.assertEquals(List(1L, 2L, 3L))
   }
 
   test("count by second domain variable") {
-    val cb = CountBy.fromArgs(List("y")).value
-    val counts = ds.withOperation(cb)
+    val cb = CountBy.fromArgs(List("y"))
+      .fold(fail("failed to construct operation", _), identity)
+
+    ds.withOperation(cb)
       .samples.compile.toList.map {
         _.collect {
           case Sample(_, RangeData(Integer(count))) => count
         }
-      }.unsafeRunSync()
-    assertResult(List(2,2,2))(counts)
+      }.assertEquals(List(2L, 2L, 2L))
   }
 
   test("count by range variable") {
-    val cb = CountBy.fromArgs(List("a")).value
-    val counts = ds.withOperation(cb)
+    val cb = CountBy.fromArgs(List("a"))
+      .fold(fail("failed to construct operation", _), identity)
+
+    ds.withOperation(cb)
       .samples.compile.toList.map {
         _.collect {
           case Sample(_, RangeData(Integer(count))) => count
         }
-      }.unsafeRunSync()
-    assertResult(List(1,1,1,1,1,1))(counts)
+      }.assertEquals(List(1L, 1L, 1L, 1L, 1L, 1L))
   }
 
 }

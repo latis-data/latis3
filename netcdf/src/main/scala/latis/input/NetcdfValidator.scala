@@ -112,14 +112,17 @@ object NetcdfValidator {
 
   /** Determines if the model and file types are consistent. */
   private def matchTypes(latisType: ValueType, ncType: NcType): Boolean = {
-    //TODO: support unsigned types
     (latisType, ncType) match {
       case (BooleanValueType, NcType.BOOLEAN) => true
       case (ByteValueType,    NcType.BYTE)    => true
+      case (ShortValueType,   NcType.UBYTE)   => true
       case (CharValueType,    NcType.CHAR)    => true
       case (ShortValueType,   NcType.SHORT)   => true
+      case (IntValueType,     NcType.USHORT)  => true
       case (IntValueType,     NcType.INT)     => true
+      case (LongValueType,    NcType.UINT)    => true
       case (LongValueType,    NcType.LONG)    => true
+      case (DoubleValueType,  NcType.ULONG)   => true
       case (DoubleValueType,  NcType.DOUBLE)  => true
       case (FloatValueType,   NcType.FLOAT)   => true
       case (StringValueType,  NcType.STRING)  => true
