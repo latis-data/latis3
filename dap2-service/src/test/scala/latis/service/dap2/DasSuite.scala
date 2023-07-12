@@ -5,11 +5,11 @@ import munit.CatsEffectSuite
 
 import latis.dataset.MemoizedDataset
 import latis.metadata.Metadata
-import latis.model._
-import latis.service.dap2.AtomicType._
-import latis.service.dap2.Das._
+import latis.model.*
+import latis.service.dap2.AtomicType.*
+import latis.service.dap2.Das.*
 import latis.time.Time
-import latis.util.Identifier._
+import latis.util.Identifier.*
 
 class DasSuite extends CatsEffectSuite {
   val byteAttr = Attribute(id"testByte", Byte, NonEmptyList.one(42:Byte))

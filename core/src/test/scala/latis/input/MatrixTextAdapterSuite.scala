@@ -10,7 +10,7 @@ import latis.dsl.ModelParser
 import latis.input
 import latis.metadata.Metadata
 import latis.model.DataType
-import latis.util.Identifier._
+import latis.util.Identifier.*
 import latis.util.NetUtils.resolveUri
 
 class MatrixTextAdapterSuite extends CatsEffectSuite {

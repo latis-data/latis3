@@ -2,13 +2,13 @@ package latis.input.fdml
 
 import java.net.URI
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import munit.FunSuite
 
 import latis.model.DoubleValueType
 import latis.model.IntValueType
 import latis.model.StringValueType
-import latis.util.Identifier._
+import latis.util.Identifier.*
 import latis.util.LatisException
 import latis.util.NetUtils
 import latis.util.dap2.parser.ast

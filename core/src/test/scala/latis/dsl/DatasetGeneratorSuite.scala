@@ -2,9 +2,9 @@ package latis.dsl
 
 import munit.FunSuite
 
-import latis.data._
-import latis.data.Data._
-import latis.model._
+import latis.data.*
+import latis.data.Data.*
+import latis.model.*
 
 class DatasetGeneratorSuite extends FunSuite {
 

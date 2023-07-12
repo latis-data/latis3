@@ -1,10 +1,10 @@
 package latis.util.dap2.parser
 
-import atto._, Atto._
+import atto.*, Atto.*
 
 import latis.util.Identifier
 
-import ast._
+import ast.*
 
 object parsers {
 

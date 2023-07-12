@@ -4,25 +4,25 @@ import java.net.URI
 
 import cats.effect.IO
 import cats.effect.kernel.Resource
-import cats.syntax.all._
-import fs2._
-import ucar.ma2.{Array => NcArray}
-import ucar.ma2.{Section => NcSection}
+import cats.syntax.all.*
+import fs2.*
+import ucar.ma2.{Array as NcArray}
+import ucar.ma2.{Section as NcSection}
 import ucar.nc2.Dimension
 import ucar.nc2.NetcdfFile
 import ucar.nc2.NetcdfFiles
 import ucar.nc2.Variable
 
-import latis.data._
-import latis.data.Data._
-import latis.model._
+import latis.data.*
+import latis.data.Data.*
+import latis.model.*
 import latis.ops.Head
 import latis.ops.Operation
 import latis.ops.Selection
 import latis.ops.Stride
 import latis.util.LatisException
 import latis.util.Section
-import latis.util.dap2.parser.ast._
+import latis.util.dap2.parser.ast.*
 
 /**
  * Helper class for reading data via the NetcdfFile API.
@@ -127,7 +127,7 @@ protected class NetcdfWrapper private (ncFile: NetcdfFile, model: DataType, conf
   /** Returns a stream of samples for the given subset. */
   private[input] def streamSamples(section: Section): Stream[IO, Sample] =
     if (section.isEmpty) Stream.empty
-    else streamDomain(section).zip(streamRange(section))
+    else streamDomain(section).zip(streamRange(section)).map(Sample(_, _))
 
   /** Returns a stream of domain data for the given subset. */
   private def streamDomain(section: Section): Stream[IO, DomainData] = domainScalars.length match {

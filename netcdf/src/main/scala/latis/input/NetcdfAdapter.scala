@@ -3,17 +3,17 @@ package latis.input
 import java.net.URI
 
 import cats.effect.IO
-import fs2._
+import fs2.*
 
-import latis.data._
-import latis.model._
+import latis.data.*
+import latis.model.*
 import latis.ops.Head
 import latis.ops.Operation
 import latis.ops.Selection
 import latis.ops.Stride
 import latis.util.ConfigLike
 import latis.util.Identifier
-import latis.util.dap2.parser.ast._
+import latis.util.dap2.parser.ast.*
 
 /**
  * Adapter for accessing data from the netcdf-java API. This should
@@ -109,7 +109,7 @@ object NetcdfAdapter extends AdapterFactory {
 
   /** Constructor used by the AdapterFactory. */
   def apply(model: DataType, config: AdapterConfig): NetcdfAdapter =
-    new NetcdfAdapter(model, new NetcdfAdapter.Config(config.properties: _*))
+    new NetcdfAdapter(model, new NetcdfAdapter.Config(config.properties *))
 
   class Config(val properties: (String, String)*) extends ConfigLike {
     /** Nominal number of elements to include in a NetcdfFile read. */

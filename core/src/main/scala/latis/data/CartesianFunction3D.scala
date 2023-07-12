@@ -3,7 +3,7 @@ package latis.data
 import scala.collection.Searching.Found
 import scala.collection.Searching.SearchResult
 
-import cats.syntax.all._
+import cats.syntax.all.*
 
 import latis.util.DataUtils.anySeqToDatumSeq
 import latis.util.DefaultDomainOrdering

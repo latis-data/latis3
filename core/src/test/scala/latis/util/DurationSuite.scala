@@ -2,7 +2,7 @@ package latis.util
 
 import java.time.LocalDateTime
 
-import cats.syntax.all._
+import cats.syntax.all.*
 
 class DurationSuite extends munit.FunSuite {
 

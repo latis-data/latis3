@@ -5,7 +5,7 @@ import java.net.URI
 import cats.effect.IO
 import fs2.Stream
 
-import latis.data._
+import latis.data.*
 import latis.input.DatasetReader
 import latis.metadata.Metadata
 import latis.metadata.MetadataLike

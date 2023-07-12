@@ -6,9 +6,9 @@ import scala.util.matching.Regex
 
 import cats.data.NonEmptyList
 import cats.effect.IO
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Stream
-import fs2.io.file._
+import fs2.io.file.*
 
 import latis.data.Data
 import latis.data.RangeData
@@ -18,7 +18,7 @@ import latis.model.DataType
 import latis.model.Function
 import latis.model.Scalar
 import latis.util.ConfigLike
-import latis.util.Identifier._
+import latis.util.Identifier.*
 import latis.util.LatisException
 import latis.util.NetUtils
 

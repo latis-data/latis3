@@ -2,10 +2,10 @@ package latis.input
 
 import java.net.URI
 
-import latis.dataset._
+import latis.dataset.*
 import latis.metadata.Metadata
 import latis.model.DataType
-import latis.ops._
+import latis.ops.*
 
 /**
  * Defines a DatasetReader that uses an Adapter to get data from the source.

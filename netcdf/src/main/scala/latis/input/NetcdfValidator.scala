@@ -1,10 +1,10 @@
 package latis.input
 
-import cats.syntax.all._
-import ucar.ma2.{DataType => NcType}
+import cats.syntax.all.*
+import ucar.ma2.{DataType as NcType}
 import ucar.nc2.NetcdfFile
 
-import latis.model._
+import latis.model.*
 
 object NetcdfValidator {
 

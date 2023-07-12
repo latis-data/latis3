@@ -5,9 +5,9 @@ import scala.util.Properties.lineSeparator
 import cats.effect.IO
 import fs2.Stream
 
-import latis.data._
+import latis.data.*
 import latis.dataset.Dataset
-import latis.model._
+import latis.model.*
 import latis.util.Identifier
 
 class TextEncoder extends Encoder[IO, String] {
@@ -61,7 +61,7 @@ class TextEncoder extends Encoder[IO, String] {
     }
 
   private[output] def encodeData(model: DataType, data: Seq[Data]): String = {
-    val ds = scala.collection.mutable.Stack(data: _*)
+    val ds = scala.collection.mutable.Stack(data *)
 
     def go(dt: DataType): String = dt match {
       //TODO: not exhaustive: See https://github.com/latis-data/latis3/issues/304
@@ -71,11 +71,7 @@ class TextEncoder extends Encoder[IO, String] {
         // No data in Sample, generate index
         indexGenerator.nextIndex(i.id).toString
 
-      case s: Scalar =>
-        ds.pop() match {
-          case d: Data => s.formatValue(d)
-          case _ => ??? //bug, inconsistent data
-        }
+      case s: Scalar => s.formatValue(ds.pop())
 
       case t: Tuple =>
         t.elements.map(go).mkString("(", ", ", ")")

@@ -4,14 +4,14 @@ import scala.collection.mutable
 
 import munit.FunSuite
 
-import latis.data._
+import latis.data.*
 import latis.metadata.Metadata
 import latis.model.Function
 import latis.model.IntValueType
 import latis.model.Scalar
 import latis.model.Tuple
 import latis.time.Time
-import latis.util.Identifier._
+import latis.util.Identifier.*
 
 class OrderingSuite extends FunSuite {
 
@@ -54,11 +54,10 @@ class OrderingSuite extends FunSuite {
     val smap = mutable.SortedMap[DomainData, RangeData]()(ordering)
     samples.foreach {
       case Sample(dd, rd) => smap += (dd -> rd)
-      case _ => fail("unexpected sample")
     }
 
     val res = smap.map {
-      case Sample(_, RangeData(Integer(x))) => x
+      case (_, RangeData(Integer(x))) => x
       case _ => fail("unexpected sample")
     }
 

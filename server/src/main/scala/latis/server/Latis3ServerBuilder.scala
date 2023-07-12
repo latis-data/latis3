@@ -3,20 +3,18 @@ package latis.server
 import cats.effect.IO
 import cats.effect.Resource
 import cats.effect.Temporal
-import cats.syntax.all._
-import com.comcast.ip4s._
+import cats.syntax.all.*
+import com.comcast.ip4s.*
 import org.http4s.HttpRoutes
 import org.http4s.Method
-import org.http4s.ember.server._
-import org.http4s.implicits._
+import org.http4s.ember.server.*
+import org.http4s.implicits.*
 import org.http4s.server.Router
 import org.http4s.server.Server
 import org.http4s.server.middleware.CORS
 import org.typelevel.log4cats.StructuredLogger
 import pureconfig.ConfigSource
-import pureconfig.generic.auto._
-import pureconfig.module.catseffect.syntax._
-import pureconfig.module.ip4s._
+import pureconfig.module.catseffect.syntax.*
 
 import latis.service.landing.DefaultLandingPage
 import latis.service.landing.LandingPage
@@ -36,7 +34,7 @@ object Latis3ServerBuilder {
   private[server] def makeServiceInfo(className: String): ServiceInfo = {
     val classObj = Either.catchNonFatal(getClassByName(className)).toOption
 
-    def getField(obj: Class[_], field: String): Option[String] = Either.catchNonFatal {
+    def getField(obj: Class[?], field: String): Option[String] = Either.catchNonFatal {
       val f = obj.getDeclaredField(field)
       f.setAccessible(true)
       f.get(obj).asInstanceOf[String]
@@ -69,7 +67,7 @@ object Latis3ServerBuilder {
       val routes = interfaces.map {
         case (prefix, service) => (prefix, service.routes)
       } :+ ("/", landingPage.routes)
-      Router(routes:_*)
+      Router(routes *)
     }
 
     EmberServerBuilder.default[IO]

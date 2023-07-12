@@ -4,10 +4,10 @@ import munit.CatsEffectSuite
 
 import latis.dataset.MemoizedDataset
 import latis.metadata.Metadata
-import latis.model._
-import latis.service.dap2.AtomicType._
-import latis.service.dap2.Dds._
-import latis.util.Identifier._
+import latis.model.*
+import latis.service.dap2.AtomicType.*
+import latis.service.dap2.Dds.*
+import latis.util.Identifier.*
 
 class DdsSuite extends CatsEffectSuite {
   test("correct AtomicDecl toDoc representation") {

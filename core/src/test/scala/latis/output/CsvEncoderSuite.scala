@@ -9,8 +9,8 @@ import latis.data.Sample
 import latis.data.SampledFunction
 import latis.dsl.DatasetGenerator
 import latis.metadata.Metadata
-import latis.model._
-import latis.util.Identifier._
+import latis.model.*
+import latis.util.Identifier.*
 
 class CsvEncoderSuite extends CatsEffectSuite {
 

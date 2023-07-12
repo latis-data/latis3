@@ -1,6 +1,6 @@
 package latis.time
 
-import cats.syntax.all._
+import cats.syntax.all.*
 
 import latis.util.LatisException
 

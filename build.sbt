@@ -1,5 +1,5 @@
 ThisBuild / organization := "io.latis-data"
-ThisBuild / scalaVersion := "2.13.13"
+ThisBuild / scalaVersion := "3.3.3"
 
 val attoVersion       = "0.9.5"
 val catsVersion       = "2.10.0"
@@ -30,8 +30,7 @@ lazy val commonSettings = Seq(
   scalacOptions += {
     if (insideCI.value) "-Wconf:any:e" else "-Wconf:any:w"
   },
-  Test / scalacOptions -= "-Wnonunit-statement",
-  addCompilerPlugin("org.typelevel" % "kind-projector" % "0.13.3" cross CrossVersion.full)
+  Test / scalacOptions -= "-Wnonunit-statement"
 )
 
 lazy val dockerSettings = Seq(
@@ -98,9 +97,9 @@ lazy val core = project
     libraryDependencies ++= Seq(
       "org.scala-lang.modules" %% "scala-xml"           % "2.3.0",
       "io.circe"               %% "circe-core"          % "0.14.6",
-      "org.scodec"             %% "scodec-core"         % "1.11.10",
-      "org.scodec"             %% "scodec-stream"       % "3.0.2",
       "org.scodec"             %% "scodec-cats"         % "1.2.0",
+      "org.scodec"             %% "scodec-core"         % "2.2.2",
+      "org.scodec"             %% "scodec-stream"       % "3.0.2",
       "org.http4s"             %% "http4s-ember-client" % http4sVersion,
       "org.gnieh"              %% "fs2-data-csv"        % "1.8.1"
     )
@@ -173,7 +172,7 @@ lazy val server = project
       "org.http4s"            %% "http4s-ember-server"    % http4sVersion,
       "org.http4s"            %% "http4s-core"            % http4sVersion,
       "org.http4s"            %% "http4s-dsl"             % http4sVersion,
-      "com.github.pureconfig" %% "pureconfig"             % pureconfigVersion,
+      "com.github.pureconfig" %% "pureconfig-core"        % pureconfigVersion,
       "com.github.pureconfig" %% "pureconfig-cats-effect" % pureconfigVersion,
       "com.github.pureconfig" %% "pureconfig-ip4s"        % pureconfigVersion,
       "org.typelevel"         %% "log4cats-slf4j"         % log4catsVersion,
@@ -200,8 +199,7 @@ lazy val macros = project
   .settings(
     name := "latis3-macros",
     libraryDependencies ++= Seq(
-      "org.typelevel" %% "literally" % "1.1.0",
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value
+      "org.typelevel" %% "literally" % "1.1.0"
     )
   )
 
@@ -217,9 +215,8 @@ lazy val netcdf = project
     resolvers ++= Seq(
       "Unidata" at "https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases"
     ),
-    // Make deprecations non-fatal in CI.
-    scalacOptions ++= {
-      if (insideCI.value) Seq("-Wconf:cat=deprecation:w,any:e") else Seq()
+    scalacOptions --= {
+      if (insideCI.value) Seq("-Wconf:any:e") else Seq()
     }
   )
 

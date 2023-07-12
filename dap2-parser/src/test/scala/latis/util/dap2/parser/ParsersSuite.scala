@@ -1,6 +1,6 @@
 package latis.util.dap2.parser
 
-import atto.Atto._
+import atto.Atto.*
 import atto.ParseResult
 import atto.Parser
 import munit.FunSuite
@@ -36,7 +36,7 @@ class ParsersSuite extends FunSuite {
    * want to parse and the thing you expect to get back
    */
   private def testParser[A](p: Parser[A])(s: String, d: A): Any = p.parseOnly(s) match {
-    case ParseResult.Done(_, result) => assertEquals(result, d)
+    case ParseResult.Done(_, result) => assertEquals[A, A](result, d)
     case ParseResult.Fail(_, _, m) => fail(s"$m in $s")
     // parseOnly will never return anything but Done or Fail, but the types don't
     // know that so we get a warning without the following line.

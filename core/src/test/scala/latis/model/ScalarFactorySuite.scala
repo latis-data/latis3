@@ -5,8 +5,7 @@ import munit.FunSuite
 import latis.data.Data
 import latis.data.NullData
 import latis.metadata.Metadata
-import latis.model.IntValueType
-import latis.util.Identifier._
+import latis.util.Identifier.*
 
 class ScalarFactorySuite extends FunSuite {
 

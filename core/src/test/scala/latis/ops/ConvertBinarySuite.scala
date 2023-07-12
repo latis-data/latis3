@@ -1,14 +1,14 @@
 package latis.ops
 
 import munit.CatsEffectSuite
-import scodec.bits._
+import scodec.bits.*
 
-import latis.data._
+import latis.data.*
 import latis.dataset.TappedDataset
 import latis.metadata.Metadata
-import latis.model._
-import latis.ops.ConvertBinary._
-import latis.util.Identifier._
+import latis.model.*
+import latis.ops.ConvertBinary.*
+import latis.util.Identifier.*
 
 class ConvertBinarySuite extends CatsEffectSuite {
 

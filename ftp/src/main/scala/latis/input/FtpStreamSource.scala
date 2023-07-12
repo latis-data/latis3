@@ -4,11 +4,11 @@ import java.net.URI
 
 import cats.effect.IO
 import fs2.Stream
-import fs2.ftp.FtpSettings._
-import fs2.ftp.UnsecureFtp._
+import fs2.ftp.FtpSettings.*
+import fs2.ftp.UnsecureFtp.*
 
 import latis.util.LatisException
-import latis.util.NetUtils._
+import latis.util.NetUtils.*
 
 /**
  * Creates an StreamSource from a "ftp" or "ftps" URI.

@@ -5,7 +5,7 @@ import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.Schema
 import javax.xml.validation.SchemaFactory
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import org.xml.sax.SAXParseException
 
 object FdmlUtils {

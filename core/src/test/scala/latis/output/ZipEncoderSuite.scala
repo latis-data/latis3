@@ -16,7 +16,7 @@ import latis.dataset.MemoizedDataset
 import latis.dsl.DatasetGenerator
 import latis.dsl.ModelParser
 import latis.metadata.Metadata
-import latis.util.Identifier._
+import latis.util.Identifier.*
 import latis.util.LatisException
 
 final class ZipEncoderSuite extends CatsEffectSuite {

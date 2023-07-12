@@ -2,12 +2,12 @@ package latis.dsl
 
 import java.util.UUID
 
-import latis.data.Data._
-import latis.data._
+import latis.data.Data.*
+import latis.data.*
 import latis.dataset.MemoizedDataset
 import latis.metadata.Metadata
-import latis.model._
-import latis.util._
+import latis.model.*
+import latis.util.*
 
 /**
  * Provides convenient methods for constructing Datasets for testing.
@@ -113,7 +113,7 @@ object DatasetGenerator {
   ): MemoizedDataset = {
     val md    = Metadata(makeDatasetID())
     val model = makeModel(Seq(xs.head), rs.map(_.head))
-    val data  = CartesianFunction1D.fromValues(xs, rs: _*).toTry.get
+    val data  = CartesianFunction1D.fromValues(xs, rs *).toTry.get
     new MemoizedDataset(md, model, data)
   }
 
@@ -124,7 +124,7 @@ object DatasetGenerator {
   ): MemoizedDataset = {
     val md    = Metadata(makeDatasetID())
     val model = makeModel(Seq(xs.head, ys.head), rs.map(_.head.head))
-    val data  = CartesianFunction2D.fromValues(xs, ys, rs: _*).toTry.get
+    val data  = CartesianFunction2D.fromValues(xs, ys, rs *).toTry.get
     new MemoizedDataset(md, model, data)
   }
 
@@ -136,7 +136,7 @@ object DatasetGenerator {
   ): MemoizedDataset = {
     val md    = Metadata(makeDatasetID())
     val model = makeModel(Seq(xs.head, ys.head, zs.head), rs.map(_.head.head.head))
-    val data  = CartesianFunction3D.fromValues(xs, ys, zs, rs: _*).toTry.get
+    val data  = CartesianFunction3D.fromValues(xs, ys, zs, rs *).toTry.get
     new MemoizedDataset(md, model, data)
   }
 

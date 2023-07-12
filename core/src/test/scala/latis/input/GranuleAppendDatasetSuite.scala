@@ -3,9 +3,9 @@ package latis.input
 import scala.xml.XML
 
 import cats.effect.IO
-import cats.syntax.all._
-import fs2._
-import fs2.io.file._
+import cats.syntax.all.*
+import fs2.*
+import fs2.io.file.*
 import munit.CatsEffectSuite
 
 import latis.input.fdml.Fdml

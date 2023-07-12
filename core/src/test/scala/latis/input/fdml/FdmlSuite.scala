@@ -3,7 +3,7 @@ package latis.input.fdml
 import munit.FunSuite
 
 import latis.model.DoubleValueType
-import latis.util.Identifier._
+import latis.util.Identifier.*
 
 class FdmlSuite extends FunSuite {
 

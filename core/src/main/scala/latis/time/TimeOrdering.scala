@@ -1,6 +1,6 @@
 package latis.time
 
-import latis.data._
+import latis.data.*
 
 /**
  * Provides an Ordering for formatted time strings.

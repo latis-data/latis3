@@ -3,17 +3,17 @@ package latis.input
 import java.net.URI
 
 import cats.effect.IO
-import cats.syntax.all._
-import doobie._
-import doobie.implicits._
+import cats.syntax.all.*
+import doobie.*
+import doobie.implicits.*
 import fs2.io.file.Files
 import munit.CatsEffectSuite
 
-import latis.data._
+import latis.data.*
 import latis.dsl.ModelParser.parse
 import latis.model.DataType
-import latis.ops._
-import latis.util.Identifier._
+import latis.ops.*
+import latis.util.Identifier.*
 
 class JdbcAdapterSuite extends CatsEffectSuite {
 

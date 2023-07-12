@@ -1,12 +1,12 @@
 package latis.ops
 
 import cats.effect.IO
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Pipe
 import fs2.Stream
 
-import latis.data._
-import latis.model._
+import latis.data.*
+import latis.model.*
 import latis.util.LatisException
 
 /**

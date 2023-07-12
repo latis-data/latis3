@@ -2,7 +2,7 @@ package latis.util
 
 import munit.FunSuite
 
-import StringUtils._
+import StringUtils.*
 
 class StringUtilsSuite extends FunSuite {
 

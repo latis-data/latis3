@@ -1,10 +1,10 @@
 package latis.output
 
-import io.circe._
-import io.circe.syntax._
+import io.circe.*
+import io.circe.syntax.*
 import munit.CatsEffectSuite
 
-import latis.data._
+import latis.data.*
 import latis.dataset.Dataset
 import latis.dsl.DatasetGenerator
 

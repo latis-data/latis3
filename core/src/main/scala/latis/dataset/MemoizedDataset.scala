@@ -1,6 +1,6 @@
 package latis.dataset
 
-import latis.data._
+import latis.data.*
 import latis.metadata.Metadata
 import latis.model.DataType
 import latis.ops.UnaryOperation

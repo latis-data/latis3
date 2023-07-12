@@ -4,14 +4,14 @@ import scala.util.control.NonFatal
 
 import cats.MonadThrow
 import cats.data.Kleisli
-import cats.syntax.all._
+import cats.syntax.all.*
 import org.http4s.EntityEncoder
 import org.http4s.Headers
 import org.http4s.HttpApp
 import org.http4s.Response
 import org.http4s.Status
 import org.http4s.headers.Connection
-import org.typelevel.ci._
+import org.typelevel.ci.*
 import org.typelevel.log4cats.StructuredLogger
 
 /**

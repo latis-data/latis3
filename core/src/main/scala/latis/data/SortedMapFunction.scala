@@ -21,7 +21,7 @@ case class SortedMapFunction(
    */
   def ordering: Option[PartialOrdering[DomainData]] = Some(sortedMap.ordering)
 
-  def sampleSeq: Seq[Sample] = sortedMap.toSeq
+  def sampleSeq: Seq[Sample] = sortedMap.toSeq.map(Sample(_, _))
 
   override def eval(value: DomainData): Either[LatisException, RangeData] =
     sortedMap.get(value) match {
@@ -42,7 +42,9 @@ object SortedMapFunction { //extends FunctionFactory {
     ordering: PartialOrdering[DomainData] = DefaultDomainOrdering
   ): MemoizedFunction = {
     val tord: Ordering[DomainData] = LatisOrdering.partialToTotal(ordering)
-    SortedMapFunction(SortedMap(samples: _*)(tord))
+    SortedMapFunction(
+      SortedMap.from(samples.map(s => (s.domain, s.range)))(tord)
+    )
   }
 
 }

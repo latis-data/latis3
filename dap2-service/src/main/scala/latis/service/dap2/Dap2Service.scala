@@ -2,8 +2,8 @@ package latis.service.dap2
 
 import java.net.URLDecoder
 
-import cats.effect._
-import cats.syntax.all._
+import cats.effect.*
+import cats.syntax.all.*
 import fs2.Stream
 import fs2.io.file.Files
 import fs2.text
@@ -12,24 +12,23 @@ import org.http4s.Headers
 import org.http4s.HttpRoutes
 import org.http4s.MediaType
 import org.http4s.Response
-import org.http4s.circe._
+import org.http4s.circe.*
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.Accept
 import org.http4s.scalatags.scalatagsEncoder
-import org.typelevel.ci._
+import org.typelevel.ci.*
 
 import latis.catalog.Catalog
 import latis.dataset.Dataset
 import latis.ops
 import latis.ops.OperationRegistry
 import latis.ops.UnaryOperation
-import latis.output._
+import latis.output.*
 import latis.server.ServiceInterface
-import latis.service.dap2.error._
+import latis.service.dap2.error.*
 import latis.util.Identifier
 import latis.util.dap2.parser.ConstraintParser
 import latis.util.dap2.parser.ast
-import latis.util.dap2.parser.ast.ConstraintExpression
 
 /**
  * A service interface implementing the DAP 2 specification.
@@ -129,10 +128,10 @@ class Dap2Service(catalog: Catalog, operationRegistry: OperationRegistry)
     val ce = URLDecoder.decode(query, "UTF-8")
 
     ConstraintParser.parse(ce)
-      .leftMap(ParseFailure)
-      .flatMap { cexprs: ConstraintExpression =>
+      .leftMap(ParseFailure(_))
+      .flatMap { cexprs =>
         cexprs.exprs.traverse {
-          case ast.Projection(vs)      => Right(ops.Projection(vs:_*))
+          case ast.Projection(vs)      => Right(ops.Projection(vs *))
           case ast.Selection(n, op, v) => Right(ops.Selection(n, op, stripQuotes(v)))
           // Delegate to Operation factory
           case ast.Operation(name, args) => {

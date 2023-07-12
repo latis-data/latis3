@@ -2,7 +2,7 @@ package latis.util
 
 import java.net.URI
 import java.net.URL
-import java.nio.file._
+import java.nio.file.*
 
 import scala.util.Properties
 

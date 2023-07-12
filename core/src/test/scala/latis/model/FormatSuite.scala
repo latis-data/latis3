@@ -3,11 +3,11 @@ package latis.model
 import munit.ScalaCheckSuite
 import org.scalacheck.Arbitrary
 import org.scalacheck.Gen
-import org.scalacheck.Prop._
+import org.scalacheck.Prop.*
 
-import latis.data._
+import latis.data.*
 import latis.metadata.Metadata
-import latis.util.Identifier._
+import latis.util.Identifier.*
 
 class FormatSuite extends ScalaCheckSuite {
 

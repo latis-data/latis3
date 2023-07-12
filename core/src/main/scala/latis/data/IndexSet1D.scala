@@ -1,7 +1,7 @@
 package latis.data
 
-import latis.model._
-import latis.util.Identifier._
+import latis.model.*
+import latis.util.Identifier.*
 import latis.util.LatisException
 
 //Experimental Int version of LinearSet

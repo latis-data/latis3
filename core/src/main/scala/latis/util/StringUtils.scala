@@ -70,7 +70,7 @@ object StringUtils {
 
   /** Implicit class to enable color console output. */
   implicit class ColoredString(s: String) {
-    import Console._
+    import Console.*
     def green: String  = s"${RESET}${GREEN}$s${RESET}"
     def yellow: String = s"${RESET}${YELLOW}$s${RESET}"
     def red: String    = s"${RESET}${RED}$s${RESET}"

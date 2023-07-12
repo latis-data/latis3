@@ -1,14 +1,14 @@
 package latis.util
 
 import cats.effect.IO
-import cats.syntax.all._
-import fs2._
+import cats.syntax.all.*
+import fs2.*
 import munit.CatsEffectSuite
 
 import latis.catalog.Catalog
 import latis.dataset.Dataset
 import latis.dsl.DatasetGenerator
-import latis.util.Identifier._
+import latis.util.Identifier.*
 
 class DatasetTesterSuite extends CatsEffectSuite {
 

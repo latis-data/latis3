@@ -2,12 +2,12 @@ package latis.dataset
 
 import munit.CatsEffectSuite
 
-import latis.data.Data._
-import latis.data._
+import latis.data.Data.*
+import latis.data.*
 import latis.dsl.ModelParser
 import latis.metadata.Metadata
 import latis.ops.Selection
-import latis.util.Identifier._
+import latis.util.Identifier.*
 import latis.util.dap2.parser.ast
 
 class DatasetSuite extends CatsEffectSuite {

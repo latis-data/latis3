@@ -6,12 +6,12 @@ import org.scalatest.exceptions.TestFailedException
 import org.scalatest.funsuite.AnyFunSuite
 
 import latis.catalog.Catalog
-import latis.data._
+import latis.data.*
 import latis.dataset.Dataset
-import latis.dsl._
-import latis.model._
-import latis.ops._
-import latis.util.Identifier._
+import latis.dsl.*
+import latis.model.*
+import latis.ops.*
+import latis.util.Identifier.*
 
 class DatasetTestSuiteSuite extends AnyFunSuite {
 
@@ -97,7 +97,7 @@ class DatasetTestSuiteSuite extends AnyFunSuite {
   test("equals first sample with list") {
     val ops = List(Drop(1))
     val values: List[Any] = List(1, "b")
-    testSuite.equalsFirstSample(id"foo", ops)(values: _*)
+    testSuite.equalsFirstSample(id"foo", ops)(values *)
   }
 
   test("equals fails for nested function") {

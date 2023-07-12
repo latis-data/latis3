@@ -3,7 +3,7 @@ package latis.output
 import java.io.OutputStream
 
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Pipe
 
 /**

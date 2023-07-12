@@ -1,13 +1,13 @@
 package latis.time
 
-import java.time._
+import java.time.*
 import java.time.format.DateTimeFormatter
-import java.time.temporal._
+import java.time.temporal.*
 import java.util.Locale
 
-import scala.util._
+import scala.util.*
 
-import cats.syntax.all._
+import cats.syntax.all.*
 
 import latis.util.LatisException
 

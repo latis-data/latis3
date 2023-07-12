@@ -2,7 +2,7 @@ package latis.output
 
 import cats.data.NonEmptyList
 import cats.effect.IO
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Stream
 import fs2.data.csv
 import fs2.data.csv.Row

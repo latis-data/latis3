@@ -1,9 +1,9 @@
 package latis.data
 
-import scala.collection.Searching._
+import scala.collection.Searching.*
 import scala.util.Try
 
-import cats.syntax.all._
+import cats.syntax.all.*
 
 import latis.util.CartesianDomainOrdering
 import latis.util.DefaultDatumOrdering

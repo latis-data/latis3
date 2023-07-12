@@ -2,21 +2,21 @@ package latis.output
 
 import cats.effect.IO
 import cats.effect.Resource
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.io.file.Files
 import munit.CatsEffectSuite
-import ucar.ma2.{DataType => NcDataType}
+import ucar.ma2.{DataType as NcDataType}
 import ucar.nc2.NetcdfFiles
 
-import latis.data._
+import latis.data.*
 import latis.dataset.MemoizedDataset
 import latis.dsl.ModelParser
 import latis.metadata.Metadata
-import latis.model._
-import latis.util.Identifier._
+import latis.model.*
+import latis.util.Identifier.*
 
 class NetcdfEncoderSuite extends CatsEffectSuite {
-  import NetcdfEncoderSuite._
+  import NetcdfEncoderSuite.*
 
   private val tempFile =
     ResourceFixture(Files[IO].tempFile(None, "netcdf_test", ".nc", None))

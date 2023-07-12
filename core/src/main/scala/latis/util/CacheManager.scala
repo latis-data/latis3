@@ -1,6 +1,6 @@
 package latis.util
 
-import scala.collection._
+import scala.collection.*
 import latis.dataset.{Dataset, MemoizedDataset}
 
 /**

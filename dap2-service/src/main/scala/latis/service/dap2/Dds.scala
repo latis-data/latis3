@@ -1,13 +1,13 @@
 package latis.service.dap2
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import org.typelevel.paiges.Doc
 
 import latis.dataset.Dataset
-import latis.model._
-import latis.service.dap2.AtomicType._
+import latis.model.*
+import latis.service.dap2.AtomicType.*
 import latis.util.Identifier
-import latis.util.Identifier._
+import latis.util.Identifier.*
 import latis.util.LatisException
 
 final case class Dds(id: Identifier, typeDecls: List[Dds.TypeDecl]) {
@@ -25,7 +25,7 @@ object Dds {
   sealed trait TypeDecl {
     def toDoc: Doc
   }
-  final case class AtomicDecl(id: Identifier, ty: AtomicType[_]) extends TypeDecl {
+  final case class AtomicDecl(id: Identifier, ty: AtomicType[?]) extends TypeDecl {
     override val toDoc: Doc = Doc.str(ty) + Doc.space + Doc.text(id.asString) + Doc.char(';')
   }
   final case class StructureDecl(id: Identifier, typeDecls: List[TypeDecl]) extends TypeDecl {

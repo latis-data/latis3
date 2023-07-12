@@ -1,11 +1,11 @@
 package latis.dataset
 
 import cats.effect.IO
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Stream
 
 import latis.data.SampledFunction
-import latis.data._
+import latis.data.*
 import latis.metadata.Metadata
 import latis.model.DataType
 import latis.ops.UnaryOperation

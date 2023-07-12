@@ -3,7 +3,7 @@ package latis.service.dap2
 import munit.CatsEffectSuite
 import java.net.URL
 
-import latis.service.dap2.AtomicType._
+import latis.service.dap2.AtomicType.*
 
 class AtomicTypeSuite extends CatsEffectSuite {
   test("correct AtomicType toString representation") {

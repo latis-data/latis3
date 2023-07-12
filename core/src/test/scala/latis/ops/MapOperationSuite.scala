@@ -1,10 +1,10 @@
 package latis.ops
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import munit.CatsEffectSuite
 
-import latis.data._
-import latis.dsl._
+import latis.data.*
+import latis.dsl.*
 import latis.model.DataType
 import latis.util.LatisException
 

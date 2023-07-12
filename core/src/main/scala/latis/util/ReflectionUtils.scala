@@ -11,7 +11,7 @@ object ReflectionUtils {
    * This may throw an Exception.
    */
   //TODO: return Option or Try or IO?
-  def getClassByName(className: String): Class[_] =
+  def getClassByName(className: String): Class[?] =
     Class.forName(className)
 
   /**
@@ -65,6 +65,6 @@ object ReflectionUtils {
       }
     }
 
-    method.invoke(companionObject, args: _*)
+    method.invoke(companionObject, args *)
   }
 }

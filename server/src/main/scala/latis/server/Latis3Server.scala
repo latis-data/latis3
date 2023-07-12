@@ -5,12 +5,11 @@ import cats.effect.IO
 import cats.effect.IOApp
 import cats.effect.Resource
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-import pureconfig.generic.auto._
-import pureconfig.module.catseffect.syntax._
+import pureconfig.module.catseffect.syntax.*
 
 import latis.catalog.FdmlCatalog
 import latis.ops.OperationRegistry
-import latis.server.Latis3ServerBuilder._
+import latis.server.Latis3ServerBuilder.*
 
 object Latis3Server extends IOApp {
 

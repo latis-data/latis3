@@ -2,11 +2,11 @@ package latis.ops
 
 import munit.FunSuite
 
-import latis.data._
-import latis.dataset._
+import latis.data.*
+import latis.dataset.*
 import latis.dsl.ModelParser
 import latis.metadata.Metadata
-import latis.util.Identifier._
+import latis.util.Identifier.*
 
 class GroupByVariableSuite extends FunSuite {
 

@@ -9,7 +9,7 @@ import latis.metadata.Metadata
 import latis.model.Function
 import latis.model.IntValueType
 import latis.model.Scalar
-import latis.util.Identifier._
+import latis.util.Identifier.*
 
 final class MetadataEncoderSuite extends CatsEffectSuite {
 

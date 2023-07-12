@@ -2,8 +2,8 @@ package latis.ops
 
 import munit.CatsEffectSuite
 
-import latis.data._
-import latis.dsl._
+import latis.data.*
+import latis.dsl.*
 
 class EvaluationSuite extends CatsEffectSuite {
 

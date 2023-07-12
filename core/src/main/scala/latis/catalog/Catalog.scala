@@ -4,7 +4,7 @@ import cats.Foldable
 import cats.Monoid
 import cats.data.OptionT
 import cats.effect.IO
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Stream
 
 import latis.dataset.Dataset

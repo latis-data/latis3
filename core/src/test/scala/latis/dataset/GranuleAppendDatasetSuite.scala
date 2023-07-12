@@ -2,16 +2,16 @@ package latis.dataset
 
 import java.net.URI
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import munit.CatsEffectSuite
 
-import latis.data._
-import latis.dsl._
+import latis.data.*
+import latis.dsl.*
 import latis.input.Adapter
 import latis.metadata.Metadata
-import latis.model._
-import latis.ops._
-import latis.util.Identifier._
+import latis.model.*
+import latis.ops.*
+import latis.util.Identifier.*
 
 class GranuleAppendDatasetSuite extends CatsEffectSuite {
 

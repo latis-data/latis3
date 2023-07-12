@@ -2,11 +2,11 @@ package latis.lambda
 
 import java.net.URLDecoder
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import cats.syntax.all._
+import cats.syntax.all.*
 import com.amazonaws.services.lambda.runtime.Context
 import com.amazonaws.services.lambda.runtime.RequestHandler
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent
@@ -16,7 +16,7 @@ import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 import latis.catalog.Catalog
 import latis.dataset.Dataset
-import latis.lambda.error._
+import latis.lambda.error.*
 import latis.ops
 import latis.ops.OperationRegistry
 import latis.ops.UnaryOperation
@@ -28,7 +28,6 @@ import latis.output.TextEncoder
 import latis.util.Identifier
 import latis.util.dap2.parser.ConstraintParser
 import latis.util.dap2.parser.ast
-import latis.util.dap2.parser.ast.ConstraintExpression
 import latis.util.LatisException
 
 final class LatisLambdaHandler extends RequestHandler[APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse] {
@@ -149,10 +148,10 @@ final class LatisLambdaHandler extends RequestHandler[APIGatewayV2HTTPEvent, API
 
     ConstraintParser.parse(ce)
       .leftMap(ParseFailure(_))
-      .flatMap { cexprs: ConstraintExpression =>
+      .flatMap { cexprs =>
         cexprs.exprs.traverse {
           case ast.Projection(vs) =>
-            Right(ops.Projection(vs:_*))
+            Right(ops.Projection(vs *))
           case ast.Selection(n, op, v) =>
             Right(ops.Selection(n, op, stripQuotes(v)))
           // Delegate to Operation registry

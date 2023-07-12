@@ -4,8 +4,8 @@ import cats.effect.IO
 import fs2.Pipe
 import fs2.Stream
 
-import latis.data._
-import latis.model._
+import latis.data.*
+import latis.model.*
 
 /**
  * Defines an Operation that maps a function of Data => Data

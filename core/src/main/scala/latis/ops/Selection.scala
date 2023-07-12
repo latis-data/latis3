@@ -1,11 +1,11 @@
 package latis.ops
 
-import atto.Atto._
+import atto.Atto.*
 import atto.ParseResult
-import cats.syntax.all._
+import cats.syntax.all.*
 
-import latis.data._
-import latis.model._
+import latis.data.*
+import latis.model.*
 import latis.util.Identifier
 import latis.util.LatisException
 import latis.util.dap2.parser.ast

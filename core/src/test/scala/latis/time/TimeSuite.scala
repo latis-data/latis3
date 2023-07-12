@@ -4,7 +4,7 @@ import munit.FunSuite
 
 import latis.data.Data
 import latis.metadata.Metadata
-import latis.util.Identifier._
+import latis.util.Identifier.*
 
 class TimeSuite extends FunSuite {
 

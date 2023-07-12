@@ -1,24 +1,24 @@
 package latis.output
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import munit.CatsEffectSuite
-import scodec._
+import scodec.Codec.given
+import scodec.*
 import scodec.bits.BitVector
-import scodec.bits._
-import scodec.codecs.implicits._
-import scodec.interop.cats._
-import scodec.{Encoder => SEncoder}
+import scodec.bits.*
+import scodec.interop.cats.*
+import scodec.{Encoder as SEncoder}
 
-import latis.data.Data._
+import latis.data.Data.*
 import latis.data.DomainData
 import latis.data.RangeData
 import latis.data.Sample
 import latis.dataset.Dataset
 import latis.dsl.DatasetGenerator
 import latis.metadata.Metadata
-import latis.model._
+import latis.model.*
 import latis.ops.Projection
-import latis.util.Identifier._
+import latis.util.Identifier.*
 
 class BinaryEncoderSuite extends CatsEffectSuite {
 

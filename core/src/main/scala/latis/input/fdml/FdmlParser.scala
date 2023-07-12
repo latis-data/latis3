@@ -4,11 +4,11 @@ import java.net.URI
 import java.net.URISyntaxException
 
 import scala.util.matching.Regex
-import scala.xml._
+import scala.xml.*
 
-import atto.Atto._
-import atto._
-import cats.syntax.all._
+import atto.Atto.*
+import atto.*
+import cats.syntax.all.*
 
 import latis.metadata.Metadata
 import latis.model.ValueType

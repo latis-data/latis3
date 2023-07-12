@@ -1,10 +1,10 @@
 package latis
 
 import io.circe.Json
-import io.circe.{Encoder => CEncoder}
-import io.circe.syntax._
-import latis.data._
-import latis.data.Data._
+import io.circe.{Encoder as CEncoder}
+import io.circe.syntax.*
+import latis.data.*
+import latis.data.Data.*
 
 package object output {
 

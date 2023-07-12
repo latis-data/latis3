@@ -2,7 +2,7 @@ package latis.ops
 
 import munit.CatsEffectSuite
 
-import latis.dsl._
+import latis.dsl.*
 
 class ContainsSuite extends CatsEffectSuite {
 

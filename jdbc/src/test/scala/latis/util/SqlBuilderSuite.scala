@@ -2,12 +2,12 @@ package latis.util
 
 import munit.FunSuite
 
-import latis.dsl._
+import latis.dsl.*
 import latis.metadata.Metadata
-import latis.model._
-import latis.ops._
-import latis.time._
-import latis.util.Identifier._
+import latis.model.*
+import latis.ops.*
+import latis.time.*
+import latis.util.Identifier.*
 
 class SqlBuilderSuite extends FunSuite {
 

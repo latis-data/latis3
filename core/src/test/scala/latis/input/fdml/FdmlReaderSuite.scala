@@ -4,8 +4,8 @@ import java.net.URI
 
 import munit.CatsEffectSuite
 
-import latis.data._
-import latis.model._
+import latis.data.*
+import latis.model.*
 
 class FdmlReaderSuite extends CatsEffectSuite {
 

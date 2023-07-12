@@ -6,15 +6,15 @@ import fs2.io.file.Files
 import fs2.Stream
 import munit.CatsEffectSuite
 
-import latis.data._
+import latis.data.*
 import latis.dataset.Dataset
 import latis.dataset.MemoizedDataset
-import latis.dsl._
+import latis.dsl.*
 import latis.metadata.Metadata
-import latis.model._
-import latis.ops._
+import latis.model.*
+import latis.ops.*
 import latis.output.NetcdfEncoder
-import latis.util.Identifier._
+import latis.util.Identifier.*
 
 class NetcdfWrapperSuite extends CatsEffectSuite {
 

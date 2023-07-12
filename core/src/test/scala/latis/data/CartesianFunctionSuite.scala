@@ -2,7 +2,7 @@ package latis.data
 
 import munit.FunSuite
 
-import Data._
+import Data.*
 
 class CartesianFunctionSuite extends FunSuite {
 

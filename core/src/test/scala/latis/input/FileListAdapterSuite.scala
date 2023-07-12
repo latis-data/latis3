@@ -3,14 +3,14 @@ package latis.input
 import cats.Eq
 import cats.data.NonEmptyList
 import cats.effect.IO
-import cats.syntax.all._
-import fs2.io.file._
+import cats.syntax.all.*
+import fs2.io.file.*
 import munit.CatsEffectSuite
 
-import latis.data._
+import latis.data.*
 import latis.dsl.ModelParser
 import latis.input.FileListAdapter.Config
-import latis.model._
+import latis.model.*
 
 class FileListAdapterSuite extends CatsEffectSuite {
 

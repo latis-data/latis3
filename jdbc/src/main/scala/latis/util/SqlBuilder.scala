@@ -1,8 +1,8 @@
 package latis.util
 
 import latis.data.Text
-import latis.model._
-import latis.ops._
+import latis.model.*
+import latis.ops.*
 import latis.time.Time
 import latis.util.dap2.parser.ast
 

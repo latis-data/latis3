@@ -2,9 +2,9 @@ package latis.ops
 
 import munit.FunSuite
 
-import latis.data._
+import latis.data.*
 import latis.metadata.Metadata
-import latis.model._
+import latis.model.*
 import latis.time.Time
 import latis.time.TimeFormat
 

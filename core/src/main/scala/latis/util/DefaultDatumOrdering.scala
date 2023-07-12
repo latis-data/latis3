@@ -1,8 +1,8 @@
 package latis.util
 
-import scala.math.Ordering._
+import scala.math.Ordering.*
 
-import latis.data._
+import latis.data.*
 
 object DefaultDatumOrdering extends PartialOrdering[Datum] {
   /*

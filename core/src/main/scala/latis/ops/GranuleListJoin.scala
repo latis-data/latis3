@@ -3,13 +3,13 @@ package latis.ops
 import java.net.URI
 
 import cats.effect.IO
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Stream
 
-import latis.data._
-import latis.input._
+import latis.data.*
+import latis.input.*
 import latis.model.DataType
-import latis.util.Identifier._
+import latis.util.Identifier.*
 import latis.util.LatisException
 
 /**

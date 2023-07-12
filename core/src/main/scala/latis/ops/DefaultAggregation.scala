@@ -1,9 +1,9 @@
 package latis.ops
 
-import cats.syntax.all._
+import cats.syntax.all.*
 
-import latis.data._
-import latis.model._
+import latis.data.*
+import latis.model.*
 import latis.util.LatisException
 
 /**

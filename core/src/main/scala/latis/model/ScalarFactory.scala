@@ -2,7 +2,7 @@ package latis.model
 
 import scala.annotation.unused
 
-import cats.syntax.all._
+import cats.syntax.all.*
 
 import latis.data.Data
 import latis.data.NullData

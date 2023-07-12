@@ -2,8 +2,8 @@ package latis.ops
 
 import scala.collection.mutable.ArrayBuffer
 
-import latis.data._
-import latis.model._
+import latis.data.*
+import latis.model.*
 import latis.util.LatisException
 
 /**

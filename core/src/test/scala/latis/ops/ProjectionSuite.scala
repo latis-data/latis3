@@ -2,10 +2,10 @@ package latis.ops
 
 import munit.CatsEffectSuite
 
-import latis.data._
-import latis.dsl._
-import latis.model._
-import latis.util.Identifier._
+import latis.data.*
+import latis.dsl.*
+import latis.model.*
+import latis.util.Identifier.*
 
 class ProjectionSuite extends CatsEffectSuite {
 

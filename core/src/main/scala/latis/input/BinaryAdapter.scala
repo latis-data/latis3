@@ -6,7 +6,7 @@ import scodec.Codec
 import scodec.stream.StreamDecoder
 
 import latis.data.{Data, Sample, SampledFunction, StreamFunction}
-import latis.model._
+import latis.model.*
 import latis.ops.Operation
 import latis.output.DataCodec
 

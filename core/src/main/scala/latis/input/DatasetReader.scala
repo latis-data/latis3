@@ -4,7 +4,7 @@ import java.net.URI
 import java.util.ServiceLoader
 
 import scala.annotation.unused
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 import latis.dataset.Dataset
 import latis.model.DataType

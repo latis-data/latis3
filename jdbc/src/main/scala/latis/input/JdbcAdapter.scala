@@ -4,21 +4,21 @@ import java.net.URI
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 
-import scala.util._
+import scala.util.*
 
 import cats.effect.IO
-import cats.syntax.all._
-import doobie._
-import doobie.implicits._
+import cats.syntax.all.*
+import doobie.*
+import doobie.implicits.*
 import doobie.util.stream.repeatEvalChunks
 import fs2.Stream
 import fs2.Stream.bracket
 import fs2.Stream.eval
 
-import latis.data._
-import latis.data.Data._
-import latis.model._
-import latis.ops._
+import latis.data.*
+import latis.data.Data.*
+import latis.model.*
+import latis.ops.*
 import latis.util.ConfigLike
 import latis.util.LatisException
 import latis.util.dap2.parser.ast
@@ -253,7 +253,7 @@ object JdbcAdapter extends AdapterFactory {
 
   /** Constructor used by the AdapterFactory. */
   def apply(model: DataType, config: AdapterConfig): JdbcAdapter =
-    new JdbcAdapter(model, JdbcAdapter.Config(config.properties: _*))
+    new JdbcAdapter(model, JdbcAdapter.Config(config.properties *))
 
   private val defaultFetchSize: Int = 100
 

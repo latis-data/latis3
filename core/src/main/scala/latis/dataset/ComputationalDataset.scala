@@ -2,9 +2,9 @@ package latis.dataset
 
 import cats.effect.IO
 
-import latis.data._
-import latis.metadata._
-import latis.model._
+import latis.data.*
+import latis.metadata.*
+import latis.model.*
 import latis.ops.UnaryOperation
 import latis.util.LatisException
 
@@ -34,7 +34,7 @@ case class ComputationalDataset(
   }
 
   //TODO: need SampledDataset to do things this can't
-  def samples: fs2.Stream[IO, (DomainData, RangeData)] = ???
+  def samples: fs2.Stream[IO, Sample] = ???
   def operations: List[UnaryOperation] = List.empty
   def withOperation(op: UnaryOperation): Dataset = ???
   def unsafeForce(): MemoizedDataset = ???
