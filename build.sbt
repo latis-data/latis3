@@ -1,5 +1,9 @@
+val scala2 = "2.13.12"
+val scala3 = "3.3.0"
+val scalaVersions = List(scala2, scala3)
+
 ThisBuild / organization := "io.latis-data"
-ThisBuild / scalaVersion := "2.13.12"
+ThisBuild / scalaVersion := scala3
 
 val attoVersion       = "0.9.5"
 val catsVersion       = "2.10.0"
@@ -30,8 +34,18 @@ lazy val commonSettings = Seq(
   scalacOptions += {
     if (insideCI.value) "-Wconf:any:e" else "-Wconf:any:w"
   },
-  Test / scalacOptions -= "-Wnonunit-statement",
-  addCompilerPlugin("org.typelevel" % "kind-projector" % "0.13.2" cross CrossVersion.full)
+  Test / scalacOptions -= "-Wnonunit-statement"
+)
+
+lazy val crossSettings = Seq(
+  crossScalaVersions := scalaVersions,
+  libraryDependencies ++= {
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, _)) =>
+        List(compilerPlugin("org.typelevel" % "kind-projector" % "0.13.2" cross CrossVersion.full))
+      case _ => Nil
+    }
+  }
 )
 
 lazy val dockerSettings = Seq(
@@ -60,10 +74,33 @@ lazy val dockerSettings = Seq(
 
 //=== Sub-projects ============================================================
 
+lazy val root = project
+  .in(file("."))
+  .aggregate(
+    `aws-lambda`,
+    core,
+    `dap2-parser`,
+    `dap2-service`,
+    `fdml-validator`,
+    ftp,
+    jdbc,
+    macros,
+    netcdf,
+    python,
+    server,
+    `service-interface`,
+    `test-utils`
+  )
+  .settings(
+    crossScalaVersions := Nil,
+    publish / skip := true
+  )
+
 lazy val `aws-lambda` = project
   .dependsOn(core)
   .enablePlugins(DockerPlugin)
   .settings(commonSettings)
+  .settings(crossSettings)
   .settings(
     name := "latis3-aws-lambda",
     libraryDependencies ++= Seq(
@@ -93,6 +130,7 @@ lazy val core = project
   .dependsOn(`dap2-parser`)
   .dependsOn(macros)
   .settings(commonSettings)
+  .settings(crossSettings)
   .settings(
     name := "latis3-core",
     libraryDependencies ++= Seq(
@@ -103,12 +141,19 @@ lazy val core = project
       "org.scodec"             %% "scodec-cats"         % "1.2.0",
       "org.http4s"             %% "http4s-ember-client" % http4sVersion,
       "org.gnieh"              %% "fs2-data-csv"        % "1.8.1"
-    )
+    ),
+    libraryDependencies += {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, _)) => "org.scodec" %% "scodec-core" % "1.11.10"
+        case _ => "org.scodec" %% "scodec-core" % "2.2.1"
+      }
+    }
   )
 
 lazy val `fdml-validator` = project
   .dependsOn(core)
   .settings(commonSettings)
+  .settings(crossSettings)
   .settings(
     name := "fdml-validator"
   )
@@ -116,6 +161,7 @@ lazy val `fdml-validator` = project
 lazy val ftp = project
   .dependsOn(core)
   .settings(commonSettings)
+  .settings(crossSettings)
   .settings(
     name := "latis3-ftp",
     libraryDependencies ++= Seq(
@@ -126,6 +172,7 @@ lazy val ftp = project
 lazy val `dap2-parser` = project
   .dependsOn(macros)
   .settings(commonSettings)
+  .settings(crossSettings)
   .settings(
     name := "dap2-parser",
     libraryDependencies ++= Seq(
@@ -139,6 +186,7 @@ lazy val `dap2-service` = project
   .dependsOn(netcdf)
   .dependsOn(`service-interface`)
   .settings(commonSettings)
+  .settings(crossSettings)
   .settings(
     name := "dap2-service-interface",
     libraryDependencies ++= Seq(
@@ -153,6 +201,7 @@ lazy val `dap2-service` = project
 lazy val python = project
   .dependsOn(core)
   .settings(commonSettings)
+  .settings(crossSettings)
   .settings(
     name := "latis3-python",
     libraryDependencies ++= Seq(
@@ -166,6 +215,7 @@ lazy val server = project
   .dependsOn(`service-interface`)
   .enablePlugins(DockerPlugin)
   .settings(commonSettings)
+  .settings(crossSettings)
   .settings(dockerSettings)
   .settings(
     name := "latis3-server",
@@ -182,6 +232,7 @@ lazy val server = project
 
 lazy val `service-interface` = project
   .dependsOn(core)
+  .settings(crossSettings)
   .settings(
     name := "latis3-service-interface",
     libraryDependencies ++= Seq(
@@ -197,17 +248,24 @@ lazy val `service-interface` = project
 
 lazy val macros = project
   .settings(commonSettings)
+  .settings(crossSettings)
   .settings(
     name := "latis3-macros",
     libraryDependencies ++= Seq(
-      "org.typelevel" %% "literally" % "1.1.0",
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value
-    )
+      "org.typelevel" %% "literally" % "1.1.0"
+    ),
+    libraryDependencies ++= {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, _)) => Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value)
+        case _ => Nil
+      }
+    }
   )
 
 lazy val netcdf = project
   .dependsOn(core)
   .settings(commonSettings)
+  .settings(crossSettings)
   .settings(
     name := "latis3-netcdf",
     libraryDependencies ++= Seq(
@@ -226,6 +284,7 @@ lazy val netcdf = project
 lazy val jdbc = project
   .dependsOn(core)
   .settings(commonSettings)
+  .settings(crossSettings)
   .settings(
     name := "latis3-jdbc",
     libraryDependencies ++= Seq(
@@ -237,6 +296,7 @@ lazy val jdbc = project
 lazy val `test-utils` = project
   .dependsOn(core)
   .settings(commonSettings)
+  .settings(crossSettings)
   .settings(
     name := "latis3-test-utils",
     libraryDependencies ++= Seq(
