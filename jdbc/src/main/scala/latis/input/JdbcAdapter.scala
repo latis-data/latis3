@@ -241,7 +241,8 @@ case class JdbcAdapter(
       config.driver,
       baseUri.toString,
       config.user,
-      config.password
+      config.password,
+      None
     )
 
     // processGeneric and the functions it calls were adapted from Doobie's

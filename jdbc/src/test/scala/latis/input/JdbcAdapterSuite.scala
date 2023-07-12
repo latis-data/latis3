@@ -107,7 +107,7 @@ class JdbcAdapterSuite extends CatsEffectSuite {
   }
 
   private def createMockDatabase(url: String): IO[Unit] = {
-    val xa = Transactor.fromDriverManager[IO]("org.h2.Driver", url)
+    val xa = Transactor.fromDriverManager[IO]("org.h2.Driver", url, None)
 
     val drop =
       sql"""
