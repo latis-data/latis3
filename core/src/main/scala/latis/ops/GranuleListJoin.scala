@@ -9,7 +9,7 @@ import fs2.Stream
 import latis.data._
 import latis.input._
 import latis.model.DataType
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 import latis.util.LatisException
 
 /**

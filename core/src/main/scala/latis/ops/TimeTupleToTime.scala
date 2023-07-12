@@ -7,7 +7,7 @@ import latis.metadata.Metadata
 import latis.model._
 import latis.time.Time
 import latis.util.Identifier
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 import latis.util.LatisException
 
 /**

@@ -6,7 +6,7 @@ import org.typelevel.paiges.Doc
 import latis.dataset.Dataset
 import latis.model._
 import latis.util.Identifier
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 
 final case class Das(containers: List[Das.AttributeCont]) {
   val toDoc: Doc = {
