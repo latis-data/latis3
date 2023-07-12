@@ -240,6 +240,6 @@ lazy val `test-utils` = project
   .settings(
     name := "latis3-test-utils",
     libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "3.2.12"
+      "org.scalatest" %% "scalatest" % "3.2.16"
     ),
   )
