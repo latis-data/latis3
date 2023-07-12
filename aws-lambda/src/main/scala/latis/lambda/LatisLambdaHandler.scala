@@ -18,6 +18,7 @@ import latis.catalog.Catalog
 import latis.dataset.Dataset
 import latis.lambda.error._
 import latis.ops
+import latis.ops.OperationRegistry
 import latis.ops.UnaryOperation
 import latis.output.CsvEncoder
 import latis.output.Encoder
@@ -28,10 +29,13 @@ import latis.util.Identifier
 import latis.util.dap2.parser.ConstraintParser
 import latis.util.dap2.parser.ast
 import latis.util.dap2.parser.ast.ConstraintExpression
+import latis.util.LatisException
 
 final class LatisLambdaHandler extends RequestHandler[APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse] {
 
   private val catalog: Catalog = Catalog.empty
+
+  private val operationRegistry: OperationRegistry = OperationRegistry.default
 
   def handleRequest(
     req: APIGatewayV2HTTPEvent,
@@ -151,9 +155,11 @@ final class LatisLambdaHandler extends RequestHandler[APIGatewayV2HTTPEvent, API
             Right(ops.Projection(vs:_*))
           case ast.Selection(n, op, v) =>
             Right(ops.Selection(n, op, stripQuotes(v)))
-          // Delegate to Operation factory
+          // Delegate to Operation registry
           case ast.Operation(name, args) =>
-            UnaryOperation.makeOperation(name, args.map(stripQuotes(_)))
+            operationRegistry.get(name)
+              .toRight(LatisException(s"Unsupported operation: $name"))
+              .flatMap(_.build(args.map(stripQuotes)))
               .leftMap(le => InvalidOperation(le.message))
         }
       }

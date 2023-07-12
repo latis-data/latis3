@@ -4,12 +4,13 @@ import java.lang.ClassLoader
 import java.net.URL
 import java.net.URLClassLoader
 
-import scala.reflect.runtime.{ universe => ru }
+import scala.reflect.runtime.{universe => ru}
 
 import cats.effect.IO
 import cats.syntax.all._
 
 import latis.catalog.Catalog
+import latis.ops.OperationRegistry
 
 final class ServiceInterfaceLoader {
 
@@ -21,19 +22,21 @@ final class ServiceInterfaceLoader {
    */
   def loadServices(
     conf: ServiceConf,
-    catalog: Catalog
+    catalog: Catalog,
+    operationRegistry: OperationRegistry
   ): IO[List[(String, ServiceInterface)]] =
     conf.services.traverse { spec =>
       for {
         loader  <- getClassLoader(spec)
-        service <- loadService(loader, spec, catalog)
+        service <- loadService(loader, spec, catalog, operationRegistry)
       } yield (spec.prefix, service)
     }
 
   private def loadService(
     cl: ClassLoader,
     spec: ServiceSpec,
-    catalog: Catalog
+    catalog: Catalog,
+    operationRegistry: OperationRegistry
   ): IO[ServiceInterface] =
     IO {
       val constructor = {
@@ -43,7 +46,7 @@ final class ServiceInterfaceLoader {
         val ctor = clss.toType.decl(ru.termNames.CONSTRUCTOR).asMethod
         cm.reflectConstructor(ctor)
       }
-      constructor(catalog).asInstanceOf[ServiceInterface]
+      constructor(catalog, operationRegistry).asInstanceOf[ServiceInterface]
     }
 
   private def getClassLoader(spec: ServiceSpec): IO[ClassLoader] = spec match {

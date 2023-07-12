@@ -1,12 +1,10 @@
 package latis.ops
 
-import cats.effect.unsafe.implicits.global
-import org.scalatest.funsuite.AnyFunSuite
-import org.scalatest.EitherValues._
+import munit.CatsEffectSuite
 
 import latis.dsl._
 
-class ContainsSuite extends AnyFunSuite {
+class ContainsSuite extends CatsEffectSuite {
 
   /**
    * Defines a Dataset with three samples: (0,a), (1,b), (2,c).
@@ -14,52 +12,66 @@ class ContainsSuite extends AnyFunSuite {
   private lazy val ds = DatasetGenerator("x -> a: string")
 
   test("contains single value") {
-    val c = Contains.fromArgs(List("x", "1")).value
+    val c = Contains.fromArgs(List("x", "1"))
+      .fold(fail("failed to construct operation", _), identity)
+
     ds.withOperation(c).samples.compile.toList.map { list =>
-      assertResult(1)(list.length)
-    }.unsafeRunSync()
+      assertEquals(list.length, 1)
+    }
   }
 
   test("contains two values") {
-    val c = Contains.fromArgs(List("x", "1", "2")).value
+    val c = Contains.fromArgs(List("x", "1", "2"))
+      .fold(fail("failed to construct operation", _), identity)
+
     ds.withOperation(c).samples.compile.toList.map { list =>
-      assertResult(2)(list.length)
-    }.unsafeRunSync()
+      assertEquals(list.length, 2)
+    }
   }
 
   test("contains no values") {
-    val c = Contains.fromArgs(List("x", "9", "10")).value
+    val c = Contains.fromArgs(List("x", "9", "10"))
+      .fold(fail("failed to construct operation", _), identity)
+
     ds.withOperation(c).samples.compile.toList.map { list =>
-      assertResult(0)(list.length)
-    }.unsafeRunSync()
+      assertEquals(list.length, 0)
+    }
   }
 
   test("contains text value") {
-    val c = Contains.fromArgs(List("a", "b")).value
+    val c = Contains.fromArgs(List("a", "b"))
+      .fold(fail("failed to construct operation", _), identity)
+
     ds.withOperation(c).samples.compile.toList.map { list =>
-      assertResult(1)(list.length)
-    }.unsafeRunSync()
+      assertEquals(list.length, 1)
+    }
   }
 
   test("contains quoted text value") {
-    val c = Contains.fromArgs(List("a", """"b"""")).value
+    val c = Contains.fromArgs(List("a", """"b""""))
+      .fold(fail("failed to construct operation", _), identity)
+
     ds.withOperation(c).samples.compile.toList.map { list =>
-      assertResult(1)(list.length)
-    }.unsafeRunSync()
+      assertEquals(list.length, 1)
+    }
   }
 
   test("application fails with invalid value types") {
-    val c = Contains.fromArgs(List("x", "foo")).value
+    val c = Contains.fromArgs(List("x", "foo"))
+      .fold(fail("failed to construct operation", _), identity)
+
     ds.withOperation(c).samples.attempt.compile.toList.map { list =>
       assert(list.head.isLeft)
-    }.unsafeRunSync()
+    }
   }
 
   test("application fails with missing id") {
-    val c = Contains.fromArgs(List("z", "foo")).value
+    val c = Contains.fromArgs(List("z", "foo"))
+      .fold(fail("failed to construct operation", _), identity)
+
     ds.withOperation(c).samples.attempt.compile.toList.map { list =>
       assert(list.head.isLeft)
-    }.unsafeRunSync()
+    }
   }
 
   test("construction fails with invalid id") {

@@ -1,13 +1,13 @@
 package latis.model
 
-import org.scalatest.funsuite.AnyFunSuite
+import munit.FunSuite
 
-import latis.util.Identifier.IdentifierStringContext
+import latis.util.Identifier._
 
-class IndexSuite extends AnyFunSuite {
+class IndexSuite extends FunSuite {
 
   test("index type is long") {
-    assert(Index().valueType == LongValueType)
+    assertEquals(Index().valueType, LongValueType)
   }
 
   test("class") {

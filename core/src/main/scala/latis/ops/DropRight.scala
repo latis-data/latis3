@@ -17,6 +17,9 @@ case class DropRight(n: Int) extends StreamOperation {
 }
 
 object DropRight {
+
+  def builder: OperationBuilder = (args: List[String]) => fromArgs(args)
+
   def fromArgs(args: List[String]): Either[LatisException, DropRight] = args match {
     case n :: Nil => Either.catchOnly[NumberFormatException](DropRight(n.toInt))
       .leftMap(LatisException(_))

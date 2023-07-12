@@ -1,8 +1,6 @@
 package latis.ops
 
-import cats.effect.unsafe.implicits.global
-import org.scalatest.Inside._
-import org.scalatest.funsuite.AnyFunSuite
+import munit.CatsEffectSuite
 
 import latis.data._
 import latis.dataset.Dataset
@@ -10,107 +8,82 @@ import latis.dataset.MemoizedDataset
 import latis.dsl._
 import latis.model._
 
-class CurrySuite extends AnyFunSuite {
+class CurrySuite extends CatsEffectSuite {
 
   test("Curry a 2D dataset") {
     val curriedDs = mock2d.withOperation(Curry()).unsafeForce()
-    val samples = curriedDs.samples.compile.toList.unsafeRunSync()
 
-    inside(samples.head) { case Sample(DomainData(Number(t)), RangeData(f)) =>
-      assert(t == 1)
+    assertEquals(curriedDs.model.toString, "_1 -> _2 -> (a, b)")
 
-      inside(f) { case MemoizedFunction(samples) =>
-        inside(samples) { case Vector(s1, s2) =>
-          inside(s1) { case Sample(DomainData(Text(d)), RangeData(Number(r1), Number(r2))) =>
-            assert(d == "Fe")
-            assert(r1 == 1.1)
-            assert(r2 == 0.1)
-          }
-
-          inside(s2) { case Sample(DomainData(Text(d)), RangeData(Number(r1), Number(r2))) =>
-            assert(d == "Mg")
-            assert(r1 == 1.2)
-            assert(r2 == 0.2)
-          }
-        }
-      }
+    curriedDs.model match {
+      case Function(s1: Scalar, Function(s2: Scalar, Tuple(s3: Scalar, s4: Scalar))) =>
+        assertEquals(s1.id.asString, "_1")
+        assertEquals(s2.id.asString, "_2")
+        assertEquals(s3.id.asString, "a")
+        assertEquals(s4.id.asString, "b")
+      case _ => fail("incorrect model")
     }
 
-    assert(curriedDs.model.toString == "_1 -> _2 -> (a, b)")
-    inside(curriedDs.model) { case Function(domain, range) =>
-      inside(domain) { case s: Scalar => assert(s.id.asString == "_1") }
+    curriedDs.samples.take(1).compile.lastOrError.flatMap {
+      case Sample(DomainData(Number(t)), RangeData(f)) =>
+        assertEquals(t, 1.0)
 
-      inside(range) { case Function(d, r) =>
-        inside(d) { case s: Scalar => assert(s.id.asString == "_2") }
-
-        inside(r) { case Tuple(s1, s2) =>
-          inside(s1) { case s: Scalar => assert(s.id.asString == "a") }
-          inside(s2) { case s: Scalar => assert(s.id.asString == "b") }
-        }
-      }
+        f.samples.compile.toList.assertEquals(
+          List(
+            Sample(List("Fe"), List(1.1, 0.1)),
+            Sample(List("Mg"), List(1.2, 0.2))
+          )
+        )
+      case _ => fail("incorrect sample")
     }
   }
 
   test("Curry a 2D dataset to arity 2 (no change)") {
     val curriedDs = mock2d.withOperation(Curry(2)).unsafeForce()
-    val samples = curriedDs.samples.compile.toList.unsafeRunSync()
 
-    inside(samples.head) { case Sample(DomainData(Number(d1), Text(d2)), RangeData(Number(r1), Number(r2))) =>
-      assert(d1 == 1)
-      assert(d2 == "Fe")
-      assert(r1 == 1.1)
-      assert(r2 == 0.1)
+    assertEquals(curriedDs.model.toString, "(_1, _2) -> (a, b)")
+
+    curriedDs.model match {
+      case Function(Tuple(s1: Scalar, s2: Scalar), Tuple(s3: Scalar, s4: Scalar)) =>
+        assertEquals(s1.id.asString, "_1")
+        assertEquals(s2.id.asString, "_2")
+        assertEquals(s3.id.asString, "a")
+        assertEquals(s4.id.asString, "b")
+      case _ => fail("incorrect model")
     }
 
-    assert(curriedDs.model.toString == "(_1, _2) -> (a, b)")
-
-    inside(curriedDs.model) { case Function(domain, range) =>
-      inside(domain) { case Tuple(s1, s2) =>
-        inside(s1) { case s: Scalar => assert(s.id.asString == "_1") }
-        inside(s2) { case s: Scalar => assert(s.id.asString == "_2") }
-      }
-      inside(range) { case Tuple(s1, s2) =>
-        inside(s1) { case s: Scalar => assert(s.id.asString == "a") }
-        inside(s2) { case s: Scalar => assert(s.id.asString == "b") }
-      }
-    }
+    curriedDs.samples.take(1).compile.lastOrError.assertEquals(
+      Sample(List(Data.IntValue(1), Data.StringValue("Fe")), List(Data.DoubleValue(1.1), Data.DoubleValue(0.1)))
+    )
   }
 
   test("Curry a 3D dataset to arity 2") {
     // should be "(x, y) -> z -> flux" after curry
     val curriedDs = mock3d.withOperation(Curry(2)).unsafeForce()
-    val samples = curriedDs.samples.compile.toList.unsafeRunSync()
 
-    inside(samples.head) { case Sample(DomainData(Integer(d1), Integer(d2)), RangeData(f)) =>
-      assert(d1 == 1)
-      assert(d2 == 1)
+    assertEquals(curriedDs.model.toString, "(_1, _2) -> _3 -> a")
 
-      inside(f) { case MemoizedFunction(samples) =>
-        inside(samples) { case Vector(s1, s2) =>
-          inside(s1) { case Sample(DomainData(Integer(d)), RangeData(Number(r))) =>
-            assert(d == 1)
-            assert(r == 10.0)
-          }
-
-          inside(s2) { case Sample(DomainData(Integer(d)), RangeData(Number(r))) =>
-            assert(d == 2)
-            assert(r == 20.0)
-          }
-        }
-      }
+    curriedDs.model match {
+      case Function(Tuple(s1: Scalar, s2: Scalar), Function(s3: Scalar, s4: Scalar)) =>
+        assertEquals(s1.id.asString, "_1")
+        assertEquals(s2.id.asString, "_2")
+        assertEquals(s3.id.asString, "_3")
+        assertEquals(s4.id.asString, "a")
+      case _ => fail("incorrect model")
     }
 
-    assert(curriedDs.model.toString == "(_1, _2) -> _3 -> a")
+    curriedDs.samples.take(1).compile.lastOrError.flatMap {
+      case Sample(DomainData(Integer(d1), Integer(d2)), RangeData(f)) =>
+        assertEquals(d1, 1L)
+        assertEquals(d2, 1L)
 
-    inside(curriedDs.model) { case Function(domain, range) =>
-      inside(domain) { case Tuple(s1, s2) =>
-        inside(s1) { case s: Scalar => assert(s.id.asString == "_1") }
-        inside(s2) { case s: Scalar => assert(s.id.asString == "_2") }
-      }
-      inside(range) { case Function(d, r) =>
-        inside(d) { case s: Scalar => assert(s.id.asString == "_3") }
-        inside(r) { case s: Scalar => assert(s.id.asString == "a") }
-      }
+        f.samples.compile.toList.assertEquals(
+          List(
+            Sample(List(1), List(10.0)),
+            Sample(List(2), List(20.0))
+          )
+        )
+      case _ => fail("incorrect sample")
     }
   }
 
