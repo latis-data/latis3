@@ -102,7 +102,7 @@ lazy val core = project
       "org.scodec"             %% "scodec-stream"       % "3.0.2",
       "org.scodec"             %% "scodec-cats"         % "1.2.0",
       "org.http4s"             %% "http4s-ember-client" % http4sVersion,
-      "org.gnieh"              %% "fs2-data-csv"        % "1.7.1"
+      "org.gnieh"              %% "fs2-data-csv"        % "1.8.0"
     )
   )
 
