@@ -1,15 +1,15 @@
 package latis.service.landing
 
 import cats.effect.IO
+import org.http4s.dsl.io._
 import org.http4s.HttpRoutes
-import org.http4s.dsl.Http4sDsl
 import org.http4s.scalatags.scalatagsEncoder
 import scalatags.Text
 import scalatags.Text.all._
 
 import latis.server.ServiceInfo
 
-class LandingPageService(serviceInfo: ServiceInfo) extends Http4sDsl[IO] {
+class DefaultLandingPage(serviceInfo: ServiceInfo) extends LandingPage {
 
   private val properties = List(
     "Version:" -> serviceInfo.version,

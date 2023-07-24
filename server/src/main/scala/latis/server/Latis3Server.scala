@@ -33,7 +33,7 @@ object Latis3Server extends IOApp {
       )
       serviceConf <- Resource.eval(getServiceConf)
       interfaces  <- Resource.eval(loader.loadServices(serviceConf, catalog, operationRegistry))
-      server      <- mkServer(serverConf, interfaces, logger)
+      server      <- mkServer(serverConf, defaultLandingPage, interfaces, logger)
     } yield server)
       .use(_ => IO.never)
       .as(ExitCode.Success)

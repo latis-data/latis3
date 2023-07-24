@@ -2,23 +2,24 @@ package latis.server
 
 import cats.effect.IO
 import cats.effect.Resource
+import cats.effect.Temporal
 import cats.syntax.all._
 import com.comcast.ip4s._
 import org.http4s.HttpRoutes
 import org.http4s.Method
+import org.http4s.ember.server._
 import org.http4s.implicits._
 import org.http4s.server.Router
 import org.http4s.server.Server
-import org.http4s.ember.server._
 import org.http4s.server.middleware.CORS
 import org.typelevel.log4cats.StructuredLogger
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
 import pureconfig.module.catseffect.syntax._
 import pureconfig.module.ip4s._
-import cats.effect.Temporal
 
-import latis.service.landing.LandingPageService
+import latis.service.landing.DefaultLandingPage
+import latis.service.landing.LandingPage
 import latis.util.ReflectionUtils.getClassByName
 
 object Latis3ServerBuilder {
@@ -51,8 +52,11 @@ object Latis3ServerBuilder {
     }.getOrElse(ServiceInfo("LaTiS Server", None, None, None))
   }
 
+  def defaultLandingPage: LandingPage = new DefaultLandingPage(makeServiceInfo("latis.util.BuildInfo$"))
+
   def mkServer(
     conf: ServerConf,
+    landingPage: LandingPage,
     interfaces: List[(String, ServiceInterface)],
     logger: StructuredLogger[IO],
   )(
@@ -64,7 +68,7 @@ object Latis3ServerBuilder {
     ): HttpRoutes[IO] = {
       val routes = interfaces.map {
         case (prefix, service) => (prefix, service.routes)
-      } :+ ("/", new LandingPageService(makeServiceInfo("latis.util.BuildInfo$")).routes)
+      } :+ ("/", landingPage.routes)
       Router(routes:_*)
     }
 
