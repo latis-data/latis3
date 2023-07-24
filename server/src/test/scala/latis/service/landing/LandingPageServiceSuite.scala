@@ -18,7 +18,7 @@ class LandingPageServiceSuite extends CatsEffectSuite {
     Some("3.0.0"),
     Some("10:35am 3/23/2022")
   )
-  val landingPageService = new LandingPageService(serviceInfo)
+  val landingPageService = new DefaultLandingPage(serviceInfo)
   val req: Request[IO] = Request[IO](Method.GET, uri"/")
   val resp: IO[Response[IO]] = landingPageService.routes.orNotFound(req)
 
