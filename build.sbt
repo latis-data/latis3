@@ -119,7 +119,7 @@ lazy val ftp = project
   .settings(
     name := "latis3-ftp",
     libraryDependencies ++= Seq(
-      "com.github.regis-leray" %% "fs2-ftp" % "0.8.3"
+      "com.github.regis-leray" %% "fs2-ftp" % "0.8.4"
     )
   )
 
