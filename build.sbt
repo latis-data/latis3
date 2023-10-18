@@ -19,7 +19,7 @@ lazy val commonSettings = Seq(
     "org.typelevel" %% "cats-effect" % catsEffectVersion,
     "co.fs2"        %% "fs2-core"    % fs2Version,
     "co.fs2"        %% "fs2-io"      % fs2Version,
-    "com.typesafe"   % "config"      % "1.4.2",
+    "com.typesafe"   % "config"      % "1.4.3",
     "org.scalacheck" %% "scalacheck" % "1.17.0" % Test,
     "org.scalameta" %% "munit"       % munitVersion % Test,
     "org.typelevel" %% "munit-cats-effect-3" % "1.0.7" % Test,
