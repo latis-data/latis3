@@ -18,6 +18,11 @@ case class SqlBuilder(
 ) {
 
   def addOp(op: UnaryOperation): SqlBuilder = op match {
+    case count: CountAggregation =>
+      val newColumns = List(Column("count(*)"))
+      val newModel = count.applyToModel(model).fold(throw _, identity)
+      copy(columns = newColumns, model = newModel, order = "")
+
     case _: Head =>
       val newLimit = limit match {
         case Some(n) => Some(Math.min(n, 1))

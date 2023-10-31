@@ -106,6 +106,36 @@ class JdbcAdapterSuite extends CatsEffectSuite {
     adapter.getData(uri).samples.compile.drain.intercept[Throwable]
   }
 
+  database.test("count data from a database table") { uri =>
+    val model: DataType =
+      parse("(time: Int, wavelength: Double) -> (flux: Double, error: Double)")
+        .fold(fail("Failed to construct model", _), identity)
+
+    val adapter = new JdbcAdapter(
+      model,
+      JdbcAdapter.Config(
+        ("driver", "org.h2.Driver"),
+        ("user", ""),
+        ("table", "tab1"),
+        ("password", "")
+      )
+    )
+
+    val ops = List(
+      CountAggregation()
+    )
+
+    adapter.getData(uri, ops).samples.compile.toList.map {
+      case Sample(DomainData(), RangeData(Integer(c))) :: Nil =>
+        assertEquals(c, 2L)
+      case _ :: Nil => fail("wrong sample")
+      case _ :: _   => fail("too many samples")
+      case Nil      => fail("no samples")
+    }
+  }
+
+  //=== Mock database ===//
+
   private def createMockDatabase(url: String): IO[Unit] = {
     val xa = Transactor.fromDriverManager[IO]("org.h2.Driver", url, None)
 
