@@ -74,6 +74,31 @@ class SqlBuilderSuite extends FunSuite {
     assert(!sql.contains("ORDER"))
   }
 
+  test("make sql with count") {
+    val ops = List(CountAggregation())
+    val sql = SqlBuilder.buildQuery(table, model, ops)
+    assertEquals(sql, "SELECT count(*) FROM myTable")
+  }
+
+  test("make sql with count after projection") {
+    val ops = List(
+      Projection(id"a"),
+      CountAggregation()
+    )
+    val sql = SqlBuilder.buildQuery(table, model, ops)
+    assertEquals(sql, "SELECT count(*) FROM myTable")
+  }
+
+  test("fail to make sql with count before projection") {
+    val ops = List(
+      CountAggregation(),
+      Projection(id"a")
+    )
+    intercept[LatisException] {
+      SqlBuilder.buildQuery(table, model, ops)
+    }
+  }
+
   //---- SQL with Time selections ----//
 
   private val modelWithNumericTime = Function.from(
