@@ -21,7 +21,7 @@ class GroupByVariableSuite extends FunSuite {
   ))
 
   private lazy val ds = new MemoizedDataset(Metadata(id"test"), model, data)
-      .withOperation(new GroupByVariable(id"y"))
+      .withOperation(GroupByVariable(id"y"))
 
   test("unProject the grouped variables") {
     assertEquals(ds.model.toString, "y -> x -> a")
