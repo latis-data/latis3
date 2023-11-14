@@ -4,8 +4,11 @@ import munit.CatsEffectSuite
 
 import latis.data._
 import latis.dataset.Dataset
+import latis.dataset.MemoizedDataset
 import latis.dsl._
+import latis.metadata.Metadata
 import latis.model._
+import latis.util.Identifier.IdentifierStringContext
 
 class PivotSuite extends CatsEffectSuite {
 
@@ -69,6 +72,17 @@ class PivotSuite extends CatsEffectSuite {
     curryPivotDs.samples.take(1).compile.lastOrError.assertEquals(expectedFirstSample)
   }
 
+  test("Pivot sparse dataset with fill") {
+   sparseDataset.withOperations(List(
+      Curry(),  // t -> d -> f
+      Pivot(List("0", "1", "2"), List("d0", "d1", "d2"))  // t -> (d0_f, d1_f, d2_f)
+    )).samples.take(1).compile.lastOrError.map {
+      case Sample(_, RangeData(_, n, _)) => assertEquals(n, NullData)
+    }
+  }
+
+  //=== Mock Datasets ===//
+
   // (_1, _2) -> (a, b)
   private lazy val mock2d: Dataset =
     DatasetGenerator.generate2DDataset(
@@ -90,4 +104,21 @@ class PivotSuite extends CatsEffectSuite {
       Seq(1,2,3),
       Seq("Fe", "Mg"),
       Seq(Seq(1.1, 1.2, 2.1, 2.2, 3.1, 3.2)))
+
+  // (t, d) -> f
+  private lazy val sparseDataset: Dataset = {
+    val metadata: Metadata = Metadata(id"SparseDataset")
+    val model = ModelParser.unsafeParse("(t, d) -> f")
+    val data: MemoizedFunction = SeqFunction(
+      Seq(
+        Sample(DomainData(0, 0), RangeData(10)),
+        //sample at (0, 1) is not defined
+        Sample(DomainData(0, 2), RangeData(20)),
+        Sample(DomainData(1, 0), RangeData(30)),
+        Sample(DomainData(1, 1), RangeData(40)),
+        Sample(DomainData(1, 2), RangeData(50))
+      )
+    )
+    new MemoizedDataset(metadata, model, data)
+  }
 }
