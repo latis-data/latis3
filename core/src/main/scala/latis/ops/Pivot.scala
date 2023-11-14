@@ -52,22 +52,22 @@ case class Pivot(values: Seq[String], vids: Seq[String]) extends MapOperation {
    */
   def mapFunction(model: DataType): Sample => Sample = {
     case Sample(domain, RangeData(mf: MemoizedFunction)) =>
-      val scalar = model match {
-        case Function(_, Function(s: Scalar, _)) => s
+      // Get domain and range of nested Function
+      val (innerDomain, innerRange) = model match {
+        case Function(_, Function(s: Scalar, r)) => (s, r)
         case _ => throw LatisException("Invalid DataType for Pivot")
       }
       // Eval nested Function at each requested value.
       val range = values.flatMap { value =>
         val rangeValues = for {
-          v <- scalar.parseValue(value)
+          v <- innerDomain.parseValue(value)
           r <- mf.eval(DomainData(v))
         } yield r
-        rangeValues.fold(throw _, identity)
+        rangeValues.getOrElse(RangeData(innerRange.fillData))
       }
       Sample(domain, RangeData(range))
     case _ => throw LatisException("Invalid Sample for Pivot")
     //TODO: deal with errors?
-    //TODO: use Fill interpolation? or nearest-neighbor so users don't need to know exact values
   }
 
   /**
