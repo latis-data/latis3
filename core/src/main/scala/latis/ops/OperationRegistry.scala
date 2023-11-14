@@ -27,6 +27,7 @@ object OperationRegistry {
       "evaluation"  -> Evaluation.builder,
       "first"       -> Head.builder,
       "formatTime"  -> FormatTime.builder,
+      "groupBy"     -> GroupByVariable.builder,
       "head"        -> Head.builder,
       "last"        -> Last.builder,
       "pivot"       -> Pivot.builder,

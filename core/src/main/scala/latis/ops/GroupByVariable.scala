@@ -14,7 +14,7 @@ import latis.util.LatisException
  * Assumes there are no nested function, for now.
  * Does not preserve nested Tuples, for now.
  */
-class GroupByVariable(ids: Identifier*) extends GroupOperation {
+case class GroupByVariable(ids: Identifier*) extends GroupOperation {
 
   /**
    * Defines a DefaultAggregation composed with a MapOperation that un-projects
@@ -67,6 +67,15 @@ class GroupByVariable(ids: Identifier*) extends GroupOperation {
       Option(DomainData(data))
     }
 
+}
+
+object GroupByVariable {
+  def builder: OperationBuilder = (args: List[String]) => args match {
+    case Nil => LatisException("GroupByVariable requires at least one variable identifier").asLeft
+    case _   => args.traverse { id =>
+      Identifier.fromString(id).toRight(LatisException(s"'$id' is not a valid identifier"))
+    }.map(GroupByVariable(_: _*))
+  }
 }
 
 /**
