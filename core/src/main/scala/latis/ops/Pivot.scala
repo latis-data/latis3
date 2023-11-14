@@ -63,9 +63,7 @@ case class Pivot(values: Seq[String], vids: Seq[String]) extends MapOperation {
           v <- innerDomain.parseValue(value)
           r <- mf.eval(DomainData(v))
         } yield r
-        rangeValues
-          .orElse(RangeData(innerRange.fillData).asRight)
-          .fold(throw _, identity)
+        rangeValues.getOrElse(RangeData(innerRange.fillData))
       }
       Sample(domain, RangeData(range))
     case _ => throw LatisException("Invalid Sample for Pivot")
