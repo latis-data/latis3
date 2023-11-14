@@ -78,6 +78,7 @@ class PivotSuite extends CatsEffectSuite {
       Pivot(List("0", "1", "2"), List("d0", "d1", "d2"))  // t -> (d0_f, d1_f, d2_f)
     )).samples.take(1).compile.lastOrError.map {
       case Sample(_, RangeData(_, n, _)) => assertEquals(n, NullData)
+      case _ => fail("Bad sample")
     }
   }
 
