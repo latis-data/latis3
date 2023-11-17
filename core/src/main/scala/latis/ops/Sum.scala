@@ -25,11 +25,29 @@ case class Sum() extends Aggregation {
   }
 
   def applyToModel(model:DataType): Either[LatisException, DataType] = model match {
-    case Function(_, s: Scalar) => s.asRight
-    case Function(_, t: Tuple)  => t.asRight
-    case Function(_, _: Function) => LatisException("Sum does not sum nested Functions").asLeft
-    case dt: DataType => dt.asRight //bare Scalar or Tuple
+    case s: Scalar                => updateType(s)
+    case t: Tuple                 => updateTupleTypes(t)
+    case Function(_, s: Scalar)   => updateType(s)
+    case Function(_, t: Tuple)    => updateTupleTypes(t)
+    case Function(_, _: Function) => LatisException("Sum does not support nested Functions").asLeft
   }
+
+  private def updateType(scalar: Scalar): Either[LatisException, DataType] = {
+    scalar.valueType match {
+      case _: IntegralType => Scalar.fromMetadata(scalar.metadata + ("type", "long"))
+      case _: NumericType  => Scalar.fromMetadata(scalar.metadata + ("type", "double"))
+      case _               =>
+        Scalar.fromMetadata(
+          scalar.metadata + ("type", "double") + ("fillValue", "NaN") - "missingValue"
+        )
+    }
+  }
+
+  private def updateTupleTypes(tuple: Tuple): Either[LatisException, Tuple] =
+    tuple.flatElements.traverse {
+      case s: Scalar => updateType(s)
+      case _         => LatisException("Sum does not support nested Functions").asLeft
+    }.flatMap(Tuple.fromSeq)
 
 }
 
