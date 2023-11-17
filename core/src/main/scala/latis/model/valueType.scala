@@ -47,6 +47,9 @@ sealed trait ValueType extends Serializable {
 
 //TODO: ValueType.Boolean...?
 
+sealed trait NumericType extends ValueType
+sealed trait IntegralType extends NumericType
+
 object BooleanValueType extends ValueType {
   def makeDatum(v: Any): Either[LatisException, Datum] = v match {
     case b: Boolean => Right(BooleanValue(b))
@@ -60,7 +63,7 @@ object BooleanValueType extends ValueType {
   override def toString: String = "boolean"
 }
 
-object ByteValueType extends ValueType {
+object ByteValueType extends IntegralType {
   def makeDatum(v: Any): Either[LatisException, Datum] = v match {
     case b: Byte => Right(ByteValue(b))
     case _ => Left(LatisException(s"Invalid ByteValue: $v"))
@@ -77,7 +80,7 @@ object ByteValueType extends ValueType {
   override def toString: String = "byte"
 }
 
-object CharValueType extends ValueType {
+object CharValueType extends IntegralType {
   def makeDatum(v: Any): Either[LatisException, Datum] = v match {
     case c: Char => Right(CharValue(c))
     case _ => Left(LatisException(s"Invalid CharValue: $v"))
@@ -90,7 +93,7 @@ object CharValueType extends ValueType {
   override def toString: String = "char"
 }
 
-object ShortValueType extends ValueType {
+object ShortValueType extends IntegralType {
   def makeDatum(v: Any): Either[LatisException, Datum] = v match {
     case s: Short => Right(ShortValue(s))
     case _ => Left(LatisException(s"Invalid ShortValue: $v"))
@@ -107,7 +110,7 @@ object ShortValueType extends ValueType {
   override def toString: String = "short"
 }
 
-object IntValueType extends ValueType {
+object IntValueType extends IntegralType {
   def makeDatum(v: Any): Either[LatisException, Datum] = v match {
     case i: Int => Right(IntValue(i))
     case _ => Left(LatisException(s"Invalid IntValue: $v"))
@@ -124,7 +127,7 @@ object IntValueType extends ValueType {
   override def toString: String = "int"
 }
 
-object LongValueType extends ValueType {
+object LongValueType extends IntegralType {
   def makeDatum(v: Any): Either[LatisException, Datum] = v match {
     case l: Long => Right(LongValue(l))
     case _ => Left(LatisException(s"Invalid LongValue: $v"))
@@ -141,7 +144,7 @@ object LongValueType extends ValueType {
   override def toString: String = "long"
 }
 
-object FloatValueType extends ValueType {
+object FloatValueType extends NumericType {
   def makeDatum(v: Any): Either[LatisException, Datum] = v match {
     case f: Float => Right(FloatValue(f))
     case _ => Left(LatisException(s"Invalid FloatValue: $v"))
@@ -158,7 +161,7 @@ object FloatValueType extends ValueType {
   override def toString: String = "float"
 }
 
-object DoubleValueType extends ValueType {
+object DoubleValueType extends NumericType {
   def makeDatum(v: Any): Either[LatisException, Datum] = v match {
     //TODO: turn any numeric type into a Double?
     case d: Double => Right(DoubleValue(d))
@@ -201,7 +204,7 @@ object StringValueType extends ValueType {
   override def toString: String = "string"
 }
 
-object BigIntValueType extends ValueType {
+object BigIntValueType extends IntegralType {
   def makeDatum(v: Any): Either[LatisException, Datum] = v match {
     case bi: BigInt => Right(BigIntValue(bi))
     case _ => Left(LatisException(s"Invalid BigIntValue: $v"))
@@ -218,7 +221,7 @@ object BigIntValueType extends ValueType {
   override def toString: String = "bigInt"
 }
 
-object BigDecimalValueType extends ValueType {
+object BigDecimalValueType extends NumericType {
   def makeDatum(v: Any): Either[LatisException, Datum] = v match {
     case bd: BigDecimal => Right(BigDecimalValue(bd))
     case _ => Left(LatisException(s"Invalid BigDecimalValue: $v"))
