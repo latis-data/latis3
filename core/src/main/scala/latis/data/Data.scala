@@ -295,6 +295,8 @@ object Data {
   //Note, these are value classes
   //Note, these are implicit so we can construct DomainData from primitive types
   //  Import latis.data.Data._ to get implicit Data construction from supported types
+  //Note, if we change the Numeric traits here (e.g. is Char really a Number) make sure
+  //  the ValueTypes are consistent.
 
   implicit class BooleanValue(val value: Boolean) extends AnyVal with Datum with Serializable {
     override def toString = s"BooleanValue($value)"
