@@ -4,10 +4,12 @@ import munit.CatsEffectSuite
 
 import latis.data._
 import latis.dsl.DatasetGenerator
+import latis.model._
+import latis.model.Scalar
 
 class SumSuite extends CatsEffectSuite {
 
-  test("sum function with scalar range") {
+  test("Sum operation with scalar range") {
     DatasetGenerator("x -> a: int") //makes a dataset with range values: 0, 1, 2
       .withOperation(Sum())
       .samples.compile.toList.map {
@@ -18,7 +20,7 @@ class SumSuite extends CatsEffectSuite {
       }
   }
 
-  test("sum function with mixed tuple range") {
+  test("Sum operation with mixed tuple range") {
     DatasetGenerator("x -> (a: int, b: double, c: string)")
       .withOperation(Sum())
       .samples.compile.toList.map {
@@ -31,4 +33,12 @@ class SumSuite extends CatsEffectSuite {
       }
   }
 
+  test("Sum operation updates data type") {
+    DatasetGenerator("x -> a: string")
+      .withOperation(Sum())
+      .model match {
+        case s: Scalar => assertEquals(s.valueType, DoubleValueType)
+        case _         => fail("Unexpected Sum result")
+      }
+  }
 }
