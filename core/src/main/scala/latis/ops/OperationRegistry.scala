@@ -35,6 +35,7 @@ object OperationRegistry {
       "rename"      -> Rename.builder,
       "select"      -> Selection.builder,
       "stride"      -> Stride.builder,
+      "sum"         -> Sum.builder,
       "tail"        -> Tail.builder,
       "take"        -> Take.builder,
       "takeRight"   -> TakeRight.builder,
