@@ -15,12 +15,13 @@ import latis.util.LatisException
  * of a GroupOperation.
  */
 trait Aggregation extends StreamOperation { self =>
-
+  //TODO: Note that Aggregation can be used on a full dataset so we should be lazy
+  //  Stream[Sample] => IO[Data] ?
   def aggregateFunction(model: DataType): Iterable[Sample] => Data
 
   override def pipe(model: DataType): Pipe[IO, Sample, Sample] =
     (samples: Stream[IO, Sample]) => samples
-      .fold(List[Sample]())(_ :+ _)
+      .fold(List[Sample]())(_ :+ _) //TODO: avoid making in-memory List
       .map(aggregateFunction(model))
       .map(d => Sample(DomainData(), RangeData(d)))
 
