@@ -8,8 +8,13 @@ import latis.util.PropertiesLike
  */
 class Metadata(val properties: Map[String, String]) extends PropertiesLike with Serializable {
 
+  /** Add or replace the given property */
   def +(kv: (String, String)): Metadata = Metadata(properties + kv)
 
+  /** Remove the given property */
+  def -(key: String): Metadata = Metadata(properties - key)
+
+  /** Combine the properties */
   def ++(md: Metadata): Metadata = Metadata(properties ++ md.properties)
 }
 
