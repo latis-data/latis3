@@ -81,14 +81,26 @@ class CompositeDataset private (
     }.fold(throw _, identity)
 
   /**
+   * Return a Dataset's Stream of Samples.
+   *
+   * If there is an error in the Dataset Stream, an error message will be printed
+   * and the resulting Stream will be empty.
+   */
+  private def getSamples(ds: Dataset): Stream[IO, Sample] = {
+    ds.samples.handleErrorWith { error =>
+      Stream.eval(IO.println(s"Failed to stream dataset: $error")).drain //TODO: debug log
+    }
+  }
+
+  /**
    * Applies the Operations to generate the new Data.
    */
   private def applyOperations(): Either[LatisException, Data] = for {
     // Apply granule operations
     dss     <- datasets.map(_.withOperations(granuleOps)).asRight
     // Apply join
-    data    <- dss.tail.foldM(StreamFunction(dss.head.samples): Data) { //compiler needs type hint
-      (dat, ds) => joinOperation.applyToData(dat, StreamFunction(ds.samples))
+    data    <- dss.tail.foldM(StreamFunction(getSamples(dss.head)): Data) { //compiler needs type hint
+      (dat, ds) => joinOperation.applyToData(dat, StreamFunction(getSamples(ds)))
     }
     // Apply other operations
     newData <- afterOps.foldM((dss.head.model, data)) {

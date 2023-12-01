@@ -30,6 +30,12 @@ trait StreamingAdapter[R] extends Adapter {
    * Note that this approach is limited to a single traversal.
    */
   def getData(uri: URI, ops: Seq[Operation] = Seq.empty): SampledFunction =
-    StreamFunction(recordStream(uri).map(parseRecord).unNone)
+    StreamFunction(
+      recordStream(uri)
+        .map(parseRecord)
+        //TODO: debug log, return Either from parseRecord so we can capture error
+        //.evalTap(a => if (a.isEmpty) IO.println("Dropping bad record") else IO.unit)
+        .unNone // Drops invalid samples
+    )
 
 }

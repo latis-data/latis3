@@ -1,11 +1,11 @@
 package latis.input
 
-import java.io.InputStream
 import java.net.URI
 
 import cats.effect.IO
-import fs2.io.readInputStream
 import fs2.Stream
+import fs2.io.file.Files
+import fs2.io.file.Path
 
 import latis.util.LatisException
 import latis.util.NetUtils
@@ -21,18 +21,14 @@ class FileStreamSource extends StreamSource {
    * This method is used by the StreamSource service provider.
    */
   def getStream(uri: URI): Option[Stream[IO, Byte]] =
-    // If this is not an absolute file URI, try to resolve
-    // it as a file.
+    // If this is not an absolute file URI, try to resolve it as a file.
     if (uri.isAbsolute && uri.getScheme != "file") None //we don't handle it
     else
       NetUtils.resolveUri(uri) match {
         case Left(le) =>
           val msg = s"Failed to resolve file URI: $uri"
           Option(Stream.raiseError[IO](LatisException(msg, le)))
-        case Right(u) =>
-          val fis: IO[InputStream] = IO(u.toURL.openStream) //TODO: handle exception, wrap as LatisException
-          val chunkSize: Int = 4096 //TODO: tune? config option?
-          Option(readInputStream[IO](fis, chunkSize))
+        case Right(u) => Option(Files[IO].readAll(Path(u.getPath))) //may raise error in stream
       }
 
 }
