@@ -24,7 +24,7 @@ class GranuleListGeneratorSuite extends munit.CatsEffectSuite {
     val adapter = {
       val config = Config(
         LocalDateTime.of(2022, 1, 1, 0, 0, 0),
-        LocalDateTime.of(2022, 1, 4, 0, 0, 0),
+        Some(LocalDateTime.of(2022, 1, 4, 0, 0, 0)),
         Duration.fromIsoString("P1D").getOrElse(
           fail("Failed to construct Duration")
         ),
@@ -76,7 +76,7 @@ class GranuleListGeneratorSuite extends munit.CatsEffectSuite {
 
     val expected = Config(
       LocalDateTime.of(2022, 1, 2, 3, 4, 5),
-      LocalDateTime.of(2023, 5, 4, 3, 2, 1),
+      Some(LocalDateTime.of(2023, 5, 4, 3, 2, 1)),
       Duration.fromIsoString("P1D").getOrElse(
         fail("Failed to construct Duration")
       ),
@@ -87,10 +87,8 @@ class GranuleListGeneratorSuite extends munit.CatsEffectSuite {
   }
 
   test("config: end time is optional") {
-    val now = LocalDateTime.of(2022, 1, 3, 0, 0, 0)
 
     val conf = Config.fromConfigLike(
-      now,
       AdapterConfig(
         "class" -> "",
         "start" -> "2022-01-02T03:04:05",
@@ -101,7 +99,7 @@ class GranuleListGeneratorSuite extends munit.CatsEffectSuite {
 
     val expected = Config(
       LocalDateTime.of(2022, 1, 2, 3, 4, 5),
-      now,
+      None,
       Duration.fromIsoString("P1D").getOrElse(
         fail("Failed to construct Duration")
       ),
@@ -161,4 +159,3 @@ class GranuleListGeneratorSuite extends munit.CatsEffectSuite {
     assert(conf.isLeft)
   }
 }
-
