@@ -6,6 +6,7 @@ import cats.effect.IO
 import fs2.Stream
 import org.http4s.Request
 import org.http4s.Uri
+import org.http4s.client.middleware.FollowRedirect
 import org.http4s.ember.client.EmberClientBuilder
 
 /**
@@ -30,6 +31,7 @@ class HttpStreamSource extends StreamSource {
       val request = Request[IO](uri = Uri.unsafeFromString(uri.toString))
       val client = EmberClientBuilder.default[IO].build
       val stream = Stream.resource(client)
+        .map(FollowRedirect(maxRedirects = 3))
         .flatMap(_.stream(request))
         .flatMap(_.body)
       Option(stream)
