@@ -21,6 +21,7 @@ import latis.util.LatisException
  * if the source is valid.
  */
 trait StreamSource {
+  //TODO: return Option[Either[LatisException, Stream...]] so we can capture errors before streaming?
 
   /**
    * Generate an fs2.Stream for the data identified by the given URI.
