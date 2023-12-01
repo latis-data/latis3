@@ -5,6 +5,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 
+import cats.effect.IO
 import cats.syntax.all._
 import fs2.Stream
 
@@ -50,7 +51,7 @@ import latis.util.LatisException
  * The `start` and `end` configuration keys define the coverage
  * (inclusive on the end) of the generated dataset. These are expected
  * to be ISO 8601 strings in UTC. The `end` is optional and defaults
- * to "now".
+ * to being evaluated as the current time when data are requested.
  *
  * The `step` configuration key defines the time step between
  * generated samples. It is expected to be an ISO 8601 duration string
@@ -69,9 +70,13 @@ class GranuleListGenerator private[input] (
         StreamFunction(enumerateTimes.map(makeSample(time, uri, baseUri, _)))
     }
 
-  private def enumerateTimes: Stream[fs2.Pure, LocalDateTime] =
-    Stream.iterate(config.start)(_.plus(config.step))
-      .takeWhile(t => t.isBefore(config.end) || t.isEqual(config.end))
+  private def enumerateTimes: Stream[IO, LocalDateTime] = {
+    val ioend = IO(config.end.getOrElse(LocalDateTime.now(ZoneId.of("Z"))))
+    Stream.eval(ioend).flatMap { end =>
+      Stream.iterate(config.start)(_.plus(config.step))
+        .takeWhile(t => t.isBefore(end) || t.isEqual(end))
+    }
+  }
 
   private def makeSample(
     time: Time,
@@ -120,35 +125,26 @@ object GranuleListGenerator extends AdapterFactory {
 
   private[input] final case class Config(
     start: LocalDateTime,
-    end: LocalDateTime,
+    end: Option[LocalDateTime],
     step: Duration,
     pattern: String
   )
 
   private[input] object Config {
-    def fromConfigLike(
-      now: LocalDateTime,
-      cl: ConfigLike
-    ): Either[LatisException, Config] = for {
-      start   <- cl.get("start").toRight(
-        LatisException("Adapter requires a start time")
-      ).flatMap(parseTime)
-      end     <- cl.get("end").traverse(parseTime).map(_.getOrElse(now))
-      _       <- if (end.isAfter(start)) {
-        ().asRight
-      } else LatisException("End must come before start").asLeft
-      step    <- cl.get("step").toRight(
-        LatisException("Adapter requires a step.")
-      ).flatMap(Duration.fromIsoString)
-      pattern <- cl.get("pattern").toRight(
-        LatisException("Adapter requires a pattern.")
-      )
+    def fromConfigLike(cl: ConfigLike): Either[LatisException, Config] = for {
+      start   <- cl.get("start")
+                   .toRight(LatisException("Adapter requires a start time"))
+                   .flatMap(parseTime)
+      end     <- cl.get("end").traverse(parseTime)
+      _       <- if (end.exists(start.isAfter))
+                   LatisException("End must come after start").asLeft
+                 else ().asRight
+      step    <- cl.get("step")
+                   .toRight(LatisException("Adapter requires a step."))
+                   .flatMap(Duration.fromIsoString)
+      pattern <- cl.get("pattern")
+                   .toRight(LatisException("Adapter requires a pattern."))
     } yield Config(start, end, step, pattern)
-
-    def fromConfigLike(cl: ConfigLike): Either[LatisException, Config] = {
-      val now = LocalDateTime.now(ZoneId.of("Z"))
-      fromConfigLike(now, cl)
-    }
 
     private def parseTime(str: String): Either[LatisException, LocalDateTime] =
       TimeFormat.parseIso(str).map { ms =>
