@@ -41,7 +41,7 @@ class HeadSuite extends CatsEffectSuite {
       Metadata(id"MT"),
       Scalar(id"id", IntValueType),
       SampledFunction(Seq.empty),
-      Seq(Head())
+      List(Head())
     )
     val samples = md.samples.compile.toList
     samples.assertEquals(List.empty)

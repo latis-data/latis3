@@ -41,7 +41,7 @@ class LastSuite extends CatsEffectSuite {
       Metadata(id"MT"),
       Scalar(id"id", IntValueType),
       SampledFunction(Seq.empty),
-      Seq(Last())
+      List(Last())
     )
     val samples = md.samples.compile.toList
     samples.assertEquals(List.empty)

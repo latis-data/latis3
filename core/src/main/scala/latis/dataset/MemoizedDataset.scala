@@ -13,7 +13,7 @@ class MemoizedDataset(
   _metadata: Metadata,
   _model: DataType,
   _data: MemoizedFunction,
-  operations: Seq[UnaryOperation] = Seq.empty
+  operations: List[UnaryOperation] = List.empty
 ) extends TappedDataset(_metadata, _model, _data, operations) with Serializable {
 
   /**

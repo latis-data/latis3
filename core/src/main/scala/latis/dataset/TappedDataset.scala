@@ -24,7 +24,7 @@ class TappedDataset(
   _metadata: Metadata,
   _model: DataType,
   _data: Data,
-  operations: Seq[UnaryOperation] = Seq.empty
+  operations: List[UnaryOperation] = List.empty
 ) extends AbstractDataset(_metadata, _model, operations) with Serializable {
 
   /**

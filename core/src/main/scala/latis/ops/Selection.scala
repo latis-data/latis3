@@ -21,7 +21,7 @@ import latis.util.Bounds
  *  - The bin width is added to the lower bound (assuming natural ordering) to define the exclusive upper bound.
  *  - Equality (as in = or ==) matches if the value is within the bin: [lower, upper).
  *  - >= and <= will match if partially overlapping the bin (upper value excluded).
- *  - > and < will not match partial bins.
+ *  - > and < will not match partial bins. //TODO: but need to match granule
  * Bin semantics requires numeric data which will be handled as a Double.
  *
  * As a Filter, a predicate determines the fate of a Sample based only on the state of that Sample.
