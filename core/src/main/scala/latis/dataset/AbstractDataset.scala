@@ -10,7 +10,7 @@ import latis.ops.UnaryOperation
 abstract class AbstractDataset(
   _metadata: Metadata,
   _model: DataType,
-  operations: Seq[UnaryOperation]
+  val operations: List[UnaryOperation]
 ) extends Dataset with Serializable {
 
   /**

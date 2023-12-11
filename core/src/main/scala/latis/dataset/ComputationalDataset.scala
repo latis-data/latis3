@@ -35,6 +35,7 @@ case class ComputationalDataset(
 
   //TODO: need SampledDataset to do things this can't
   def samples: fs2.Stream[IO, (DomainData, RangeData)] = ???
+  def operations: List[UnaryOperation] = List.empty
   def withOperation(op: UnaryOperation): Dataset = ???
   def unsafeForce(): MemoizedDataset = ???
 }

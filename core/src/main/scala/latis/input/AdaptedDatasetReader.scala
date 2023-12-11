@@ -27,7 +27,7 @@ trait AdaptedDatasetReader extends DatasetReader {
    * Defines Operations to be applied to the Dataset.
    * Defaults to none.
    */
-  def operations: Seq[UnaryOperation] = Seq.empty
+  def operations: List[UnaryOperation] = List.empty
 
   /**
    * Returns a potentially lazy Dataset represented by the given URI.

@@ -21,7 +21,7 @@ class AdaptedDataset(
   _model: DataType,
   adapter: Adapter,
   uri: URI,
-  operations: Seq[UnaryOperation] = Seq.empty
+  operations: List[UnaryOperation] = List.empty
 ) extends AbstractDataset(
   _metadata,
   _model,

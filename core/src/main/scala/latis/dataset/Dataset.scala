@@ -35,6 +35,9 @@ trait Dataset extends MetadataLike {
    */
   def samples: Stream[IO, Sample]
 
+  /** Returns the list of Operations to be applied to this Dataset. */
+  def operations: List[UnaryOperation]
+
   /**
    * Returns a new Dataset with the given Operation *logically*
    * applied to this one.

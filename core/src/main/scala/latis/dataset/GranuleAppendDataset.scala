@@ -52,7 +52,7 @@ class GranuleAppendDataset private (
   granuleModel: DataType,
   granuleToDataset: Sample => Dataset,
   listOps: List[UnaryOperation] = List.empty,
-  operations: List[UnaryOperation] = List.empty
+  val operations: List[UnaryOperation] = List.empty
 ) extends Dataset {
 
   def metadata: Metadata = md //TODO: add prov, see AbstractDataset

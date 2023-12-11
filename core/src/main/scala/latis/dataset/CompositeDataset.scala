@@ -29,6 +29,8 @@ class CompositeDataset private (
   //TODO: make richer metadata, prov
   override def metadata: Metadata = md
 
+  def operations: List[UnaryOperation] = granuleOps ++ afterOps
+
   /**
    * Returns a new Dataset with the given Operation *logically*
    * applied to this one.
