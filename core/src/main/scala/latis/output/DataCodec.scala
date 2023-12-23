@@ -23,7 +23,7 @@ object DataCodec {
       codecs.paddedFixedSizeBits(
         size,
         codecs.utf8,
-        codecs.literals.constantBitVectorCodec(BitVector(hex"00"))
+        codecs.constant(BitVector(hex"00"))
       ).xmap[StringValue](s => StringValue(s.replace("\u0000", "")), _.value).upcast[Data]
     case StringValueType  => codecs.fail(Err("BinaryEncoder does not support String without a size defined."))
     case BinaryValueType  =>

@@ -2,10 +2,10 @@ package latis.output
 
 import cats.syntax.all._
 import munit.CatsEffectSuite
+import scodec.Codec.given
 import scodec._
 import scodec.bits.BitVector
 import scodec.bits._
-import scodec.codecs.implicits._
 import scodec.interop.cats._
 import scodec.{Encoder => SEncoder}
 
