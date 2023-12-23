@@ -8,8 +8,8 @@ import latis.util.FdmlUtils
 object FdmlValidatorApp {
 
   sealed trait Validation
-  final case object Valid extends Validation
-  final case object Invalid extends Validation
+  case object Valid extends Validation
+  case object Invalid extends Validation
 
   private def usage(): Unit = println("No files or URLs specified.")
 

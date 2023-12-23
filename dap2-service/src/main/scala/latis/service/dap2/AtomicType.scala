@@ -24,19 +24,19 @@ sealed trait AtomicType[F] {
 }
 
 object AtomicType {
-  final case object Byte extends AtomicType[Byte]
-  final case object Int16 extends AtomicType[Short]
-  final case object UInt16 extends AtomicType[Int] {
+  case object Byte extends AtomicType[Byte]
+  case object Int16 extends AtomicType[Short]
+  case object UInt16 extends AtomicType[Int] {
     val max: Int = Integer.parseInt("FFFF",16)
     override def ofValue(value: Int): Int = value.min(max).max(0)
   }
-  final case object Int32 extends AtomicType[Int]
-  final case object UInt32 extends AtomicType[Long] {
+  case object Int32 extends AtomicType[Int]
+  case object UInt32 extends AtomicType[Long] {
     val max: Long = java.lang.Long.parseLong("FFFFFFFF",16)
     override def ofValue(value: Long): Long = value.min(max).max(0)
   }
-  final case object Float32 extends AtomicType[Float]
-  final case object Float64 extends AtomicType[Double]
-  final case object String extends AtomicType[String]
-  final case object Url extends AtomicType[URL]
+  case object Float32 extends AtomicType[Float]
+  case object Float64 extends AtomicType[Double]
+  case object String extends AtomicType[String]
+  case object Url extends AtomicType[URL]
 }
