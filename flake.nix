@@ -20,8 +20,13 @@
             packages = [
               jre
               metals
+              pkgs.netcdf
               sbt
             ];
+
+            # The NetCDF Java library needs to know the location of
+            # the NetCDF C library.
+            LD_LIBRARY_PATH = "${pkgs.netcdf}/lib";
           };
         }
     );
