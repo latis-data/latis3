@@ -127,7 +127,7 @@ protected class NetcdfWrapper private (ncFile: NetcdfFile, model: DataType, conf
   /** Returns a stream of samples for the given subset. */
   private[input] def streamSamples(section: Section): Stream[IO, Sample] =
     if (section.isEmpty) Stream.empty
-    else streamDomain(section).zip(streamRange(section))
+    else streamDomain(section).zip(streamRange(section)).map(Sample(_, _))
 
   /** Returns a stream of domain data for the given subset. */
   private def streamDomain(section: Section): Stream[IO, DomainData] = domainScalars.length match {

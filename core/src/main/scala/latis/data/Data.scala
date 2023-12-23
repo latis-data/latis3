@@ -164,7 +164,7 @@ trait Datum extends Any with Data {
  */
 object NullData extends Data with Serializable {
   //TODO: does Data really need these?
-  def samples: Stream[IO, (DomainData, RangeData)] = ???
+  def samples: Stream[IO, Sample] = ???
   def eval(data: DomainData): Either[LatisException, RangeData] = ???
 
   override def toString: String = "null"

@@ -59,7 +59,12 @@ class BinaryEncoder(val dataCodec: Scalar => Codec[Data] = DataCodec.defaultData
     }
     val domainList: List[Codec[Datum]] = domainScalars.map(s => dataCodec(s).downcast[Datum])
     val rangeList: List[Codec[Data]] = rangeScalars.map(s => dataCodec(s))
-    codecOfList(domainList) ~ codecOfList(rangeList)
+    // TODO: Could use .as[Sample] here, but it can't tell they are
+    // isomorphic for reasons I don't understand.
+    (codecOfList(domainList) :: codecOfList(rangeList)).xmap(
+      (d, r) => Sample(d, r),
+      s => (s.domain, s.range)
+    )
   }
 }
 
