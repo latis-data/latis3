@@ -2,7 +2,7 @@ package latis.util
 
 import munit.FunSuite
 
-import latis.util.Identifier._
+import latis.util.Identifier.*
 
 class IdentifierSuite extends FunSuite {
 

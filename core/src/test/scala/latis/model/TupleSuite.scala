@@ -2,7 +2,7 @@ package latis.model
 
 import munit.FunSuite
 
-import latis.util.Identifier._
+import latis.util.Identifier.*
 
 class TupleSuite extends FunSuite {
 

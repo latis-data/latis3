@@ -7,7 +7,7 @@ import org.http4s.Request
 import org.http4s.Response
 import org.http4s.Status
 import org.http4s.headers.`Content-Length`
-import org.http4s.implicits._
+import org.http4s.implicits.*
 
 import latis.server.ServiceInfo
 

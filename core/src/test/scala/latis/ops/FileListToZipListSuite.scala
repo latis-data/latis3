@@ -1,7 +1,7 @@
 package latis.ops
 
 import cats.effect.IO
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Stream
 import fs2.io.file.Path
 import fs2.text.utf8
@@ -10,10 +10,10 @@ import latis.data.Data.BinaryValue
 import latis.data.Data.IntValue
 import latis.data.Data.LongValue
 import latis.data.Data.StringValue
-import latis.data._
+import latis.data.*
 import latis.metadata.Metadata
-import latis.model._
-import latis.util.Identifier._
+import latis.model.*
+import latis.util.Identifier.*
 
 final class FileListToZipListSuite extends munit.CatsEffectSuite {
 

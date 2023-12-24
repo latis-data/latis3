@@ -4,9 +4,9 @@ import cats.data.NonEmptyList
 import org.typelevel.paiges.Doc
 
 import latis.dataset.Dataset
-import latis.model._
+import latis.model.*
 import latis.util.Identifier
-import latis.util.Identifier._
+import latis.util.Identifier.*
 
 final case class Das(containers: List[Das.AttributeCont]) {
   val toDoc: Doc = {

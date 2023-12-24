@@ -5,7 +5,7 @@ import fs2.Stream
 
 import latis.util.DefaultDomainOrdering
 import latis.util.LatisException
-import latis.util.StreamUtils._
+import latis.util.StreamUtils.*
 
 /**
  * Defines a trait for SampledFunctions that

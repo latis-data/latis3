@@ -1,11 +1,11 @@
 package latis.output
 
-import scodec._
-import scodec.bits._
+import scodec.*
+import scodec.bits.*
 
 import latis.data.Data
-import latis.data.Data._
-import latis.model._
+import latis.data.Data.*
+import latis.model.*
 
 object DataCodec {
 

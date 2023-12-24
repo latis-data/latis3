@@ -3,9 +3,9 @@ package latis.input
 import java.net.URI
 
 import cats.effect.IO
-import fs2._
+import fs2.*
 
-import latis.data._
+import latis.data.*
 import latis.ops.Operation
 
 /**

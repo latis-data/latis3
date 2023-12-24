@@ -1,10 +1,10 @@
 package latis.util.dap2.parser
 
-import atto._, Atto._
-import cats.syntax.all._
+import atto.*, Atto.*
+import cats.syntax.all.*
 
-import ast._
-import parsers._
+import ast.*
+import parsers.*
 
 /**
  * Module for parsing DAP 2 constraint expressions.

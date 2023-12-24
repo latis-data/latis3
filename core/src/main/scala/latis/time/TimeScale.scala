@@ -4,9 +4,9 @@ import java.util.Date
 import java.util.GregorianCalendar
 import java.util.TimeZone
 
-import cats.syntax.all._
+import cats.syntax.all.*
 
-import latis.units.{Time => TimeType}
+import latis.units.{Time as TimeType}
 import latis.units.MeasurementScale
 import latis.units.MeasurementType
 import latis.util.LatisException

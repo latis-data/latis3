@@ -2,13 +2,13 @@ package latis.input.fdml
 
 import java.net.URI
 
-import cats.syntax.all._
+import cats.syntax.all.*
 
 import latis.dataset.AdaptedDataset
 import latis.dataset.Dataset
 import latis.dataset.GranuleAppendDataset
 import latis.input.Adapter
-import latis.model._
+import latis.model.*
 import latis.ops
 import latis.ops.OperationRegistry
 import latis.ops.UnaryOperation

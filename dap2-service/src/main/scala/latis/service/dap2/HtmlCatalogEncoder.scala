@@ -1,9 +1,9 @@
 package latis.service.dap2
 
-import cats.effect._
+import cats.effect.*
 import fs2.Stream
 import scalatags.Text
-import scalatags.Text.all._
+import scalatags.Text.all.*
 import scalatags.Text.tags2.details
 import scalatags.Text.tags2.style
 import scalatags.Text.tags2.summary

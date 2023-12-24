@@ -1,13 +1,13 @@
 package latis.ops
 
-import cats.syntax.all._
+import cats.syntax.all.*
 
-import latis.data._
+import latis.data.*
 import latis.metadata.Metadata
-import latis.model._
+import latis.model.*
 import latis.time.Time
 import latis.util.Identifier
-import latis.util.Identifier._
+import latis.util.Identifier.*
 import latis.util.LatisException
 
 /**

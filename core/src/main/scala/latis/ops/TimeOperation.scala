@@ -1,6 +1,6 @@
 package latis.ops
 
-import latis.data._
+import latis.data.*
 import latis.model.DataType
 import latis.time.Time
 import latis.util.LatisException

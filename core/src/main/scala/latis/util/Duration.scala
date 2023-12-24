@@ -7,7 +7,7 @@ import java.time.temporal.TemporalUnit
 import java.time.temporal.UnsupportedTemporalTypeException
 import java.util.Objects
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.matching.Regex
 
 /**

@@ -1,6 +1,6 @@
 package latis.data
 
-import java.io._
+import java.io.*
 
 import munit.FunSuite
 

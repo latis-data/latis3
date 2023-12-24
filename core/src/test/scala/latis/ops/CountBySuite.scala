@@ -2,11 +2,11 @@ package latis.ops
 
 import munit.CatsEffectSuite
 
-import latis.data._
-import latis.dataset._
-import latis.dsl._
-import latis.metadata._
-import latis.util.Identifier._
+import latis.data.*
+import latis.dataset.*
+import latis.dsl.*
+import latis.metadata.*
+import latis.util.Identifier.*
 
 class CountBySuite extends CatsEffectSuite {
 

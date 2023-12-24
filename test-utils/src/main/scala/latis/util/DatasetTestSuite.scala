@@ -2,10 +2,10 @@ package latis.util
 
 import cats.effect.unsafe.implicits.global
 import cats.effect.IO
-import org.scalatest._
+import org.scalatest.*
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.Inside.inside
-import org.scalatest.matchers.should.Matchers._
+import org.scalatest.matchers.should.Matchers.*
 
 import latis.catalog.Catalog
 import latis.data.Datum
@@ -13,7 +13,7 @@ import latis.data.Sample
 import latis.data.SampledFunction
 import latis.dataset.Dataset
 import latis.model.DataType
-import latis.ops._
+import latis.ops.*
 
 abstract class DatasetTestSuite extends AnyFunSuite {
 

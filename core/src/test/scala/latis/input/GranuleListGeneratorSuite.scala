@@ -3,7 +3,7 @@ package latis.input
 import java.net.URI
 import java.time.LocalDateTime
 
-import cats.syntax.all._
+import cats.syntax.all.*
 
 import latis.data.DomainData
 import latis.data.RangeData
@@ -16,7 +16,7 @@ import latis.model.Scalar
 import latis.model.StringValueType
 import latis.time.Time
 import latis.util.Duration
-import latis.util.Identifier._
+import latis.util.Identifier.*
 
 class GranuleListGeneratorSuite extends munit.CatsEffectSuite {
 

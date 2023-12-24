@@ -1,12 +1,12 @@
 package latis.dsl
 
-import atto.Atto._
-import atto._
+import atto.Atto.*
+import atto.*
 import cats.Eq
 import munit.FunSuite
 
-import latis.model._
-import latis.util.Identifier._
+import latis.model.*
+import latis.util.Identifier.*
 import latis.util.LatisException
 
 class ModelParserSuite extends FunSuite {

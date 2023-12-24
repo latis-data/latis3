@@ -1,6 +1,6 @@
 package latis.ops
 
-import cats.syntax.all._
+import cats.syntax.all.*
 
 import latis.data.Data
 import latis.data.StreamFunction

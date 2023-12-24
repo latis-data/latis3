@@ -4,14 +4,14 @@ import scala.collection.mutable
 
 import munit.FunSuite
 
-import latis.data._
+import latis.data.*
 import latis.metadata.Metadata
 import latis.model.Function
 import latis.model.IntValueType
 import latis.model.Scalar
 import latis.model.Tuple
 import latis.time.Time
-import latis.util.Identifier._
+import latis.util.Identifier.*
 
 class OrderingSuite extends FunSuite {
 

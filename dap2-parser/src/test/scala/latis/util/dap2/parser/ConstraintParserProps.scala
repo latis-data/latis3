@@ -1,10 +1,10 @@
 package latis.util.dap2.parser
 
-import org.scalacheck._
+import org.scalacheck.*
 
 import latis.util.Identifier
 
-import ast._
+import ast.*
 
 object ConstraintParserProps extends Properties("DAP 2 Constraint Parser") {
 

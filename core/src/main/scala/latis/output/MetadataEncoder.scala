@@ -2,9 +2,9 @@ package latis.output
 
 import cats.effect.IO
 import fs2.Stream
-import io.circe.{Encoder => JEncoder}
+import io.circe.{Encoder as JEncoder}
 import io.circe.Json
-import io.circe.syntax._
+import io.circe.syntax.*
 
 import latis.dataset.Dataset
 

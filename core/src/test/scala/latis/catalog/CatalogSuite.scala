@@ -1,13 +1,13 @@
 package latis.catalog
 
 import cats.effect.IO
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Stream
 import munit.CatsEffectSuite
 
 import latis.dataset.Dataset
 import latis.dsl.DatasetGenerator
-import latis.util.Identifier._
+import latis.util.Identifier.*
 
 class CatalogSuite extends CatsEffectSuite {
 

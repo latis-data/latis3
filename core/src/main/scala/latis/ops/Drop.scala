@@ -1,7 +1,7 @@
 package latis.ops
 
 import cats.effect.IO
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Pipe
 
 import latis.data.Sample

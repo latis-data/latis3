@@ -4,11 +4,11 @@ import java.net.URI
 
 import munit.CatsEffectSuite
 
-import latis.data._
+import latis.data.*
 import latis.dsl.ModelParser
 import latis.metadata.Metadata
-import latis.model._
-import latis.ops._
+import latis.model.*
+import latis.ops.*
 
 class NetcdfAdapterSuite extends CatsEffectSuite {
 

@@ -5,9 +5,9 @@ import scala.util.Properties.lineSeparator
 import cats.effect.IO
 import fs2.Stream
 
-import latis.data._
+import latis.data.*
 import latis.dataset.Dataset
-import latis.model._
+import latis.model.*
 import latis.util.Identifier
 
 class TextEncoder extends Encoder[IO, String] {

@@ -1,9 +1,9 @@
 package latis.ops
 
-import cats.implicits._
+import cats.implicits.*
 
-import latis.data._
-import latis.model._
+import latis.data.*
+import latis.model.*
 import latis.util.Identifier
 import latis.util.LatisException
 

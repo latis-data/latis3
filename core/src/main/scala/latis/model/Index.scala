@@ -2,7 +2,7 @@ package latis.model
 
 import latis.metadata.Metadata
 import latis.util.Identifier
-import latis.util.Identifier._
+import latis.util.Identifier.*
 
 /**
  * Index is a Scalar that is used as a placeholder for a domain variable

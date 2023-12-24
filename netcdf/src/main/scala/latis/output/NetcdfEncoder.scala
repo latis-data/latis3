@@ -2,11 +2,11 @@ package latis.output
 
 import cats.effect.IO
 import cats.effect.Resource
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Stream
 import fs2.io.file.Path
-import ucar.ma2.{Array => NcArray}
-import ucar.ma2.{DataType => NcDataType}
+import ucar.ma2.{Array as NcArray}
+import ucar.ma2.{DataType as NcDataType}
 import ucar.nc2.Attribute
 import ucar.nc2.Dimension
 import ucar.nc2.NetcdfFileWriter
@@ -14,12 +14,12 @@ import ucar.nc2.NetcdfFileWriter.Version.netcdf4
 import ucar.nc2.Variable
 
 import latis.data.Data
-import latis.data.Data._
+import latis.data.Data.*
 import latis.data.Sample
 import latis.dataset.Dataset
 import latis.metadata.Metadata
 import latis.model.DataType
-import latis.model._
+import latis.model.*
 import latis.ops.Uncurry
 import latis.util.LatisException
 
@@ -40,7 +40,7 @@ import latis.util.LatisException
  */
 class NetcdfEncoder(file: Path) extends Encoder[IO, Path] {
   //TODO: deal with NullData, require replaceMissing?
-  import NetcdfEncoder._
+  import NetcdfEncoder.*
   private val path = file.absolute.toString
   private val ncFileWriter: Resource[IO, NetcdfFileWriter] =
     Resource.fromAutoCloseable(IO(NetcdfFileWriter.createNew(netcdf4, path)))

@@ -5,7 +5,7 @@ import munit.CatsEffectSuite
 import latis.catalog.Catalog
 import latis.dataset.MemoizedDataset
 import latis.metadata.Metadata
-import latis.util.Identifier._
+import latis.util.Identifier.*
 
 class JsonCatalogEncoderSuite extends CatsEffectSuite {
 

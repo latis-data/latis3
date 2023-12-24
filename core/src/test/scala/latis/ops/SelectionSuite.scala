@@ -2,12 +2,12 @@ package latis.ops
 
 import munit.FunSuite
 
-import latis.data._
+import latis.data.*
 import latis.metadata.Metadata
-import latis.model._
+import latis.model.*
 import latis.time.Time
 import latis.util.dap2.parser.ast
-import latis.util.Identifier._
+import latis.util.Identifier.*
 
 class SelectionSuite extends FunSuite {
   //TODO: test regular selections...

@@ -2,7 +2,7 @@ package latis.service.dap2
 
 import java.net.URL
 
-import latis.util.StringUtils._
+import latis.util.StringUtils.*
 
 sealed trait AtomicType[F] {
   private val fmtInt: AnyVal => String = i => i.toString

@@ -1,8 +1,8 @@
 package latis.ops
 
-import cats.syntax.all._
+import cats.syntax.all.*
 
-import latis.data._
+import latis.data.*
 import latis.model.DataType
 import latis.model.StringValueType
 import latis.time.Time

@@ -2,7 +2,7 @@ package latis.input
 
 import munit.FunSuite
 
-import latis.data._
+import latis.data.*
 import latis.dsl.ModelParser
 
 class SubstringAdapterSuite extends FunSuite {

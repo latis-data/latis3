@@ -1,10 +1,10 @@
 package latis.service.dap2
 
 import cats.data.NonEmptyList
-import cats.effect._
-import cats.syntax.all._
+import cats.effect.*
+import cats.syntax.all.*
 import io.circe.Json
-import io.circe.syntax._
+import io.circe.syntax.*
 
 import latis.catalog.Catalog
 import latis.dataset.Dataset

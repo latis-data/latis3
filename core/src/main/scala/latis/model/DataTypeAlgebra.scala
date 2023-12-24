@@ -1,8 +1,8 @@
 package latis.model
 
-import cats.syntax.all._
+import cats.syntax.all.*
 
-import latis.data._
+import latis.data.*
 import latis.util.Identifier
 
 trait DataTypeAlgebra { dataType: DataType =>

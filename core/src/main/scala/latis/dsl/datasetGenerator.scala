@@ -2,12 +2,12 @@ package latis.dsl
 
 import java.util.UUID
 
-import latis.data.Data._
-import latis.data._
+import latis.data.Data.*
+import latis.data.*
 import latis.dataset.MemoizedDataset
 import latis.metadata.Metadata
-import latis.model._
-import latis.util._
+import latis.model.*
+import latis.util.*
 
 /**
  * Provides convenient methods for constructing Datasets for testing.

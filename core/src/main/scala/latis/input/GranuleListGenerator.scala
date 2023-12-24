@@ -6,7 +6,7 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 
 import cats.effect.IO
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Stream
 
 import latis.data.Data
@@ -21,7 +21,7 @@ import latis.time.Time
 import latis.time.TimeFormat
 import latis.util.ConfigLike
 import latis.util.Duration
-import latis.util.Identifier._
+import latis.util.Identifier.*
 import latis.util.LatisException
 
 /**

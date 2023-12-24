@@ -3,7 +3,7 @@ package latis.input
 import java.net.URI
 
 import cats.effect.IO
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Pipe
 import fs2.Stream
 import fs2.text

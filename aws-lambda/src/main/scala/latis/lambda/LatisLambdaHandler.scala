@@ -2,11 +2,11 @@ package latis.lambda
 
 import java.net.URLDecoder
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import cats.syntax.all._
+import cats.syntax.all.*
 import com.amazonaws.services.lambda.runtime.Context
 import com.amazonaws.services.lambda.runtime.RequestHandler
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent
@@ -16,7 +16,7 @@ import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 import latis.catalog.Catalog
 import latis.dataset.Dataset
-import latis.lambda.error._
+import latis.lambda.error.*
 import latis.ops
 import latis.ops.OperationRegistry
 import latis.ops.UnaryOperation

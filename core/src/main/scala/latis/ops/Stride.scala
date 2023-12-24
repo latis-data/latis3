@@ -1,8 +1,8 @@
 package latis.ops
 
 import cats.effect.IO
-import cats.syntax.all._
-import fs2._
+import cats.syntax.all.*
+import fs2.*
 
 import latis.data.Sample
 import latis.model.DataType

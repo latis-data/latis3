@@ -4,7 +4,7 @@ import java.net.URI
 import java.net.URLDecoder
 
 import cats.effect.unsafe.implicits.global
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.io.file.Path
 import fs2.text
 

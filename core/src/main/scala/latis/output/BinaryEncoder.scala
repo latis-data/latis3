@@ -1,17 +1,17 @@
 package latis.output
 
 import cats.effect.IO
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Stream
 import scodec.Codec
-import scodec.bits._
-import scodec.interop.cats._
+import scodec.bits.*
+import scodec.interop.cats.*
 import scodec.stream.StreamEncoder
-import scodec.{Encoder => _, _}
+import scodec.{Encoder as _, *}
 
-import latis.data._
-import latis.dataset._
-import latis.model._
+import latis.data.*
+import latis.dataset.*
+import latis.model.*
 import latis.ops.Uncurry
 
 class BinaryEncoder(val dataCodec: Scalar => Codec[Data] = DataCodec.defaultDataCodec) extends Encoder[IO, Byte] {

@@ -2,9 +2,9 @@ package latis.dataset
 
 import cats.effect.IO
 
-import latis.data._
-import latis.metadata._
-import latis.model._
+import latis.data.*
+import latis.metadata.*
+import latis.model.*
 import latis.ops.UnaryOperation
 import latis.util.LatisException
 

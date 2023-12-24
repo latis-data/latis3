@@ -8,8 +8,8 @@ import latis.data.Sample
 import latis.dataset.AdaptedDataset
 import latis.dsl.ModelParser
 import latis.metadata.Metadata
-import latis.model._
-import latis.util.Identifier._
+import latis.model.*
+import latis.util.Identifier.*
 import latis.util.NetUtils.resolveUri
 
 class TextAdapterSuite extends CatsEffectSuite {

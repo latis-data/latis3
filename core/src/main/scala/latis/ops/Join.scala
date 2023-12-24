@@ -1,7 +1,7 @@
 package latis.ops
 
 import latis.data.StreamFunction
-import latis.dataset._
+import latis.dataset.*
 
 
 /**

@@ -4,8 +4,8 @@ import java.net.URI
 
 import cats.effect.unsafe.implicits.global
 
-import latis.data._
-import latis.model._
+import latis.data.*
+import latis.model.*
 import latis.ops.Operation
 
 /**

@@ -1,6 +1,6 @@
 package latis.model
 
-import latis.data._
+import latis.data.*
 import latis.util.Identifier
 
 object PathFinder {

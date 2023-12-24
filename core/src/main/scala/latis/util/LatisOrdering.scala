@@ -1,7 +1,7 @@
 package latis.util
 
-import latis.data._
-import latis.model._
+import latis.data.*
+import latis.model.*
 
 /**
  * Defines Orderings to support LaTiS.

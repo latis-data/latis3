@@ -5,7 +5,7 @@ import java.net.URL
 import java.net.URLClassLoader
 
 import cats.effect.IO
-import cats.syntax.all._
+import cats.syntax.all.*
 
 import latis.catalog.Catalog
 import latis.ops.OperationRegistry

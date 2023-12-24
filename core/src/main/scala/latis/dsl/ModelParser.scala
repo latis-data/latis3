@@ -1,10 +1,10 @@
 package latis.dsl
 
-import atto._
-import atto.Atto._
-import cats.syntax.all._
+import atto.*
+import atto.Atto.*
+import cats.syntax.all.*
 
-import latis.model._
+import latis.model.*
 import latis.util.LatisException
 import latis.util.dap2.parser.parsers.identifier
 

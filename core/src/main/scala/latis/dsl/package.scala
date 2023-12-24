@@ -11,7 +11,7 @@ import latis.data.DomainSet
 import latis.data.Sample
 import latis.dataset.Dataset
 import latis.input.DatasetReader
-import latis.ops._
+import latis.ops.*
 import latis.output.CsvEncoder
 import latis.output.TextEncoder
 import latis.util.FileUtils

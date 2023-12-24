@@ -1,6 +1,6 @@
 package latis.util.dap2.parser
 
-import atto.Atto._
+import atto.Atto.*
 import atto.ParseResult
 import atto.Parser
 import munit.FunSuite
