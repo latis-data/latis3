@@ -3,7 +3,6 @@ package latis.dsl
 import atto.Atto._
 import atto._
 import cats.Eq
-import cats.syntax.all._
 import munit.FunSuite
 
 import latis.model._
@@ -129,7 +128,7 @@ class ModelParserSuite extends FunSuite {
    * want to parse and the thing you expect to get back
    */
   private def testParser[A: Eq](p: Parser[A])(s: String, d: A): Unit = p.parseOnly(s) match {
-    case ParseResult.Done(_, result) => assert(result === d)
+    case ParseResult.Done(_, result) => assert(Eq[A].eqv(result, d))
     case ParseResult.Fail(_, _, m)   => fail(s"$m in $s")
     // parseOnly will never return anything but Done or Fail, but the types don't
     // know that so we get a warning without the following line.
