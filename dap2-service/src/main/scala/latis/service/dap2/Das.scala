@@ -36,7 +36,7 @@ object Das {
     }
   }
 
-  final case class ItemAttributeCont(id: Identifier, attributes: List[Attribute[_,_]]) extends AttributeCont {
+  final case class ItemAttributeCont(id: Identifier, attributes: List[Attribute[?,?]]) extends AttributeCont {
     override val toDoc: Doc = {
       val prefix = Doc.text(id.asString) + Doc.space + Doc.char('{')
       val suffix = Doc.char('}')

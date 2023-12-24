@@ -34,7 +34,7 @@ object Latis3ServerBuilder {
   private[server] def makeServiceInfo(className: String): ServiceInfo = {
     val classObj = Either.catchNonFatal(getClassByName(className)).toOption
 
-    def getField(obj: Class[_], field: String): Option[String] = Either.catchNonFatal {
+    def getField(obj: Class[?], field: String): Option[String] = Either.catchNonFatal {
       val f = obj.getDeclaredField(field)
       f.setAccessible(true)
       f.get(obj).asInstanceOf[String]
