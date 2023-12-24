@@ -57,7 +57,7 @@ class OrderingSuite extends FunSuite {
     }
 
     val res = smap.map {
-      case Sample(_, RangeData(Integer(x))) => x
+      case (_, RangeData(Integer(x))) => x
       case _ => fail("unexpected sample")
     }
 
