@@ -236,9 +236,8 @@ lazy val netcdf = project
     resolvers ++= Seq(
       "Unidata" at "https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases"
     ),
-    // Make deprecations non-fatal in CI.
-    scalacOptions ++= {
-      if (insideCI.value) Seq("-Wconf:cat=deprecation:w,any:e") else Seq()
+    scalacOptions --= {
+      if (insideCI.value) Seq("-Wconf:any:e") else Seq()
     }
   )
 
