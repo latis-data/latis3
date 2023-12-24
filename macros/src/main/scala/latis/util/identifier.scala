@@ -29,10 +29,12 @@ object Identifier {
 }
 
 object IdentifierLiteral extends Literally[Identifier] {
-  override def validate(s: String)(using Quotes): Either[String, Expr[Identifier]] =
+  override def validate(s: String)(using Quotes): Either[String, Expr[Identifier]] = {
+    val expr = Expr(s)
     Either.cond(
       Identifier.isValidIdentifier(s),
-      '{Identifier.fromString(${Expr(s)}).get},
+      '{Identifier.fromString($expr).get},
       "not a valid LaTiS identifier"
     )
+  }
 }
