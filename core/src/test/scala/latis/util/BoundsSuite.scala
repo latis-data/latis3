@@ -41,8 +41,8 @@ class BoundsSuite extends FunSuite {
   }
 
   test("invalid if NaN") {
-    assert(Bounds.of(Double.NaN, 0).isEmpty)
-    assert(Bounds.of(0, Double.NaN).isEmpty)
+    assert(Bounds.of(Double.NaN, 0d).isEmpty)
+    assert(Bounds.of(0d, Double.NaN).isEmpty)
     assert(Bounds.of(Double.NaN, Double.NaN).isEmpty)
   }
 
