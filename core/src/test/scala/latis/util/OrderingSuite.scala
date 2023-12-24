@@ -54,7 +54,6 @@ class OrderingSuite extends FunSuite {
     val smap = mutable.SortedMap[DomainData, RangeData]()(ordering)
     samples.foreach {
       case Sample(dd, rd) => smap += (dd -> rd)
-      case _ => fail("unexpected sample")
     }
 
     val res = smap.map {

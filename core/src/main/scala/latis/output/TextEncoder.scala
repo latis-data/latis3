@@ -71,11 +71,7 @@ class TextEncoder extends Encoder[IO, String] {
         // No data in Sample, generate index
         indexGenerator.nextIndex(i.id).toString
 
-      case s: Scalar =>
-        ds.pop() match {
-          case d: Data => s.formatValue(d)
-          case _ => ??? //bug, inconsistent data
-        }
+      case s: Scalar => s.formatValue(ds.pop())
 
       case t: Tuple =>
         t.elements.map(go).mkString("(", ", ", ")")

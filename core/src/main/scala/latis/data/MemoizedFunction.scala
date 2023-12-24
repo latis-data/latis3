@@ -47,7 +47,6 @@ trait MemoizedFunction extends SampledFunction {
     val eq: Equiv[DomainData] = ordering.getOrElse(DefaultDomainOrdering)
     val osample: Option[Sample] = sampleSeq.find {
       case Sample(d, _) => eq.equiv(d, data)
-      case _ => false
     }
     osample match {
       case Some(s) => Right(s.range)
