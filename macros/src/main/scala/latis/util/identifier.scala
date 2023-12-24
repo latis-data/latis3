@@ -10,10 +10,16 @@ import org.typelevel.literally.Literally
  *   - dots (TODO: remove support for dots)
  * so long as the identifier does not start with a number.
  */
-sealed abstract case class Identifier(asString: String)
+
+opaque type Identifier = String
+
 object Identifier {
   def fromString(id: String): Option[Identifier] =
-    if (isValidIdentifier(id)) Some(new Identifier(id) {}) else None
+    if (isValidIdentifier(id)) Option(id) else None
+
+  extension (id: Identifier) {
+    def asString: String = id
+  }
 
   extension(inline ctx: StringContext) {
     inline def id(inline args: Any*): Identifier =
