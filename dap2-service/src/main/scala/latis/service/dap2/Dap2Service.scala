@@ -29,7 +29,6 @@ import latis.service.dap2.error._
 import latis.util.Identifier
 import latis.util.dap2.parser.ConstraintParser
 import latis.util.dap2.parser.ast
-import latis.util.dap2.parser.ast.ConstraintExpression
 
 /**
  * A service interface implementing the DAP 2 specification.
@@ -130,7 +129,7 @@ class Dap2Service(catalog: Catalog, operationRegistry: OperationRegistry)
 
     ConstraintParser.parse(ce)
       .leftMap(ParseFailure(_))
-      .flatMap { cexprs: ConstraintExpression =>
+      .flatMap { cexprs =>
         cexprs.exprs.traverse {
           case ast.Projection(vs)      => Right(ops.Projection(vs:_*))
           case ast.Selection(n, op, v) => Right(ops.Selection(n, op, stripQuotes(v)))

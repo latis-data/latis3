@@ -28,7 +28,6 @@ import latis.output.TextEncoder
 import latis.util.Identifier
 import latis.util.dap2.parser.ConstraintParser
 import latis.util.dap2.parser.ast
-import latis.util.dap2.parser.ast.ConstraintExpression
 import latis.util.LatisException
 
 final class LatisLambdaHandler extends RequestHandler[APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse] {
@@ -149,7 +148,7 @@ final class LatisLambdaHandler extends RequestHandler[APIGatewayV2HTTPEvent, API
 
     ConstraintParser.parse(ce)
       .leftMap(ParseFailure(_))
-      .flatMap { cexprs: ConstraintExpression =>
+      .flatMap { cexprs =>
         cexprs.exprs.traverse {
           case ast.Projection(vs) =>
             Right(ops.Projection(vs:_*))

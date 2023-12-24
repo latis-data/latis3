@@ -8,7 +8,7 @@ import ast._
 
 object ConstraintParserProps extends Properties("DAP 2 Constraint Parser") {
 
-  property("parse") = Prop.forAll(cexpr) { expr: ConstraintExpression =>
+  property("parse") = Prop.forAll(cexpr) { expr =>
     expr == ConstraintParser.parse(pretty(expr)).fold(
       msg => throw new RuntimeException(msg), x => x
     )
