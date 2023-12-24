@@ -70,7 +70,7 @@ object Contains {
       Either.fromOption(
         Identifier.fromString(id),
         LatisException(s"Invalid identifier: $id")
-      ).map(Contains(_, (value :: values): _*))
+      ).map(Contains(_, (value :: values) *))
     case _ => LatisException("Contains expects a variable identifier and at least one value.").asLeft
   }
 }

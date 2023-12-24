@@ -131,7 +131,7 @@ class Dap2Service(catalog: Catalog, operationRegistry: OperationRegistry)
       .leftMap(ParseFailure(_))
       .flatMap { cexprs =>
         cexprs.exprs.traverse {
-          case ast.Projection(vs)      => Right(ops.Projection(vs:_*))
+          case ast.Projection(vs)      => Right(ops.Projection(vs *))
           case ast.Selection(n, op, v) => Right(ops.Selection(n, op, stripQuotes(v)))
           // Delegate to Operation factory
           case ast.Operation(name, args) => {

@@ -117,7 +117,7 @@ object FdmlReader {
     opReg: OperationRegistry
   ): Either[LatisException, UnaryOperation] =
     expression match {
-      case ast.Projection(vs) => Right(ops.Projection(vs: _*))
+      case ast.Projection(vs) => Right(ops.Projection(vs *))
       case ast.Selection(n, op, v) =>
         Right(ops.Selection(n, op, v))
       case ast.Operation(name, args) =>

@@ -109,7 +109,7 @@ object NetcdfAdapter extends AdapterFactory {
 
   /** Constructor used by the AdapterFactory. */
   def apply(model: DataType, config: AdapterConfig): NetcdfAdapter =
-    new NetcdfAdapter(model, new NetcdfAdapter.Config(config.properties: _*))
+    new NetcdfAdapter(model, new NetcdfAdapter.Config(config.properties *))
 
   class Config(val properties: (String, String)*) extends ConfigLike {
     /** Nominal number of elements to include in a NetcdfFile read. */

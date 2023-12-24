@@ -65,6 +65,6 @@ object ReflectionUtils {
       }
     }
 
-    method.invoke(companionObject, args: _*)
+    method.invoke(companionObject, args *)
   }
 }

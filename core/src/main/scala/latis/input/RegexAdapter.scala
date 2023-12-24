@@ -54,12 +54,12 @@ object RegexAdapter extends AdapterFactory {
    * Constructor used by the AdapterFactory.
    */
   def apply(model: DataType, config: AdapterConfig): RegexAdapter =
-    new RegexAdapter(model, new RegexAdapter.Config(config.properties: _*))
+    new RegexAdapter(model, new RegexAdapter.Config(config.properties *))
 
   /**
    * Configuration specific to a RegexAdapter.
    */
-  class Config(properties: (String, String)*) extends TextAdapter.Config(properties: _*) {
+  class Config(properties: (String, String)*) extends TextAdapter.Config(properties *) {
     val pattern: Regex = get("pattern")
       .getOrElse(throw LatisException("RegexAdapter requires a pattern definition."))
       .r

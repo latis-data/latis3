@@ -41,12 +41,12 @@ object SubstringAdapter extends AdapterFactory {
    * Constructor used by the AdapterFactory.
    */
   def apply(model: DataType, config: AdapterConfig): SubstringAdapter =
-    new SubstringAdapter(model, new SubstringAdapter.Config(config.properties: _*))
+    new SubstringAdapter(model, new SubstringAdapter.Config(config.properties *))
 
   /**
    * Configuration specific to a SubstringAdapter.
    */
-  class Config(properties: (String, String)*) extends TextAdapter.Config(properties: _*) {
+  class Config(properties: (String, String)*) extends TextAdapter.Config(properties *) {
     val substring: String = get("substring")
       .getOrElse(throw LatisException("SubstringAdapter requires a substring definition."))
   }

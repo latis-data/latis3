@@ -151,7 +151,7 @@ final class LatisLambdaHandler extends RequestHandler[APIGatewayV2HTTPEvent, API
       .flatMap { cexprs =>
         cexprs.exprs.traverse {
           case ast.Projection(vs) =>
-            Right(ops.Projection(vs:_*))
+            Right(ops.Projection(vs *))
           case ast.Selection(n, op, v) =>
             Right(ops.Selection(n, op, stripQuotes(v)))
           // Delegate to Operation registry

@@ -143,6 +143,6 @@ object CompositeDataset {
     ds2: Dataset,
     rest: List[Dataset] = List.empty
   ): CompositeDataset =
-    new CompositeDataset(md, NonEmptyList.of(ds1, (ds2 :: rest): _*), joinOperation)
+    new CompositeDataset(md, NonEmptyList.of(ds1, (ds2 :: rest) *), joinOperation)
 
 }

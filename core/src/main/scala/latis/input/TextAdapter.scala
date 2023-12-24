@@ -130,7 +130,7 @@ object TextAdapter extends AdapterFactory {
    * Constructor used by the AdapterFactory.
    */
   def apply(model: DataType, config: AdapterConfig): TextAdapter =
-    new TextAdapter(model, new Config(config.properties: _*))
+    new TextAdapter(model, new Config(config.properties *))
 
   /**
    * Configuration specific to a TextAdapter.

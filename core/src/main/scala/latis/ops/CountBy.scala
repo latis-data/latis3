@@ -11,7 +11,7 @@ import latis.util.LatisException
  * to generate a new domain with the range being a `count` variable
  * representing the number of samples with that domain value.
  */
-class CountBy(ids: NonEmptyList[Identifier]) extends GroupByVariable(ids.toList: _*) {
+class CountBy(ids: NonEmptyList[Identifier]) extends GroupByVariable(ids.toList *) {
 
   override def aggregation: Aggregation = CountAggregation()
 }

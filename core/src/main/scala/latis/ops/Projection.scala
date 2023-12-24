@@ -134,7 +134,7 @@ object Projection {
     case Nil => Left(LatisException("Projection requires at least one argument"))
     case _ => args.traverse { id =>
       Identifier.fromString(id).toRight(LatisException(s"'$id' is not a valid identifier"))
-    }.map(Projection(_: _*))
+    }.map(Projection(_ *))
   }
 
 }

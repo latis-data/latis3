@@ -23,7 +23,7 @@ object JsonCatalogEncoder {
         NonEmptyList.fromList(cats).map(cats => "catalog" -> cats.asJson),
         NonEmptyList.fromList(dss).map(dss => "dataset" -> dss.asJson)
       ).unite //keep only fields that are defined
-      Json.obj(fields: _*)
+      Json.obj(fields *)
     }
 
   /** Provides a JSON representation of a Dataset in a catalog. */

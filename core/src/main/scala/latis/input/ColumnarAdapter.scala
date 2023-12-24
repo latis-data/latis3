@@ -34,12 +34,12 @@ object ColumnarAdapter extends AdapterFactory {
    * Constructor used by the AdapterFactory.
    */
   def apply(model: DataType, config: AdapterConfig): ColumnarAdapter =
-    new ColumnarAdapter(model, new ColumnarAdapter.Config(config.properties: _*))
+    new ColumnarAdapter(model, new ColumnarAdapter.Config(config.properties *))
 
   /**
    * Configuration specific to a ColumnarAdapter.
    */
-  class Config(properties: (String, String)*) extends TextAdapter.Config(properties: _*) {
+  class Config(properties: (String, String)*) extends TextAdapter.Config(properties *) {
     val columns: String = get("columns")
       .getOrElse(throw LatisException("ColumnarAdapter requires a columns definition."))
   }

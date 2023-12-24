@@ -67,7 +67,7 @@ object Latis3ServerBuilder {
       val routes = interfaces.map {
         case (prefix, service) => (prefix, service.routes)
       } :+ ("/", landingPage.routes)
-      Router(routes:_*)
+      Router(routes *)
     }
 
     EmberServerBuilder.default[IO]

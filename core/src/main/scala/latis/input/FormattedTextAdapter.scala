@@ -26,12 +26,12 @@ object FormattedTextAdapter extends AdapterFactory {
    * Constructor used by the AdapterFactory.
    */
   def apply(model: DataType, config: AdapterConfig): FormattedTextAdapter =
-    new FormattedTextAdapter(model, FormattedTextAdapter.Config(config.properties: _*))
+    new FormattedTextAdapter(model, FormattedTextAdapter.Config(config.properties *))
 
   /**
    * Configuration specific to a FormattedTextAdapter.
    */
-  class Config private (properties: (String, String)*) extends RegexAdapter.Config(properties: _*) {
+  class Config private (properties: (String, String)*) extends RegexAdapter.Config(properties *) {
     // This will only be called from the apply method, and so format will always
     // be present.
     val format: String = get("format").get
@@ -39,13 +39,13 @@ object FormattedTextAdapter extends AdapterFactory {
 
   object Config {
     def apply(properties: (String, String)*): FormattedTextAdapter.Config = {
-      val tempConfig = new TextAdapter.Config(properties: _*)
+      val tempConfig = new TextAdapter.Config(properties *)
       val format: String = tempConfig.propertyMap.getOrElse(
         "format",
         throw LatisException("FormattedTextAdapter requires a format definition.")
       )
       val pattern: String = formatToRegex(format, tempConfig.delimiter)
-      new FormattedTextAdapter.Config(properties :+ ("pattern" -> pattern): _*)
+      new FormattedTextAdapter.Config(properties :+ ("pattern" -> pattern) *)
     }
 
   }

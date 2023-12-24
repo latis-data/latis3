@@ -52,7 +52,7 @@ sealed abstract class FAdapter(
    * `attributes`, is included in this config.
    */
   def config: AdapterConfig =
-    AdapterConfig((("class" -> clss) :: attributes.toList): _*)
+    AdapterConfig((("class" -> clss) :: attributes.toList) *)
 }
 
 /** A single, normal adapter. */

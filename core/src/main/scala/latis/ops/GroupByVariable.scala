@@ -74,7 +74,7 @@ object GroupByVariable {
     case Nil => LatisException("GroupByVariable requires at least one variable identifier").asLeft
     case _   => args.traverse { id =>
       Identifier.fromString(id).toRight(LatisException(s"'$id' is not a valid identifier"))
-    }.map(GroupByVariable(_: _*))
+    }.map(GroupByVariable(_ *))
   }
 }
 

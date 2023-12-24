@@ -65,6 +65,6 @@ object MatrixTextAdapter extends AdapterFactory {
    * Constructor used by the AdapterFactory.
    */
   def apply(model: DataType, config: AdapterConfig): TextAdapter =
-    new TextAdapter(model, new TextAdapter.Config(config.properties: _*))
+    new TextAdapter(model, new TextAdapter.Config(config.properties *))
 
 }

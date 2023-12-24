@@ -263,7 +263,7 @@ object JdbcAdapter extends AdapterFactory {
 
   /** Constructor used by the AdapterFactory. */
   def apply(model: DataType, config: AdapterConfig): JdbcAdapter =
-    new JdbcAdapter(model, JdbcAdapter.Config(config.properties: _*))
+    new JdbcAdapter(model, JdbcAdapter.Config(config.properties *))
 
   /**
    * Defines a JdbcAdapter specific configuration with type-safe accessors for

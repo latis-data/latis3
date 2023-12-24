@@ -61,7 +61,7 @@ class TextEncoder extends Encoder[IO, String] {
     }
 
   private[output] def encodeData(model: DataType, data: Seq[Data]): String = {
-    val ds = scala.collection.mutable.Stack(data: _*)
+    val ds = scala.collection.mutable.Stack(data *)
 
     def go(dt: DataType): String = dt match {
       //TODO: not exhaustive: See https://github.com/latis-data/latis3/issues/304
