@@ -89,7 +89,7 @@ object ConstraintParserProps extends Properties("DAP 2 Constraint Parser") {
 
   val projection: Gen[CExpr] =
     //TODO: maybe revert to Gen.listOf(variable) after Identifier refactor
-    Gen.nonEmptyListOf(identifier).map(Projection)
+    Gen.nonEmptyListOf(identifier).map(Projection(_))
 
   val selection: Gen[CExpr] = for {
     n <- identifier

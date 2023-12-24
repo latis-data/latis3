@@ -129,7 +129,7 @@ class Dap2Service(catalog: Catalog, operationRegistry: OperationRegistry)
     val ce = URLDecoder.decode(query, "UTF-8")
 
     ConstraintParser.parse(ce)
-      .leftMap(ParseFailure)
+      .leftMap(ParseFailure(_))
       .flatMap { cexprs: ConstraintExpression =>
         cexprs.exprs.traverse {
           case ast.Projection(vs)      => Right(ops.Projection(vs:_*))
