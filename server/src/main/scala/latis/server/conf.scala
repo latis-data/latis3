@@ -2,32 +2,58 @@ package latis.server
 
 import java.net.URL
 
+import cats.syntax.all.*
 import com.comcast.ip4s.Port
 import fs2.io.file.Path
-import pureconfig.CamelCase
-import pureconfig.ConfigFieldMapping
-import pureconfig.KebabCase
-import pureconfig.generic.CoproductHint
-import pureconfig.generic.FieldCoproductHint
-import pureconfig.generic.ProductHint
+import pureconfig.ConfigCursor
+import pureconfig.ConfigReader
+import pureconfig.module.ip4s.*
+
+given ConfigReader[Path] =
+  ConfigReader.fromString(path => Right(Path(path)))
 
 final case class CatalogConf(
   dir: Path,
   validate: Boolean
 )
 
+object CatalogConf {
+  given ConfigReader[CatalogConf] =
+    ConfigReader.forProduct2("dir", "validate")(CatalogConf(_, _))
+}
+
 final case class ServerConf(
   port: Port,
   prefix: String
 )
 
+object ServerConf {
+  given ConfigReader[ServerConf] =
+    ConfigReader.forProduct2("port", "prefix")(ServerConf(_, _))
+}
+
 final case class ServiceConf(
   services: List[ServiceSpec]
 )
 
+object ServiceConf {
+  given ConfigReader[ServiceConf] =
+    ConfigReader.forProduct1("services")(ServiceConf(_))
+}
+
 sealed trait ServiceSpec {
   val prefix: String
   val clss: String
+}
+
+object ServiceSpec {
+  given ConfigReader[ServiceSpec] with {
+    def from(cur: ConfigCursor): ConfigReader.Result[ServiceSpec] =
+      cur.asObjectCursor.flatMap(_.atKey("type")).flatMap(_.asString).flatMap {
+        case "class" => ConfigReader[ClassPathServiceSpec].from(cur)
+        case "jar" => ConfigReader[JarServiceSpec].from(cur)
+      }
+  }
 }
 
 final case class JarServiceSpec(
@@ -36,31 +62,17 @@ final case class JarServiceSpec(
   clss: String
 ) extends ServiceSpec
 
+object JarServiceSpec {
+  given ConfigReader[JarServiceSpec] =
+    ConfigReader.forProduct3("path", "prefix", "class")(JarServiceSpec.apply)
+}
+
 final case class ClassPathServiceSpec(
   prefix: String,
   clss: String
 ) extends ServiceSpec
 
-object ServiceSpec {
-  implicit val jssHint: ProductHint[JarServiceSpec] =
-    ProductHint(
-      ConfigFieldMapping(CamelCase, KebabCase).withOverrides(
-        "clss" -> "class"
-      )
-    )
-
-  implicit val cssHint: ProductHint[ClassPathServiceSpec] =
-    ProductHint(
-      ConfigFieldMapping(CamelCase, KebabCase).withOverrides(
-        "clss" -> "class"
-      )
-    )
-
-  implicit val coproductHint: CoproductHint[ServiceSpec] =
-    new FieldCoproductHint[ServiceSpec]("type") {
-      override def fieldValue(name: String): String = name match {
-        case "JarServiceSpec"       => "jar"
-        case "ClassPathServiceSpec" => "class"
-      }
-    }
+object ClassPathServiceSpec {
+  given ConfigReader[ClassPathServiceSpec] =
+    ConfigReader.forProduct2("prefix", "class")(ClassPathServiceSpec(_, _))
 }

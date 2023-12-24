@@ -14,9 +14,7 @@ import org.http4s.server.Server
 import org.http4s.server.middleware.CORS
 import org.typelevel.log4cats.StructuredLogger
 import pureconfig.ConfigSource
-import pureconfig.generic.auto._
 import pureconfig.module.catseffect.syntax._
-import pureconfig.module.ip4s._
 
 import latis.service.landing.DefaultLandingPage
 import latis.service.landing.LandingPage

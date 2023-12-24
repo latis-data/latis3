@@ -5,7 +5,6 @@ import cats.effect.IO
 import cats.effect.IOApp
 import cats.effect.Resource
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-import pureconfig.generic.auto._
 import pureconfig.module.catseffect.syntax._
 
 import latis.catalog.FdmlCatalog
