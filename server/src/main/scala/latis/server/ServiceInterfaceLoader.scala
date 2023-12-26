@@ -30,7 +30,7 @@ final class ServiceInterfaceLoader {
       } yield (spec.prefix, service)
     }
 
-  private def loadService(
+  private[server] def loadService(
     cl: ClassLoader,
     name: String,
     catalog: Catalog,
