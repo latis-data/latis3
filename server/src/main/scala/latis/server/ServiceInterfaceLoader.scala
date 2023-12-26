@@ -26,18 +26,18 @@ final class ServiceInterfaceLoader {
     conf.services.traverse { spec =>
       for {
         loader  <- getClassLoader(spec)
-        service <- loadService(loader, spec, catalog, operationRegistry)
+        service <- loadService(loader, spec.clss, catalog, operationRegistry)
       } yield (spec.prefix, service)
     }
 
   private def loadService(
     cl: ClassLoader,
-    spec: ServiceSpec,
+    name: String,
     catalog: Catalog,
     operationRegistry: OperationRegistry
   ): IO[ServiceInterface] =
     IO {
-      cl.loadClass(spec.clss).getConstructor(
+      cl.loadClass(name).getConstructor(
         classOf[Catalog],
         classOf[OperationRegistry]
       ).newInstance(catalog, operationRegistry).asInstanceOf[ServiceInterface]
