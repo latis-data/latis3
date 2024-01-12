@@ -7,8 +7,8 @@ import latis.catalog.Catalog
 import latis.ops.OperationRegistry
 
 class TestServiceInterface(
-    c: Catalog,
-    r: OperationRegistry
+  c: Catalog,
+  r: OperationRegistry
 ) extends ServiceInterface(c, r) {
   def routes: HttpRoutes[IO] = HttpRoutes.empty
 }
