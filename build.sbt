@@ -59,27 +59,6 @@ lazy val dockerSettings = Seq(
 
 //=== Sub-projects ============================================================
 
-lazy val root = project
-  .in(file("."))
-  .aggregate(
-    `aws-lambda`,
-    core,
-    `dap2-parser`,
-    `dap2-service`,
-    `fdml-validator`,
-    ftp,
-    jdbc,
-    macros,
-    netcdf,
-    python,
-    server,
-    `service-interface`,
-    `test-utils`
-  )
-  .settings(
-    publish / skip := true
-  )
-
 lazy val `aws-lambda` = project
   .dependsOn(core)
   .enablePlugins(DockerPlugin)
