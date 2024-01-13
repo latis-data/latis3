@@ -53,6 +53,18 @@ class ConfSuite extends munit.FunSuite {
     assertEquals(conf.map(_.services.length), Right(2))
   }
 
+  test("fail if type is unknown") {
+    val conf = ConfigSource.string("""
+    {
+      services = [
+        { type = fake, prefix = "prefix", class = "class" }
+      ]
+    }
+    """).load[ServiceConf]
+
+    assert(conf.isLeft)
+  }
+
   test("read JarServiceSpec") {
     val path = URL("file://path/to/jar")
     val prefix = "service"

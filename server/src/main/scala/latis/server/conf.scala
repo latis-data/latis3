@@ -7,6 +7,8 @@ import com.comcast.ip4s.Port
 import fs2.io.file.Path
 import pureconfig.ConfigCursor
 import pureconfig.ConfigReader
+import pureconfig.error.ConvertFailure
+import pureconfig.error.UserValidationFailed
 import pureconfig.module.ip4s.*
 
 given ConfigReader[Path] =
@@ -49,9 +51,17 @@ sealed trait ServiceSpec {
 object ServiceSpec {
   given ConfigReader[ServiceSpec] with {
     def from(cur: ConfigCursor): ConfigReader.Result[ServiceSpec] =
-      cur.asObjectCursor.flatMap(_.atKey("type")).flatMap(_.asString).flatMap {
-        case "class" => ConfigReader[ClassPathServiceSpec].from(cur)
-        case "jar" => ConfigReader[JarServiceSpec].from(cur)
+      cur.asObjectCursor.flatMap(_.atKey("type")).flatMap { atType =>
+        atType.asString.flatMap {
+          case "class" => ConfigReader[ClassPathServiceSpec].from(cur)
+          case "jar" => ConfigReader[JarServiceSpec].from(cur)
+          case x => ConfigReader.Result.fail(
+            ConvertFailure(
+              UserValidationFailed(s"Unsupported service specification: \"$x\""),
+              atType
+            )
+          )
+        }
       }
   }
 }
