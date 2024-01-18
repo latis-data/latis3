@@ -258,8 +258,7 @@ object JdbcAdapter extends AdapterFactory {
   private val defaultFetchSize: Int = 100
 
   /**
-   * Defines a JdbcAdapter specific configuration with type-safe accessors for
-   * driver, user, table, password, and predicate.
+   * Defines a JdbcAdapter specific configuration with type-safe accessors.
    */
   case class Config(properties: (String, String)*) extends ConfigLike {
     val driver: String = get("driver")
