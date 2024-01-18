@@ -88,16 +88,6 @@ case class JdbcAdapter(
       case (ds, _) => ds.length
     }
 
-  /**
-   * Defines the JDBC request fetch size.
-   */
-  private[input] val fetchSize: Int = 100
-  //TODO: get from config
-  //TODO: is 100 (from Ryan's original code) a reasonable fetchSize?
-  // We use 10000 for MMS and MAVEN WebTCAD
-  // "By default, most JDBC drivers use a fetch size of 10."
-
-
   def getData(baseUri: URI, ops: Seq[Operation]): Data = {
     // Need UnaryOperations, TODO: fix Adapter definition
     val uops: List[UnaryOperation] = ops.toList.collect {
@@ -251,7 +241,7 @@ case class JdbcAdapter(
       HC.getMetaData(FDMD.getDatabaseProductName).map(Option(_))
     ).flatMap { vendor =>
       val sql = SqlBuilder.buildQuery(config.table, model, uops, config.predicate, vendor)
-      processGeneric(sql, ().pure[PreparedStatementIO], fetchSize)
+      processGeneric(sql, ().pure[PreparedStatementIO], config.fetchSize)
     }.transact(xa)
 
     SampledFunction(result)
@@ -264,6 +254,8 @@ object JdbcAdapter extends AdapterFactory {
   /** Constructor used by the AdapterFactory. */
   def apply(model: DataType, config: AdapterConfig): JdbcAdapter =
     new JdbcAdapter(model, JdbcAdapter.Config(config.properties: _*))
+
+  private val defaultFetchSize: Int = 100
 
   /**
    * Defines a JdbcAdapter specific configuration with type-safe accessors for
@@ -279,6 +271,7 @@ object JdbcAdapter extends AdapterFactory {
     val password: String = get("password")
       .getOrElse(throw LatisException("DatabaseAdapter requires a password definition."))
     val predicate: Option[String] = get("predicate")
+    val fetchSize: Int = getOrElse("fetchSize", defaultFetchSize)
   }
 
 }
