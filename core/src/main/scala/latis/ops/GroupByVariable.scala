@@ -1,9 +1,9 @@
 package latis.ops
 
-import cats.implicits._
+import cats.implicits.*
 
-import latis.data._
-import latis.model._
+import latis.data.*
+import latis.model.*
 import latis.util.Identifier
 import latis.util.LatisException
 
@@ -74,7 +74,7 @@ object GroupByVariable {
     case Nil => LatisException("GroupByVariable requires at least one variable identifier").asLeft
     case _   => args.traverse { id =>
       Identifier.fromString(id).toRight(LatisException(s"'$id' is not a valid identifier"))
-    }.map(GroupByVariable(_: _*))
+    }.map(GroupByVariable(_ *))
   }
 }
 

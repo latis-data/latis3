@@ -8,7 +8,7 @@ import cats.effect.unsafe.implicits.global
 import fs2.Pipe
 import fs2.Stream
 
-import latis.data._
+import latis.data.*
 import latis.model.DataType
 import latis.model.Function
 import latis.util.CartesianDomainOrdering

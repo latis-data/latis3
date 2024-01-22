@@ -2,13 +2,13 @@ package latis.input.fdml
 
 import java.net.URI
 
-import cats.syntax.all._
+import cats.syntax.all.*
 
 import latis.dataset.AdaptedDataset
 import latis.dataset.Dataset
 import latis.dataset.GranuleAppendDataset
 import latis.input.Adapter
-import latis.model._
+import latis.model.*
 import latis.ops
 import latis.ops.OperationRegistry
 import latis.ops.UnaryOperation
@@ -117,7 +117,7 @@ object FdmlReader {
     opReg: OperationRegistry
   ): Either[LatisException, UnaryOperation] =
     expression match {
-      case ast.Projection(vs) => Right(ops.Projection(vs: _*))
+      case ast.Projection(vs) => Right(ops.Projection(vs *))
       case ast.Selection(n, op, v) =>
         Right(ops.Selection(n, op, v))
       case ast.Operation(name, args) =>

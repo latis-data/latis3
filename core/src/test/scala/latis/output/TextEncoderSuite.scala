@@ -5,8 +5,8 @@ import scala.util.Properties.lineSeparator
 import munit.CatsEffectSuite
 
 import latis.dataset.Dataset
-import latis.dsl._
-import latis.util.Identifier._
+import latis.dsl.*
+import latis.util.Identifier.*
 
 class TextEncoderSuite extends CatsEffectSuite {
 

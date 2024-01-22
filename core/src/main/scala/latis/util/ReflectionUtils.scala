@@ -1,7 +1,5 @@
 package latis.util
 
-import scala.reflect.runtime._
-
 /**
  * Collection of utility methods for using reflection.
  */
@@ -13,7 +11,7 @@ object ReflectionUtils {
    * This may throw an Exception.
    */
   //TODO: return Option or Try or IO?
-  def getClassByName(className: String): Class[_] =
+  def getClassByName(className: String): Class[?] =
     Class.forName(className)
 
   /**
@@ -29,9 +27,13 @@ object ReflectionUtils {
    * Get the companion object for the given class name.
    */
   def getCompanionObject(className: String): Any = {
-    val moduleSymbol = currentMirror.staticModule(className)
-    val moduleMirror = currentMirror.reflectModule(moduleSymbol)
-    moduleMirror.instance
+    // The class representing a companion object has a dollar sign ($)
+    // appended to the end to distinguish it from its companion class.
+    val cls = Class.forName(s"$className$$")
+
+    // The instantiated companion object is accessible through a
+    // static field called MODULE$.
+    cls.getField("MODULE$").get(null)
   }
 
   /**
@@ -63,6 +65,6 @@ object ReflectionUtils {
       }
     }
 
-    method.invoke(companionObject, args: _*)
+    method.invoke(companionObject, args *)
   }
 }

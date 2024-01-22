@@ -2,7 +2,7 @@ package latis.model
 
 import munit.FunSuite
 
-import latis.data.Data._
+import latis.data.Data.*
 
 class ValueTypeSuite extends FunSuite {
 

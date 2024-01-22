@@ -2,23 +2,23 @@ package latis.service.dap2
 
 import cats.data.NonEmptyList
 import cats.effect.IO
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.io.file.Files
 import munit.CatsEffectSuite
-import org.http4s._
+import org.http4s.*
 import org.http4s.headers.`Content-Length`
 import org.http4s.headers.`Content-Type`
-import org.http4s.implicits._
-import org.typelevel.ci._
+import org.http4s.implicits.*
+import org.typelevel.ci.*
 
 import latis.catalog.Catalog
-import latis.data._
+import latis.data.*
 import latis.dataset.MemoizedDataset
 import latis.dsl.DatasetGenerator
 import latis.metadata.Metadata
-import latis.model._
+import latis.model.*
 import latis.ops.OperationRegistry
-import latis.util.Identifier._
+import latis.util.Identifier.*
 
 class Dap2ServiceSuite extends CatsEffectSuite {
   //TODO: test other error handling

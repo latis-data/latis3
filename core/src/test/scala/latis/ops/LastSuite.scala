@@ -8,11 +8,11 @@ import latis.data.Sample
 import latis.data.SampledFunction
 import latis.dataset.Dataset
 import latis.dataset.MemoizedDataset
-import latis.dsl._
+import latis.dsl.*
 import latis.metadata.Metadata
 import latis.model.IntValueType
 import latis.model.Scalar
-import latis.util.Identifier._
+import latis.util.Identifier.*
 
 class LastSuite extends CatsEffectSuite {
 

@@ -2,7 +2,7 @@ package latis.data
 
 import munit.ScalaCheckSuite
 import org.scalacheck.Gen
-import org.scalacheck.Prop._
+import org.scalacheck.Prop.*
 
 class DatumSuite extends ScalaCheckSuite {
 

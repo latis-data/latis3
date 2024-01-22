@@ -1,11 +1,11 @@
 package latis.service.landing
 
 import cats.effect.IO
-import org.http4s.dsl.io._
+import org.http4s.dsl.io.*
 import org.http4s.HttpRoutes
 import org.http4s.scalatags.scalatagsEncoder
 import scalatags.Text
-import scalatags.Text.all._
+import scalatags.Text.all.*
 
 import latis.server.ServiceInfo
 

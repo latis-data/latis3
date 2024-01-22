@@ -6,12 +6,12 @@ import cats.data.Kleisli
 import cats.effect.Async
 import cats.effect.Clock
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Stream
 import org.http4s.HttpApp
 import org.http4s.Request
 import org.http4s.Response
-import org.http4s.server.middleware.{Logger => Http4sLogger}
+import org.http4s.server.middleware.{Logger as Http4sLogger}
 import org.typelevel.log4cats.StructuredLogger
 
 /**

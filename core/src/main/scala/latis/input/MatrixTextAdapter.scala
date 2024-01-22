@@ -4,8 +4,8 @@ import java.net.URI
 
 import cats.effect.unsafe.implicits.global
 
-import latis.data._
-import latis.model._
+import latis.data.*
+import latis.model.*
 import latis.ops.Operation
 
 /**
@@ -65,6 +65,6 @@ object MatrixTextAdapter extends AdapterFactory {
    * Constructor used by the AdapterFactory.
    */
   def apply(model: DataType, config: AdapterConfig): TextAdapter =
-    new TextAdapter(model, new TextAdapter.Config(config.properties: _*))
+    new TextAdapter(model, new TextAdapter.Config(config.properties *))
 
 }

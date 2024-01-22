@@ -14,8 +14,8 @@ import latis.dataset.AdaptedDataset
 import latis.dsl.DatasetGenerator
 import latis.dsl.ModelParser
 import latis.metadata.Metadata
-import latis.model._
-import latis.util.Identifier._
+import latis.model.*
+import latis.util.Identifier.*
 
 class BinaryAdapterSuite extends CatsEffectSuite {
 

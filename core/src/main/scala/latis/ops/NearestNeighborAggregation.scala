@@ -1,7 +1,7 @@
 package latis.ops
 
-import latis.data._
-import latis.model._
+import latis.data.*
+import latis.model.*
 import latis.util.LatisException
 
 /**

@@ -2,13 +2,13 @@ package latis.dataset
 
 import cats.data.NonEmptyList
 import cats.effect.IO
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Stream
 
-import latis.data._
+import latis.data.*
 import latis.metadata.Metadata
 import latis.model.DataType
-import latis.ops._
+import latis.ops.*
 import latis.util.LatisException
 
 /**
@@ -143,6 +143,6 @@ object CompositeDataset {
     ds2: Dataset,
     rest: List[Dataset] = List.empty
   ): CompositeDataset =
-    new CompositeDataset(md, NonEmptyList.of(ds1, (ds2 :: rest): _*), joinOperation)
+    new CompositeDataset(md, NonEmptyList.of(ds1, (ds2 :: rest) *), joinOperation)
 
 }

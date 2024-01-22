@@ -2,11 +2,11 @@ package latis.input
 
 import munit.FunSuite
 
-import latis.data._
+import latis.data.*
 import latis.dsl.ModelParser
 import latis.metadata.Metadata
-import latis.model._
-import latis.util.Identifier._
+import latis.model.*
+import latis.util.Identifier.*
 
 class ColumnarAdapterSuite extends FunSuite {
 

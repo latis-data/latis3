@@ -1,7 +1,7 @@
 package latis.ops
 
 import cats.effect.IO
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Pipe
 import fs2.Pull
 import fs2.Pure
@@ -12,9 +12,9 @@ import org.http4s.Uri
 
 import latis.data.Data.BinaryValue
 import latis.data.Data.StringValue
-import latis.data._
-import latis.model._
-import latis.util.Identifier._
+import latis.data.*
+import latis.model.*
+import latis.util.Identifier.*
 import latis.util.LatisException
 
 /**

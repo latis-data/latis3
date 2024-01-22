@@ -3,9 +3,9 @@ package latis.output
 import cats.effect.IO
 import fs2.Stream
 import io.circe.Json
-import io.circe.syntax._
+import io.circe.syntax.*
 
-import latis.dataset._
+import latis.dataset.*
 import latis.ops.Uncurry
 
 class JsonEncoder extends Encoder[IO, Json] {

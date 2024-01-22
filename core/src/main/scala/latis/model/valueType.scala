@@ -2,10 +2,10 @@ package latis.model
 
 import scala.annotation.unused
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import scala.util.Try
 
-import latis.data.Data._
+import latis.data.Data.*
 import latis.data.Datum
 import latis.util.LatisException
 

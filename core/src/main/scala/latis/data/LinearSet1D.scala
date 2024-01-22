@@ -1,7 +1,7 @@
 package latis.data
 
-import latis.model._
-import latis.util.Identifier.IdentifierStringContext
+import latis.model.*
+import latis.util.Identifier.*
 import latis.util.LatisException
 
 /**

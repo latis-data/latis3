@@ -10,13 +10,20 @@ import org.typelevel.literally.Literally
  *   - dots (TODO: remove support for dots)
  * so long as the identifier does not start with a number.
  */
-sealed abstract case class Identifier(asString: String)
+
+opaque type Identifier = String
+
 object Identifier {
   def fromString(id: String): Option[Identifier] =
-    if (isValidIdentifier(id)) Some(new Identifier(id) {}) else None
+    if (isValidIdentifier(id)) Option(id) else None
 
-  implicit class IdentifierStringContext(val sc: StringContext) extends AnyVal {
-    def id(args: Any*): Identifier = macro IdentifierLiteral.make
+  extension (id: Identifier) {
+    def asString: String = id
+  }
+
+  extension(inline ctx: StringContext) {
+    inline def id(inline args: Any*): Identifier =
+      ${IdentifierLiteral('ctx, 'args)}
   }
 
   /**
@@ -28,14 +35,12 @@ object Identifier {
 }
 
 object IdentifierLiteral extends Literally[Identifier] {
-  override def validate(c: Context)(s: String): Either[String, c.Expr[Identifier]] = {
-    import c.universe._
+  override def validate(s: String)(using Quotes): Either[String, Expr[Identifier]] = {
+    val expr = Expr(s)
     Either.cond(
       Identifier.isValidIdentifier(s),
-      c.Expr(q"_root_.latis.util.Identifier.fromString($s).get"),
+      '{Identifier.fromString($expr).get},
       "not a valid LaTiS identifier"
     )
   }
-
-  def make(c: Context)(args: c.Expr[Any]*): c.Expr[Identifier] = apply(c)(args: _*)
 }

@@ -1,11 +1,11 @@
 package latis.model
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import munit.FunSuite
 
-import latis.data._
+import latis.data.*
 import latis.metadata.Metadata
-import latis.util.Identifier._
+import latis.util.Identifier.*
 
 class FillDataSuite extends FunSuite {
 

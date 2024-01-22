@@ -1,9 +1,9 @@
 package latis.ops
 
-import cats.syntax.all._
+import cats.syntax.all.*
 
 import latis.data.Data
-import latis.dataset._
+import latis.dataset.*
 import latis.model.DataType
 import latis.util.LatisException
 

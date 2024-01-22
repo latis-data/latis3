@@ -3,7 +3,7 @@ package latis.dataset
 import java.net.URI
 
 import cats.effect.IO
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Stream
 
 import latis.data.Sample

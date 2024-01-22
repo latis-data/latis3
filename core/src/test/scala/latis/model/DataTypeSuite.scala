@@ -6,7 +6,7 @@ import latis.data.DomainPosition
 import latis.data.NullData
 import latis.data.RangePosition
 import latis.data.TupleData
-import latis.util.Identifier._
+import latis.util.Identifier.*
 
 class DataTypeSuite extends FunSuite {
 

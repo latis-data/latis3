@@ -2,8 +2,8 @@ package latis.util.dap2.parser
 
 import munit.FunSuite
 
-import latis.util.Identifier._
-import latis.util.dap2.parser.ast._
+import latis.util.Identifier.*
+import latis.util.dap2.parser.ast.*
 
 class ConstraintParserSuite extends FunSuite {
 

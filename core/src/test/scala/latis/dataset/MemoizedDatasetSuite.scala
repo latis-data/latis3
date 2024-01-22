@@ -2,7 +2,7 @@ package latis.dataset
 
 import munit.FunSuite
 
-import latis.dsl._
+import latis.dsl.*
 import latis.ops.Head
 
 class MemoizedDatasetSuite extends FunSuite {

@@ -3,7 +3,7 @@ package latis.time
 import java.time.Duration
 import java.time.format.DateTimeParseException
 
-import cats.syntax.all._
+import cats.syntax.all.*
 
 import latis.data.Data
 import latis.data.Datum

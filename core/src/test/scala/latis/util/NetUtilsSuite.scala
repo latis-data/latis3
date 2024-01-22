@@ -4,7 +4,7 @@ import java.net.URI
 
 import munit.FunSuite
 
-import latis.util.NetUtils._
+import latis.util.NetUtils.*
 
 class NetUtilsSuite extends FunSuite {
 

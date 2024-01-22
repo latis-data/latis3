@@ -1,7 +1,7 @@
 package latis.data
 
 import cats.effect.IO
-import cats.syntax.all._
+import cats.syntax.all.*
 import cats.kernel.Monoid
 import fs2.Stream
 
@@ -164,7 +164,7 @@ trait Datum extends Any with Data {
  */
 object NullData extends Data with Serializable {
   //TODO: does Data really need these?
-  def samples: Stream[IO, (DomainData, RangeData)] = ???
+  def samples: Stream[IO, Sample] = ???
   def eval(data: DomainData): Either[LatisException, RangeData] = ???
 
   override def toString: String = "null"

@@ -1,10 +1,10 @@
 package latis.service.dap2
 
 import cats.data.NonEmptyList
-import cats.effect._
-import cats.syntax.all._
+import cats.effect.*
+import cats.syntax.all.*
 import io.circe.Json
-import io.circe.syntax._
+import io.circe.syntax.*
 
 import latis.catalog.Catalog
 import latis.dataset.Dataset
@@ -23,7 +23,7 @@ object JsonCatalogEncoder {
         NonEmptyList.fromList(cats).map(cats => "catalog" -> cats.asJson),
         NonEmptyList.fromList(dss).map(dss => "dataset" -> dss.asJson)
       ).unite //keep only fields that are defined
-      Json.obj(fields: _*)
+      Json.obj(fields *)
     }
 
   /** Provides a JSON representation of a Dataset in a catalog. */

@@ -6,10 +6,10 @@ import scala.util.matching.Regex
 import cats.effect.ExitCode
 import cats.effect.IO
 import cats.effect.IOApp
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.text
 import fs2.Stream
-import fs2.io.file._
+import fs2.io.file.*
 
 import latis.catalog.Catalog
 import latis.catalog.FdmlCatalog
@@ -19,7 +19,7 @@ import latis.data.Data.FloatValue
 import latis.data.Sample
 import latis.dsl.DatasetOps
 import latis.input.TextAdapter
-import latis.util.StringUtils._
+import latis.util.StringUtils.*
 
 class DatasetTester(catalog: Catalog) {
 

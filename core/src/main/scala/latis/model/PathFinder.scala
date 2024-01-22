@@ -1,14 +1,14 @@
 package latis.model
 
-import latis.data._
+import latis.data.*
 import latis.util.Identifier
 
 object PathFinder {
 
   sealed trait TopDomainOrRange
-  final object Top extends TopDomainOrRange
-  final object Domain extends TopDomainOrRange
-  final object Range extends TopDomainOrRange
+  object Top extends TopDomainOrRange
+  object Domain extends TopDomainOrRange
+  object Range extends TopDomainOrRange
 
   private def position(tdr: TopDomainOrRange, index: Int): SamplePosition = tdr match {
     case Top    => RangePosition(index)

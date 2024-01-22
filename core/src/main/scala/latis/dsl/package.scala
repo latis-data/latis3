@@ -11,7 +11,7 @@ import latis.data.DomainSet
 import latis.data.Sample
 import latis.dataset.Dataset
 import latis.input.DatasetReader
-import latis.ops._
+import latis.ops.*
 import latis.output.CsvEncoder
 import latis.output.TextEncoder
 import latis.util.FileUtils
@@ -32,13 +32,13 @@ package object dsl {
     def stride(s: Int, ss: Int*): Dataset          = dataset.withOperation(Stride((s +: ss).toIndexedSeq))
     def uncurry(): Dataset                         = dataset.withOperation(Uncurry())
     def curry(n: Int): Dataset                     = dataset.withOperation(Curry(n))
-    def groupByVariable(ids: Identifier*): Dataset = dataset.withOperation(new GroupByVariable(ids: _*))
+    def groupByVariable(ids: Identifier*): Dataset = dataset.withOperation(new GroupByVariable(ids *))
     def groupByBin(set: DomainSet, agg: Aggregation = DefaultAggregation()): Dataset =
       dataset.withOperation(GroupByBin(set, agg))
     def substitute(df: Dataset): Dataset           = dataset.withOperation(Substitution(df))
     def compose(df: Dataset): Dataset              = dataset.withOperation(Composition(df))
     def contains(id: Identifier, values: String*): Dataset =
-      dataset.withOperation(Contains(id, values: _*))
+      dataset.withOperation(Contains(id, values *))
     def rename(id: Identifier, newId: Identifier): Dataset =
       dataset.withOperation(Rename(id, newId))
     def eval(value: String): Dataset               = dataset.withOperation(Evaluation(value))
@@ -57,7 +57,7 @@ package object dsl {
     def transpose(): Dataset                       = dataset.withOperation(Transpose())
     def count(): Dataset                           = dataset.withOperation(CountAggregation())
     def countBy(id: Identifier, ids: Identifier*): Dataset =
-      dataset.withOperation(new CountBy(NonEmptyList.of(id, ids: _*)))
+      dataset.withOperation(new CountBy(NonEmptyList.of(id, ids *)))
 
     def filter(predicate: Sample => Boolean): Dataset = dataset.withOperation(Filter(predicate))
     //TODO: map, flataMap, mapRange, but need to know how model changes

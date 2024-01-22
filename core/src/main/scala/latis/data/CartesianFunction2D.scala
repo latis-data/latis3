@@ -3,9 +3,9 @@ package latis.data
 import scala.collection.Searching.Found
 import scala.collection.Searching.SearchResult
 
-import cats.syntax.all._
+import cats.syntax.all.*
 
-import latis.util.DataUtils._
+import latis.util.DataUtils.*
 import latis.util.DefaultDomainOrdering
 import latis.util.LatisException
 

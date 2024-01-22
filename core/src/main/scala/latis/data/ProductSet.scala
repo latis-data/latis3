@@ -1,6 +1,6 @@
 package latis.data
 
-import latis.model._
+import latis.model.*
 
 /**
  * A DomainSet that is a Cartesian product of individual DomainSets.

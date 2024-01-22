@@ -1,11 +1,11 @@
 package latis.ops
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import scodec.bits.ByteVector
 
-import latis.data._
-import latis.model._
-import latis.ops.ConvertBinary._
+import latis.data.*
+import latis.model.*
+import latis.ops.ConvertBinary.*
 import latis.util.Identifier
 import latis.util.LatisException
 

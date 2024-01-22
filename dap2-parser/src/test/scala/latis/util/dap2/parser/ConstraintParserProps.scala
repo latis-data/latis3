@@ -1,14 +1,14 @@
 package latis.util.dap2.parser
 
-import org.scalacheck._
+import org.scalacheck.*
 
 import latis.util.Identifier
 
-import ast._
+import ast.*
 
 object ConstraintParserProps extends Properties("DAP 2 Constraint Parser") {
 
-  property("parse") = Prop.forAll(cexpr) { expr: ConstraintExpression =>
+  property("parse") = Prop.forAll(cexpr) { expr =>
     expr == ConstraintParser.parse(pretty(expr)).fold(
       msg => throw new RuntimeException(msg), x => x
     )
@@ -89,7 +89,7 @@ object ConstraintParserProps extends Properties("DAP 2 Constraint Parser") {
 
   val projection: Gen[CExpr] =
     //TODO: maybe revert to Gen.listOf(variable) after Identifier refactor
-    Gen.nonEmptyListOf(identifier).map(Projection)
+    Gen.nonEmptyListOf(identifier).map(Projection(_))
 
   val selection: Gen[CExpr] = for {
     n <- identifier

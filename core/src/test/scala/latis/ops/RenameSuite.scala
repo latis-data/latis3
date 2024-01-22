@@ -3,7 +3,7 @@ package latis.ops
 import munit.FunSuite
 
 import latis.dsl.ModelParser
-import latis.util.Identifier._
+import latis.util.Identifier.*
 
 class RenameSuite extends FunSuite {
 
