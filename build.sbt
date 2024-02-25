@@ -31,7 +31,7 @@ lazy val commonSettings = Seq(
     if (insideCI.value) "-Wconf:any:e" else "-Wconf:any:w"
   },
   Test / scalacOptions -= "-Wnonunit-statement",
-  addCompilerPlugin("org.typelevel" % "kind-projector" % "0.13.2" cross CrossVersion.full)
+  addCompilerPlugin("org.typelevel" % "kind-projector" % "0.13.3" cross CrossVersion.full)
 )
 
 lazy val dockerSettings = Seq(
