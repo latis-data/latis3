@@ -29,7 +29,9 @@ class HttpStreamSource extends StreamSource {
   def getStream(uri: URI): Option[Stream[IO, Byte]] =
     if (uri.isAbsolute && supportsScheme(uri.getScheme)) {
       val request = Request[IO](uri = Uri.unsafeFromString(uri.toString))
-      val client = EmberClientBuilder.default[IO].build
+      val client = EmberClientBuilder.default[IO]
+        .withMaxResponseHeaderSize(8192)
+        .build
       val stream = Stream.resource(client)
         .map(FollowRedirect(maxRedirects = 3))
         .flatMap(_.stream(request))
