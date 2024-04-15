@@ -33,20 +33,20 @@ case class FormatTime(format: TimeFormat) extends TimeOperation {
         (d : Datum) => d match {
           case Text(s) =>
             fmt.parse(s)
-              .map(format.format(_))
-              .flatMap(Data.fromValue(_))
+              .map(format.format)
+              .flatMap(Data.fromValue)
               .fold(throw _, identity)
-          case _ => throw new LatisException(s"Data does not match string value type: $d")
+          case _ => throw LatisException(s"Data does not match string value type: $d")
         }
-      case _ =>
+      case _: NumericType =>
         // Define the numeric unit converter to the default TimeScale
-        //TODO: use unit converter only if needed
         val converter = UnitConverter(t.timeScale, TimeScale.Default)
-        (d : Datum) => d match {
+        (d: Datum) => d match {
           case Number(d) =>
-            Data.fromValue(format.format(converter.convert(d).toLong)).fold(throw _, identity)
-          case _ => throw new LatisException(s"Data is not a numeric value type: $d")
+            Data.fromValue(format.format(round(converter.convert(d)))).fold(throw _, identity)
+          case _ => throw LatisException(s"Data is not a numeric value type: $d")
         }
+      case t => throw LatisException(s"Invalid type for Time: $t") //bug
     }
   }
 
