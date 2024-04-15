@@ -11,7 +11,7 @@ import latis.util.LatisException
 case class TimeUnit(baseMultiplier: Double) {
 
   /** Represents a TimeUnit as a String */
-  override def toString() = baseMultiplier match {
+  override def toString: String = baseMultiplier match {
     case 1e-9     => "nanoseconds"
     case 1e-6     => "microseconds"
     case 0.001    => "milliseconds"
@@ -27,26 +27,29 @@ case class TimeUnit(baseMultiplier: Double) {
 
 object TimeUnit {
 
-  /**
-   * Base time unit of seconds.
-   */
-  val Base = TimeUnit(1.0)
+  val Nanoseconds  = TimeUnit(1e-9)
+  val Microseconds = TimeUnit(1e-6)
+  val Milliseconds = TimeUnit(1e-3)
+  val Seconds      = TimeUnit(1d)
+  val Minutes      = TimeUnit(60d)
+  val Hours        = TimeUnit(3600d)
+  val Days         = TimeUnit(86400d)
+  val Weeks        = TimeUnit(7d * 86400)
+  val Years        = TimeUnit(365d * 86400)
 
   /**
    * Returns a TimeUnit given the unit's name.
    */
   def fromName(unit: String): Either[LatisException, TimeUnit] = unit match {
-    case "nanoseconds"  => TimeUnit(1e-9).asRight
-    case "microseconds" => TimeUnit(1e-6).asRight
-    case "milliseconds" => TimeUnit(0.001).asRight
-    case "seconds"      => Base.asRight
-    case "minutes"      => TimeUnit(60).asRight
-    case "hours"        => TimeUnit(3600).asRight
-    case "days"         => TimeUnit(86400).asRight
-    case "weeks"        => TimeUnit(7 * 86400).asRight
-    case "years"        => TimeUnit(365 * 86400).asRight
+    case "nanoseconds"  => Nanoseconds.asRight
+    case "microseconds" => Microseconds.asRight
+    case "milliseconds" => Milliseconds.asRight
+    case "seconds"      => Seconds.asRight
+    case "minutes"      => Minutes.asRight
+    case "hours"        => Hours.asRight
+    case "days"         => Days.asRight
+    case "weeks"        => Weeks.asRight
+    case "years"        => Years.asRight
     case _ => LatisException(s"Invalid TimeUnit: $unit").asLeft
   }
-
-  //TODO: make enumeration of units for safer general usage
 }

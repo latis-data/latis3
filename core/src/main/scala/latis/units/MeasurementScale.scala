@@ -3,11 +3,11 @@ package latis.units
 //TODO: See squants
 
 /**
- * A MeasurementScale defines how values of physical
- * quantities should be interpreted. This term was chosen over
- * the commonly used "unit of measure" to emphasize that
- * measurements require a zero in addition to the size of a unit.
- * This approach facilitates generalized affine unit conversions.
+ * A MeasurementScale defines how values of physical quantities should be interpreted.
+ *
+ * This term was chosen over the commonly used "unit of measure" to emphasize that
+ * measurements require a zero in addition to the size of a unit. This approach
+ * facilitates generalized affine unit conversions.
  */
 trait MeasurementScale {
   def unitType: MeasurementType
