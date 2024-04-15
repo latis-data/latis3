@@ -31,7 +31,7 @@ case class TimeScale(timeUnit: TimeUnit, epoch: Date) extends MeasurementScale {
 
   override def zero: Double = -epoch.getTime / 1000 / baseMultiplier
 
-  override def toString() = s"$timeUnit since ${TimeFormat.formatIso(epoch.getTime)}"
+  override def toString = s"$timeUnit since ${TimeFormat.formatIso(epoch.getTime)}"
 }
 
 object TimeScale {
@@ -40,7 +40,7 @@ object TimeScale {
    * Defines the default time scale as Java's default:
    * milliseconds since 1970.
    */
-  val Default: TimeScale = TimeScale(TimeUnit(0.001), new Date(0))
+  val Default: TimeScale = TimeScale(TimeUnit.Milliseconds, new Date(0))
 
   /**
    * Defines a TimeScale for Julian Date: days since noon UT on Jan 1, 4713 BC.
@@ -54,12 +54,12 @@ object TimeScale {
    * with "JD" since this epoch can not be represented with our default ISO
    * representation. This matches the units that LaTiS expects.
    */
-  lazy val JulianDate = {
+  lazy val JulianDate: TimeScale = {
     // Java's default calendar jumps from 1 BC to 1 AD, we need to use year -4712
     val cal = new GregorianCalendar(-4712, 0, 1, 12, 0)
     cal.setTimeZone(TimeZone.getTimeZone("GMT"))
-    new TimeScale(TimeUnit(86400), cal.getTime) {
-      override def toString() = "JD"
+    new TimeScale(TimeUnit.Days, cal.getTime) {
+      override def toString = "JD"
     }
   }
 
