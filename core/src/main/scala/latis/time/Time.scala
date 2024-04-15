@@ -14,7 +14,6 @@ import latis.model.ScalarFactory
 import latis.model.StringValueType
 import latis.model.ValueType
 import latis.units.MeasurementScale
-import latis.units.UnitConverter
 import latis.util.Identifier
 import latis.util.LatisException
 
@@ -78,7 +77,7 @@ class Time protected (
           Data.StringValue(format.format(ms)).asRight
         case _ =>
           // Convert to this Time's numeric units
-          val t = UnitConverter(TimeScale.Default, timeScale).convert(ms.toDouble)
+          val t = TimeConverter(TimeScale.Default, timeScale).convert(ms.toDouble)
           Either.fromOption(
             valueType.convertDouble(t),
             LatisException(s"Failed to convert time value: $value")

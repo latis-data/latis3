@@ -6,9 +6,9 @@ import latis.data.*
 import latis.model.DataType
 import latis.model.StringValueType
 import latis.time.Time
+import latis.time.TimeConverter
 import latis.time.TimeFormat
 import latis.time.TimeScale
-import latis.units.UnitConverter
 import latis.util.LatisException
 
 /**
@@ -40,7 +40,7 @@ case class FormatTime(format: TimeFormat) extends TimeOperation {
         }
       case _: NumericType =>
         // Define the numeric unit converter to the default TimeScale
-        val converter = UnitConverter(t.timeScale, TimeScale.Default)
+        val converter = TimeConverter(t.timeScale, TimeScale.Default)
         (d: Datum) => d match {
           case Number(d) =>
             Data.fromValue(format.format(round(converter.convert(d)))).fold(throw _, identity)
