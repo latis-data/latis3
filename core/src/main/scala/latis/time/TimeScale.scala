@@ -13,8 +13,10 @@ import latis.util.LatisException
 
 /**
  * Defines the MeasurementScale for time instances.
+ *
  * The given epoch serves as the zero of the time scale.
  * The timeUnit specifies the duration of each unit.
+ * The timeScaleType determines how leap seconds are handled during conversions.
  *
  * Since there is no absolute zero for time scales, this uses the
  * Java time scale (milliseconds since 1970-01-01T00:00:00) as the default.
@@ -23,7 +25,11 @@ import latis.util.LatisException
  * time scale's zero (1970-01-01) one day before it's own zero (i.e. epoch). In
  * it's units (hours) the zero (one day ago) would be -24.
  */
-case class TimeScale(timeUnit: TimeUnit, epoch: Date) extends MeasurementScale {
+case class TimeScale(
+  timeUnit: TimeUnit,
+  epoch: Date,
+  timeScaleType: TimeScaleType = TimeScaleType.UTC
+) extends MeasurementScale {
 
   def unitType: MeasurementType = TimeType
 
@@ -72,12 +78,18 @@ object TimeScale {
    * numeric TimeScale.
    */
   def fromExpression(units: String): Either[LatisException, TimeScale] =
-    units.split("""\s+since\s+""") match {
-      case Array(u, e) =>
+    units.split("""\s+""") match {
+      case Array("TAI", u, "since", e) =>
         for {
-          unit <- TimeUnit.fromName(u)
+          unit  <- TimeUnit.fromName(u)
           epoch <- TimeFormat.parseIso(e)
-          date = new Date(epoch)
+          date   = new Date(epoch)
+        } yield TimeScale(unit, date, TimeScaleType.TAI)
+      case Array(u, "since", e) =>
+        for {
+          unit  <- TimeUnit.fromName(u)
+          epoch <- TimeFormat.parseIso(e)
+          date   = new Date(epoch)
         } yield TimeScale(unit, date)
       case Array(s) =>
         // Check if Julian Date (JD)
