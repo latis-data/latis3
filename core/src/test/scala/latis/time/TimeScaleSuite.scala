@@ -39,6 +39,18 @@ class TimeScaleSuite extends FunSuite {
     assertEquals(numericTimeScale.zero, -24.0)
   }
 
+  private lazy val gpsTimeScale =
+    TimeScale
+      .fromExpression("TAI microseconds since 1980-01-06")
+      .getOrElse(fail("failed to create GPS TimeScale"))
+
+  test("make TAI time scale") {
+    assertEquals(gpsTimeScale.timeScaleType, TimeScaleType.TAI)
+  }
+
+  test("default time scale type is UTC") {
+    assertEquals(numericTimeScale.timeScaleType, TimeScaleType.UTC)
+  }
 
   private lazy val timeConverter = UnitConverter(
     TimeScale
