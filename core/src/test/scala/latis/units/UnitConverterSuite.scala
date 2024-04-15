@@ -12,6 +12,9 @@ class UnitConverterSuite extends FunSuite {
       .fromExpression("seconds since 1970")
       .getOrElse(fail("failed to create TimeScale"))
 
-    assertEquals(UnitConverter(ts1, ts2).convert(1000), 1.0)
+    UnitConverter.fromScales(ts1, ts2).fold(
+      le => fail(le.message, le),
+      c  => assertEquals(c.convert(1000), 1.0)
+    )
   }
 }

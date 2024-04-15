@@ -52,14 +52,11 @@ class TimeScaleSuite extends FunSuite {
     assertEquals(numericTimeScale.timeScaleType, TimeScaleType.UTC)
   }
 
-  private lazy val timeConverter = UnitConverter(
-    TimeScale
-      .fromExpression("seconds since 2000-01-01T00:00:01")
-      .getOrElse(fail("failed to create TimeScale")),
-    TimeScale
-      .fromExpression("milliseconds since 2000-01-01")
-      .getOrElse(fail("failed to create TimeScale"))
-  )
+  private lazy val timeConverter = (for {
+    ts1 <- TimeScale.fromExpression("seconds since 2000-01-01T00:00:01")
+    ts2 <- TimeScale.fromExpression("milliseconds since 2000-01-01")
+    cnv <- UnitConverter.fromScales(ts1, ts2)
+  } yield cnv).fold(le => fail(le.message), identity)
 
   test("convert between numeric time scales from a time converter") {
     val z = timeConverter.convert(1)
@@ -67,12 +64,12 @@ class TimeScaleSuite extends FunSuite {
   }
 
   test("support conversion to Java time from a Julian TimeScale") {
-    val tc = UnitConverter(TimeScale.JulianDate, TimeScale.Default)
+    val tc = TimeConverter(TimeScale.JulianDate, TimeScale.Default)
     assertEquals(tc.convert(2440587.5), 0.0) // 1970-01-01
   }
 
   test("support conversion from Java time from a Julian TimeScale") {
-    val tc = UnitConverter(TimeScale.Default, TimeScale.JulianDate)
+    val tc = TimeConverter(TimeScale.Default, TimeScale.JulianDate)
     assertEquals(tc.convert(0), 2440587.5) // 1970-01-01
   }
 

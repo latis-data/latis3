@@ -1,5 +1,9 @@
 package latis.time
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.ResolverStyle
+
 import munit.FunSuite
 
 class TimeFormatSuite extends FunSuite {
@@ -161,5 +165,22 @@ class TimeFormatSuite extends FunSuite {
       TimeFormat.fromExpression("y [ ]M d").flatMap(_.parse("1970  1 01")),
       Right(0L)
     )
+  }
+
+  test("fail to parse leap second") {
+    // DateTimeFormatter fails to parse a leap second if not using LENIENT resolver.
+    assert(TimeFormat.parseIso("2016-12-31T23:59:60").isLeft)
+  }
+
+  test("leniently parse leap second") {
+    // With LENIENT resolution, DateTimeFormatter will simply roll a leap
+    //   second over to the next day.
+    // Note that the DateTimeFormatter.parsedLeapSecond TemporalQuery
+    //   says that it will replace the "60" with "59", counter to this
+    //   lenient resolution.
+    val formatter = DateTimeFormatter.ISO_DATE_TIME.withResolverStyle(ResolverStyle.LENIENT)
+    val t1 = LocalDateTime.parse("2016-12-31T23:59:60.123", formatter)
+    val t2 = LocalDateTime.parse("2017-01-01T00:00:00.123", formatter)
+    assertEquals(t1, t2)
   }
 }

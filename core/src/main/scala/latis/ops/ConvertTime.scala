@@ -6,8 +6,8 @@ import latis.data.*
 import latis.model.DataType
 import latis.model.StringValueType
 import latis.time.Time
+import latis.time.TimeConverter
 import latis.time.TimeScale
-import latis.units.UnitConverter
 import latis.util.LatisException
 
 /**
@@ -26,7 +26,7 @@ case class ConvertTime(scale: TimeScale) extends TimeOperation {
     // be applied to every Sample.
 
     // Define the numeric unit converter
-    val converter = UnitConverter(t.timeScale, scale)
+    val converter = TimeConverter(t.timeScale, scale)
 
     // Add special handling for formatted times.
     t.valueType match {
@@ -36,7 +36,7 @@ case class ConvertTime(scale: TimeScale) extends TimeOperation {
           case Text(s) =>
             format.parse(s)
               .map(t => converter.convert(t.toDouble))
-              .flatMap(Data.fromValue(_))
+              .flatMap(Data.fromValue)
               .fold(throw _, identity)
           case _ => throw new LatisException(s"Data does not match string value type: $d")
         }
