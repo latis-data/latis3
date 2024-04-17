@@ -28,7 +28,7 @@ import latis.util.LatisException
 case class TimeScale(
   timeUnit: TimeUnit,
   epoch: Date,
-  timeScaleType: TimeScaleType = TimeScaleType.UTC
+  timeScaleType: TimeScaleType = TimeScaleType.Civil
 ) extends MeasurementScale {
 
   def unitType: MeasurementType = TimeType
@@ -79,12 +79,18 @@ object TimeScale {
    */
   def fromExpression(units: String): Either[LatisException, TimeScale] =
     units.split("""\s+""") match {
-      case Array("TAI", u, "since", e) =>
+      case Array(typ, u, "since", e) =>
+        val timeScaleType = typ.toLowerCase match {
+          case "atomic" => TimeScaleType.Atomic.asRight
+          case "civil"  => TimeScaleType.Civil.asRight
+          case _        => LatisException(s"Invalid time scale type: $typ").asLeft
+        }
         for {
           unit  <- TimeUnit.fromName(u)
           epoch <- TimeFormat.parseIso(e)
           date   = new Date(epoch)
-        } yield TimeScale(unit, date, TimeScaleType.TAI)
+          tst   <- timeScaleType
+        } yield TimeScale(unit, date, tst)
       case Array(u, "since", e) =>
         for {
           unit  <- TimeUnit.fromName(u)
