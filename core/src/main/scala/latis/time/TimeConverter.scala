@@ -13,10 +13,10 @@ import latis.units.UnitConverter
  * The TimeConverter is a UnitConverter that converts values from one TimeScale
  * to another.
  *
- * This accounts for leap second adjustments when dealing with TAI TimeScales.
- * The UTC time scale, which does not count leap seconds, is aligned with the
- * default Java time scale, which simply ignores leap seconds. The UTC time
- * scale effectively pausing during a leap second. When converting with TAI
+ * This accounts for leap second adjustments when dealing with atomic TimeScales.
+ * Civil time scales, which do not count leap seconds, are aligned with the
+ * default Java time scale, which simply ignores leap seconds. Civil time
+ * scales effectively pause during a leap second. When converting with atomic
  * time scales, which do count leap seconds, we must make adjustments to
  * account for the different accounting of leap seconds.
  *
@@ -36,11 +36,11 @@ case class TimeConverter(ts1: TimeScale, ts2: TimeScale) extends UnitConverter(t
   /**
    * Defines a function that converts a time from ts1 to ts2.
    *
-   * This only invokes leap second configuration if there is a TAI TimeScale
+   * This only invokes leap second configuration if there is a Atomic TimeScale
    * involved.
    */
   private val _convert: Double => Double = {
-    if (ts1.timeScaleType == TAI || ts2.timeScaleType == TAI)
+    if (ts1.timeScaleType == Atomic || ts2.timeScaleType == Atomic)
       (time: Double) => super.convert(time) + leapSecondAdjustment(time)
     else (time: Double) => super.convert(time)
   }
@@ -66,7 +66,7 @@ case class TimeConverter(ts1: TimeScale, ts2: TimeScale) extends UnitConverter(t
     //   it prevents a stack overflow since the internal TimeConverter
     //   would in turn try to construct this map. Because this is lazy,
     //   the loop will short-circuit when converting the UTC date to a
-    //   UTC time scale which does not need a leap second adjustment.
+    //   civil time scale which does not need a leap second adjustment.
     // Note that this adds an adjustment for any time before 1972.
 
     // Function to convert a Date to the incoming TimeScale
@@ -89,14 +89,14 @@ case class TimeConverter(ts1: TimeScale, ts2: TimeScale) extends UnitConverter(t
    */
   private def computeAdjustment(ls: Int): Double =
     (ts1.timeScaleType, ts2.timeScaleType) match {
-      // leap second difference between TAI epochs
-      case (TimeScaleType.TAI, TimeScaleType.TAI) =>
+      // leap second difference between atomic epochs
+      case (TimeScaleType.Atomic, TimeScaleType.Atomic) =>
         (getLeapSeconds(ts1.epoch) - getLeapSeconds(ts2.epoch)).toDouble / ts2.baseMultiplier
-      // subtract leap seconds before target TAI epoch
-      case (TimeScaleType.UTC, TimeScaleType.TAI) =>
+      // subtract leap seconds before target atomic epoch
+      case (TimeScaleType.Civil, TimeScaleType.Atomic) =>
         (ls - getLeapSeconds(ts2.epoch)).toDouble / ts2.baseMultiplier
-      // subtract leap seconds on incoming TAI TimeScale
-      case (TimeScaleType.TAI, TimeScaleType.UTC) =>
+      // subtract leap seconds on incoming atomic TimeScale
+      case (TimeScaleType.Atomic, TimeScaleType.Civil) =>
         (getLeapSeconds(ts1.epoch) - ls).toDouble / ts2.baseMultiplier
       case _ => 0d
     }
