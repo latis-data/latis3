@@ -1,10 +1,11 @@
 package latis.ops
 
+import java.lang.Math.*
+
 import cats.syntax.all.*
 
 import latis.data.*
-import latis.model.DataType
-import latis.model.StringValueType
+import latis.model.*
 import latis.time.Time
 import latis.time.TimeConverter
 import latis.time.TimeFormat
