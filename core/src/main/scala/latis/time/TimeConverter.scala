@@ -6,7 +6,7 @@ import java.util.Date
 
 import scala.collection.immutable.SortedMap
 
-import latis.time.TimeScaleType._
+import latis.time.TimeScaleType.*
 import latis.units.UnitConverter
 
 /**
