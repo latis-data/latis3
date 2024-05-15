@@ -199,7 +199,7 @@ lazy val macros = project
   .settings(
     name := "latis3-macros",
     libraryDependencies ++= Seq(
-      "org.typelevel" %% "literally" % "1.1.0"
+      "org.typelevel" %% "literally" % "1.2.0"
     )
   )
 
