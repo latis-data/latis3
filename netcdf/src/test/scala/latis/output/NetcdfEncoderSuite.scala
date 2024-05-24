@@ -19,7 +19,7 @@ class NetcdfEncoderSuite extends CatsEffectSuite {
   import NetcdfEncoderSuite.*
 
   private val tempFile =
-    ResourceFixture(Files[IO].tempFile(None, "netcdf_test", ".nc", None))
+    ResourceFunFixture(Files[IO].tempFile(None, "netcdf_test", ".nc", None))
 
   tempFile.test("encode a 1-D dataset with a single range variable to NetCDF") { file =>
     val enc          = NetcdfEncoder(file)

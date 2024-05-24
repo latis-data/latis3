@@ -14,7 +14,7 @@ import latis.model.*
 
 class FileListAdapterSuite extends CatsEffectSuite {
 
-  private val flatDir = ResourceFixture {
+  private val flatDir = ResourceFunFixture {
     Files[IO].tempDirectory.evalTap { dir =>
       Files[IO].createFile(dir / "2010-a") >>
       Files[IO].createFile(dir / "2011-b") >>
@@ -22,7 +22,7 @@ class FileListAdapterSuite extends CatsEffectSuite {
     }
   }
 
-  private val nestedDir = ResourceFixture {
+  private val nestedDir = ResourceFunFixture {
     Files[IO].tempDirectory.evalTap { dir =>
       Files[IO].createDirectory(dir / "a") >>
       Files[IO].createDirectory(dir / "b") >>

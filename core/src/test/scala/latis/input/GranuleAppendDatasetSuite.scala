@@ -17,7 +17,7 @@ import latis.util.LatisException
 
 class GranuleAppendDatasetSuite extends CatsEffectSuite {
 
-  private val granules = ResourceFixture(
+  private val granules = ResourceFunFixture(
     Files[IO].tempDirectory.evalTap(makeGranules(_))
   )
 

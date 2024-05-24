@@ -17,7 +17,7 @@ import latis.util.Identifier.*
 
 class JdbcAdapterSuite extends CatsEffectSuite {
 
-  private val database = ResourceFixture {
+  private val database = ResourceFunFixture {
     Files[IO]
       .tempFile(None, "JdbcAdapterSuite", ".mv.db", None)
       .evalMap { path =>

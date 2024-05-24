@@ -9,7 +9,7 @@ val http4sVersion     = "0.23.27"
 val log4catsVersion   = "2.7.0"
 val log4jVersion      = "2.23.1"
 val logbackVersion    = "1.3.14"
-val munitVersion      = "0.7.29"
+val munitVersion      = "1.0.0"
 val netcdfVersion     = "5.5.3"
 val pureconfigVersion = "0.17.6"
 
@@ -22,7 +22,7 @@ lazy val commonSettings = Seq(
     "com.typesafe"   % "config"      % "1.4.3",
     "org.scalacheck" %% "scalacheck" % "1.18.0" % Test,
     "org.scalameta" %% "munit"       % munitVersion % Test,
-    "org.typelevel" %% "munit-cats-effect-3" % "1.0.7" % Test,
+    "org.typelevel" %% "munit-cats-effect" % "2.0.0" % Test,
     "org.scalameta" %% "munit-scalacheck" % munitVersion % Test
   ),
   Test / fork := true,
