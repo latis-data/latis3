@@ -7,6 +7,7 @@ import cats.syntax.all.*
 import fs2.Stream
 import fs2.io.file.Files
 import fs2.text
+import org.http4s.EntityEncoder
 import org.http4s.Header.Raw
 import org.http4s.Headers
 import org.http4s.HttpRoutes
@@ -176,6 +177,11 @@ class Dap2Service(catalog: Catalog, operationRegistry: OperationRegistry)
         file    <- new NetcdfEncoder(tmpFile).encode(ds)
         bytes   <- Files[IO].readAll(file)
       } yield bytes).asRight.map((_, Headers(Raw(ci"Content-Type", "application/x-netcdf"))))
+    case "sse"   =>
+      val events = SseEncoder().encode(ds)
+      val encoder = EntityEncoder.serverSentEventEncoder[IO]
+      val entity = encoder.toEntity(events)
+      (entity.body, encoder.headers).asRight
     case "txt"   => CsvEncoder().encode(ds).through(text.utf8.encode).asRight
       .map((_, Headers(Raw(ci"Content-Type", "text/plain"))))
     case "zip"   => new ZipEncoder().encode(ds.withOperation(ops.FileListToZipList())).asRight
