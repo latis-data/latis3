@@ -1,7 +1,8 @@
 package latis.ops
 
-import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
+import scala.collection.immutable.SortedMap
+
+import cats.data.Chain
 
 import latis.data.*
 import latis.model.*
@@ -60,12 +61,9 @@ case class GroupByBin(
    * to start with an entry for each element of the given DomainSet.
    * Otherwise, there would be no entry for empty bins.
    */
-  override def makeSortedMap(model: DataType): mutable.SortedMap[DomainData, ListBuffer[Sample]] = {
-    val smap = super.makeSortedMap(model)
-    domainSet.elements.foreach { dd =>
-      smap += (dd -> ListBuffer[Sample]())
-    }
-    smap
+  override def makeSortedMap(model: DataType): SortedMap[DomainData, Chain[Sample]] = {
+    val pairs = domainSet.elements.toList.map(dd => (dd, Chain.empty))
+    SortedMap.from(pairs)(ordering(model))
   }
 
   /**
