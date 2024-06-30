@@ -2,11 +2,14 @@ package latis.service.dap2
 
 import java.net.URLDecoder
 
+import cats.data.Kleisli
+import cats.data.OptionT
 import cats.effect.*
 import cats.syntax.all.*
 import fs2.Stream
 import fs2.io.file.Files
 import fs2.text
+import org.http4s.AuthedRoutes
 import org.http4s.Header.Raw
 import org.http4s.Headers
 import org.http4s.HttpRoutes
@@ -16,6 +19,7 @@ import org.http4s.circe.*
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.Accept
 import org.http4s.scalatags.scalatagsEncoder
+import org.http4s.server.AuthMiddleware
 import org.typelevel.ci.*
 
 import latis.catalog.Catalog
@@ -33,13 +37,18 @@ import latis.util.dap2.parser.ast
 /**
  * A service interface implementing the DAP 2 specification.
  */
-class Dap2Service(catalog: Catalog, operationRegistry: OperationRegistry)
-  extends ServiceInterface(catalog, operationRegistry) with Http4sDsl[IO] {
+class Dap2Service(
+  catalog: Catalog,
+  operationRegistry: OperationRegistry,
+  authMiddleware: AuthMiddleware[IO, Unit]
+) extends ServiceInterface(catalog, operationRegistry) with Http4sDsl[IO] {
 
-  override def routes: HttpRoutes[IO] =
-    HttpRoutes.of {
-      case req @ GET -> path => // path relative to "dap2", starting with "/"
-        handleGetRequest(path, req.queryString, req.headers)
+  override def routes: HttpRoutes[IO] = authMiddleware(authedRoutes)
+
+  private val authedRoutes: AuthedRoutes[Unit, IO] =
+    AuthedRoutes.of {
+      case req @ GET -> path as _ => // path relative to "dap2", starting with "/"
+        handleGetRequest(path, req.req.queryString, req.req.headers)
     }
 
   /** Handles GET requests for a Catalog or Dataset. */
@@ -191,4 +200,11 @@ class Dap2Service(catalog: Catalog, operationRegistry: OperationRegistry)
       case UnknownOperation(msg)         => BadRequest(msg)
       case InvalidOperation(msg)         => BadRequest(msg)
     }
+}
+
+object Dap2Service {
+  def apply(catalog: Catalog, operationRegistry: OperationRegistry): Dap2Service = {
+    val auth = Kleisli(_ => OptionT.pure[IO](()))
+    new Dap2Service(catalog, operationRegistry, AuthMiddleware(auth))
+  }
 }
