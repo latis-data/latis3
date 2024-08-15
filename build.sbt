@@ -23,7 +23,7 @@ lazy val commonSettings = Seq(
     "org.scalacheck" %% "scalacheck" % "1.18.0" % Test,
     "org.scalameta" %% "munit"       % munitVersion % Test,
     "org.typelevel" %% "munit-cats-effect" % "2.0.0" % Test,
-    "org.scalameta" %% "munit-scalacheck" % munitVersion % Test
+    "org.scalameta" %% "munit-scalacheck" % "1.0.0" % Test
   ),
   Test / fork := true,
   scalacOptions -= "-Xfatal-warnings",
