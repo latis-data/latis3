@@ -4,7 +4,6 @@ import cats.effect.IO
 import cats.syntax.all.*
 import fs2.Stream
 
-import latis.data.SampledFunction
 import latis.data.*
 import latis.metadata.Metadata
 import latis.model.DataType

@@ -18,7 +18,6 @@ import latis.data.Data.*
 import latis.data.Sample
 import latis.dataset.Dataset
 import latis.metadata.Metadata
-import latis.model.DataType
 import latis.model.*
 import latis.ops.Uncurry
 import latis.util.LatisException

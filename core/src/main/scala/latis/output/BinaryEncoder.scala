@@ -3,7 +3,6 @@ package latis.output
 import cats.effect.IO
 import cats.syntax.all.*
 import fs2.Stream
-import scodec.Codec
 import scodec.bits.*
 import scodec.interop.cats.*
 import scodec.stream.StreamEncoder
