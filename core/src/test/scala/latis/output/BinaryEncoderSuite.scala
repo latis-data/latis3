@@ -4,7 +4,6 @@ import cats.syntax.all.*
 import munit.CatsEffectSuite
 import scodec.Codec.given
 import scodec.*
-import scodec.bits.BitVector
 import scodec.bits.*
 import scodec.interop.cats.*
 import scodec.{Encoder as SEncoder}
