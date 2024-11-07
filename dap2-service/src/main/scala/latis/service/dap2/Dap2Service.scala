@@ -51,7 +51,7 @@ class Dap2Service(catalog: Catalog, operationRegistry: OperationRegistry)
           // Dataset path should not end with slash
           if (path.endsWithSlash) NotFound(s"Resource not found: $path")
           else datasetResponse(ds, ext, query)
-        case None     => catalog.findCatalog(id) match {
+        case None     => catalog.findCatalog(id).flatMap {
           case Some(cat) => catalogResponse(cat, headers)
           case None      => NotFound(s"Resource not found: $path")
         }

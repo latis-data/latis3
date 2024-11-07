@@ -33,7 +33,9 @@ class CatalogSuite extends CatsEffectSuite {
   // that datasets in this list are unique.
   private def listAll(c: Catalog): IO[List[Dataset]] = {
     def go(c: Catalog): Stream[IO, Dataset] = {
-      c.datasets ++ c.catalogs.toList.foldMap { case (_, c) => go(c) }
+      c.datasets ++ Stream.eval(c.catalogs).flatMap(
+        sub => Stream.emits(sub.toList)
+      ).flatMap { case (_, c) => go(c) }
     }
     go(c).compile.toList
   }
@@ -75,8 +77,9 @@ class CatalogSuite extends CatsEffectSuite {
   }
 
   test("find catalog in a nested catalog") {
-    nested.findCatalog(id"b.c")
-      .fold(fail("Failed to find catalog"))(assertEquals(_, c2))
+    nested.findCatalog(id"b.c").map(
+      _.fold(fail("Failed to find catalog"))(assertEquals(_, c2))
+    )
   }
 
   test("find dataset in a nested catalog") {
