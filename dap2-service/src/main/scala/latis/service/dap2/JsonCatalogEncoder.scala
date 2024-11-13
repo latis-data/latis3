@@ -15,7 +15,8 @@ object JsonCatalogEncoder {
   /** Provides a JSON representation of a Catalog for a dap2 response. */
   def encode(catalog: Catalog, id: Option[Identifier] = None): IO[Json] =
     for {
-      cats <- catalog.catalogs.toList.traverse { case (id, cat) => encode(cat, Some(id)) }
+      subs <- catalog.catalogs
+      cats <- subs.toList.traverse { case (id, cat) => encode(cat, Some(id)) }
       dss  <- catalog.datasets.compile.toList.map(dss => dss.map(datasetToJson))
     } yield {
       val fields = List(

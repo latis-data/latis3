@@ -34,14 +34,14 @@ trait Catalog { self =>
   def datasets: Stream[IO, Dataset]
 
   /** This catalog's subcatalogs. */
-  def catalogs: Map[Identifier, Catalog] = Map.empty
+  def catalogs: IO[Map[Identifier, Catalog]] = IO.pure(Map.empty)
 
   /** Adds a single subcatalog to this catalog. */
   def addCatalog(id: Identifier, catalog: Catalog): Catalog = new Catalog {
     override val datasets: Stream[IO, Dataset] = self.datasets
 
-    override val catalogs: Map[Identifier, Catalog] =
-      self.catalogs + (id -> catalog)
+    override val catalogs: IO[Map[Identifier, Catalog]] =
+      self.catalogs.map(_ + (id -> catalog))
   }
 
   /**
@@ -51,17 +51,20 @@ trait Catalog { self =>
   def filter(p: Dataset => Boolean): Catalog = new Catalog {
     override val datasets: Stream[IO, Dataset] = self.datasets.filter(p)
 
-    override val catalogs: Map[Identifier, Catalog] = self.catalogs.map {
-      case (id, cat) => id -> cat.filter(p)
+    override val catalogs: IO[Map[Identifier, Catalog]] = self.catalogs.map {
+      _.map {
+        case (id, cat) => id -> cat.filter(p)
+      }
     }
   }
 
   /** Returns a subcatalog given its name. */
-  def findCatalog(name: Identifier): Option[Catalog] =
+  def findCatalog(name: Identifier): IO[Option[Catalog]] =
     splitId(name) match {
-      case (Nil, id)     => catalogs.get(id)
+      case (Nil, id)     => catalogs.map(_.get(id))
       case (q :: qs, id) =>
-        catalogs.get(q).flatMap(_.findCatalog(concatId(qs, id)))
+        OptionT(catalogs.map(_.get(q)))
+          .flatMapF(_.findCatalog(concatId(qs, id))).value
     }
 
   /**
@@ -72,14 +75,15 @@ trait Catalog { self =>
       case (Nil, id)     =>
         datasets.find(_.id.forall(_ == id)).compile.last
       case (q :: qs, id) =>
-        catalogs.get(q).flatTraverse(_.findDataset(concatId(qs, id)))
+        OptionT(catalogs.map(_.get(q)))
+          .flatMapF(_.findDataset(concatId(qs, id))).value
     }
 
   /** Sets this catalog's subcatalogs. */
   def withCatalogs(scs: (Identifier, Catalog)*): Catalog = new Catalog {
     override val datasets: Stream[IO,Dataset] = self.datasets
 
-    override val catalogs: Map[Identifier, Catalog] = scs.toMap
+    override val catalogs: IO[Map[Identifier, Catalog]] = scs.toMap.pure[IO]
   }
 
   // Constructs a qualified ID.

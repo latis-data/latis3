@@ -73,7 +73,7 @@ object HtmlCatalogEncoder {
 
   /** Provides a recursive HTML table representation of a Catalog's sub-catalogs */
   private[dap2] def subcatalogTable(catalog: Catalog, prefix: String = ""): IO[Text.TypedTag[String]] = {
-    val catalogs = Stream.emits(catalog.catalogs.toList)
+    val catalogs = Stream.eval(catalog.catalogs).flatMap(sub => Stream.emits(sub.toList))
     catalogs.evalMap { c =>
       val id = c._1.asString
       val cat = c._2
