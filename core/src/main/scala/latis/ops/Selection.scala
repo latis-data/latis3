@@ -58,7 +58,7 @@ case class Selection(id: Identifier, operator: ast.SelectionOp, value: String) e
     // Define an internal predicate to filter a data value.
     //TODO: extend Either to data predicate methods
     def makePredicate(scalar: Scalar, cdata: Datum) =
-      if (scalar.metadata.properties.contains("binWidth"))  //TODO: first class member
+      if (scalar.isBinned)
         Selection.datumPredicateWithBinning(scalar, operator, cdata)
       else Selection.datumPredicate(scalar, operator, cdata)
 
@@ -133,13 +133,10 @@ object Selection {
    * Assumes numeric types which will be converted to a Double.
    */
   private[ops] def makeBounder(scalar: Scalar): Datum => Bounds[Double] = {
-    //TODO: make binWidth a first class member of Scalar so it is safe by construction
-    //      Time could override to support ISO time duration
     //TODO: add binPosition enum for start|mid|end, assume start for now
     //TODO: support reverse ordering?
-    val w = scalar.metadata.getProperty("binWidth")
-      .flatMap(_.toDoubleOption)
-      .getOrElse(throw LatisException("Invalid binWidth"))
+    val w = scalar.binWidth
+      .getOrElse(throw LatisException("Bug: Making Bounder with no binWidth defined"))
 
     (datum: Datum) => {
       val d = scalar.valueAsDouble(datum)

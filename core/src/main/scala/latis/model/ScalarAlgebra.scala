@@ -94,6 +94,14 @@ trait ScalarAlgebra { scalar: Scalar =>
       }
     }
   }
+  
+  /** 
+   * Determines if this Scalar represents binned (not instantaneous) values. 
+   * 
+   * This is currently based on the existence of the `binWidth` property.
+   * This may evolve as additional bin semantics are supported.
+   */
+  def isBinned: Boolean = binWidth.nonEmpty
 
   /** Defines the string representation as the Scalar id. */
   override def toString: String = id.asString
