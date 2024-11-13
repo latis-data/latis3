@@ -30,7 +30,8 @@ class Time protected (
   missingValue: Option[Data] = None,
   fillValue: Option[Data] = None,
   precision: Option[Int] = None,
-  ascending: Boolean = true
+  ascending: Boolean = true,
+  binWidth: Option[Double]
 ) extends Scalar(
   metadata,
   id,
@@ -40,7 +41,8 @@ class Time protected (
   missingValue = missingValue,
   fillValue = fillValue,
   precision = precision,
-  ascending = ascending
+  ascending = ascending,
+  binWidth = binWidth
 ) {
 
   /** Provides safe access to Time's MeasurementScale. */
@@ -159,6 +161,7 @@ object Time extends ScalarFactory {
       fillValue <- getFillValue(metadata, valueType)
       precision <- getPrecision(metadata, valueType)
       ascending <- getAscending(metadata)
+      binWidth  <- getBinWidth(metadata, valueType)
     } yield new Time(
       metadata + ("class" -> "latis.time.Time"),
       id,
@@ -169,7 +172,8 @@ object Time extends ScalarFactory {
       missingValue = missValue,
       fillValue = fillValue,
       precision = precision,
-      ascending = ascending
+      ascending = ascending,
+      binWidth = binWidth
     )
   }
 

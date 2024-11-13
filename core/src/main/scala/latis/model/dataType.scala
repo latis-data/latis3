@@ -25,7 +25,8 @@ class Scalar(
   val missingValue: Option[Data] = None,
   val fillValue: Option[Data] = None,
   val precision: Option[Int] = None,
-  val ascending: Boolean = true
+  val ascending: Boolean = true,
+  val binWidth: Option[Double] = None
 ) extends DataType with ScalarAlgebra
   //TODO: coverage, cadence, resolution, start, end,... (see fdml schema)
 
