@@ -161,13 +161,11 @@ object Selection {
 
     // Make lean predicate based on selection operator
     operator match {
-      case ast.Eq   => (d: Datum) => bounder(d).contains(dvalue)
-      case ast.EqEq => (d: Datum) => bounder(d).contains(dvalue)
-      case ast.NeEq => (d: Datum) => ! bounder(d).contains(dvalue)
-      case ast.Gt   => (d: Datum) => bounder(d).lower >  dvalue
-      case ast.GtEq => (d: Datum) => bounder(d).upper >  dvalue
-      case ast.Lt   => (d: Datum) => bounder(d).upper <= dvalue
-      case ast.LtEq => (d: Datum) => bounder(d).lower <= dvalue
+      case ast.Eq            => (d: Datum) => bounder(d).contains(dvalue)
+      case ast.EqEq          => (d: Datum) => bounder(d).contains(dvalue)
+      case ast.NeEq          => (d: Datum) => ! bounder(d).contains(dvalue)
+      case ast.Gt | ast.GtEq => (d: Datum) => bounder(d).upper >  dvalue
+      case ast.Lt | ast.LtEq => (d: Datum) => bounder(d).lower <= dvalue
       case _ => throw LatisException(s"Unsupported selection operator: $ast.prettyOp(operator)") //TODO: prevent by construction
     }
   }

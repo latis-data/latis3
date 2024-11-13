@@ -48,13 +48,13 @@ class SelectionSuite extends FunSuite {
     val value = Data.DoubleValue(0.5)
     assert(Selection.datumPredicateWithBinning(binnedScalar, ast.Gt, value)(datum))
   }
-  test("bin not gt start") {
+  test("bin gt start") {
     val value = Data.DoubleValue(1.0)
-    assert(! Selection.datumPredicateWithBinning(binnedScalar, ast.Gt, value)(datum))
+    assert(Selection.datumPredicateWithBinning(binnedScalar, ast.Gt, value)(datum))
   }
-  test("bin not gt in bin") {
+  test("bin gt in bin") {
     val value = Data.DoubleValue(1.5)
-    assert(! Selection.datumPredicateWithBinning(binnedScalar, ast.Gt, value)(datum))
+    assert(Selection.datumPredicateWithBinning(binnedScalar, ast.Gt, value)(datum))
   }
   test("bin not gt end") {
     val value = Data.DoubleValue(2.0)
@@ -90,13 +90,13 @@ class SelectionSuite extends FunSuite {
     val value = Data.DoubleValue(0.5)
     assert(! Selection.datumPredicateWithBinning(binnedScalar, ast.Lt, value)(datum))
   }
-  test("bin not lt start") {
+  test("bin lt start") {
     val value = Data.DoubleValue(1.0)
-    assert(! Selection.datumPredicateWithBinning(binnedScalar, ast.Lt, value)(datum))
+    assert(Selection.datumPredicateWithBinning(binnedScalar, ast.Lt, value)(datum))
   }
-  test("bin not lt in bin") {
+  test("bin lt in bin") {
     val value = Data.DoubleValue(1.5)
-    assert(! Selection.datumPredicateWithBinning(binnedScalar, ast.Lt, value)(datum))
+    assert(Selection.datumPredicateWithBinning(binnedScalar, ast.Lt, value)(datum))
   }
   test("bin lt end") {
     val value = Data.DoubleValue(2.0)
