@@ -176,7 +176,13 @@ lazy val server = project
       "com.github.pureconfig" %% "pureconfig-ip4s"        % pureconfigVersion,
       "org.typelevel"         %% "log4cats-slf4j"         % log4catsVersion,
       "ch.qos.logback"         % "logback-classic"        % logbackVersion % Runtime
-    )
+    ),
+    assemblyMergeStrategy := {
+      case "META-INF/versions/9/module-info.class" => MergeStrategy.discard
+      case x =>
+        val old = assemblyMergeStrategy.value
+        old(x)
+    }
   )
 
 lazy val `service-interface` = project
