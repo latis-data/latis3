@@ -175,6 +175,7 @@ lazy val server = project
       "com.github.pureconfig" %% "pureconfig-cats-effect" % pureconfigVersion,
       "com.github.pureconfig" %% "pureconfig-ip4s"        % pureconfigVersion,
       "org.typelevel"         %% "log4cats-slf4j"         % log4catsVersion,
+      "ch.qos.logback"         % "logback-classic"        % logbackVersion % Runtime
     )
   )
 
