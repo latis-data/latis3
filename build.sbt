@@ -47,7 +47,7 @@ lazy val dockerSettings = Seq(
     }.mkString(":")
 
     new Dockerfile {
-      from("openjdk:8-jre-alpine")
+      from("eclipse-temurin:21-alpine")
       expose(8080)
       entryPoint("java", "-cp", cp, mainclass)
       copy(depClasspath.files, "/app/")
