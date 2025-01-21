@@ -104,6 +104,16 @@ lazy val core = project
     )
   )
 
+lazy val example = project
+  .dependsOn(server)
+  .settings(
+    name := "latis3-example",
+    libraryDependencies ++= Seq(
+      "ch.qos.logback" % "logback-classic" % logbackVersion % Runtime
+    ),
+    reStart / mainClass := Some("latis.server.Latis3Server")
+  )
+
 lazy val `fdml-validator` = project
   .dependsOn(core)
   .settings(commonSettings)

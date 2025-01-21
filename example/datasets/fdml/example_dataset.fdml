@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<dataset id="example_dataset" title="Example Dataset"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://latis-data.io/schemas/1.0/fdml-with-text-adapter.xsd">
+
+    <source uri="data/example_dataset.csv"/>
+
+    <adapter class="latis.input.TextAdapter"
+             commentCharacter="#"
+             delimiter=","/>
+
+    <function>
+        <scalar id="time"
+                type="string"
+                class="latis.time.Time"
+                units="yyyy-MM-dd"/>
+        <tuple>
+          <scalar id="temperature" type="int" units="degree Fahrenheit"/>
+          <scalar id="wind_direction" type="int" units="degrees"/>
+          <scalar id="wind_speed" type="int" units="knots"/>
+        </tuple>
+    </function>
+</dataset>
