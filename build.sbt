@@ -230,10 +230,7 @@ lazy val netcdf = project
     ),
     resolvers ++= Seq(
       "Unidata" at "https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases"
-    ),
-    scalacOptions --= {
-      if (insideCI.value) Seq("-Wconf:any:e") else Seq()
-    }
+    )
   )
 
 lazy val jdbc = project
