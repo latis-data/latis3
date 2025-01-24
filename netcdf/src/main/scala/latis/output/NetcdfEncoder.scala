@@ -279,13 +279,13 @@ object NetcdfEncoder {
   private def build(
     builder: NetcdfFormatWriter.Builder
   ): Resource[IO, NetcdfFormatWriter] =
-    Resource.fromAutoCloseable(IO(builder.build()))
+    Resource.fromAutoCloseable(IO.blocking(builder.build()))
 
   private def write(
     writer: NetcdfFormatWriter,
     varName: String,
     data: NcArray
-  ): IO[Unit] = IO { writer.write(varName, data) }
+  ): IO[Unit] = IO.blocking(writer.write(varName, data))
 
   private def addGlobalAttribute(
     builder: NetcdfFormatWriter.Builder,
