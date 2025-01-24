@@ -5,8 +5,10 @@ import cats.effect.Resource
 import cats.syntax.all.*
 import fs2.io.file.Files
 import munit.CatsEffectSuite
+import ucar.ma2.{Array as NcArray}
 import ucar.ma2.{DataType as NcDataType}
 import ucar.nc2.NetcdfFiles
+import ucar.nc2.Variable
 
 import latis.data.*
 import latis.dataset.MemoizedDataset
@@ -21,6 +23,9 @@ class NetcdfEncoderSuite extends CatsEffectSuite {
   private val tempFile =
     ResourceFunFixture(Files[IO].tempFile(None, "netcdf_test", ".nc", None))
 
+  private def readArrays(vars: List[Variable]): IO[List[NcArray]] =
+    vars.traverse(v => IO.blocking(v.read()))
+
   tempFile.test("encode a 1-D dataset with a single range variable to NetCDF") { file =>
     val enc          = NetcdfEncoder(file)
     val expectedTime = List(1, 2, 3)
@@ -30,13 +35,15 @@ class NetcdfEncoderSuite extends CatsEffectSuite {
       Resource.fromAutoCloseable(
         IO(NetcdfFiles.open(file.absolute.toString))
       ).use { ncFile =>
-        IO {
-          val arrs    = ncFile.readArrays(ncFile.getVariables)
-          val timeArr = arrs.get(0).get1DJavaArray(NcDataType.INT).asInstanceOf[Array[Int]]
-          val fluxArr = arrs.get(1).get1DJavaArray(NcDataType.DOUBLE).asInstanceOf[Array[Double]]
+        val vars = ncFile.getVariables.toArray.toList.asInstanceOf[List[Variable]]
+        readArrays(vars).flatMap { arrs =>
+          IO {
+            val timeArr = arrs(0).get1DJavaArray(NcDataType.INT).asInstanceOf[Array[Int]]
+            val fluxArr = arrs(1).get1DJavaArray(NcDataType.DOUBLE).asInstanceOf[Array[Double]]
 
-          assertEquals(timeArr.toList, expectedTime)
-          assertEquals(fluxArr.toList, expectedFlux)
+            assertEquals(timeArr.toList, expectedTime)
+            assertEquals(fluxArr.toList, expectedFlux)
+          }
         }
       }
     }
