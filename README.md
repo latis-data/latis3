@@ -1,17 +1,3 @@
-To add:
-
-WHAT I (KEIRA) WANT IN A README:
-- ✅ WHAT IS THIS PROJECT
-- ✅ WHAT CAN I DO WITH IT
-- ✅ HOW TO I INSTALL AND USE IT
-- WHERE CAN I FIND ADDITIONAL INFORMATION
-- ✅ CONTRIBUTING
-- ✅ VERSIONING
-- CODE OF CONDUCT
-- TEAM MEMBERS
-- do people have to have scala experience to use LaTiS?
-
-
 # LaTiS 3
 
 LaTiS is a software framework designed for accessing, processing, and outputting scientific data. It provides a unified 
