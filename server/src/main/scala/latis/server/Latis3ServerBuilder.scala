@@ -52,6 +52,7 @@ object Latis3ServerBuilder {
 
   def defaultLandingPage: LandingPage = new DefaultLandingPage(makeServiceInfo("latis.util.BuildInfo$"))
 
+  @annotation.targetName("mkServerOld")
   def mkServer(
     conf: ServerConf,
     landingPage: LandingPage,
@@ -60,15 +61,21 @@ object Latis3ServerBuilder {
   )(
     implicit timer: Temporal[IO]
   ): Resource[IO, Server] = {
+    val routes = interfaces.map { (name, si) => (name, si.routes) }
+    mkServer(conf, landingPage, routes, logger)
+  }
 
-    def constructRoutes(
-      interfaces: List[(String, ServiceInterface)]
-    ): HttpRoutes[IO] = {
-      val routes = interfaces.map {
-        case (prefix, service) => (prefix, service.routes)
-      } :+ ("/", landingPage.routes)
-      Router(routes *)
-    }
+  def mkServer(
+    conf: ServerConf,
+    landingPage: LandingPage,
+    interfaces: List[(String, HttpRoutes[IO])],
+    logger: StructuredLogger[IO],
+  )(
+    implicit timer: Temporal[IO]
+  ): Resource[IO, Server] = {
+
+    val routes = interfaces :+ ("/", landingPage.routes)
+    val router = Router(routes *)
 
     EmberServerBuilder.default[IO]
       .withHost(host"0.0.0.0")
@@ -80,7 +87,7 @@ object Latis3ServerBuilder {
               CORS.policy
                 .withAllowOriginAll
                 .withAllowMethodsIn(Set(Method.GET, Method.HEAD))
-                .apply(constructRoutes(interfaces))
+                .apply(router)
             ).orNotFound,
             logger
           ),
