@@ -77,6 +77,32 @@ case class Selection(id: Identifier, operator: ast.SelectionOp, value: String) e
     }
   }
 
+  // Update metadata
+  override def applyToModel(model: DataType): Either[LatisException, DataType] = {
+    Either.fromOption(
+      model.findVariable(id), 
+      LatisException(s"Variable not found: ${id.asString}")
+    ).flatMap {
+      case s: Scalar => 
+        s.convertValue(value).flatMap {
+          case Number(d) => d.asRight
+          case _ => LatisException(s"Selection value is not numeric: $value").asLeft
+        }.flatMap { value =>
+          operator match {
+            case ast.Gt | ast.GtEq => s.applyCoverage(value.some, None)
+            case ast.Lt | ast.LtEq => s.applyCoverage(None, value.some)
+            case ast.Eq | ast.EqEq => s.applyCoverage(value.some, value.some)
+            case _ => s.asRight //TODO: consider other operators
+          }
+        }
+      case _ => LatisException(s"Variable is not a Scalar: ${id.asString}").asLeft 
+    }.map { scalar =>
+      model.map {
+        case s: Scalar if s.id == id => scalar
+        case dt => dt
+      }
+    }
+  }
 }
 
 object Selection {

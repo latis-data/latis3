@@ -95,6 +95,27 @@ trait ScalarAlgebra { scalar: Scalar =>
     }
   }
   
+  def applyCoverage(min: Option[Double], max: Option[Double]): Either[LatisException, Scalar] = {
+    //TODO: assert max >= min, including current coverage
+    //TODO: no overlap with current coverage
+    //  could report empty dataset before streaming!
+    //TODO: handle Double.NaN
+    //TODO: preserve non-double types
+    //TODO: override for Time, string args
+    //TODO: be inclusive of bins?
+    val cov = getCoverage.map { case (c1, c2) =>
+      List(
+        min.map(min => math.max(c1, min).toString).getOrElse(""),
+        max.map(max => math.min(c1, max).toString).getOrElse("")
+      ).mkString("/")
+    }.getOrElse {
+      // coverage not defined
+      List(min, max).mkString("/")
+    }
+    val md = metadata + ("coverage" -> cov)
+    Scalar.fromMetadata(md)
+  }
+  
   /** 
    * Determines if this Scalar represents binned (not instantaneous) values. 
    * 
