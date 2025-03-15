@@ -255,7 +255,7 @@ object JdbcAdapter extends AdapterFactory {
   def apply(model: DataType, config: AdapterConfig): JdbcAdapter =
     new JdbcAdapter(model, JdbcAdapter.Config(config.properties *))
 
-  private val defaultFetchSize: Int = 100
+  private val defaultFetchSize: Int = 8192
 
   /**
    * Defines a JdbcAdapter specific configuration with type-safe accessors.
