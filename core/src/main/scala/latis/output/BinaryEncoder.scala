@@ -12,6 +12,7 @@ import latis.data.*
 import latis.dataset.*
 import latis.model.*
 import latis.ops.Uncurry
+import latis.util.LatisException
 
 class BinaryEncoder(val dataCodec: Scalar => Codec[Data] = DataCodec.defaultDataCodec) extends Encoder[IO, Byte] {
   //TODO: deal with NullData, require replaceMissing?
@@ -19,11 +20,22 @@ class BinaryEncoder(val dataCodec: Scalar => Codec[Data] = DataCodec.defaultData
   /**
    * Encodes the Stream of Samples from the given Dataset as a Stream
    * of BitVectors.
+   * 
+   * If the Dataset represents a simply nested Function, it will be flattened
+   * with the Uncurry operation. A complex nested Function (e.g. Tuple
+   * containing a Function) will throw a LatisException (until we improve our types).
    */
   override def encode(dataset: Dataset): Stream[IO, Byte] = {
-    val uncurriedDataset = dataset.withOperation(Uncurry())
+
+    if (dataset.model.isComplex)
+      throw LatisException(s"BinaryEncoder does not support complex model: ${dataset.model}")
+
+    val flatDataset =
+      if (dataset.model.isSimplyNested) dataset.withOperation(Uncurry())
+      else dataset
+      
     // Encode the samples as a Stream of Bytes
-    uncurriedDataset.samples.through(sampleStreamEncoder(uncurriedDataset.model).toPipeByte)
+    flatDataset.samples.through(sampleStreamEncoder(flatDataset.model).toPipeByte)
   }
 
   /** Instance of scodec.stream.StreamEncoder for Sample. */

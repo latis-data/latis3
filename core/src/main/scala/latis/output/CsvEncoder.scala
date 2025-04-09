@@ -10,8 +10,7 @@ import fs2.data.csv.RowEncoder
 
 import latis.data.Sample
 import latis.dataset.Dataset
-import latis.model.Index
-import latis.model.Scalar
+import latis.model.*
 import latis.ops.Uncurry
 import latis.util.LatisException
 
@@ -20,14 +19,25 @@ class CsvEncoder(header: Dataset => Stream[IO, String]) extends Encoder[IO, Stri
   /**
    * Encodes the Stream of Samples from the given Dataset as a Stream
    * of Strings with comma separated values.
+   *
+   * If the Dataset represents a simply nested Function, it will be flattened
+   * with the Uncurry operation. A complex nested Function (e.g. Tuple
+   * containing a Function) will throw a LatisException (until we improve our types).
+   *
    * @param dataset dataset to encode
    */
   override def encode(dataset: Dataset): Stream[IO, String] = {
-    val uncurriedDataset = dataset.withOperation(Uncurry())
+
+    if (dataset.model.isComplex)
+      throw LatisException(s"CsvEncoder does not support complex model: ${dataset.model}")
+
+    val flatDataset =
+      if (dataset.model.isSimplyNested) dataset.withOperation(Uncurry())
+      else dataset
 
     // CSV encoding ignores Index scalars
     val scalars = NonEmptyList.fromList(
-      uncurriedDataset
+      flatDataset
         .model
         .getScalars
         .filterNot(_.isInstanceOf[Index])
@@ -37,7 +47,7 @@ class CsvEncoder(header: Dataset => Stream[IO, String]) extends Encoder[IO, Stri
     scalars.liftTo[Stream[IO, *]](
       LatisException("No non-Index scalars in model")
     ).flatMap { ss =>
-      header(dataset).map(_ + "\r\n") ++ uncurriedDataset.samples.through(
+      header(dataset).map(_ + "\r\n") ++ flatDataset.samples.through(
         csv.encodeWithoutHeaders(
           fullRows = true,
           newline = "\r\n"

@@ -46,7 +46,13 @@ class NetcdfEncoder(file: Path) extends Encoder[IO, Path] {
    * @param dataset dataset to encode
    */
   override def encode(dataset: Dataset): Stream[IO, Path] = {
-    val uncurriedDataset = dataset.withOperation(Uncurry())
+    if (dataset.model.isComplex)
+      throw LatisException(s"NetcdfEncoder does not support complex model: ${dataset.model}")
+
+    val flatDataset =
+      if (dataset.model.isSimplyNested) dataset.withOperation(Uncurry())
+      else dataset
+      
     Stream
       .eval {
         IO {
@@ -59,12 +65,12 @@ class NetcdfEncoder(file: Path) extends Encoder[IO, Path] {
       }
       .flatMap { builder =>
         Stream
-          .eval(uncurriedDataset.samples.compile.toVector)
+          .eval(flatDataset.samples.compile.toVector)
           .evalMap {
             datasetToNetcdf(
               builder,
-              uncurriedDataset.model,
-              uncurriedDataset.metadata,
+              flatDataset.model,
+              flatDataset.metadata,
               _
             )
           }
