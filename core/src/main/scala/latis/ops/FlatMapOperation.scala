@@ -14,7 +14,7 @@ import latis.model.*
  * into a stream of Samples.
  */
 trait FlatMapOperation extends StreamOperation {
-  
+
   /**
    * Defines a function that generates a SampledFunction
    * from a Sample.
