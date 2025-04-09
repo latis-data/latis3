@@ -1,5 +1,7 @@
 package latis.model
 
+import scala.annotation.tailrec
+
 import cats.syntax.all.*
 
 import latis.data.*
@@ -75,6 +77,37 @@ trait DataTypeAlgebra { dataType: DataType =>
       }
     case _ => 0
   }
+
+  /**
+   * Does this DataType have simply nested Functions.
+   *
+   * A nested Function that exist as the sole range variable of another
+   * Function is considered simply nested. This applies to all levels
+   * of nesting. This property constrains the types of Operations and
+   * Encoders that can be applied. Such Datasets can be flattened with
+   * the Uncurry operation. Note that this is unrelated to nested Tuples.
+   */
+  def isSimplyNested: Boolean = dataType match {
+    case Function(_, f: Function) => ! f.isComplex
+    case _ => false
+  }
+
+  /**
+   * Does this DataType have nested Functions that are not simply nested.
+   *
+   * A Tuple that contains a Function, including a Tuple in the range of
+   * a Function, is considered to be complex. Many Operations and Encoders
+   * cannot directly be applied without some sort of join.
+   */
+  def isComplex: Boolean = {
+    @tailrec def go(model: DataType): Boolean = model match {
+      case Function(_, dt) => go(dt)
+      case t: Tuple        => t.flatElements.exists(_.isInstanceOf[Function])
+      case _               => false
+    }
+    go(this)
+  }
+
 
   /** Makes fill data for this data type. */
   def fillData: Data = {

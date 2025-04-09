@@ -140,4 +140,44 @@ class DataTypeSuite extends FunSuite {
   test("self exists") {
     assert(f.exists(_.isInstanceOf[Function]))
   }
+
+  //---- simply nested function ---//
+
+  test("scalar is not simply nested") {
+    assert(! x.isSimplyNested)
+  }
+
+  test("tuple is not simply nested") {
+    assert(! namedTup.isSimplyNested)
+  }
+
+  test("nested function is simply nested") {
+    assert(nestedF.isSimplyNested)
+  }
+
+  test("complex nested function is not simply nested") {
+    assert(! nestedFInTup.isSimplyNested)
+  }
+
+  //---- complexity ----//
+
+  test("scalar is not complex") {
+    assert(! x.isComplex)
+  }
+
+  test("nested tuple is not complex") {
+    assert(! nestedTup.isComplex)
+  }
+
+  test("tuple with function is complex") {
+    assert(tupWithF.isComplex)
+  }
+
+  test("simply nested function is not complex") {
+    assert(! nestedF.isComplex)
+  }
+
+  test("complex nested function is complex") {
+    assert(nestedFInTup.isComplex)
+  }
 }
