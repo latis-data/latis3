@@ -165,7 +165,7 @@ class NetcdfEncoderSuite extends CatsEffectSuite {
 
   tempFile.test("include global metadata in the file") { file =>
     val enc              = NetcdfEncoder(file)
-    val expectedMetadata = Metadata(id"dataset_with_metadata") + ("globalFoo" -> "globalBar") + ("history" -> "Uncurry()")
+    val expectedMetadata = Metadata(id"dataset_with_metadata") + ("globalFoo" -> "globalBar")
 
     enc.encode(dataset_with_metadata).compile.onlyOrError.flatMap { file =>
       Resource.fromAutoCloseable(
