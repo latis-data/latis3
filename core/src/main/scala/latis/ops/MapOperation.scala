@@ -16,7 +16,7 @@ import latis.util.LatisException
  * have the same number of Samples.
  */
 trait MapOperation extends StreamOperation { self =>
-  
+
   /**
    * Defines a function that modifies a given Sample
    * into a new Sample.
@@ -32,7 +32,7 @@ trait MapOperation extends StreamOperation { self =>
     (stream: Stream[IO, Sample]) =>
       stream.map { sample =>
         Either.catchNonFatal(f(sample))
-      }.evalTap {
+      }.evalTapChunk {
         case Left(t) =>
           val msg = s"[WARN] Sample dropped. $t"
           IO.println(msg) //TODO: log
