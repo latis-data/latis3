@@ -16,7 +16,6 @@ class SseEncoder extends Encoder[IO, ServerSentEvent] {
 
   override def encode(dataset: Dataset): Stream[IO, ServerSentEvent] =
     Stream.emit(makeMetadataEvent(dataset.metadata)) ++
-      Stream.emit(makeInfoEvent("here comes the data")) ++
       dataset.samples.mapChunks(makeDataEvent(_).pure[Chunk]).handleErrorWith {
         case e: LatisException =>
           // NOTE: Making the assumption that LatisException messages
@@ -33,9 +32,6 @@ class SseEncoder extends Encoder[IO, ServerSentEvent] {
 
   private def makeErrorEvent(message: String): ServerSentEvent =
     ServerSentEvent(message.some, "error".some)
-
-  private def makeInfoEvent(message: String): ServerSentEvent =
-    ServerSentEvent(message.some, "info".some)
 
   private def makeMetadataEvent(metadata: Metadata): ServerSentEvent =
     ServerSentEvent(
