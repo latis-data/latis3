@@ -2,6 +2,7 @@ package latis.output
 
 import scala.concurrent.duration.*
 
+import cats.Id
 import cats.effect.IO
 import cats.syntax.all.*
 import fs2.Chunk
@@ -11,7 +12,6 @@ import org.http4s.ServerSentEvent
 
 import latis.data.Sample
 import latis.dataset.Dataset
-import latis.metadata.Metadata
 import latis.util.LatisException
 
 class SseEncoder extends Encoder[IO, ServerSentEvent] {
@@ -26,7 +26,7 @@ class SseEncoder extends Encoder[IO, ServerSentEvent] {
     Stream.awakeDelay[IO](heartbeatPeriod).as(heartbeatEvent)
 
   override def encode(dataset: Dataset): Stream[IO, ServerSentEvent] = {
-    val events = (Stream.emit(makeMetadataEvent(dataset.metadata)) ++
+    val events = (Stream.emit(makeMetadataEvent(dataset)) ++
       dataset.samples.mapChunks(makeDataEvent(_).pure[Chunk])).handleErrorWith {
         case e: LatisException =>
           // NOTE: Making the assumption that LatisException messages
@@ -50,9 +50,9 @@ class SseEncoder extends Encoder[IO, ServerSentEvent] {
   private def makeErrorEvent(message: String): ServerSentEvent =
     ServerSentEvent(message.some, "error".some)
 
-  private def makeMetadataEvent(metadata: Metadata): ServerSentEvent =
+  private def makeMetadataEvent(ds: Dataset): ServerSentEvent =
     ServerSentEvent(
-      metadata.properties.asJson.noSpaces.some,
+      MetadataEncoder[Id].encode(ds).map(_.noSpaces).compile.string.some,
       "metadata".some
     )
 }
