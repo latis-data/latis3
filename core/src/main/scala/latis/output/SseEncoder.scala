@@ -15,8 +15,8 @@ import latis.util.LatisException
 class SseEncoder extends Encoder[IO, ServerSentEvent] {
 
   override def encode(dataset: Dataset): Stream[IO, ServerSentEvent] =
-    Stream.emit(makeMetadataEvent(dataset.metadata)) ++
-      dataset.samples.mapChunks(makeDataEvent(_).pure[Chunk]).handleErrorWith {
+    (Stream.emit(makeMetadataEvent(dataset.metadata)) ++
+      dataset.samples.mapChunks(makeDataEvent(_).pure[Chunk])).handleErrorWith {
         case e: LatisException =>
           // NOTE: Making the assumption that LatisException messages
           // are safe to share with users.
