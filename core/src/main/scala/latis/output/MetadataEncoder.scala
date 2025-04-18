@@ -1,6 +1,5 @@
 package latis.output
 
-import cats.effect.IO
 import fs2.Stream
 import io.circe.{Encoder as JEncoder}
 import io.circe.Json
@@ -28,9 +27,9 @@ import latis.dataset.Dataset
  * }
  * }}}
  */
-class MetadataEncoder extends Encoder[IO, Json] {
+class MetadataEncoder[F[_]] extends Encoder[F, Json] {
 
-  override def encode(dataset: Dataset): Stream[IO, Json] =
+  override def encode(dataset: Dataset): Stream[F, Json] =
     Stream.emit(MetadataEncoder.MetadataOnly(dataset).asJson)
 }
 
