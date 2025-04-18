@@ -1,6 +1,6 @@
 package latis.output
 
-import munit.CatsEffectSuite
+import cats.Id
 
 import latis.data.SampledFunction
 import latis.dataset.Dataset
@@ -11,7 +11,7 @@ import latis.model.IntValueType
 import latis.model.Scalar
 import latis.util.Identifier.*
 
-final class MetadataEncoderSuite extends CatsEffectSuite {
+final class MetadataEncoderSuite extends munit.FunSuite {
 
   private lazy val dataset: Dataset = {
     val metadata = Metadata(id"dataset")
@@ -27,7 +27,7 @@ final class MetadataEncoderSuite extends CatsEffectSuite {
   }
 
   test("encode the ID metadata of the dataset being encoded") {
-    new MetadataEncoder().encode(dataset).compile.lastOrError.map { md =>
+    new MetadataEncoder[Id]().encode(dataset).compile.last.map { md =>
       val cursor = md.hcursor
       assertEquals(cursor.get[String]("id").getOrElse(fail("Missing dataset ID")), "dataset")
       assertEquals(cursor.get[String]("model").getOrElse(fail("Missing model")), "function: a -> b")
@@ -37,6 +37,6 @@ final class MetadataEncoderSuite extends CatsEffectSuite {
       assertEquals(variables.downN(0).get[String]("type").getOrElse(fail("Missing variable type")), "int")
       assertEquals(variables.downN(1).get[String]("id").getOrElse(fail("Missing variable ID")), "b")
       assertEquals(variables.downN(1).get[String]("type").getOrElse(fail("Missing variable type")), "int")
-    }
+    }.getOrElse(fail("Empty stream"))
   }
 }
