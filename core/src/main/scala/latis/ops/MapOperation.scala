@@ -1,6 +1,7 @@
 package latis.ops
 
 import cats.effect.IO
+import cats.effect.Ref
 import cats.syntax.all.*
 import fs2.Pipe
 import fs2.Stream
@@ -25,20 +26,29 @@ trait MapOperation extends StreamOperation { self =>
 
   /**
    * Implements a Pipe in terms of the mapFunction.
-   * Drop any Sample that results in an exception.
+   *
+   * This will drop any Sample that results in an Exception
+   * and print an error message for every nth error when n
+   * is a power of 2.
    */
   def pipe(model: DataType): Pipe[IO, Sample, Sample] = {
     val f = mapFunction(model)
     (stream: Stream[IO, Sample]) =>
-      stream.map { sample =>
-        Either.catchNonFatal(f(sample))
-      }.evalTapChunk {
-        case Left(t) =>
-          val msg = s"[WARN] Sample dropped. $t"
-          IO.println(msg) //TODO: log
-        case _ => IO.unit
-      }.collect {
-        case Right(s) => s
+      Stream.eval(Ref[IO].of(0)).flatMap { cntRef =>
+        stream.map { sample =>
+          Either.catchNonFatal(f(sample))
+        }.evalTapChunk {
+          case Left(t) =>
+            cntRef.updateAndGet(_ + 1).flatMap { cnt =>
+              if ((cnt & (cnt - 1)) == 0) {
+                val msg = s"MapOperation warning #$cnt: Sample dropped. $t"
+                IO.println(msg) //TODO: log
+              } else IO.unit
+            }
+          case _ => IO.unit
+        }.collect {
+          case Right(s) => s
+        }
       }
   }
 
