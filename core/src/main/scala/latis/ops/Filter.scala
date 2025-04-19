@@ -1,6 +1,7 @@
 package latis.ops
 
 import cats.effect.IO
+import cats.effect.Ref
 import cats.syntax.all.*
 import fs2.Pipe
 import fs2.Stream
@@ -34,12 +35,38 @@ trait Filter extends UnaryOperation with StreamOperation { self =>
 
   /**
    * Implements a Pipe in terms of the predicate.
+   * 
+   * This will drop any Sample that results in an Exception
+   * and print an error message for every nth error when n
+   * is a power of 2.
    */
   def pipe(model: DataType): Pipe[IO, Sample, Sample] =
-    (stream: Stream[IO, Sample]) => predicate(model) match {
-      case Right(p) => stream.filter(p)
-      case Left(le) => Stream.raiseError[IO](le)
-    }
+    (stream: Stream[IO, Sample]) =>
+      predicate(model) match {
+        case Right(p) =>
+          Stream.eval(Ref[IO].of(0)).flatMap { cntRef =>
+            // Use map instead of filter so we can tap for errors.
+            // Keep the sample and the predicate result so we can collect
+            // only the samples that satisfy the predicate.
+            stream.map { sample =>
+              Either.catchNonFatal(p(sample)).map((sample, _))
+            }.evalTapChunk {
+              case Left(t) =>
+                cntRef.updateAndGet(_ + 1).flatMap { cnt =>
+                  if ((cnt & (cnt - 1)) == 0) { // true for powers of 2
+                    val msg = s"Filter warning #$cnt: Sample dropped. $t"
+                    IO.println(msg) //TODO: log
+                  } else IO.unit
+                }
+              case _ => IO.unit
+            }.collect {
+              case Right(s, true) => s
+            }
+          }
+        case Left(le) =>
+          Stream.eval(IO.println("Failed to construct Filter predicate")) >>
+            Stream.raiseError[IO](le) //TODO: fail during Filter construction
+      }
 
   /**
    * Composes this operation with the given MappingOperation.

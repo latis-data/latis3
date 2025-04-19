@@ -40,7 +40,7 @@ trait MapOperation extends StreamOperation { self =>
         }.evalTapChunk {
           case Left(t) =>
             cntRef.updateAndGet(_ + 1).flatMap { cnt =>
-              if ((cnt & (cnt - 1)) == 0) {
+              if ((cnt & (cnt - 1)) == 0) { // true for powers of 2
                 val msg = s"MapOperation warning #$cnt: Sample dropped. $t"
                 IO.println(msg) //TODO: log
               } else IO.unit
