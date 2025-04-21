@@ -7,6 +7,7 @@ import cats.effect.IO
 import cats.syntax.all.*
 import fs2.Chunk
 import fs2.Stream
+import io.circe.Json
 import io.circe.syntax.*
 import org.http4s.ServerSentEvent
 
@@ -43,12 +44,15 @@ class SseEncoder extends Encoder[IO, ServerSentEvent] {
 
   private def makeDataEvent(samples: Chunk[Sample]): ServerSentEvent =
     ServerSentEvent(
-      samples.toList.asJson.noSpaces.some,
+      Json.obj("data" -> samples.toList.asJson).noSpaces.some,
       "data".some
     )
 
   private def makeErrorEvent(message: String): ServerSentEvent =
-    ServerSentEvent(message.some, "error".some)
+    ServerSentEvent(
+      Json.obj("message" -> message.asJson).noSpaces.some,
+      "error".some
+    )
 
   private def makeMetadataEvent(ds: Dataset): ServerSentEvent =
     ServerSentEvent(
