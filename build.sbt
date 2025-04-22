@@ -4,6 +4,7 @@ ThisBuild / scalaVersion := "3.3.6"
 val attoVersion       = "0.9.5"
 val catsVersion       = "2.13.0"
 val catsEffectVersion = "3.6.3"
+val circeVersion      = "0.14.14"
 val fs2Version        = "3.12.0"
 val http4sVersion     = "0.23.30"
 val log4catsVersion   = "2.7.1"
@@ -95,7 +96,9 @@ lazy val core = project
     name := "latis3-core",
     libraryDependencies ++= Seq(
       "org.scala-lang.modules" %% "scala-xml"           % "2.4.0",
-      "io.circe"               %% "circe-core"          % "0.14.14",
+      "org.typelevel"          %% "cats-effect-testkit" % catsEffectVersion % Test,
+      "io.circe"               %% "circe-core"          % circeVersion,
+      "io.circe"               %% "circe-literal"       % circeVersion % Test,
       "org.scodec"             %% "scodec-cats"         % "1.2.0",
       "org.scodec"             %% "scodec-core"         % "2.3.3",
       "org.scodec"             %% "scodec-stream"       % "3.0.2",
