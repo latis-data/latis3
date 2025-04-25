@@ -96,4 +96,28 @@ class CatalogSuite extends CatsEffectSuite {
   test("filter(_ => false) removes all datasets") {
     listAll(nested.filter(_ => false)).map(_.isEmpty).assert
   }
+
+  test("combined catalogs with same dataset id keeps the last".ignore) {
+    val dsdup = DatasetGenerator("x: double -> y: double", id"ds1")
+    val catWithDup = Catalog(dsdup)
+    val cat = c1 |+| catWithDup
+    //listAll(cat).map(_.foreach(println))
+    cat.datasets.compile.toList.map { dss =>
+      assertEquals(dss.size, 2)
+    }
+  }
+
+  test("combined nested catalogs with the same id are merged") {
+    val cat1 = Catalog.empty.withCatalogs(id"a" -> Catalog(ds1))
+    val cat2 = Catalog.empty.withCatalogs(id"a" -> Catalog(ds2))
+    val cat = cat1 |+| cat2
+    for {
+      cats <- cat.catalogs
+      dss  <- cats(id"a").datasets.compile.toList
+    } yield {
+      assertEquals(cats.size, 1) // just the single "a" catalog
+      assertEquals(dss.size, 2)  // merged catalog has both datasets
+    }
+  }
+
 }
