@@ -136,7 +136,12 @@ object Catalog {
     def empty: Catalog = Catalog.empty
 
     def combine(x: Catalog, y: Catalog): Catalog = new Catalog {
+      //TODO: deal with duplicate dataset ids, keep last like Map?
       override val datasets: Stream[IO, Dataset] = x.datasets ++ y.datasets
+
+      // Catalogs with the same identifier will have their elements combined
+      override def catalogs: IO[Map[Identifier, Catalog]] =
+        (x.catalogs, y.catalogs).mapN(_ |+| _)
 
       override def findDataset(name: Identifier): IO[Option[Dataset]] =
         (OptionT(x.findDataset(name)) <+> OptionT(y.findDataset(name))).value
