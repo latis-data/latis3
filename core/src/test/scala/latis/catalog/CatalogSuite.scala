@@ -7,6 +7,7 @@ import munit.CatsEffectSuite
 
 import latis.dataset.Dataset
 import latis.dsl.DatasetGenerator
+import latis.model.*
 import latis.util.Identifier.*
 
 class CatalogSuite extends CatsEffectSuite {
@@ -97,13 +98,17 @@ class CatalogSuite extends CatsEffectSuite {
     listAll(nested.filter(_ => false)).map(_.isEmpty).assert
   }
 
-  test("combined catalogs with same dataset id keeps the last".ignore) {
+  test("combined catalogs with same dataset id finds the first") {
     val dsdup = DatasetGenerator("x: double -> y: double", id"ds1")
     val catWithDup = Catalog(dsdup)
     val cat = c1 |+| catWithDup
-    //listAll(cat).map(_.foreach(println))
-    cat.datasets.compile.toList.map { dss =>
-      assertEquals(dss.size, 2)
+    cat.findDataset(id"ds1").map {
+      case Some(ds) => ds.model match {
+        case Function(s: Scalar, _) =>
+          assertEquals(s.id, id"a")
+        case _ => fail("Unexpected model")
+      }
+      case _ => fail("Failed to find dataset")
     }
   }
 
