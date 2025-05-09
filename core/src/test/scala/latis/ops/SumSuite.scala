@@ -5,7 +5,6 @@ import munit.CatsEffectSuite
 import latis.data.*
 import latis.dsl.DatasetGenerator
 import latis.model.*
-import latis.model.Scalar
 
 class SumSuite extends CatsEffectSuite {
 
