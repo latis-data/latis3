@@ -9,7 +9,7 @@ val http4sVersion     = "0.23.30"
 val log4catsVersion   = "2.7.0"
 val log4jVersion      = "2.24.3"
 val logbackVersion    = "1.3.15"
-val netcdfVersion     = "5.7.0"
+val netcdfVersion     = "5.8.0"
 val pureconfigVersion = "0.17.9"
 
 lazy val commonSettings = Seq(
