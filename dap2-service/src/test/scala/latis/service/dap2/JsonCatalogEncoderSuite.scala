@@ -15,11 +15,11 @@ class JsonCatalogEncoderSuite extends CatsEffectSuite {
 
   private lazy val catalog: Catalog = {
     Catalog(ds0)
-      .addCatalog(id"cat1", Catalog(ds1))
       .addCatalog(id"cat2", Catalog(ds2))
+      .addCatalog(id"cat1", Catalog(ds1))
   }
 
-  test("json catalog") {
+  test("json catalog with ordering") {
     val expected =
       """{
         |  "catalog" : [

@@ -16,7 +16,9 @@ object JsonCatalogEncoder {
   def encode(catalog: Catalog, id: Option[Identifier] = None): IO[Json] =
     for {
       subs <- catalog.catalogs
-      cats <- subs.toList.traverse { case (id, cat) => encode(cat, Some(id)) }
+      cats <- subs.toList.sortBy(_._1).traverse { 
+        case (id, cat) => encode(cat, Some(id)) 
+      }
       dss  <- catalog.datasets.compile.toList.map(dss => dss.map(datasetToJson))
     } yield {
       val fields = List(
