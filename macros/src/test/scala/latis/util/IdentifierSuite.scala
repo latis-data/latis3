@@ -44,4 +44,8 @@ class IdentifierSuite extends FunSuite {
     )
   }
 
+  test("identifier ordering") {
+    val ids = List(id"b", id"a").sorted
+    assertEquals(ids.head, id"a")
+  }
 }

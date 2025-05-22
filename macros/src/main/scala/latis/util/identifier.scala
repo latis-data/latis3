@@ -26,6 +26,9 @@ object Identifier {
       ${IdentifierLiteral('ctx, 'args)}
   }
 
+  given Ordering[Identifier] with
+    def compare(x: Identifier, y: Identifier): Int = x.compareTo(y)
+
   /**
    * Returns whether the String is a regex "word" that doesn't start
    * with a digit (may also contain dots).
