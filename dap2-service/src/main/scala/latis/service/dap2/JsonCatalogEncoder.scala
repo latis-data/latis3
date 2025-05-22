@@ -19,7 +19,9 @@ object JsonCatalogEncoder {
       cats <- subs.toList.sortBy(_._1).traverse { 
         case (id, cat) => encode(cat, Some(id)) 
       }
-      dss  <- catalog.datasets.compile.toList.map(dss => dss.map(datasetToJson))
+      dss  <- catalog.datasets.compile.toList.map { dss =>
+        dss.sortBy(_.id.get).map(datasetToJson) // Note: Datasets are expected to have an id
+      }
     } yield {
       val fields = List(
         id.map(id => "identifier" -> id.asString.asJson),
