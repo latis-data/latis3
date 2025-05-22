@@ -53,5 +53,14 @@ class JsonCatalogEncoderSuite extends CatsEffectSuite {
       assertEquals(json.toString, expected)
     }
   }
+  
+  test("dataset ordering") {
+    val cat = Catalog(ds1, ds0)
+    JsonCatalogEncoder.encode(cat).map { json =>
+      json.hcursor.downField("dataset").downArray.downField("identifier").as[String].map { id =>
+        assertEquals(id, "ds0")
+      }
+    }
+  }
 
 }
