@@ -65,4 +65,24 @@ class GroupByBinSuite extends CatsEffectSuite {
   test("NaN bin width") {
     assert(GroupByBinWidth(Double.NaN).isLeft)
   }
+
+  test("from no args") {
+    assert(GroupByBinWidth.fromArgs(List()).isLeft)
+  }
+
+  test("from width arg") {
+    assert(GroupByBinWidth.fromArgs(List("1")).isRight)
+  }
+
+  test("from width and aggregation args") {
+    assert(GroupByBinWidth.fromArgs(List("1", "stats")).isRight)
+  }
+
+  test("from width and invalid aggregation args") {
+    assert(GroupByBinWidth.fromArgs(List("1", "foobar")).isLeft)
+  }
+
+  test("from too many args") {
+    assert(GroupByBinWidth.fromArgs(List("1", "stats", "foobar")).isLeft)
+  }
 }
