@@ -23,10 +23,10 @@ class GroupByBinWidth private (
   width: Double,
   aggregation: Aggregation2 = DefaultAggregation2()
 ) extends StreamOperation {
+  //TODO: keep empty bins, preserve cadence and contiguity; use GroupByBin with DomainSet?
   //TODO: formatted time data
   //TODO: width as ISO duration
   //TODO: Index
-  //TODO: keep empty bins, preserve cadence and contiguity; use GroupByBin with DomainSet?
   //TODO: support units
   //TODO: deal with duplicate id of inner and outer domain?
   //TODO: Should we require the aggregation to memoize? in the interest of serializing outer samples
@@ -46,19 +46,24 @@ class GroupByBinWidth private (
       }
     }
 
-  def applyToModel(model: DataType): Either[LatisException, DataType] =
-    //TODO: set binWidth metadata
-    //TODO: update cadence/resolution metadata
-    model match {
-      case f @ Function(domain: Scalar, _) => domain.valueType match {
-        case _: NumericType =>
-          aggregation.applyToModel(f).flatMap { range =>
-            Function.from(domain, range)
-          }
-        case _ => LatisException("GroupByBinWidth expects a numeric domain variable").asLeft
-      }
-      case _ => LatisException("GroupByBinWidth expects a single domain variable").asLeft
+  def applyToModel(model: DataType): Either[LatisException, DataType] = model match {
+    case f @ Function(domain: Scalar, _) => domain.valueType match {
+      case _: NumericType =>
+        aggregation.applyToModel(f).flatMap { range =>
+          val newDomain = updateDomainMetadata(domain)
+          Function.from(newDomain, range)
+        }
+      case _ => LatisException("GroupByBinWidth expects a numeric domain variable").asLeft
     }
+    case _ => LatisException("GroupByBinWidth expects a single domain variable").asLeft
+  }
+
+  /** Update the metadata of the domain Scalar */
+  private def updateDomainMetadata(s: Scalar): Scalar = {
+    //TODO: update cadence/resolution metadata
+    val meta = s.metadata + ("binWidth" -> width.toString)
+    Scalar.fromMetadata(meta).fold(throw _, identity) //should be safe
+  }
 }
 
 object GroupByBinWidth {
@@ -66,19 +71,19 @@ object GroupByBinWidth {
   def builder: OperationBuilder = (args: List[String]) => fromArgs(args)
 
   def fromArgs(args: List[String]): Either[LatisException, GroupByBinWidth] = args match {
-    case width :: agg :: Nil => 
+    case width :: agg :: Nil =>
       for {
         w  <- parseWidth(width)
         a  <- parseAggregation(agg)
         gb <- GroupByBinWidth(w, a)
       } yield gb
-    case width :: Nil => 
+    case width :: Nil =>
       parseWidth(width).flatMap(GroupByBinWidth(_))
-    case _ => 
+    case _ =>
       val msg = "GroupByBinWidth expects a 'width' argument and an optional 'aggregation'"
       LatisException(msg).asLeft
   }
-  
+
   private def parseWidth(width: String): Either[LatisException, Double] =
     width.toDoubleOption.toRight(LatisException("Bin width must be numeric"))
 
