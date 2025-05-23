@@ -20,6 +20,7 @@ import latis.util.LatisException
  */
 class StatsAggregation extends Aggregation2 {
   //TODO: preserve integers
+  //TODO: allow text and keep min/max (lexically), and count but have mean be NaN?
 
   def aggregateFunction(model: DataType): Stream[IO, Sample] => IO[Data] =
     samples => samples.fold(Acc()) {
@@ -39,7 +40,7 @@ class StatsAggregation extends Aggregation2 {
   def applyToModel(model: DataType): Either[LatisException, DataType] = model match {
     case Function(_, s: Scalar) => s.valueType match {
       case _: NumericType => scalarToTuple(s)
-      case _ => LatisException("StatsAggregation expects numeric data").asLeft //TODO: or NaN?
+      case _ => LatisException("StatsAggregation expects numeric data").asLeft
     }
     case _ => LatisException("StatsAggregation expects a single range variable").asLeft
   }
