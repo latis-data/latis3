@@ -65,12 +65,27 @@ object GroupByBinWidth {
 
   def builder: OperationBuilder = (args: List[String]) => fromArgs(args)
 
-  //TODO: support an aggregation arg
   def fromArgs(args: List[String]): Either[LatisException, GroupByBinWidth] = args match {
-    case width :: Nil =>
-      width.toDoubleOption.toRight(LatisException("Bin width must be numeric"))
-        .flatMap(GroupByBinWidth(_))
-    case _ => LatisException("GroupByBinWidth expects a single 'width' argument").asLeft
+    case width :: agg :: Nil => 
+      for {
+        w  <- parseWidth(width)
+        a  <- parseAggregation(agg)
+        gb <- GroupByBinWidth(w, a)
+      } yield gb
+    case width :: Nil => 
+      parseWidth(width).flatMap(GroupByBinWidth(_))
+    case _ => 
+      val msg = "GroupByBinWidth expects a 'width' argument and an optional 'aggregation'"
+      LatisException(msg).asLeft
+  }
+  
+  private def parseWidth(width: String): Either[LatisException, Double] =
+    width.toDoubleOption.toRight(LatisException("Bin width must be numeric"))
+
+  private def parseAggregation(agg: String): Either[LatisException, Aggregation2] = agg match {
+    case "count" => CountAggregation2().asRight
+    case "stats" => StatsAggregation().asRight
+    case _       => LatisException(s"Unsupported aggregation: $agg").asLeft
   }
 
   //TODO: don't use "apply" when returning Either?
