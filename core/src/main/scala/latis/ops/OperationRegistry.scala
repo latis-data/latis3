@@ -35,6 +35,7 @@ object OperationRegistry {
       "project"         -> Projection.builder,
       "rename"          -> Rename.builder,
       "select"          -> Selection.builder,
+      "stats"           -> StatsAggregation.builder,
       "stride"          -> Stride.builder,
       "sum"             -> Sum.builder,
       "tail"            -> Tail.builder,
