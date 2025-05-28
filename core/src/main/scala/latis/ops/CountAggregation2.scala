@@ -30,5 +30,4 @@ object CountAggregation2 {
     else CountAggregation2().asRight
   }
 
-  def apply(): CountAggregation2 = new CountAggregation2()
 }

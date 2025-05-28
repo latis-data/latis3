@@ -30,7 +30,7 @@ class GroupByBinSuite extends CatsEffectSuite {
   private lazy val ds = new MemoizedDataset(Metadata(id"test"), model, data)
 
   test("group by bin") {
-    ds.withOperation(GroupByBinWidth(3.0).fold(e => fail(e.getMessage), identity))
+    ds.withOperation(GroupByBinWidth.from(3.0).fold(e => fail(e.getMessage), identity))
       .samples.compile.lastOrError.flatMap {
         case Sample(DomainData(Number(x)), RangeData(f)) =>
           assertEquals(x, 9.0)
@@ -41,7 +41,7 @@ class GroupByBinSuite extends CatsEffectSuite {
   }
 
   test("group by bin with count") {
-    ds.withOperation(GroupByBinWidth(3.0, CountAggregation2()).fold(e => fail(e.getMessage), identity))
+    ds.withOperation(GroupByBinWidth.from(3.0, CountAggregation2()).fold(e => fail(e.getMessage), identity))
       .samples.head.compile.toList.map {
         case List(Sample(_, RangeData(Integer(cnt)))) =>
           assertEquals(cnt, 3L)
@@ -50,7 +50,7 @@ class GroupByBinSuite extends CatsEffectSuite {
   }
 
   test("empty dataset") {
-    val gb = GroupByBinWidth(3.0).fold(e => fail(e.getMessage), identity)
+    val gb = GroupByBinWidth.from(3.0).fold(e => fail(e.getMessage), identity)
     ds.withOperation(Take(0))
       .withOperation(gb)
       .samples.compile.count.map { cnt =>
@@ -59,30 +59,30 @@ class GroupByBinSuite extends CatsEffectSuite {
   }
 
   test("non-positive bin width") {
-    assert(GroupByBinWidth(0).isLeft)
+    assert(GroupByBinWidth.from(0).isLeft)
   }
 
   test("NaN bin width") {
-    assert(GroupByBinWidth(Double.NaN).isLeft)
+    assert(GroupByBinWidth.from(Double.NaN).isLeft)
   }
 
   test("from no args") {
-    assert(GroupByBinWidth.fromArgs(List()).isLeft)
+    assert(GroupByBinWidth.builder.build(List()).isLeft)
   }
 
   test("from width arg") {
-    assert(GroupByBinWidth.fromArgs(List("1")).isRight)
+    assert(GroupByBinWidth.builder.build(List("1")).isRight)
   }
 
   test("from width and aggregation args") {
-    assert(GroupByBinWidth.fromArgs(List("1", "stats")).isRight)
+    assert(GroupByBinWidth.builder.build(List("1", "stats")).isRight)
   }
 
   test("from width and invalid aggregation args") {
-    assert(GroupByBinWidth.fromArgs(List("1", "foobar")).isLeft)
+    assert(GroupByBinWidth.builder.build(List("1", "foobar")).isLeft)
   }
 
   test("from too many args") {
-    assert(GroupByBinWidth.fromArgs(List("1", "stats", "foobar")).isLeft)
+    assert(GroupByBinWidth.builder.build(List("1", "stats", "foobar")).isLeft)
   }
 }

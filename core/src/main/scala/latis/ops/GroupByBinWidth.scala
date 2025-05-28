@@ -21,7 +21,7 @@ import latis.util.LatisException
  */
 class GroupByBinWidth private (
   width: Double,
-  aggregation: Aggregation2 = DefaultAggregation2()
+  aggregation: Aggregation2
 ) extends StreamOperation {
   //TODO: keep empty bins, preserve cadence and contiguity; use GroupByBin with DomainSet?
   //TODO: formatted time data
@@ -35,7 +35,9 @@ class GroupByBinWidth private (
   def pipe(model: DataType): Pipe[IO, Sample, Sample] = stream =>
     val aggF = aggregation.aggregateFunction(model)
     stream.groupAdjacentBy {
-      case Sample(DomainData(Number(n)), _) =>  Math.floor(n / width) * width
+      case Sample(DomainData(Number(x)), _) =>
+        // Round domain value down to start of bin
+        Math.floor(x / width) * width
       case _ => throw LatisException("Data sample does not match model")
     }.evalMap { case (value, chunk) =>
       aggF(Stream.chunk(chunk)).map { d =>
@@ -68,17 +70,15 @@ class GroupByBinWidth private (
 
 object GroupByBinWidth {
 
-  def builder: OperationBuilder = (args: List[String]) => fromArgs(args)
-
-  def fromArgs(args: List[String]): Either[LatisException, GroupByBinWidth] = args match {
+  def builder: OperationBuilder = (args: List[String]) => args match {
     case width :: agg :: Nil =>
       for {
         w  <- parseWidth(width)
         a  <- parseAggregation(agg)
-        gb <- GroupByBinWidth(w, a)
+        gb <- GroupByBinWidth.from(w, a)
       } yield gb
     case width :: Nil =>
-      parseWidth(width).flatMap(GroupByBinWidth(_))
+      parseWidth(width).flatMap(GroupByBinWidth.from(_))
     case _ =>
       val msg = "GroupByBinWidth expects a 'width' argument and an optional 'aggregation'"
       LatisException(msg).asLeft
@@ -93,13 +93,12 @@ object GroupByBinWidth {
     case _       => LatisException(s"Unsupported aggregation: $agg").asLeft
   }
 
-  //TODO: don't use "apply" when returning Either?
-  def apply(
+  def from(
     width: Double,
     aggregation: Aggregation2 = DefaultAggregation2()
   ): Either[LatisException, GroupByBinWidth] = {
     Either.cond(width > 0, width, "Bin width must be a positive number")
-      .map(new GroupByBinWidth(_, aggregation))
+      .map(GroupByBinWidth(_, aggregation))
       .leftMap(LatisException(_))
   }
 }
