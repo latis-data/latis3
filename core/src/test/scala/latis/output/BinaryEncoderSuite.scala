@@ -3,10 +3,9 @@ package latis.output
 import cats.syntax.all.*
 import munit.CatsEffectSuite
 import scodec.Codec.given
-import scodec.*
 import scodec.bits.*
 import scodec.interop.cats.*
-import scodec.{Encoder as SEncoder}
+import scodec.{Encoder as SEncoder, *}
 
 import latis.data.Data.*
 import latis.data.DomainData
