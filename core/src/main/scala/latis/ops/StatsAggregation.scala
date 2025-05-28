@@ -18,7 +18,7 @@ import latis.util.LatisException
  * containing the mean, min, max, and count statistics for that
  * variable. If the sample stream is empty, NullData will be used.
  */
-class StatsAggregation extends Aggregation2 {
+class StatsAggregation() extends Aggregation2 {
   //TODO: preserve integers
   //TODO: allow text and keep min/max (lexically), and count but have mean be NaN?
 
@@ -35,7 +35,7 @@ class StatsAggregation extends Aggregation2 {
           DoubleValue(max),
           LongValue(cnt)
         )
-    }.compile.toList.map(_.head)
+    }.compile.last.map(_.get) //guaranteed to have exactly one entry
 
   def applyToModel(model: DataType): Either[LatisException, DataType] = model match {
     case Function(_, s: Scalar) => s.valueType match {
@@ -52,6 +52,16 @@ class StatsAggregation extends Aggregation2 {
       Scalar(id"min",   DoubleValueType),
       Scalar(id"max",   DoubleValueType),
       Scalar(id"count", LongValueType)
+    )
+}
+
+object StatsAggregation {
+
+  def builder: OperationBuilder = (args: List[String]) => 
+    Either.cond(
+      args.isEmpty,
+      StatsAggregation(),
+      LatisException("StatsAggregation take no arguments")
     )
 }
 

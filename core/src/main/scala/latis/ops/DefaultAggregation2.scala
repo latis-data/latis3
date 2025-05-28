@@ -20,7 +20,7 @@ import latis.util.LatisException
  * can be used with a Group Operation to do the simplest aggregation: combining 
  * the samples into a nested function.
  */
-case class DefaultAggregation2() extends Aggregation2 {
+class DefaultAggregation2() extends Aggregation2 {
 
   // The model remains unchanged since we just memoize the Dataset's Function
   def applyToModel(model: DataType): Either[LatisException, DataType] = model.asRight
