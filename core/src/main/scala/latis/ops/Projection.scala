@@ -40,7 +40,7 @@ case class Projection(ids: Identifier*) extends MapOperation {
       //TODO: if Cartesian, replace each non-projected domain scalar with index
       applyToVariable(domain) match {
         // Domain unchanged
-        case Some(d) if (d == domain) =>
+        case Some(d) if (d.toString == domain.toString) => //TODO: better DataType equality check
           applyToVariable(range) match {
             case Some(r) => Some(Function.from(domain, r).fold(throw _, identity))
             // If no range variables projected, put domain in range and make index domain
