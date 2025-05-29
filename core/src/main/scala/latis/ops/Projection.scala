@@ -40,7 +40,7 @@ case class Projection(ids: Identifier*) extends MapOperation {
       //TODO: if Cartesian, replace each non-projected domain scalar with index
       applyToVariable(domain) match {
         // Domain unchanged
-        case Some(d) if (d == domain) =>
+        case Some(d) if (equivalentScalarIds(d, domain)) =>
           applyToVariable(range) match {
             case Some(r) => Some(Function.from(domain, r).fold(throw _, identity))
             // If no range variables projected, put domain in range and make index domain
@@ -58,6 +58,16 @@ case class Projection(ids: Identifier*) extends MapOperation {
             Function.from(makeIndex(domain), r).fold(throw _, identity)
           }
       }
+  }
+
+  /**
+   * Determines if two variables are effectively equivalent in the context of
+   * projections by comparing the contained Scalar variable ids.
+   */
+  private def equivalentScalarIds(v1: DataType, v2: DataType): Boolean = {
+    val vs1 = v1.getScalars
+    val vs2 = v2.getScalars
+    (vs1.length == vs2.length) && vs1.zip(vs2).forall(p => p._1.id == p._2.id)
   }
 
   override def mapFunction(model: DataType): Sample => Sample = {
