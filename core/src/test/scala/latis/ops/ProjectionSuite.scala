@@ -108,4 +108,12 @@ class ProjectionSuite extends CatsEffectSuite {
       Sample(List.empty, List(0.0))
     )
   }
+
+  test("Project all 2D domain variables and range subset") {
+    val ds = DatasetGenerator("(x, y) -> (a, b)")
+      .project("x,y,a")
+    ds.samples.take(1).compile.lastOrError.assertEquals(
+      Sample(List(0, 0), List(0))
+    )
+  }
 }
