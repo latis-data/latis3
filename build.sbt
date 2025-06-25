@@ -87,7 +87,7 @@ lazy val `aws-lambda` = project
     }
   )
 
-lazy val S3 = project
+lazy val s3 = project
   .in(file("s3"))
   .dependsOn(core)
   .settings(commonSettings)
@@ -99,21 +99,6 @@ lazy val S3 = project
       "com.github.fs2-blobstore" %% "s3" % "0.9.15",
       "software.amazon.awssdk" % "s3" % "2.31.59",
       "com.dimafeng" %% "testcontainers-scala-localstack-v2" % "0.43.0" % Test
-    )
-  )
-
-lazy val awsS3 = project
-  .in(file("aws-s3"))
-  .dependsOn(core)
-  .settings(commonSettings)
-  .settings(
-    name := "latis3-aws-s3",
-    libraryDependencies ++= Seq(
-      "com.amazonaws" % "aws-java-sdk-core" % "1.12.746" % Test,
-      "ch.qos.logback" % "logback-classic" % logbackVersion % Test,
-      "com.github.fs2-blobstore" %% "s3" % "0.9.14",
-      "software.amazon.awssdk" % "s3" % "2.26.5",
-      "com.dimafeng" %% "testcontainers-scala-localstack-v2" % "0.41.4" % Test
     )
   )
 
