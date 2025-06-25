@@ -21,12 +21,12 @@ object S3Utils {
   //  Do we need to traverse directories and order as we go?
 
   /** Makes an S3 client. */
-  def makeClient(region: Region = Region.US_EAST_1): S3Client =
+  def makeClient(region: Region): S3Client =
     S3Client.builder.region(region).build
 
   /** Makes an effectful S3 client. */
   //TODO: Async here? delay?
-  def makeClientF[F[_] : Async](region: Region = Region.US_EAST_1): F[S3AsyncClient] =
+  def makeClientF[F[_] : Async](region: Region): F[S3AsyncClient] =
     Async[F].delay(S3AsyncClient.builder.region(region).build)
 
   /** Returns an Iterator of keys for the objects in an S3 bucket. */

@@ -8,6 +8,7 @@ import com.dimafeng.testcontainers.LocalStackV2Container
 import munit.catseffect.IOFixture
 import org.testcontainers.containers.localstack.LocalStackContainer.Service
 import software.amazon.awssdk.core.async.AsyncRequestBody
+import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
@@ -81,7 +82,7 @@ class S3UtilsSuite extends munit.CatsEffectSuite {
       }
     }
   }
-  
+
   //=== Test with NOAA data ===//
 
   val bucket = "noaa-nesdis-swfo-ccor-1-pds"
@@ -90,14 +91,14 @@ class S3UtilsSuite extends munit.CatsEffectSuite {
     "sci_ccor1-l3_g19_s20250225T000020Z_e20250225T000048Z_p20250401T234952Z_pub.fits"
 
   test("pure client") {
-    val client = makeClient()
+    val client = makeClient(Region.US_EAST_1)
     val key = getKeys(client, bucket, prefix).toList.head
     assertEquals(first, key)
   }
 
   test("effectful client") {
     for {
-      client <- makeClientF[IO]()
+      client <- makeClientF[IO](Region.US_EAST_1)
       keys   <- getKeysF[IO](client, bucket, prefix)
       last   <- keys.head.compile.last
       key    <- IO.fromOption(last)(fail("Empty list of keys")) //TODO: does this failure work?
@@ -108,7 +109,7 @@ class S3UtilsSuite extends munit.CatsEffectSuite {
 
   test("chunk size") {
     for {
-      client <- makeClientF[IO]()
+      client <- makeClientF[IO](Region.US_EAST_1)
       keys   <- getKeysF[IO](client, bucket, prefix)
       last   <- keys.chunks.head.compile.last
       chunk  <- IO.fromOption(last)(fail("Empty list of keys")) //TODO: does this failure work?
