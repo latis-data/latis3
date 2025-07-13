@@ -68,9 +68,48 @@ class BoundsSuite extends FunSuite {
   test("extract bounds") {
     bounds match {
       case Bounds(l, u) =>
-        assert(l == -1)
-        assert(u == 2)
-      case _ => fail("")
+        assert(l == -1D)
+        assert(u == 2D)
     }
+  }
+
+  test("constrain lower bound") {
+    bounds.constrainLower(0).get match {
+      case Bounds(v, _) => assert(v == 0D)
+    }
+  }
+
+  test("don't constrain lower bound") {
+    bounds.constrainLower(-2).get match {
+      case Bounds(v, _) => assert(v == -1D)
+    }
+  }
+
+  test("constrain upper bound") {
+    bounds.constrainUpper(1).get match {
+      case Bounds(_, v) => assert(v == 1D)
+    }
+  }
+
+  test("don't constrain upper bound") {
+    bounds.constrainUpper(3).get match {
+      case Bounds(_, v) => assert(v == 2D)
+    }
+  }
+
+  test("lower constraint greater that upper bound") {
+    assert(bounds.constrainLower(3).isEmpty)
+  }
+
+  test("upper constraint lower that lower bound") {
+    assert(bounds.constrainUpper(-2).isEmpty)
+  }
+
+  test("Bound equality") {
+    assert(bounds == Bounds.of(-1, 2).get)
+  }
+
+  test("to string") {
+    assert(Bounds.of('a', 'c').get.toString == "Bounds(a,c)")
   }
 }
