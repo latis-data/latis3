@@ -6,7 +6,7 @@ package latis.util
  * It enforces that the upper bound is strictly greater than
  * the lower bound.
  */
-final class Bounds[T] private (val lower: T, val upper: T)(ord: Ordering[T]) {
+final case class Bounds[T] private (val lower: T, val upper: T)(ord: Ordering[T]) {
 
   /**
    * Tests whether the given value falls within this [[Bounds]].
@@ -37,7 +37,4 @@ object Bounds {
       case _ => None
     }
 
-  /** Extracts the lower and upper bounds. */
-  def unapplySeq[T](bounds: Bounds[T]): Option[Seq[T]] =
-    Some(Seq(bounds.lower, bounds.upper))
 }
