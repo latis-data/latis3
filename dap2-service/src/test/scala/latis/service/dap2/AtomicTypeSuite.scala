@@ -1,7 +1,8 @@
 package latis.service.dap2
 
+import java.net.URI
+
 import munit.CatsEffectSuite
-import java.net.URL
 
 import latis.service.dap2.AtomicType.*
 
@@ -27,7 +28,7 @@ class AtomicTypeSuite extends CatsEffectSuite {
     assertEquals(Float32.asDasString(13.14159265359f), "13.1416")
     assertEquals(Float64.asDasString(13.14159265359), "13.1416")
     assertEquals(String.asDasString("test\\string\"quote\""), "\"test\\\\string\\\"quote\\\"\"")
-    assertEquals(Url.asDasString(new URL("https://lasp.colorado.edu")), "\"https://lasp.colorado.edu\"")
+    assertEquals(Url.asDasString(URI.create("https://lasp.colorado.edu").toURL()), "\"https://lasp.colorado.edu\"")
   }
 
   test("asDasString correctly maps out-of-range UInts to the correct min/max") {
