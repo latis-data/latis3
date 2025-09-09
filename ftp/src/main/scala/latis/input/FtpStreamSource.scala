@@ -36,7 +36,7 @@ class FtpStreamSource extends StreamSource {
         port <- getPortOrDefault(uri)
         userInfo = getUserInfo(uri)
           .getOrElse(("anonymous", ""))
-        credentials = FtpCredentials(userInfo._1, userInfo._2)
+        credentials = PasswordCredentials(userInfo._1, userInfo._2)
         settings = if (uri.getScheme == "ftps")
           UnsecureFtpSettings.ssl(host, port, credentials)
         else UnsecureFtpSettings(host, port, credentials)
