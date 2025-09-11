@@ -1,11 +1,10 @@
 package latis.server
 
-import java.util.UUID
-
 import cats.data.Kleisli
 import cats.effect.Async
 import cats.effect.Clock
-import cats.effect.Sync
+import cats.effect.std.SecureRandom
+import cats.effect.std.UUIDGen
 import cats.syntax.all.*
 import fs2.Stream
 import org.http4s.HttpApp
@@ -21,12 +20,12 @@ import org.typelevel.log4cats.StructuredLogger
  */
 object LatisServiceLogger {
 
-  def apply[F[_]: Async](
+  def apply[F[_]: Async: SecureRandom](
     app: HttpApp[F],
     logger: StructuredLogger[F]
   ): HttpApp[F] = Kleisli { req =>
     for {
-      id       <- Sync[F].delay(UUID.randomUUID().toString())
+      id       <- UUIDGen.fromSecureRandom.randomUUID.map(_.toString())
       ctxLogger = StructuredLogger.withContext(logger)(Map("request-id" -> id))
       _        <- Http4sLogger.logMessage[F, Request[F]](req)(
         logHeaders = true, logBody = false
