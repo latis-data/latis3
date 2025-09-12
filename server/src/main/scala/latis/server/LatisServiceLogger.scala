@@ -5,6 +5,7 @@ import cats.effect.Async
 import cats.effect.Clock
 import cats.effect.std.SecureRandom
 import cats.effect.std.UUIDGen
+import cats.mtl.Local
 import cats.syntax.all.*
 import fs2.Stream
 import org.http4s.HttpApp
@@ -23,10 +24,14 @@ object LatisServiceLogger {
   def apply[F[_]: Async: SecureRandom](
     app: HttpApp[F],
     logger: StructuredLogger[F]
-  ): HttpApp[F] = Kleisli { req =>
-    for {
-      id       <- UUIDGen.fromSecureRandom.randomUUID.map(_.toString())
-      ctxLogger = StructuredLogger.withContext(logger)(Map("request-id" -> id))
+  )(using F: Local[F, Map[String, String]]): HttpApp[F] = Kleisli { req =>
+    val ctx = UUIDGen.fromSecureRandom.randomUUID.map { id =>
+      Map("request-id" -> id.toString())
+    }
+
+    val action = for {
+      ctx      <- F.ask
+      ctxLogger = StructuredLogger.withContext(logger)(ctx)
       _        <- Http4sLogger.logMessage[F, Request[F]](req)(
         logHeaders = true, logBody = false
       )(ctxLogger.info(_))
@@ -47,5 +52,7 @@ object LatisServiceLogger {
         logHeaders = true, logBody = false
       )(ctxLogger.info(_))
     } yield res2
+
+    ctx.flatMap(ctx => F.local(action)(e => e ++ ctx))
   }
 }
