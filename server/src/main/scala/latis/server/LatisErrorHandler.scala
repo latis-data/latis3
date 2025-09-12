@@ -4,6 +4,7 @@ import scala.util.control.NonFatal
 
 import cats.MonadThrow
 import cats.data.Kleisli
+import cats.mtl.Ask
 import cats.syntax.all.*
 import org.http4s.EntityEncoder
 import org.http4s.Headers
@@ -23,14 +24,16 @@ import org.typelevel.log4cats.StructuredLogger
  */
 object LatisErrorHandler {
 
-  def apply[F[_]](
+  def apply[F[_]: MonadThrow](
     app: HttpApp[F],
     logger: StructuredLogger[F]
-  )(implicit F: MonadThrow[F]): HttpApp[F] = Kleisli { req =>
+  )(using F: Ask[F, Map[String, String]]): HttpApp[F] = Kleisli { req =>
     app.run(req).recoverWith {
       case NonFatal(err) =>
-        logger.error(err)("Request failed") *>
-        F.pure(
+        F.ask.flatMap { ctx =>
+          logger.error(ctx, err)("Request failed")
+        } *>
+        F.applicative.pure(
           Response(
             Status.InternalServerError,
             req.httpVersion,

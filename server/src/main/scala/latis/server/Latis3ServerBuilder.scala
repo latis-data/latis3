@@ -77,23 +77,27 @@ object Latis3ServerBuilder {
     val routes = interfaces :+ ("/", landingPage.routes)
     val router = Router(routes *)
 
-    EmberServerBuilder.default[IO]
-      .withHost(host"0.0.0.0")
-      .withPort(conf.port)
-      .withHttpApp {
-        LatisErrorHandler(
-          LatisServiceLogger(
-            Router(conf.prefix ->
-              CORS.policy
-                .withAllowOriginAll
-                .withAllowMethodsIn(Set(Method.GET, Method.HEAD))
-                .apply(router)
-            ).orNotFound,
-            logger
-          ),
-          logger
-        )
+    IO.local(Map.empty[String, String])
+      .toResource
+      .flatMap { implicit iol =>
+        EmberServerBuilder.default[IO]
+          .withHost(host"0.0.0.0")
+          .withPort(conf.port)
+          .withHttpApp {
+            LatisServiceLogger(
+              LatisErrorHandler(
+                Router(conf.prefix ->
+                  CORS.policy
+                    .withAllowOriginAll
+                    .withAllowMethodsIn(Set(Method.GET, Method.HEAD))
+                    .apply(router)
+                ).orNotFound,
+                logger
+              ),
+              logger
+            )
+          }
+          .build
       }
-      .build
   }
 }
