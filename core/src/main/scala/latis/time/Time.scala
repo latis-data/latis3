@@ -161,7 +161,7 @@ object Time extends ScalarFactory {
       fillValue <- getFillValue(metadata, valueType)
       precision <- getPrecision(metadata, valueType)
       ascending <- getAscending(metadata)
-      binWidth  <- getBinWidth(metadata, valueType)
+      binWidth  <- getBinWidth(metadata)
     } yield new Time(
       metadata + ("class" -> "latis.time.Time"),
       id,

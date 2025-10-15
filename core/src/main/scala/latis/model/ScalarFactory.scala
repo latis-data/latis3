@@ -35,7 +35,7 @@ trait ScalarFactory {
         fillValue <- getFillValue(metadata, valueType)
         precision <- getPrecision(metadata, valueType)
         ascending <- getAscending(metadata)
-        binWidth  <- getBinWidth(metadata, valueType)
+        binWidth  <- getBinWidth(metadata)
       } yield new Scalar(
         metadata,
         id,
@@ -98,7 +98,7 @@ trait ScalarFactory {
       case _      => LatisException("Order must be 'asc' or 'desc'").asLeft
     }
     
-  protected def getBinWidth(metadata: Metadata,  valueType: ValueType): Either[LatisException, Option[Double]] =
+  protected def getBinWidth(metadata: Metadata): Either[LatisException, Option[Double]] =
     //TODO: enforce NumericType, override in Time for StringType (ms) and ISO 8601 duration
     metadata.getProperty("binWidth").traverse { s =>
       //if (valueType.isInstanceOf[NumericType]) {
