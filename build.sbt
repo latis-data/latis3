@@ -9,7 +9,7 @@ val fs2Version        = "3.12.2"
 val http4sVersion     = "0.23.32"
 val log4catsVersion   = "2.7.1"
 val log4jVersion      = "2.25.2"
-val logbackVersion    = "1.3.15"
+val logbackVersion    = "1.3.16"
 val netcdfVersion     = "5.9.1"
 val pureconfigVersion = "0.17.9"
 
