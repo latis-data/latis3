@@ -6,11 +6,9 @@ import cats.syntax.all.*
 
 import latis.data.*
 import latis.model.*
-import latis.util.Identifier
-import latis.util.LatisException
+import latis.util.*
 import latis.util.dap2.parser.ast
 import latis.util.dap2.parser.parsers
-import latis.util.Bounds
 
 /**
  * Operation to keep only Samples that meet the given selection criterion.
@@ -20,8 +18,7 @@ import latis.util.Bounds
  *  - The data value is interpreted as the inclusive lower bound of the bin.
  *  - The bin width is added to the lower bound (assuming natural ordering) to define the exclusive upper bound.
  *  - Equality (as in = or ==) matches if the value is within the bin: [lower, upper).
- *  - >= and <= will match if partially overlapping the bin (upper value excluded).
- *  - > and < will not match partial bins. //TODO: but need to match granule
+ *  - Inequality operators will match if partially overlapping the bin (upper value excluded).
  * Bin semantics requires numeric data which will be handled as a Double.
  *
  * As a Filter, a predicate determines the fate of a Sample based only on the state of that Sample.
@@ -121,15 +118,19 @@ object Selection {
       case ast.GtEq => (d: Datum) => ordering.gteq(d, value)
       case ast.Lt   => (d: Datum) => ordering.lt(d, value)
       case ast.LtEq => (d: Datum) => ordering.lteq(d, value)
-      case _ => throw LatisException(s"Unsupported selection operator: $ast.prettyOp(operator)") //TODO: prevent by construction
+      case _ =>
+        //TODO: prevent by construction
+        throw LatisException(s"Unsupported selection operator: $ast.prettyOp(operator)") 
     }
   }
 
   /**
-   * Makes a function for the given Scalar that takes a Datum of that type
-   * and applies binning semantics to return a Bounds of Doubles for that bin.
+   * Makes a function for the given Scalar that takes a Datum of that 
+   * type and applies binning semantics to return a finite non-empty 
+   * Bounds of Doubles for that bin.
    *
-   * Expects binWidth to be defined in the units of the Scalar.
+   * This assumes that the Datum from the dataset represents the bin start.
+   * The bin will be inclusive on the lower bound and exclusive on the upper.
    * Assumes numeric types which will be converted to a Double.
    */
   private[ops] def makeBounder(scalar: Scalar): Datum => Bounds[Double] = {
@@ -140,13 +141,15 @@ object Selection {
 
     (datum: Datum) => {
       val d = scalar.valueAsDouble(datum)
-      Bounds.of(d, d + w).get //TODO: enforce w > 0
+      Bounds.of(d, d + w)
     }
   }
 
   /**
    * Makes a function that applies the selection filter to a data value of the target variable
    * with bin semantics.
+   * 
+   * Samples with bins that partially overlap the test value will be included.
    */
   private[ops] def datumPredicateWithBinning(
     scalar: Scalar,
@@ -156,17 +159,25 @@ object Selection {
     // Interpret the selection value as a double
     val dvalue: Double = scalar.valueAsDouble(value)
 
-    // Make function to get Bounds for a given data value
+    // Make function to get Bounds for a given data value from the dataset
     val bounder: Datum => Bounds[Double] = makeBounder(scalar)
 
     // Make lean predicate based on selection operator
     operator match {
-      case ast.Eq            => (d: Datum) => bounder(d).contains(dvalue)
-      case ast.EqEq          => (d: Datum) => bounder(d).contains(dvalue)
-      case ast.NeEq          => (d: Datum) => ! bounder(d).contains(dvalue)
-      case ast.Gt | ast.GtEq => (d: Datum) => bounder(d).upper >  dvalue
-      case ast.Lt | ast.LtEq => (d: Datum) => bounder(d).lower <= dvalue
-      case _ => throw LatisException(s"Unsupported selection operator: $ast.prettyOp(operator)") //TODO: prevent by construction
+      case ast.Eq        => (d: Datum) => bounder(d).contains(dvalue)
+      case ast.EqEq      => (d: Datum) => bounder(d).contains(dvalue)
+      case ast.NeEq      => (d: Datum) => ! bounder(d).contains(dvalue)
+      case ast.Gt | ast.GtEq => (d: Datum) => bounder(d) match {
+        case NonEmptyBounds(_, upper) => upper.boundsUpper(dvalue)
+        case _ => false //Bug: Bin width is expected to be greater than 0
+      }
+      case ast.Lt | ast.LtEq => (d: Datum) => bounder(d) match {
+        case NonEmptyBounds(lower, _) => lower.boundsLower(dvalue)
+        case _ => false //Bug: Bin width is expected to be greater than 0
+      }
+      case _ => 
+        //TODO: prevent by construction
+        throw LatisException(s"Unsupported selection operator: $ast.prettyOp(operator)") 
     }
   }
 }

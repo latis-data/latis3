@@ -99,11 +99,10 @@ trait ScalarFactory {
     }
     
   protected def getBinWidth(metadata: Metadata): Either[LatisException, Option[Double]] =
-    //TODO: enforce NumericType, override in Time for StringType (ms) and ISO 8601 duration
+    //TODO: override in Time for StringType (epoch ms) and ISO 8601 duration
     metadata.getProperty("binWidth").traverse { s =>
-      //if (valueType.isInstanceOf[NumericType]) {
-        s.toDoubleOption.toRight(LatisException("Could not parse binWidth"))
-      //} else LatisException("Only numeric Scalars support binWidth").asLeft
+      s.toDoubleOption.flatMap(d => Option.when(d > 0)(d))
+        .toRight(LatisException(s"Invalid binWidth: $s"))
     }
-    
+
 }

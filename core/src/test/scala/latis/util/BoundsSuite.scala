@@ -4,16 +4,16 @@ import munit.FunSuite
 
 class BoundsSuite extends FunSuite {
 
-  val bounds: Bounds[Double] = Bounds.of(-1.0, 2.0).get
+  val bounds: Bounds[Double] = Bounds.of(-1.0, 2.0)
+  val inclusive: Bounds[Double] = Bounds.inclusive(-1.0, 2.0)
 
   test("contains without edge cases") {
-    assert(bounds.contains(0))   //yes
-    assert(!bounds.contains(-2)) //too low
-    assert(!bounds.contains(3))  //too high
-    //with inclusive = true
-    assert(bounds.contains(0, true))   //yes
-    assert(!bounds.contains(-2, true)) //too low
-    assert(!bounds.contains(3, true))  //too high
+    assert(bounds.contains(0))      //yes
+    assert(!bounds.contains(-2))    //too low
+    assert(!bounds.contains(3))     //too high
+    assert(inclusive.contains(0))   //yes
+    assert(!inclusive.contains(-2)) //too low
+    assert(!inclusive.contains(3))  //too high
   }
 
   test("does not contain NaN") {
@@ -29,14 +29,22 @@ class BoundsSuite extends FunSuite {
   }
 
   test("contains upper bound if inclusive") {
-    assert(bounds.contains(2, true))
+    assert(inclusive.contains(2))
   }
 
-  test("invalid upper less than lower") {
+  test("empty if upper less than lower") {
     assert(Bounds.of(1, 0).isEmpty)
   }
 
-  test("invalid if equal") {
+  test("point contains") {
+    assert(Bounds.inclusive(0, 0).contains(0))
+  }
+
+  test("point does not contain") {
+    assert(! Bounds.inclusive(0, 0).contains(1))
+  }
+
+  test("empty if equal and not inclusive") {
     assert(Bounds.of(0, 0).isEmpty)
   }
 
@@ -47,7 +55,7 @@ class BoundsSuite extends FunSuite {
   }
 
   test("infinite bounds") {
-    val infBounds = Bounds.of(Double.NegativeInfinity, Double.PositiveInfinity).get
+    val infBounds = Bounds.of(Double.NegativeInfinity, Double.PositiveInfinity)
     assert(infBounds.contains(0))
     assert(infBounds.contains(Double.NegativeInfinity))
     assert(!infBounds.contains(Double.PositiveInfinity))
@@ -55,45 +63,50 @@ class BoundsSuite extends FunSuite {
   }
 
   test("string bounds") {
-    val sBounds = Bounds.of("b", "d").get
+    val sBounds = Bounds.of("b", "d")
     assert(sBounds.contains("c"))
     assert(!sBounds.contains("a"))
     assert(!sBounds.contains("e"))
     assert(sBounds.contains("b"))
     assert(!sBounds.contains("d"))
-    assert(sBounds.contains("d", true))
-    assert(!sBounds.contains("dog", true))
+    assert(Bounds.inclusive("b", "d").contains("d"))
+    assert(!Bounds.inclusive("b", "d").contains("dog"))
   }
 
   test("extract bounds") {
     bounds match {
-      case Bounds(l, u) =>
+      case NonEmptyBounds(ClosedBound(l), OpenBound(u)) =>
         assert(l == -1D)
         assert(u == 2D)
+      case _ => fail("Expected bounds [)")
     }
   }
 
   test("constrain lower bound") {
-    bounds.constrainLower(0).get match {
-      case Bounds(v, _) => assert(v == 0D)
+    bounds.constrainLower(0) match {
+      case NonEmptyBounds(ClosedBound(v), _) => assert(v == 0D)
+      case _ => fail("Expected closed lower bound")
     }
   }
 
   test("don't constrain lower bound") {
-    bounds.constrainLower(-2).get match {
-      case Bounds(v, _) => assert(v == -1D)
+    bounds.constrainLower(-2) match {
+      case NonEmptyBounds(ClosedBound(v), _) => assert(v == -1D)
+      case _ => fail("Expected closed lower bound")
     }
   }
 
   test("constrain upper bound") {
-    bounds.constrainUpper(1).get match {
-      case Bounds(_, v) => assert(v == 1D)
+    bounds.constrainUpper(1) match {
+      case NonEmptyBounds(_, OpenBound(v)) => assert(v == 1D)
+      case _ => fail("Expected open upper bound")
     }
   }
 
   test("don't constrain upper bound") {
-    bounds.constrainUpper(3).get match {
-      case Bounds(_, v) => assert(v == 2D)
+    bounds.constrainUpper(3) match {
+      case NonEmptyBounds(_, OpenBound(v)) => assert(v == 2D)
+      case _ => fail("Expected open upper bound")
     }
   }
 
@@ -106,10 +119,10 @@ class BoundsSuite extends FunSuite {
   }
 
   test("Bound equality") {
-    assert(bounds == Bounds.of(-1, 2).get)
+    assert(bounds == Bounds.of(-1, 2))
   }
 
   test("to string") {
-    assert(Bounds.of('a', 'c').get.toString == "Bounds(a,c)")
+    assert(Bounds.of('a', 'c').toString == "[a,c)")
   }
 }
