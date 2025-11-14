@@ -38,4 +38,5 @@ class DefaultAggregation2() extends Aggregation2 {
       }
   }
   
+  override def toString = "nested function"
 }

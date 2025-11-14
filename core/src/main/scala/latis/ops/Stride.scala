@@ -31,6 +31,7 @@ case class Stride(stride: Seq[Int]) extends StreamOperation {
   // A Stride does not affect the model.
   def applyToModel(model: DataType): Either[LatisException, DataType] = Right(model)
 
+  override def toString = s"Stride(${stride.mkString(",")})"
 }
 
 object Stride {
