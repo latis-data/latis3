@@ -14,6 +14,11 @@ import latis.util.LatisException
 class CountBy(ids: NonEmptyList[Identifier]) extends GroupByVariable(ids.toList *) {
 
   override def aggregation: Aggregation = CountAggregation()
+
+  override def toString: String = {
+    val list = ids.toList.map(id => id.asString).mkString(",")
+    s"group by $list with count"
+  }
 }
 
 object CountBy {

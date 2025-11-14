@@ -58,6 +58,8 @@ case class Contains(id: Identifier, values: String*) extends Filter {
         }
     }
   }
+  
+  override def toString = s"${id.asString} contains (${values.mkString(",")})"
 
 }
 

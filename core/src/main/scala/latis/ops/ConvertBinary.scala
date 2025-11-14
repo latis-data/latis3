@@ -55,6 +55,8 @@ case class ConvertBinary(id: Identifier, base: Base) extends MapOperation {
         Scalar.fromMetadata(md).fold(throw _, identity) //should be safe
       case dt => dt
     }.asRight
+    
+  override def toString = s"ConvertBinary(${id.asString}, $base)"
 }
 
 object ConvertBinary {

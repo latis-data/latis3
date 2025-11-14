@@ -53,6 +53,8 @@ class StatsAggregation() extends Aggregation2 {
       Scalar(id"max",   DoubleValueType),
       Scalar(id"count", LongValueType)
     )
+
+  override def toString = "statistics"
 }
 
 object StatsAggregation {

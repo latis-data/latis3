@@ -24,11 +24,11 @@ abstract class AbstractDataset(
     val provenance: String =
       operations
         .map(_.provenance)
-        .mkString(System.lineSeparator)
+        .mkString("; ")
 
     // Update the provenance metadata
     val history = _metadata.getProperty("history") match {
-      case Some(h) => h + System.lineSeparator + provenance
+      case Some(h) => s"$h; $provenance"
       case None    => provenance
     }
     _metadata + ("history" -> history)

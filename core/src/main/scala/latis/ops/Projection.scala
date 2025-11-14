@@ -58,6 +58,7 @@ case class Projection(ids: Identifier*) extends MapOperation {
             Function.from(makeIndex(domain), r).fold(throw _, identity)
           }
       }
+
   }
 
   /**
@@ -131,6 +132,7 @@ case class Projection(ids: Identifier*) extends MapOperation {
     case _: Function => ??? //Function not allowed in domain
   }
 
+  override def toString = s"Projection(${ids.map(_.asString).mkString(",")})"
 }
 
 object Projection {

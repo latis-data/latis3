@@ -67,6 +67,7 @@ case class GroupByVariable(ids: Identifier*) extends GroupOperation {
       Option(DomainData(data))
     }
 
+  override def toString = s"GroupByVariable(${ids.map(_.asString).mkString(",")})"
 }
 
 object GroupByVariable {

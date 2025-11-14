@@ -66,6 +66,8 @@ class GroupByBinWidth private (
     val meta = s.metadata + ("binWidth" -> width.toString)
     Scalar.fromMetadata(meta).fold(throw _, identity) //should be safe
   }
+
+  override def toString = s"GroupByBinWidth($width) with $aggregation"
 }
 
 object GroupByBinWidth {

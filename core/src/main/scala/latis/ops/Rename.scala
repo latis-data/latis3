@@ -30,6 +30,8 @@ case class Rename(origId: Identifier, newId: Identifier) extends UnaryOperation 
    */
   def applyToData(data: Data, model: DataType): Either[LatisException, Data] =
     data.asRight
+
+  override def toString = s"Rename(${origId.asString}, ${newId.asString})"
 }
 
 object Rename {
