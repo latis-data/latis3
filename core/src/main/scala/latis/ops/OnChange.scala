@@ -23,7 +23,6 @@ import latis.util.LatisException
  * non-distinct domain values (e.g. time series with duplicate times).
  */
 class OnChange private (variableID: Identifier) extends StreamOperation {
-  //TODO: keep last sample to preserve coverage
 
   def pipe(model: DataType): Pipe[IO, Sample, Sample] = {
     // Get the variable position in a Sample. Must not be nested.
