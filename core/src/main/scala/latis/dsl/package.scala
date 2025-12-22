@@ -41,7 +41,8 @@ package object dsl {
       dataset.withOperation(Contains(id, values *))
     def rename(id: Identifier, newId: Identifier): Dataset =
       dataset.withOperation(Rename(id, newId))
-    def eval(value: String): Dataset               = dataset.withOperation(Evaluation(value))
+    def eval(id: Identifier, value: String): Dataset =
+      dataset.withOperation(Evaluation(id, value))
     def withReader(reader: DatasetReader): Dataset = dataset.withOperation(ReaderOperation(reader))
     def drop(n: Long): Dataset                     = dataset.withOperation(Drop(n))
     def dropLast(): Dataset                        = dataset.withOperation(DropLast())
