@@ -3,40 +3,93 @@ package latis.ops
 import munit.CatsEffectSuite
 
 import latis.data.*
+import latis.dataset.MemoizedDataset
 import latis.dsl.*
+import latis.metadata.Metadata
+import latis.model.*
+import latis.util.Identifier.id
 
 class EvaluationSuite extends CatsEffectSuite {
 
-  test("evaluate a 1D dataset") {
-    DatasetGenerator.generate1DDataset(
-      Vector(0, 1, 2),
-      Vector(10, 20, 30)
-    ).withOperation(Evaluation("1")).samples.head.map {
-      case Sample(_, RangeData(Number(d))) =>
-        assertEquals(d, 20.0)
-      case _ => fail("unexpected sample")
-    }.compile.drain
+  private def dataset1D = {
+    val md = Metadata(id"test")
+    val model = ModelParser.parse("x -> a").fold(throw _, identity)
+    val samples = List(
+      Sample(DomainData(1), RangeData(1)),
+      Sample(DomainData(3), RangeData(3)),
+    )
+    new MemoizedDataset(md, model, SampledFunction(samples))
   }
 
-  test("evaluate a nested dataset") {
-    val ds = DatasetGenerator.generate2DDataset(
-      Vector(0, 1, 2),
-      Vector(100, 200, 300),
-      Vector(
-        Vector(10, 20, 30),
-        Vector(12, 22, 32),
-        Vector(14, 24, 34)
+  private def dataset2D = {
+    val md = Metadata(id"test")
+    val model = (for { // (x, y) -> a
+      domain <- Tuple.fromElements(Scalar(id"x", IntValueType), Scalar(id"y", IntValueType))
+      func   <- Function.from(domain, Scalar(id"a", IntValueType))
+    } yield func).fold(throw _, identity)
+    val samples = List(
+      Sample(DomainData(1, 1), RangeData(1)),
+      Sample(DomainData(1, 2), RangeData(2)),
+      Sample(DomainData(2, 1), RangeData(3)),
+      Sample(DomainData(2, 2), RangeData(4)),
+    )
+    new MemoizedDataset(md, model, SampledFunction(samples))
+  }
+
+  test("1D eval first sample") {
+    val eval = Evaluation(id"x", "1")
+    val samples = dataset1D.withOperation(eval).samples.compile.toList
+    samples.assertEquals(
+      List(Sample(DomainData(), RangeData(1)))
+    )
+  }
+
+  test("2D eval first dimension first sample") {
+    val eval = Evaluation(id"x", "1")
+    val ds = dataset2D.withOperation(eval)
+    val samples = ds.samples.compile.toList
+    samples.assertEquals(
+      List(
+        Sample(DomainData(1), RangeData(1)),
+        Sample(DomainData(2), RangeData(2))
       )
-    ).curry(1)
-     .eval("1")
-
-    ds.samples.take(1).map {
-      case Sample(DomainData(Number(x)), RangeData(Number(a))) =>
-        assertEquals(x, 100.0)
-        assertEquals(a, 12.0)
-      case _ => fail("unexpected sample")
-    }.compile.drain
+    )
   }
 
-  //TODO verify failure modes
+  test("2D eval second dimension first sample") {
+    val eval = Evaluation(id"y", "1")
+    val ds = dataset2D.withOperation(eval)
+    val samples = ds.samples.compile.toList
+    samples.assertEquals(
+      List(
+        Sample(DomainData(1), RangeData(1)),
+        Sample(DomainData(2), RangeData(3))
+      )
+    )
+  }
+
+  test("2D eval first dimension last sample") {
+    val eval = Evaluation(id"x", "2")
+    val ds = dataset2D.withOperation(eval)
+    val samples = ds.samples.compile.toList
+    samples.assertEquals(
+      List(
+        Sample(DomainData(1), RangeData(3)),
+        Sample(DomainData(2), RangeData(4))
+      )
+    )
+  }
+
+  test("2D eval second dimension last sample") {
+    val eval = Evaluation(id"y", "2")
+    val ds = dataset2D.withOperation(eval)
+    val samples = ds.samples.compile.toList
+    samples.assertEquals(
+      List(
+        Sample(DomainData(1), RangeData(2)),
+        Sample(DomainData(2), RangeData(4))
+      )
+    )
+  }
+
 }
