@@ -228,11 +228,11 @@ lazy val netcdf = project
   .settings(
     name := "latis3-netcdf",
     libraryDependencies ++= Seq(
-      "edu.ucar"       % "netcdf4"          % netcdfVersion,
+      "edu.ucar"       % "cdm-core"          % netcdfVersion,
       "ch.qos.logback" % "logback-classic"  % logbackVersion  % Test
     ),
     resolvers ++= Seq(
-      "Unidata" at "https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases"
+      "Unidata" at "https://artifacts.unidata.ucar.edu/repository/unidata-all"
     )
   )
 
