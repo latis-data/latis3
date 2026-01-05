@@ -228,7 +228,8 @@ lazy val netcdf = project
   .settings(
     name := "latis3-netcdf",
     libraryDependencies ++= Seq(
-      "edu.ucar"       % "cdm-core"          % netcdfVersion,
+      "edu.ucar"       % "cdm-core"         % netcdfVersion,
+      "edu.ucar"       % "netcdf4"          % netcdfVersion,
       "ch.qos.logback" % "logback-classic"  % logbackVersion  % Test
     ),
     resolvers ++= Seq(
