@@ -1,5 +1,6 @@
 package latis.ops
 
+import cats.data.NonEmptyList
 import cats.data.Validated
 import cats.syntax.all.*
 
@@ -37,10 +38,12 @@ case class Projection(ids: Identifier*) extends MapOperation {
 
   /** Apply projection to model */
   override def applyToModel(model: DataType): Either[LatisException, DataType] = {
-    validate(model).toEither.flatMap { proj =>
-      proj.applyToVariable(model)
-        .toRight(LatisException("Bug: Nothing projected, shouldn't have validated"))
-    }
+    validate(model)
+      .leftMap(es => es.head).toEither // Only one exception
+      .flatMap { proj =>
+        proj.applyToVariable(model)
+          .toRight(LatisException("Bug: Nothing projected, shouldn't have validated"))
+      }
   }
 
   /** Recursive method to apply the projection to a variable type. */
@@ -89,6 +92,7 @@ case class Projection(ids: Identifier*) extends MapOperation {
   /** Apply projection to data */
   override def mapFunction(model: DataType): Sample => Sample = {
     // Bail early if the projection is not valid
+    // Hopefully caught at model application, but...
     if (validate(model).isInvalid) throw LatisException("Bad projection")
 
     // Get the sample positions of the projected variables.
@@ -146,10 +150,10 @@ case class Projection(ids: Identifier*) extends MapOperation {
   }
 
   /** Make sure this projection can be applied to the given model. */
-  def validate(model: DataType): Validated[LatisException, Projection] = {
+  def validate(model: DataType): Validated[NonEmptyList[LatisException], Projection] = {
     // Some variables have been projected
     def nonEmpty =
-      if (ids.isEmpty) LatisException("No variables projected").invalid
+      if (ids.isEmpty) NonEmptyList.one(LatisException("No variables projected")).invalid
       else this.valid
 
     // All projected variables are non-Index Scalars in the model
@@ -158,12 +162,12 @@ case class Projection(ids: Identifier*) extends MapOperation {
       ids.filter(id => !scalarIds.contains(id)) match {
         case Nil => this.valid
         case id :: Nil =>
-          val msg = s"Projected Scalar does not exist: $id.asString"
-          LatisException(msg).invalid
+          val msg = s"Projected Scalar does not exist: $id"
+          NonEmptyList.one(LatisException(msg)).invalid
         case ids =>
           val badIds = ids.mkString(", ")
           val msg = s"Projected Scalars do not exist: $badIds"
-          LatisException(msg).invalid
+          NonEmptyList.one(LatisException(msg)).invalid
       }
     }
 
@@ -172,7 +176,7 @@ case class Projection(ids: Identifier*) extends MapOperation {
       if (ids.forall(model.findPath(_).get.size == 1)) this.valid
       else {
         val msg = "Projected variables may not be in nested Functions"
-        LatisException(msg).invalid
+        NonEmptyList.one(LatisException(msg)).invalid
       }
     }
 
