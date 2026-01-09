@@ -21,7 +21,7 @@ import latis.util.LatisException
  * domain is projected, it will become the range with the domain
  * replaced by an Index.
  *
- * [[ids]] Identifiers of the Scalar variable to keep
+ * @params ids Identifiers of the Scalar variable to keep
  */
 case class Projection(ids: Identifier*) extends MapOperation {
   //TODO: use NonEmpty, rely on validator for now
