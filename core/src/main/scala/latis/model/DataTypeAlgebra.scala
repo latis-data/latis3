@@ -37,10 +37,6 @@ trait DataTypeAlgebra { dataType: DataType =>
    * Returns a List of Scalars in the (depth-first) order
    * that they appear in the model.
    */
-  //TODO: deprecate to find potential unsafe
-  //  Risk of overlooking tuples and functions nested in tuples
-  //  Risk of being inconsistent with arity vs dimensionality
-  // use "scalars", "nonIndexScalars" to migrate from getScalars?
   def getScalars: List[Scalar] = {
     def go(dt: DataType): List[Scalar] = dt match {
       case s: Scalar      => List(s)
@@ -49,6 +45,10 @@ trait DataTypeAlgebra { dataType: DataType =>
     }
     go(dataType)
   }
+  
+  /** Returns Scalars in the model that are not an Index. */
+  def nonIndexScalars: List[Scalar] =
+    getScalars.filterNot(_.isInstanceOf[Index])
 
   /** Replaces the identifier of this DataType. */
   def rename(id: Identifier): DataType = dataType match {

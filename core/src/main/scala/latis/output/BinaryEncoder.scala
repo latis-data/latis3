@@ -66,7 +66,7 @@ class BinaryEncoder(val dataCodec: Scalar => Codec[Data] = DataCodec.defaultData
         val tuples: List[Scalar] = t.flatElements.collect { case s: Scalar => s }
         (List[Scalar](), tuples)
       case Function(d, r) =>
-        (d.getScalars.filterNot(_.isInstanceOf[Index]), r.getScalars)
+        (d.nonIndexScalars, r.getScalars)
     }
     val domainList: List[Codec[Datum]] = domainScalars.map(s => dataCodec(s).downcast[Datum])
     val rangeList: List[Codec[Data]] = rangeScalars.map(s => dataCodec(s))

@@ -71,7 +71,7 @@ case class JdbcAdapter(
     ops.foldLeft(model) { (mod, op) =>
       op.applyToModel(mod).fold(throw _, identity)
     } match {
-      case Function(d, r) => (d.getScalars.filterNot(_.isInstanceOf[Index]), r.getScalars)
+      case Function(d, r) => (d.nonIndexScalars, r.getScalars)
       case dt => (List(), dt.getScalars)
     }
   }

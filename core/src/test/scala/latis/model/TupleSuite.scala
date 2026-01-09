@@ -83,4 +83,9 @@ class TupleSuite extends FunSuite {
     val tuple = Tuple.fromElements(id"t", a, b).fold(fail("failed to construct tuple", _), identity)
     assertEquals(tuple.id, Option(id"t"))
   }
+
+  test("no duplicate ids") {
+    val tuple = Tuple.fromElements(a, a)
+    assert(tuple.isLeft)
+  }
 }

@@ -132,7 +132,7 @@ class BinaryEncoderSuite extends CatsEffectSuite {
         Scalar(id"r2", DoubleValueType),
         Scalar.fromMetadata(
           Metadata(
-            "id" -> "r2",
+            "id" -> "r3",
             "type" -> "string",
             "size" -> "2"
           )
@@ -161,7 +161,7 @@ class BinaryEncoderSuite extends CatsEffectSuite {
         Scalar(id"r2", DoubleValueType),
         Scalar.fromMetadata(
           Metadata(
-            "id" -> "r2",
+            "id" -> "r3",
             "type" -> "string",
             "size" -> "2"
           )

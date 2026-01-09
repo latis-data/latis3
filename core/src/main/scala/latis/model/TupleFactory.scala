@@ -7,9 +7,22 @@ import latis.util.LatisException
 
 trait TupleFactory {
 
-  def fromElements(id: Option[Identifier], e1: DataType, e2: DataType, es: DataType*): Either[LatisException, Tuple] =
-  //TODO: assert unique ids
-    new Tuple(id, e1, e2, es *).asRight
+  //TODO: deal with same id in nested anonymous tuples
+  def fromElements(
+    id: Option[Identifier],
+    e1: DataType,
+    e2: DataType,
+    es: DataType*
+  ): Either[LatisException, Tuple] = {
+    def getId(e: DataType) = e match { //TODO: require ids?
+      case s: Scalar   => Some(s.id)
+      case t: Tuple    => t.id
+      case f: Function => f.id
+    }
+    val ids = (e1 +: e2 +: es).flatMap(getId)
+    if (ids.distinct.size == ids.size) new Tuple(id, e1, e2, es *).asRight
+    else LatisException("Tuple elements must have distinct identifiers").asLeft
+  }
 
   def fromElements(id: Identifier, e1: DataType, e2: DataType, es: DataType*): Either[LatisException, Tuple] =
     fromElements(Some(id), e1, e2, es *)

@@ -39,8 +39,7 @@ class CsvEncoder(header: Dataset => Stream[IO, String]) extends Encoder[IO, Stri
     val scalars = NonEmptyList.fromList(
       flatDataset
         .model
-        .getScalars
-        .filterNot(_.isInstanceOf[Index])
+        .nonIndexScalars
     )
 
     // Encode each Sample as a String in the Stream
@@ -85,7 +84,7 @@ object CsvEncoder {
 
   def withColumnName: CsvEncoder = {
     def header(dataset: Dataset): String =
-      dataset.model.getScalars.filterNot(_.isInstanceOf[Index]).map(_.id.asString).mkString(",")
+      dataset.model.nonIndexScalars.map(_.id.asString).mkString(",")
     CsvEncoder.withHeader(header)
   }
 }

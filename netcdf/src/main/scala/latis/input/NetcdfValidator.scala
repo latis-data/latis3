@@ -59,7 +59,7 @@ object NetcdfValidator {
    * Assumes that the variable names have already been validated.
    */
   private def validateTypes(ncFile: NetcdfFile, model: DataType): Either[List[String], Unit] =
-    model.getScalars.filterNot(_.isInstanceOf[Index]).map { s =>
+    model.nonIndexScalars.map { s =>
       val name = s.ncName
       val v = ncFile.findVariable(name)
       if (matchTypes(s.valueType, v.getDataType)) None

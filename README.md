@@ -147,7 +147,7 @@ The following sections describe how to filter and operate on datasets.
 
 #### Projections
 
-A projection allows you to subset the variables returned by a query. Only variables that appear in a projection will appear in the result.
+A projection allows you to limit the set of variables returned by a query. Only variables that appear in a projection will appear in the result. Projecting variable that do not appear in the dataset will result in an error.
 
 A projection is written as a comma-separated list of the variable names to keep in the result. This will give you the temperature as a function of time:
 
