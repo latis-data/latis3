@@ -40,8 +40,8 @@ class ProjectionSuite extends CatsEffectSuite {
     }
   }
 
-  // I don't think ModelParser supports names tuples.
-  test("Project named nested tuple".ignore) {
+  test("Project named nested tuple in model".ignore) {
+    // Tuple projection not supported for datasets yet
     val model = ModelParser.unsafeParse("(a, t:(b, c))")
     Projection.fromExpression("t").flatMap(_.applyToModel(model)) match {
       case Right(t: Tuple) =>
@@ -116,4 +116,23 @@ class ProjectionSuite extends CatsEffectSuite {
       Sample(List(0, 0), List(0))
     )
   }
+
+  test("No empty projection") {
+    val model = ModelParser.unsafeParse("a")
+    val proj = Projection()
+    assert(proj.validate(model).isInvalid)
+  }
+
+  test("Projection of undefined variable fails") {
+    val model = ModelParser.unsafeParse("a")
+    val proj = Projection(id"a", id"b")
+    assert(proj.validate(model).isInvalid)
+  }
+
+  test("No nested variable") {
+    val model = ModelParser.unsafeParse("x -> y -> a")
+    val proj = Projection(id"a")
+    assert(proj.validate(model).isInvalid)
+  }
+
 }
