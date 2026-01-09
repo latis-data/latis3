@@ -99,8 +99,7 @@ case class Projection(ids: Identifier*) extends MapOperation {
     // Assumes Scalar projection only, for now.
     // Does not support nested Function, for now.
     val positions = model
-      .getScalars //start here so we preserve variable order
-   //TODO: can we project an index? prob not, placeholder with no data in samples
+      .nonIndexScalars //start here so we preserve variable order
       .map(_.id)
       .filter(ids.contains)
       .map(model.findPath(_).get) //safe since id is from the model
