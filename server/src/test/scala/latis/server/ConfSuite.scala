@@ -1,6 +1,6 @@
 package latis.server
 
-import java.net.URL
+import java.net.URI
 
 import com.comcast.ip4s.port
 import fs2.io.file.Path
@@ -66,7 +66,7 @@ class ConfSuite extends munit.FunSuite {
   }
 
   test("read JarServiceSpec") {
-    val path = URL("file://path/to/jar")
+    val path = URI("file://path/to/jar").toURL
     val prefix = "service"
     val clss = "ServiceClass"
 
