@@ -142,7 +142,7 @@ case class Projection(ids: Identifier*) extends MapOperation {
       Index(Identifier.fromString("_i" + id.asString).get) //safely valid
     }.getOrElse {
       // Derive id by combining scalar ids with "_"
-      Index(Identifier.fromString("_i" + v.getScalars.map(_.id.asString).mkString("_")).get)
+      Index(Identifier.fromString("_i" + v.getScalars.map(_.id).mkString("_")).get)
     }
     case _: Function =>
       //Function not allowed in domain
@@ -183,7 +183,7 @@ case class Projection(ids: Identifier*) extends MapOperation {
     nonEmpty.andThen(_ => variablesDefined).andThen(_ => noNesting)
   }
 
-  override def toString = s"Projection(${ids.map(_.asString).mkString(",")})"
+  override def toString = s"Projection(${ids.mkString(",")})"
 }
 
 object Projection {
