@@ -3,7 +3,9 @@ package latis.ops
 import munit.CatsEffectSuite
 
 import latis.data.*
+import latis.dataset.MemoizedDataset
 import latis.dsl.*
+import latis.metadata.Metadata
 import latis.model.*
 import latis.util.Identifier.*
 
@@ -40,8 +42,8 @@ class ProjectionSuite extends CatsEffectSuite {
     }
   }
 
-  // I don't think ModelParser supports names tuples.
-  test("Project named nested tuple".ignore) {
+  test("Project named nested tuple in model".ignore) {
+    // Tuple projection not supported for datasets yet
     val model = ModelParser.unsafeParse("(a, t:(b, c))")
     Projection.fromExpression("t").flatMap(_.applyToModel(model)) match {
       case Right(t: Tuple) =>
@@ -116,4 +118,50 @@ class ProjectionSuite extends CatsEffectSuite {
       Sample(List(0, 0), List(0))
     )
   }
+
+  test("No empty projection") {
+    val model = ModelParser.unsafeParse("a")
+    val proj = Projection()
+    assert(proj.validate(model).isInvalid)
+  }
+
+  test("Projection of undefined variable fails") {
+    val model = ModelParser.unsafeParse("a")
+    val proj = Projection(id"a", id"b")
+    assert(proj.validate(model).isInvalid)
+  }
+
+  test("No nested variable") {
+    val model = ModelParser.unsafeParse("x -> y -> a")
+    val proj = Projection(id"a")
+    assert(proj.validate(model).isInvalid)
+  }
+
+  test("Project all allows nested variables") {
+    val model = ModelParser.unsafeParse("x -> y -> a")
+    val sample = {
+      Sample(
+        DomainData(0),
+        RangeData(SampledFunction(List(
+          Sample(DomainData(1), RangeData(2))
+        )))
+      )
+    }
+    val data = SampledFunction(List(sample))
+    val ds = MemoizedDataset(Metadata(id"test"), model, data)
+      .project("x,y,a")
+
+    ds.model match {
+      case Function(x: Scalar, Function(y: Scalar, a: Scalar)) =>
+        assertEquals(x.id, id"x")
+        assertEquals(y.id, id"y")
+        assertEquals(a.id, id"a")
+      case _ => fail("incorrect model")
+    }
+
+    ds.samples.take(1).compile.lastOrError.map { s =>
+      assertEquals(sample, s)
+    }
+  }
+
 }
