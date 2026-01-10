@@ -4,13 +4,14 @@ import cats.syntax.all.*
 
 import latis.data.*
 import latis.model.*
+import latis.ops.Interpolation.*
 import latis.util.*
 
 /**
  * Trait for interpolation algorithms.
  *
- * Given a list of Samples, compute a single new Sample with the
- * given domain value.
+ * Given a list of Samples, returns a single Sample based on
+ * the given domain value.
  *
  * This requires a 1D domain and expects the value type to
  * be consistent with the domain Scalar.
@@ -26,13 +27,43 @@ sealed trait Interpolation {
 }
 
 object Interpolation {
-  def fromName(name: String): Either[LatisException, Interpolation] = name match {
-    case "floor"            => FloorInterpolation().asRight
-    case "linear"           => LinearInterpolation().asRight
-    case "near" | "nearest" => NearestInterpolation().asRight
-    case "none"             => NoInterpolation().asRight
-    case s => LatisException(s"Unsupported interpolation type: $s").asLeft
-  }
+
+  /**
+   * Constructs an Interpolation by its (case-insensitive) name.
+   *
+   * Supported interpolation strategies:
+   *  - `floor`: Returns the "lowest" of the bounding Samples
+   *  - `linear`: Computes a linear interpolation between the bounding Samples
+   *  - `near/nearest`: Returns the nearest of the bounding Samples
+   *  - `none`: No interpolation will be done, Sample must match
+   */
+  def fromName(name: String): Either[LatisException, Interpolation] =
+    name.toLowerCase match {
+      case "floor" => FloorInterpolation().asRight
+      case "linear" => LinearInterpolation().asRight
+      case "near" | "nearest" => NearestInterpolation().asRight
+      case "none" => NoInterpolation().asRight
+      case s => LatisException(s"Unsupported interpolation type: $s").asLeft
+    }
+
+  //---- Utility Methods ----//
+
+  /** Extracts the domain Scalar assuming a 1D, non-Index Function. */
+  def getDomainVar(model: DataType): Either[LatisException, Scalar] =
+    model match {
+      case Function(scalar: Scalar, _) if (! scalar.isInstanceOf[Index]) =>
+        scalar.asRight
+      case _ =>
+        LatisException("Interpolation expects a 1D non-index domain").asLeft
+    }
+
+  /** Extracts the domain data from an assumed arity-1 Sample as a Datum */
+  def getDomainData(sample: Sample): Either[LatisException, Datum] =
+    sample match {
+      case Sample((d: Datum) :: Nil, _) => d.asRight
+      case _ =>
+        LatisException("Interpolation expects a 1D non-index domain").asLeft
+    }
 }
 
 //==== No Interpolation (equality only) ====//
@@ -88,7 +119,10 @@ case class FloorInterpolation() extends Interpolation {
 
 //==== Nearest Neighbor Interpolation ====//
 
-/** Returns the Sample closest to the given domain value */
+/**
+ * Returns the Sample closest to the given domain value,
+ * rounding up if equidistant.
+ */
 case class NearestInterpolation() extends Interpolation {
 
   override def interpolate(
@@ -136,11 +170,9 @@ case class NearestInterpolation() extends Interpolation {
     } yield {
       val dd1 = math.abs(d1 - number.asDouble)
       val dd2 = math.abs(d2 - number.asDouble)
-      if (dd1 < dd2) s1 match { //rounds up if eq, like math.round
-        case Sample(_, range) => Sample(DomainData(number), range)
-      } else s2 match {
-        case Sample(_, range) => Sample(DomainData(number), range)
-      }
+      // Note: rounds up if eq, consistent with math.round
+      if (dd1 < dd2) Sample(DomainData(number), s1.range)
+      else Sample(DomainData(number), s2.range)
     }
   }
 }
@@ -214,17 +246,14 @@ case class LinearInterpolation() extends Interpolation {
     for {
       x1 <- getDomainData(s1).flatMap(getDoubleVal)
       x2 <- getDomainData(s2).flatMap(getDoubleVal)
-      ds <- model.getScalars.tail
-        .lazyZip(s1.range)
-        .lazyZip(s2.range)
-        .map(Tuple3.apply).traverse {
-          case (s: Scalar, Real(d1), Real(d2)) =>
-            val d = (d2 - d1) * (num.asDouble - x1) / (x2 - x1) + d1
-            s.valueType.convertDouble(d).get.asRight
-          case _ =>
-            val msg = "Linear interpolation required floating point data"
-            LatisException(msg).asLeft
-        }
+      ds <- (model.getScalars.tail, s1.range, s2.range).traverseN {
+        case (s: Scalar, Real(d1), Real(d2)) =>
+          val d = (d2 - d1) * (num.asDouble - x1) / (x2 - x1) + d1
+          s.valueType.convertDouble(d).get.asRight
+        case _ =>
+          val msg = "Linear interpolation required floating point data"
+          LatisException(msg).asLeft
+      }
     } yield {
       Sample(DomainData(num), RangeData(ds))
     }
@@ -238,18 +267,4 @@ case class LinearInterpolation() extends Interpolation {
         LatisException(msg).asLeft
     }
   }
-}
-
-//==== Utility Methods ====//
-
-/** Extracts the Scalar from the domain of the data model. */
-private def getDomainVar(model: DataType): Either[LatisException, Scalar] = model match {
-  case Function(scalar: Scalar, _) => scalar.asRight
-  case _ => LatisException("Interpolation expects a 1D domain").asLeft
-}
-
-/** Extracts the domain data from a Sample as a (orderable) Datum */
-private def getDomainData(sample: Sample): Either[LatisException, Datum] = sample match {
-  case Sample((d: Datum) :: Nil, _) => d.asRight
-  case _ => LatisException("Interpolation expects a 1D domain").asLeft
 }

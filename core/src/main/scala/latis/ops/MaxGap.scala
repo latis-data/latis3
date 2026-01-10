@@ -9,12 +9,14 @@ import latis.model.*
 import latis.util.LatisException
 
 /**
- * Inserts Samples such that the domain values have no gap greater 
- * than the given [[gapSize]], using the given Interpolation algorithm. 
+ * Inserts Samples such that the domain values have no gap greater
+ * than the given [[gapSize]], using the given Interpolation algorithm.
  * The resulting cadence will be the gap size.
  *
  * Requires an arity-1 Function with a numeric domain variable, and
- * assumes the gap size is in the units of that variable.
+ * assumes the gap size is in the numeric units of that variable.
+ * Text Time variables will expect epoch milliseconds. ISO 8601 durations
+ * for time variables are not yet supported.
  */
 class MaxGap private (gapSize: Double, interp: Interpolation) extends StreamOperation {
 
@@ -83,20 +85,14 @@ object MaxGap {
       } yield MaxGap(value, interp)
     case _ => LatisException("MaxGap requires a gap size and interpolation").asLeft
   }
-  
+
   private def parseGapSize(s: String): Either[LatisException, Double] = {
     //TODO: support ISO 8601 duration, need model to get units right
-    //if (s.startsWith("P")) Either.catchNonFatal {
-    //  Duration.parse(s).toMillis.toDouble 
-    //} else {
-      s.toDoubleOption.flatMap {
-        case d if (d > 0) => d.some
-        case _ => None
-      }.toRight(LatisException("Gap size must be a positive number"))
-    //}
+    s.toDoubleOption.filter(_ > 0)
+      .toRight(LatisException("Gap size must be a positive number"))
   }
-  
-  private def parseInterpolation(s: String): Either[LatisException, Interpolation] = 
+
+  private def parseInterpolation(s: String): Either[LatisException, Interpolation] =
     Interpolation.fromName(s).flatMap {
       case NoInterpolation() => LatisException("MaxGap requires interpolation").asLeft
       case interp => interp.asRight

@@ -15,9 +15,9 @@ class MaxGapSuite extends CatsEffectSuite {
 
   private val md = Metadata(id"test")
   private val model = ModelParser.parse("x -> y").fold(throw _, identity)
-  
+
   private def makeDataset(data: (Int, Int) *) = {
-    val samples = data.map { (d, r) => 
+    val samples = data.map { (d, r) =>
       Sample(DomainData(d), RangeData(r))
     }
     new MemoizedDataset(md, model, SampledFunction(samples))
@@ -57,7 +57,7 @@ class MaxGapSuite extends CatsEffectSuite {
     )
   }
 
-  test("insert multiples samples for large gap") {
+  test("insert multiple samples for large gap") {
     val ds = makeDataset(
       (0, 0),
       (5, 5)

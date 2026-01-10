@@ -31,7 +31,7 @@ class OnChangeSuite extends CatsEffectSuite {
     SampledFunction(samples)
   )
 
-  test("on change") {
+  test("on change, keeping last unchanged sample") {
     val oc = OnChange.fromArgs(List("y"))
       .fold(_ => fail("Failed to make OnChange"), identity)
     val samples = ds.withOperation(oc).samples.compile.toList
@@ -39,12 +39,13 @@ class OnChangeSuite extends CatsEffectSuite {
       List(
         Sample(DomainData(0), RangeData(0)),
         Sample(DomainData(3), RangeData(1)),
-        Sample(DomainData(5), RangeData(1)), //keep last sample to preserve coverage
+        Sample(DomainData(5), RangeData(1)),
       )
     )
   }
 
-  test("last sample changes") {
+  // There was a bug where this failed to see when the last value changed
+  test("on change keeps last sample when changed") {
     val samples = List(
       Sample(DomainData(0), RangeData(0)),
       Sample(DomainData(1), RangeData(1)),
@@ -65,6 +66,9 @@ class OnChangeSuite extends CatsEffectSuite {
     )
   }
 
+  // Duplicate domain values is not allowed in the FDM,
+  // but this shows that it can fix "broken" datasets
+  // that we have no control of.
   test("duplicate domain value") {
     val oc = OnChange.fromArgs(List("x"))
       .fold(_ => fail("Failed to make OnChange"), identity)

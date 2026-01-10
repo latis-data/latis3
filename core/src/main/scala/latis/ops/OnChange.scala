@@ -16,7 +16,8 @@ import latis.util.LatisException
  *
  * This keeps the first sample and drops any subsequent sample where the
  * given variable value is repeated, keeping only the samples where the
- * variable changes value.
+ * variable changes value. To preserve the coverage extents, the last
+ * sample will be kept.
  *
  * This requires a flat dataset (no nested Functions). It doesn't really
  * make sense to apply to the domain, but could fix "broken" data with

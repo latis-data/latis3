@@ -18,8 +18,8 @@ class InterpolationSuite extends FunSuite {
 
   test("Nearest interpolation will round up") {
     val interp = NearestInterpolation()
-    interp.interpolate(model, samples, IntValue(2))
-      .fold(_ => fail("Failed to interpolate"), identity) match {
+    val z = interp.interpolate(model, samples, IntValue(2))
+      z.fold(_ => fail("Failed to interpolate"), identity) match {
       case Sample(DomainData(d: IntValue), RangeData(r: IntValue)) =>
         assertEquals(d.value, 2)
         assertEquals(r.value, 3)
