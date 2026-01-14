@@ -31,6 +31,8 @@ object OperationRegistry {
       "groupByBinWidth" -> GroupByBinWidth.builder,
       "head"            -> Head.builder,
       "last"            -> Last.builder,
+      "maxGap"          -> MaxGap.builder,
+      "onChange"        -> OnChange.builder,
       "pivot"           -> Pivot.builder,
       "project"         -> Projection.builder,
       "rename"          -> Rename.builder,
