@@ -25,6 +25,7 @@ case class Curry(arity: Int = 1) extends GroupOperation {
   //TODO: arity vs dimension/rank for nested tuples in the domain, ignoring nesting for now
   //TODO: Provide description for prov
   //TODO: avoid adding prov if this is a no-op
+  //TODO: do without sorting
 
   def groupByFunction(model: DataType): Sample => Option[DomainData] = {
     if (model.arity < arity) {
