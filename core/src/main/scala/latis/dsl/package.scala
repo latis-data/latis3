@@ -32,6 +32,7 @@ package object dsl {
     def stride(s: Int, ss: Int*): Dataset          = dataset.withOperation(Stride((s +: ss).toIndexedSeq))
     def uncurry(): Dataset                         = dataset.withOperation(Uncurry())
     def curry(n: Int): Dataset                     = dataset.withOperation(Curry(n))
+    def curryRight(n: Int): Dataset                = dataset.withOperation(CurryRight(n))
     def groupByVariable(ids: Identifier*): Dataset = dataset.withOperation(new GroupByVariable(ids *))
     def groupByBin(set: DomainSet, agg: Aggregation = DefaultAggregation()): Dataset =
       dataset.withOperation(GroupByBin(set, agg))

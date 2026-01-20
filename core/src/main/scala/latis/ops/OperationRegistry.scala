@@ -20,6 +20,7 @@ object OperationRegistry {
       "count"           -> CountAggregation.builder,
       "countBy"         -> CountBy.builder,
       "curry"           -> Curry.builder,
+      "curryRight"      -> CurryRight.builder,
       "drop"            -> Drop.builder,
       "dropLast"        -> DropLast.builder,
       "dropRight"       -> DropRight.builder,
