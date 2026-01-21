@@ -1,330 +1,119 @@
 # LaTiS 3
 
-LaTiS is both a library and a server application that enables data access from many sources, between many formats, and through many interfaces using a novel data model.
+LaTiS is a software framework designed for accessing, processing, and outputting scientific data. It provides a unified 
+data access and query interface, making it easier to work with a wide range of datasets. The key features of LaTiS 
+are as follows:
 
-## Getting Started
+- Functional Data Model: LaTiS uses a mathematical model to describe and manipulate datasets, enabling broad data interoperability
+- Modular Architecture: LaTiS supports reusable and custom readers, operations, and writers to handle data from various sources and formats
+- Web Service Layer: LaTiS includes a web service interface for requesting data using standard query syntax and data protocols
 
-We use [SBT](https://www.scala-sbt.org/) to manage our build. Until we begin making releases, you will need to [install SBT](#sbt) to use LaTiS.
+LaTiS arose out of a need for unified web service access to a variety of scientific data sources. Instead of managing a 
+centralized repository of data, LaTiS provides a data access layer by adapting existing data sources to a common data model.
+LaTiS is used in various scientific applications, including space missions and data communities, to provide seamless access to
+complex datasets.
 
-To get an idea of what using LaTiS is like, see [Running the Example](#example).
+If you are looking for how LaTiS has served complex data to a web application, check out either of the following sites 
+where LaTiS is used as the data access layer:
+- https://lasp.colorado.edu/lisird/
+- https://lasp.colorado.edu/space-weather-portal/data
+
+LaTiS is currently maintained at the [Laboratory for Atmospheric and Space Physics](https://lasp.colorado.edu), a research 
+institution at the University of Colorado at Boulder. 
+
+### How do I get me one of those? 
+
+#### LaTiS servers
+
+LaTiS is currently operated through servers. Each dataset has its own server that handles the data ingestion and easy access
+by the LaTiS API. There are currently ___ LaTiS servers for ___ datasets. A comprehensive list of current servers can be 
+found [here](TODO: does such a list exist?). If you are looking to get a new LaTiS server set up for a dataset, TBD.
+
+#### LaTiS URLs
+
+All datasets currently available via a publicly accessible LaTiS server can be accessed by a simple API query that takes 
+the form of a LaTiS URL. This URL takes the following form:
+
+`https://lasp.colorado.edu/lisird/latis/dap/dataset.suffix?projection&selection&operation`
+
+Where the following variables have a multitude of options based on the data you are hoping to access:
+* dataset
+* suffix
+* projections
+* selection
+* operation
+
+More information on constructing a LaTiS URL can be found [here](./docs/constructing_a_latis_url.md). 
+
+In addition to visiting LaTiS URLs directly, data can be downloaded using `wget` or `curl` in the command line. The 
+syntax is shown below, where `<LaTiS URL>` is any valid LaTiS URL and `<filename>` is any valid file name with the 
+appropriate file extension (i.e., an extension that matches the requested `suffix`). The URL is always surrounded by quotes.
+
+```
+wget -O <filename> "<LaTiS URL>"
+
+curl "<LaTiS URL>" > <filename>
+```
+
+Example wget Commands:
+
+```
+wget -O data.csv "https://lasp.colorado.edu/lisird/latis/dap/uars_solstice_ssi.csv?time,wavelength,irradiance&time<2001&limit(10)"
+
+wget -O data.txt "https://lasp.colorado.edu/lisird/latis/dap/sorce_tsi_24hr_l3.asc?time>=2005-05-05T12:00&time<2006-05-05T12:00"
+```
+Example curl Commands:
+
+```
+curl "https://lasp.colorado.edu/lisird/latis/dap/fism_daily_files.zip" > data.zip
+
+curl "https://lasp.colorado.edu/lisird/latis/dap/nrl2_tsi_P1Y.json?replace_missing(NaN)&format_time(yyyy)" > data.json
+```
+
+## Contributing to the LaTiS project
+
+LaTiS is a very low-funded project which means that we welcome contributors from elsewhere! One of the biggest challenges
+is lowering the barrier to entry for folks interested in setting up their own LaTiS server. This is something we are
+currently working on. 
+
+In order to contribute to LaTiS, you will need to install and build it. 
+
+### Some Notes Before Getting Started
+
+#### Scala
+
+LaTiS is written in the [Scala](https://www.scala-lang.org/) programming language. While most software projects in the 
+space physics community are moving towards using Python, we chose to write LaTiS in scala for its strong typing and speed. 
+Knowing that the majority of the users we interact with use Python, we have investigated Python integration with LaTiS using
+[Jep](https://github.com/ninia/jep) and [ScalaPy](https://scalapy.dev/). More documentation on how to use Python code in
+LaTiS, see [Using Python with LaTiS](./docs/latis_python_integration.md).
+
+#### LaTiS Versions
+
+This repository houses LaTiS 3. LaTiS 3 is currently in development and we are working to complete the transition from
+LaTiS 2 to LaTiS 3, as such, we have not made any releases of LaTiS3, yet. The installation instructions below take this
+into account and require that the build tool we use (SBT) will be required until releases are made.
+
+### Getting Started
+
+We use [SBT](https://www.scala-sbt.org/) to manage our build. Until we begin making releases, you will need to 
+[install SBT](#sbt) to use LaTiS.
+
+To get an idea of what using LaTiS is like, see [Running the Example](./docs/latis_example.md).
 
 To set up your own LaTiS instance, see [Running with Docker](#docker) or [Running with an Executable JAR](#jar).
 
 ### <a name="sbt"></a> Installing SBT
 
-The recommended way to install SBT is to first install [Coursier](https://get-coursier.io/), an application and artifact manager for Scala, and then run `cs setup`. See the [Couriser documentation](https://get-coursier.io/docs/cli-installation) for installation instructions.
-
-See the [SBT documentation](https://www.scala-sbt.org/download/) for more ways to install SBT.
-
-If you use [Nix](https://nixos.org/), just run `nix develop` to enter a development environment that includes SBT.
-
-### <a name="example"></a> Running the Example
-
-You will need to clone this repository and have [SBT installed](#sbt) to run the example.
-
-#### Starting the Instance
-
-First run `sbt`. Once in the SBT shell, run the following to start the example server:
-
-```
-sbt:latis3> example/reStart
-```
-
-This will start a LaTiS service with a DAP 2 interface. This interface implements most of the [OPeNDAP Data Access Protocol, version 2](https://zenodo.org/records/10794666). LaTiS supports multiple interfaces, including custom interfaces, so you can choose whichever data access API best suites your needs. In this example we will look at the kinds of queries you can make through the DAP 2 interface.
-
-#### Catalogs
-
-We refer to the set of datasets available from a LaTiS instance as the instance's catalog. Run the following command to get the catalog for your example instance:
-
-```sh
-curl http://localhost:8080/dap2/
-```
-
-You should get back a JSON response that looks something like this (pretty-printed here for readability):
-
-```json
-{
-  "dataset": [
-    {"identifier": "example_dataset", "title": "Example Dataset"}
-  ]
-}
-```
-
-Each object in the `dataset` array corresponds to a dataset that is available through LaTiS. The `identifier` is a unique identifier that we use to refer to datasets in queries.
-
-If you visit the catalog endpoint in your browser or make a request with a `Accept: text/html` header, you will receive an HTML rendering of the catalog instead.
-
-The default catalog is constructed from a directory of FDML files, which are XML files that describe the structure, location, and format of datasets to LaTiS. An in-depth description of the FDML format is forthcoming, but for now you can see the FDML files being used in the `example/datasets/fdml` directory. LaTiS also supports custom catalogs that construct datasets from other sources, like database tables, self-describing file formats, or other data access APIs.
-
-#### Datasets
-
-A dataset is a collection of data and metadata that can be queried, operated on, and written out in a variety of formats.
-
-A query is made using the dataset's identifier and an extension indicating the output format. This query will return the dataset's metadata:
-
-```sh
-curl http://localhost:8080/dap2/example_dataset.meta
-```
-
-You should get a response like this (pretty-printed here for readability):
-
-```json
-{
-  "id": "example_dataset",
-  "title": "Example Dataset",
-  "history": "",
-  "model": "time -> (temperature, wind_direction, wind_speed)",
-  "variable": [
-    {
-      "id": "time",
-      "type": "string",
-      "class": "latis.time.Time",
-      "units": "yyyy-MM-dd"
-    },
-    {
-      "id": "temperature",
-      "type": "int",
-      "units": "degree Fahrenheit"
-    },
-    {
-      "id": "wind_direction",
-      "type": "int",
-      "units": "degrees"
-    },
-    {
-      "id": "wind_speed",
-      "type": "int",
-      "units": "knots"
-    }
-  ]
-}
-```
-
-Dataset metadata includes the set of variables in the dataset and metadata about each variable, like units and data types, and the relationship between the variables, which we capture in the `model` field. This example dataset is temperature, wind direction, and wind speed as a function of time (as indicated by the `->` arrow).
-
-More documentation about the data model used by LaTiS is forthcoming, but the data model is part of what makes LaTiS so flexible.
-
-These queries will return the data in different formats:
-
-```sh
-curl http://localhost:8080/dap2/example_dataset.csv
-```
-
-```
-time,temperature,wind_direction,wind_speed
-2025-01-01,60,0,10
-2025-01-02,65,180,5
-2025-01-03,70,270,15
-2025-01-04,70,0,5
-2025-01-05,65,90,5
-2025-01-06,65,45,10
-2025-01-07,60,135,20
-2025-01-08,50,225,15
-2025-01-09,45,315,5
-2025-01-10,40,0,5
-```
-
-```sh
-curl http://localhost:8080/dap2/example_dataset.jsonl
-```
-
-```
-["2025-01-01",60,0,10]
-["2025-01-02",65,180,5]
-["2025-01-03",70,270,15]
-["2025-01-04",70,0,5]
-["2025-01-05",65,90,5]
-["2025-01-06",65,45,10]
-["2025-01-07",60,135,20]
-["2025-01-08",50,225,15]
-["2025-01-09",45,315,5]
-["2025-01-10",40,0,5]
-```
-
-LaTiS supports several output formats out of the box. You can also define your own.
-
-The following sections describe how to filter and operate on datasets.
-
-#### Projections
-
-A projection allows you to subset the variables returned by a query. Only variables that appear in a projection will appear in the result.
-
-A projection is written as a comma-separated list of the variable names to keep in the result. This will give you the temperature as a function of time:
-
-```sh
-curl 'http://localhost:8080/dap2/example_dataset.csv?time,temperature'
-```
-
-```
-time,temperature
-2025-01-01,60
-2025-01-02,65
-2025-01-03,70
-2025-01-04,70
-2025-01-05,65
-2025-01-06,65
-2025-01-07,60
-2025-01-08,50
-2025-01-09,45
-2025-01-10,40
-```
-
-This will give you the wind direction and speed as a function of time:
-
-```sh
-curl 'http://localhost:8080/dap2/example_dataset.csv?time,wind_direction,wind_speed'
-```
-
-```
-time,wind_direction,wind_speed
-2025-01-01,0,10
-2025-01-02,180,5
-2025-01-03,270,15
-2025-01-04,0,5
-2025-01-05,90,5
-2025-01-06,45,10
-2025-01-07,135,20
-2025-01-08,225,15
-2025-01-09,315,5
-2025-01-10,0,5
-```
-
-#### Selections
-
-A selection allows you to subset a dataset by the values of variables. A query can contain multiple selections. Only data that satisfies all of the selections will be included in the results.
-
-A selection is written as a variable name, a comparison operator, and a comparison value. Common comparison operators are `>`, `>=`, `<`, and `<=`. Note that `>` and `<` are not valid characters in URLs and must be encoded to `%3E` and `%3C` respectively.
-
-You can select on time to get data for certain days:
-
-```sh
-curl 'http://localhost:8080/dap2/example_dataset.csv?time%3E=2025-01-03&time%3C2025-01-05'
-```
-
-```
-time,temperature,wind_direction,wind_speed
-2025-01-03,70,270,15
-2025-01-04,70,0,5
-```
-
-You can also select on multiple variables:
-
-```sh
-curl 'http://localhost:8080/dap2/example_dataset.csv?wind_speed%3E=15&wind_direction%3E=90&wind_direction%3C=270'
-```
-
-```
-time,temperature,wind_direction,wind_speed
-2025-01-03,70,270,15
-2025-01-07,60,135,20
-2025-01-08,50,225,15
-```
-
-#### Time Conversion
-
-LaTiS can convert between time formats so you can get data in your desired time format regardless of the format used by the original dataset.
-
-You can convert times to different units using the `convertTime` operation:
-
-```sh
-curl 'http://localhost:8080/dap2/example_dataset.csv?convertTime(%22days%20since%202025-01-01%22)'
-```
-
-```
-time,temperature,wind_direction,wind_speed
-0.0,60,0,10
-1.0,65,180,5
-2.0,70,270,15
-3.0,70,0,5
-4.0,65,90,5
-5.0,65,45,10
-6.0,60,135,20
-7.0,50,225,15
-8.0,45,315,5
-9.0,40,0,5
-```
-
-You can change how formatted times are displayed using the `formatTime` operation:
-
-```sh
-curl 'http://localhost:8080/dap2/example_dataset.csv?formatTime(%22yyyy-DDD%22)'
-```
-
-```
-2025-001,60,0,10
-2025-002,65,180,5
-2025-003,70,270,15
-2025-004,70,0,5
-2025-005,65,90,5
-2025-006,65,45,10
-2025-007,60,135,20
-2025-008,50,225,15
-2025-009,45,315,5
-2025-010,40,0,5
-```
-
-Note that double quotes and spaces are not allowed in URLs, so they are encoded to `%22` and `%20` respectively.
-
-#### Other Operations
-
-LaTiS supports a number of other operations for manipulating datasets. You can also define your own. Here are some examples.
-
-The `take` operation returns only the first N values:
-
-```sh
-curl 'http://localhost:8080/dap2/example_dataset.csv?take(3)'
-```
-
-```
-time,temperature,wind_direction,wind_speed
-2025-01-01,60,0,10
-2025-01-02,65,180,5
-2025-01-03,70,270,15
-```
-
-The `rename` operation renames variables:
-
-```sh
-curl 'http://localhost:8080/dap2/example_dataset.csv?rename(temperature,t)&rename(wind_speed,s)&rename(wind_direction,d)'
-```
-
-```
-time,t,d,s
-2025-01-01,60,0,10
-2025-01-02,65,180,5
-2025-01-03,70,270,15
-2025-01-04,70,0,5
-2025-01-05,65,90,5
-2025-01-06,65,45,10
-2025-01-07,60,135,20
-2025-01-08,50,225,15
-2025-01-09,45,315,5
-2025-01-10,40,0,5
-```
-
-The `countBy` operation returns how many times a value appears in a dataset:
-
-```sh
-curl 'http://localhost:8080/dap2/example_dataset.csv?countBy(temperature)'
-```
-
-```
-temperature,count
-40,1
-45,1
-50,1
-60,2
-65,3
-70,2
-```
-
-#### Stopping the Instance
-
-Run the following to stop the example server:
-
-```
-sbt:latis3> example/reStop
-```
+The recommended way to install SBT is to first install [Coursier](https://get-coursier.io/), an application and artifact 
+manager for Scala, and then run `cs setup`. See the [Couriser documentation](https://get-coursier.io/docs/cli-installation) 
+for installation instructions. Then follow the [SBT documentation](https://www.scala-sbt.org/download/) for continuing 
+with the SBT installation.
+
+If you use [Nix](https://nixos.org/), simply run `nix develop` to enter a development environment that includes SBT.
+
+### <a name="latis-install"></a> Building and installing LaTiS
+TBA
 
 ### <a name="docker"></a> Running with Docker
 
@@ -336,7 +125,7 @@ Run the following to create the Docker image:
 sbt server/docker
 ```
 
-Then run something like the following to run the server:
+Then run something like (TODO: why "like"? What could be different?) the following to run the server:
 
 ```sh
 docker run -p 8080:8080 --mount type=bind,src=<dataset-dir>,dst=/datasets/fdml io.latis-data/latis3:0.1.0-SNAPSHOT
@@ -363,3 +152,8 @@ java -Dlatis.fdml.dir=<dataset-dir> -jar <path-to-jar>
 ```
 
 `<dataset-dir>` should be replaced with the path to a directory of FDML files.
+
+## Contributors
+Our main contributors:
+* [@dlinhol](https://www.github.com/dlindhol)
+* [@lindholc](https://github.com/lindholc)
