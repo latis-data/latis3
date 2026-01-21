@@ -55,7 +55,8 @@ case class CurryRight(n: Int) extends StreamOperation {
     validate(model).toEither.leftMap(_.head).flatMap { _ =>
       model match {
         case Function(domain, range) =>
-          val (ss1, ss2) = domain.getScalars.splitAt(n)
+          val ss = domain.getScalars
+          val (ss1, ss2) = (ss.dropRight(n), ss.takeRight(n))
           for {
             d1 <- makeDomain(ss1)
             d2 <- makeDomain(ss2)
