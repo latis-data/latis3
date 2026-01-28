@@ -21,7 +21,8 @@ class AdaptedDataset(
   _model: DataType,
   adapter: Adapter,
   uri: URI,
-  operations: List[UnaryOperation] = List.empty
+  operations: List[UnaryOperation] = List.empty,
+  compiler: List[UnaryOperation] => List[UnaryOperation] = identity
 ) extends AbstractDataset(
   _metadata,
   _model,
@@ -38,7 +39,8 @@ class AdaptedDataset(
       _model,
       adapter: Adapter,
       uri: URI,
-      operations :+ operation
+      operations :+ operation,
+      compiler
     )
 
   /**
@@ -50,9 +52,12 @@ class AdaptedDataset(
   def tap(): Either[LatisException, TappedDataset] = {
     // Separate leading operation that the adapter can handle
     // from the rest. Note that we must preserve the order for safety.
-    //TODO: "compile" the Operations to optimize the order of application
-    val adapterOps = operations.takeWhile(adapter.canHandleOperation(_))
-    val otherOps   = operations.drop(adapterOps.length)
+
+    // "Compile" the Operations to optimize the order of application
+    val ops = compiler(operations)
+
+    val adapterOps = ops.takeWhile(adapter.canHandleOperation(_))
+    val otherOps   = ops.drop(adapterOps.length)
 
     //TODO: add prov for adapter handled ops
 
