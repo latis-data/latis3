@@ -24,7 +24,7 @@ class BoundsSuite extends FunSuite {
     assert(bounds.contains(-1))
   }
 
-  test("does not contain upper bound") {
+  test("default bounds does not contain upper bound") {
     assert(!bounds.contains(2))
   }
 
@@ -37,29 +37,39 @@ class BoundsSuite extends FunSuite {
   }
 
   test("point contains") {
-    assert(Bounds.inclusive(0, 0).contains(0))
+    assert(PointBounds(0).contains(0))
   }
 
   test("point does not contain") {
-    assert(! Bounds.inclusive(0, 0).contains(1))
+    assert(! PointBounds(0).contains(1))
+  }
+
+  test("equal inclusive bounds contains") {
+    assert(Bounds.of(0, 0, true).contains(0))
+  }
+
+  test("equal exclusive bounds does not contain") {
+    assert(! Bounds.of(0, 0).contains(0))
   }
 
   test("empty if equal and not inclusive") {
     assert(Bounds.of(0, 0).isEmpty)
   }
 
-  test("invalid if NaN") {
+  test("empty if NaN") {
     assert(Bounds.of(Double.NaN, 0d).isEmpty)
     assert(Bounds.of(0d, Double.NaN).isEmpty)
     assert(Bounds.of(Double.NaN, Double.NaN).isEmpty)
   }
 
   test("infinite bounds") {
-    val infBounds = Bounds.of(Double.NegativeInfinity, Double.PositiveInfinity)
-    assert(infBounds.contains(0))
+    val infBounds = Bounds.unbounded[Double]
+    assert(infBounds.contains(0.0))
     assert(infBounds.contains(Double.NegativeInfinity))
-    assert(!infBounds.contains(Double.PositiveInfinity))
+    assert(infBounds.contains(Double.PositiveInfinity))
     assert(!infBounds.contains(Double.NaN))
+    assert(infBounds.constrainLower(1.0).contains(1.0)) //inclusive
+    assert(! infBounds.constrainUpper(1.0).contains(1.0)) //exclusive
   }
 
   test("string bounds") {
@@ -78,7 +88,7 @@ class BoundsSuite extends FunSuite {
       case NonEmptyBounds(ClosedBound(l), OpenBound(u)) =>
         assert(l == -1D)
         assert(u == 2D)
-      case _ => fail("Expected bounds [)")
+      case _ => fail("unexpected bounds")
     }
   }
 
@@ -119,7 +129,15 @@ class BoundsSuite extends FunSuite {
   }
 
   test("Bound equality") {
-    assert(bounds == Bounds.of(-1, 2))
+    assertEquals(bounds, Bounds.of(-1.0, 2.0))
+  }
+
+  test("empty Bounds equality") {
+    assertEquals(Bounds.empty[Int], Bounds.empty[Int])
+  }
+
+  test("unbounded Bounds equality") {
+    assertEquals(Bounds.unbounded[Int], Bounds.unbounded[Int])
   }
 
   test("to string") {
