@@ -90,15 +90,15 @@ final case class NonEmptyBounds[T: PartialOrder] private[util] (
   }
 
   override def toString: String = (lower, upper) match {
-    case (ClosedBound(l),      ClosedBound(u))   => s"[$l,$u]"
-    case (ClosedBound(l),      OpenBound(u))     => s"[$l,$u)"
-    case (OpenBound(l),        ClosedBound(u))   => s"($l,$u]"
-    case (OpenBound(l),        OpenBound(u))     => s"($l,$u)"
-    case (_: InfiniteBound[T], ClosedBound(u))   => s"(-inf,$u]"
-    case (_: InfiniteBound[T], OpenBound(u))     => s"(-inf,$u)"
-    case (ClosedBound(l),   _: InfiniteBound[T]) => s"[$l,inf)"
-    case (OpenBound(l),     _: InfiniteBound[T]) => s"($l,inf)"
-    case (_, _) => "" //keep compiler happy
+    case (ClosedBound(l),  ClosedBound(u))   => s"[$l,$u]"
+    case (ClosedBound(l),  OpenBound(u))     => s"[$l,$u)"
+    case (OpenBound(l),    ClosedBound(u))   => s"($l,$u]"
+    case (OpenBound(l),    OpenBound(u))     => s"($l,$u)"
+    case (InfiniteBound(), ClosedBound(u))   => s"(-inf,$u]"
+    case (InfiniteBound(), OpenBound(u))     => s"(-inf,$u)"
+    case (ClosedBound(l),  InfiniteBound())  => s"[$l,inf)"
+    case (OpenBound(l),    InfiniteBound())  => s"($l,inf)"
+    case (_, _) => "" //not reachable, keep compiler happy
   }
 }
 
