@@ -1,7 +1,6 @@
 package latis.util
 
 import cats.*
-import cats.syntax.all.*
 
 /**
  * [[Bounds]] represent the lower and upper extents of a coverage.
@@ -64,11 +63,9 @@ final case class NonEmptyBounds[T: PartialOrder] private[util] (
           case _: InfiniteBound[T] => NonEmptyBounds(ClosedBound(value), upper)
         }
       else Bounds.empty //value exceeds upper bound
-    } else value match {
-      case d: Double if d.isNaN => Bounds.empty
-      case f: Float  if f.isNaN => Bounds.empty
-      case _ => this
     }
+    else if (isNaN(value)) Bounds.empty
+    else this
   }
 
   def constrainUpper(value: T): Bounds[T] = {
@@ -82,11 +79,8 @@ final case class NonEmptyBounds[T: PartialOrder] private[util] (
         }
       else Bounds.empty //value exceeds lower bound
     }
-    else value match {
-      case d: Double if d.isNaN => Bounds.empty
-      case f: Float  if f.isNaN => Bounds.empty
-      case _ => this
-    }
+    else if (isNaN(value)) Bounds.empty
+    else this
   }
 
   override def toString: String = (lower, upper) match {
@@ -98,7 +92,7 @@ final case class NonEmptyBounds[T: PartialOrder] private[util] (
     case (InfiniteBound(), OpenBound(u))     => s"(-inf,$u)"
     case (ClosedBound(l),  InfiniteBound())  => s"[$l,inf)"
     case (OpenBound(l),    InfiniteBound())  => s"($l,inf)"
-    case (_, _) => "" //not reachable, keep compiler happy
+    case (InfiniteBound(), InfiniteBound())  => s"(-inf,inf)"
   }
 }
 
@@ -124,7 +118,7 @@ final case class EmptyBounds[T: PartialOrder] private[util] ()
 
 object Bounds {
 
-  def empty[T](using ord: PartialOrder[T]): Bounds[T] = new EmptyBounds
+  def empty[T: PartialOrder]: Bounds[T] = new EmptyBounds
 
   /**
    * Constructs [[Bounds]] with the given lower and upper bounds.
@@ -207,10 +201,6 @@ final case class ClosedBound[T] private[util] (private val value: T)
   def boundsLower(v: T): Boolean = ord.lteqv(value, v)
   def boundsUpper(v: T): Boolean = ord.gteqv(value, v)
 }
-object ClosedBound {
-  def unapply[T](bound: ClosedBound[T]): Option[T] =
-    bound.value.some
-}
 
 /** Defines a [[Bound]] that is exclusive. */
 final case class OpenBound[T] private[util] (private val value: T)
@@ -218,11 +208,8 @@ final case class OpenBound[T] private[util] (private val value: T)
   def boundsLower(v: T): Boolean = ord.lt(value, v)
   def boundsUpper(v: T): Boolean = ord.gt(value, v)
 }
-object OpenBound {
-  def unapply[T](bound: OpenBound[T]): Option[T] =
-    bound.value.some
-}
 
+/** Defines a [[Bound]] that does not constrain. */
 final case class InfiniteBound[T] private[util] () extends Bound[T] {
   def boundsLower(v: T): Boolean = ! isNaN(v)
   def boundsUpper(v: T): Boolean = ! isNaN(v)
