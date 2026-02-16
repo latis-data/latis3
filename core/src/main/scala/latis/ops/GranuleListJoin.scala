@@ -24,6 +24,7 @@ case class GranuleListJoin(
   granuleAdapter: Adapter
 ) extends UnaryOperation {
   //TODO: rename to GranuleListAppend?
+  //TODO: use a Join?
 
   /**
    * Replaces the original model (of the granule list dataset)

@@ -17,6 +17,7 @@ case class PartiallyAppliedBinaryOperation(
 ) extends UnaryOperation {
   //TODO: provide both left and right versions
   //TODO: capture 1st dataset in prov
+  //TODO: method on BinaryOperation
 
   override def applyToModel(model: DataType): Either[LatisException, DataType] =
     binOp.applyToModel(dataset.model, model)
