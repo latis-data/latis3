@@ -1,5 +1,6 @@
 package latis.ops
 
+
 import munit.CatsEffectSuite
 
 import latis.data.DomainData
@@ -13,11 +14,16 @@ import latis.util.Identifier.id
 
 class OuterJoinSuite extends CatsEffectSuite {
 
+  // Prevent test from timing out so we can run in debugger
+  import scala.concurrent.duration.DurationInt
+  override val munitIOTimeout = 5.minutes
+
   private lazy val ds1 = {
     val metadata = Metadata(id"test1")
     val model = ModelParser.unsafeParse("x: int -> a: double")
     val samples = List(
       Sample(DomainData(1), RangeData(1.2)),
+      Sample(DomainData(2), RangeData(2.4)),
       Sample(DomainData(3), RangeData(3.6))
     )
     new MemoizedDataset(metadata, model, SampledFunction(samples))
