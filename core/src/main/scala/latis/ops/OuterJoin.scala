@@ -13,15 +13,13 @@ import latis.util.CartesianDomainOrdering
 import latis.util.LatisException
 
 /**
- *
- *
- * An outer join keeps all samples from both datasets
- * may need fill
- *
- * May be 0-arity
- * Range can have any type.
- * Assumes all range vars are unique, would need to rename
- * Note that if there is the same var in both, then the user should project before join
+ * Binary operation to combine datasets "horizontally".
+ * 
+ * This expects that the domains of each match (could be 0-arity)
+ * and assumes the range variables are all different. If one has a
+ * sample for a given domain value where the other doesn't, fill data 
+ * will be inserted. If there is no fillValue defined for the variable
+ * the fill will be NullData.
  */
 class OuterJoin extends Join2 { //TODO: need model to apply to data
   //TODO: consider chunk size
@@ -29,7 +27,6 @@ class OuterJoin extends Join2 { //TODO: need model to apply to data
   //  does that mean we need a big connection pool to join a lot of items?
   //  when is the connection released? after exhausting result set?
   //TODO: left and right outer join with boolean?
-
 
   //TODO!!: deal with duplicate names
   //  e.g. all telemetry have dn, value
@@ -51,7 +48,6 @@ class OuterJoin extends Join2 { //TODO: need model to apply to data
     model2: DataType,
     c2: Chunk[Sample]
   ): (Chunk[Sample], Chunk[Sample], Chunk[Sample]) = {
-    //TODO: make sure model domains are the same
 
     // Define a PartialOrder for domain data
     val ord = PartialOrder.fromPartialOrdering {
@@ -68,30 +64,49 @@ class OuterJoin extends Join2 { //TODO: need model to apply to data
       l1: List[Sample],
       l2: List[Sample]
     ): (Chain[Sample], List[Sample], List[Sample]) = {
-      if (l1.isEmpty || l2.isEmpty) (acc, l1, l2) //done here
-      else {
+      if (l1.nonEmpty && l2.nonEmpty) {
         val sample1 = l1.head
         val sample2 = l2.head
-        if (ord.eqv(sample1.domain, sample2.domain)) { //same domain so join range
+        if (ord.eqv(sample1.domain, sample2.domain)) { 
+          // Same domain so join range
           val s = Sample(sample1.domain, sample1.range ++ sample2.range)
           go(acc :+ s, l1.tail, l2.tail)
         }
         else if (ord.lt(sample1.domain, sample2.domain)) {
           // Fill on the right, may be NullData
-          val range = sample1.range ++ rangeVariables(model2).map(_.fillData)
-          val sample = Sample(sample1.domain, range)
-          go(acc :+ sample, l1.tail, l2)
-        } else {
+          go(acc :+ fillRight(model2, sample1), l1.tail, l2)
+        } else if (ord.gt(sample1.domain, sample2.domain)) {
           // Fill on the left, may be NullData
-          val range = rangeVariables(model1).map(_.fillData) ++ sample2.range
-          val sample = Sample(sample2.domain, range)
-          go(acc :+ sample, l1, l2.tail)
+          go(acc :+ fillLeft(model1, sample2), l1, l2.tail)
         }
-      }
+        else ??? //TODO: invalid samples, domains not comparable
+      } else (acc, l1, l2)
     }
 
-    val (acc, r1, r2) = go(Chain.empty, c1.toList, c2.toList)
-    (Chunk.chain(acc), Chunk.from(r1), Chunk.from(r2))
+    // Handle empty chunks by filling or recursively join.
+    // Note, we can't do this test above because they may be empty while recursing.
+    if (c1.isEmpty && c2.isEmpty) { //nothing in, nothing out
+      (Chunk.empty, Chunk.empty, Chunk.empty)
+    } else if (c1.isEmpty) {       //fill left
+      val q = c2.map(fillLeft(model1, _))
+      (q, Chunk.empty, Chunk.empty)
+    } else if (c2.isEmpty) {       //fill right
+      val q = c1.map(fillRight(model1, _))
+      (q, Chunk.empty, Chunk.empty)
+    } else {
+      val (acc, r1, r2) = go(Chain.empty, c1.toList, c2.toList)
+      (Chunk.chain(acc), Chunk.from(r1), Chunk.from(r2))
+    }
+  }
+
+  private def fillLeft(model: DataType, sample: Sample): Sample = {
+    val range  = rangeVariables(model).map(_.fillData) ++ sample.range
+    Sample(sample.domain, range)
+  }
+
+  private def fillRight(model: DataType, sample: Sample): Sample = {
+    val range  =  sample.range ++ rangeVariables(model).map(_.fillData)
+    Sample(sample.domain, range)
   }
 
   /**
