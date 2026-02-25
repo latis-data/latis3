@@ -39,9 +39,9 @@ import latis.util.LatisException
  * Joins can be used by a CompositeDataset while enabling operation
  * push-down to member Datasets.
  */
-trait Join2 extends Operation {
-  //TODO: replace Join, this includes models in appyToData
-  //TODO: use for CompositeDataset, needs to use join for model
+trait Join2 extends BinaryOperation2 {
+  //TODO: replace Join
+  //TODO: use for CompositeDataset, needs to use join for model, had been assuming vertical join
 
   // Returns the new chunk and the remainder of the other two
   def joinChunks(
@@ -53,65 +53,43 @@ trait Join2 extends Operation {
 
   def applyToModel(model1: DataType, model2: DataType): Either[LatisException, DataType]
 
-  //TODO: do in terms of Stream?
-  def applyToData(
+  override def applyToData(
     model1: DataType,
-    data1: Data,
+    stream1: Stream[IO, Sample],
     model2: DataType,
-    data2: Data
-  ): Either[LatisException, Data] = {
-    def go(
-      leg1: Stream.StepLeg[IO, Sample],
-      leg2: Stream.StepLeg[IO, Sample]
-    ): Pull[IO, Sample, Unit] = {
-      //val z = (leg1.head.isEmpty, leg2.head.isEmpty) match {
-      //  case (true, true)   => Pull.done
-      //  case (false, false) =>
-      //}
-      val (chunk, c1, c2) = joinChunks(model1, leg1.head, model2, leg2.head)
-      Pull.output(chunk) >> {                                   //keep the merged chunk and append...
-        if (c1.isEmpty && c2.isEmpty) leg1.stepLeg.flatMap {
-          case Some(l1) => leg2.stepLeg.flatMap {
-            case Some(l2) => go(leg1, leg2)                   //resume with next chunk from each stream
-            case None =>
-              //TODO: need to go until both legs empty
-              //  or responsibility of joinChunks?
+    stream2: Stream[IO, Sample],
+  ): Either[LatisException, Stream[IO, Sample]] = {
 
-              Pull.output(l1.head) >> l1.stream.pull.echo   //right stream empty, reconstitute left stream
-          }
-          case None => leg2.stream.pull.echo                    //left stream empty, keep rest of right stream
-        } else if (c1.isEmpty) leg1.stepLeg.flatMap {
-          case Some(leg1) => go(leg1, leg2.setHead(c2))         //resume with next chunk of s1 and remainder of c2
-          case None => Pull.output(c2) >> leg2.stream.pull.echo //left stream empty, reconstitute right stream
-        } else leg2.stepLeg.flatMap {
-          case Some(leg2) => go(leg1.setHead(c1), leg2)         //resume with remainder of c1 and next chunk of s2
-          case None => Pull.output(c1) >> leg1.stream.pull.echo //right stream empty, reconstitute left stream
-        }
+    def go(
+      leg1: Option[Stream.StepLeg[IO, Sample]],
+      leg2: Option[Stream.StepLeg[IO, Sample]]
+    ): Pull[IO, Sample, Unit] = {
+      //TODO: do we need Option?
+
+      val chunk1 = leg1.map(_.head).getOrElse(Chunk.empty)
+      val chunk2 = leg2.map(_.head).getOrElse(Chunk.empty)
+      val (chunk, c1, c2) = joinChunks(model1, chunk1, model2, chunk2)
+
+      //TODO: should we test all empty? or rely on joinChunks?
+      //if (chunk.isEmpty && c1.isEmpty && c2.isEmpty) Pull.done //inf loop looking for more on empty s1
+      if (chunk.isEmpty) Pull.done
+      else Pull.output(chunk) >> { //output joined chunk, recurse with the rest
+        if (c1.isEmpty && c2.isEmpty) {
+          (leg1.flatTraverse(_.stepLeg), leg2.flatTraverse(_.stepLeg))
+            .mapN(go).flatten
+        } else if (c1.isEmpty) leg1.flatTraverse(_.stepLeg).flatMap {
+          case Some(l1) => go(l1.some, leg2)
+          case None     => go(None, leg2)
+        } else if (c2.isEmpty) leg2.flatTraverse(_.stepLeg).flatMap {
+          case Some(l2) => go(leg1, l2.some)
+          case None     => go(leg1, None)
+        } else ??? //leftover samples from both streams, valid case?
       }
     }
 
-    val s1 = data1.samples
-    val s2 = data2.samples
-
-    //TODO: allow empty stream
-    //  this designed for append
-    //val z = {
-    //  val a = s1.pull.stepLeg
-    //  val b = s2.pull.stepLeg
-    //  val q = (a, b).map2 { p =>
-    //    ???
-    //  }
-    //}
-    // Start pulling from the Streams
-    val samples = s1.pull.stepLeg.flatMap {
-      case Some(l1) => s2.pull.stepLeg.flatMap {
-        case Some(l2) => go(l1, l2)
-        case None => s1.pull.echo //s2 empty
-      }
-      case None => s2.pull.echo //s1 empty
-    }.stream //turn the Pull back into a Stream
-
-    StreamFunction(samples).asRight
+    // Start pulling from the Streams and recurse
+    (stream1.pull.stepLeg, stream2.pull.stepLeg)
+      .mapN(go).flatten.stream.asRight
   }
 
   //TODO: who calls this?
@@ -133,11 +111,11 @@ trait Join2 extends Operation {
       Metadata(props *)
     }
     val model = applyToModel(ds1.model, ds2.model).fold(throw _, identity)
-    val data = applyToData(
-      ds1.model, StreamFunction(ds1.samples),
-      ds2.model, StreamFunction(ds2.samples)
+    val samples = applyToData(
+      ds1.model, ds1.samples,
+      ds2.model, ds2.samples
     ).fold(throw _, identity)
-    new TappedDataset(md, model, data)
+    new TappedDataset(md, model, StreamFunction(samples))
   }
 
   /**
