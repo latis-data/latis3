@@ -14,19 +14,27 @@ import latis.util.LatisException
 /**
  * Binary operation to combine datasets "horizontally".
  *
+ * The resulting domain will remain unchanged and the range variables
+ * from each dataset will be included in the resulting range.
  * This expects that the domains of each match (could be 0-arity)
  * and assumes the range variables are all different. If one has a
- * sample for a given domain value where the other doesn't, fill data
- * will be inserted. If there is no fillValue defined for the variable
- * the fill will be NullData.
+ * sample for a given domain value where the other doesn't, the
+ * HorizontalJoinType will specify the behavior:
+ *  - [[Full]] All samples are kept with fill values
+ *  - [[Left]] All samples from the first dataset are kept
+ *             with fill values for the second
+ *  - [[Right]] All samples from the second dataset are kept
+ *              with fill values for the first
+ *  - [[Inner]] Only samples with the same domain values are kept
  */
-class OuterJoin(joinType: OuterJoinType = OuterJoinType.Full) extends Join {
+class HorizontalJoin(joinType: HorizontalJoinType = HorizontalJoinType.Full) extends Join {
   //TODO: consider chunk size
   //TODO: do we need to timeout? e.g. no more db connections deadlock
   //  does that mean we need a big/elastic connection pool to join a lot of items?
 
   //TODO!!: deal with duplicate names
   //  e.g. all telemetry have dn, value
+  //  will Tuple creation fail?
   //  prepend dataset name? but don't have access to dataset
   //  append _#?
   //  do via combine where we do have datasets?
@@ -73,12 +81,12 @@ class OuterJoin(joinType: OuterJoinType = OuterJoinType.Full) extends Join {
         }
         else if (ord.lt(sample1.domain, sample2.domain)) {
           // Fill on the right if not a right join, may be NullData
-          if (isRight) go(acc, c1.drop(1), c2)
-          else go(acc ++ fillRight(model2, Chunk(sample1)), c1.drop(1), c2)
+          if (fillRight) go(acc ++ fillRight(model2, Chunk(sample1)), c1.drop(1), c2)
+          else go(acc, c1.drop(1), c2)
         } else if (ord.gt(sample1.domain, sample2.domain)) {
           // Fill on the left if not a left join, may be NullData
-          if (isLeft) go(acc, c1, c2.drop(1))
-          else go(acc ++ fillLeft(model1, Chunk(sample2)), c1, c2.drop(1))
+          if (fillLeft) go(acc ++ fillLeft(model1, Chunk(sample2)), c1, c2.drop(1))
+          else go(acc, c1, c2.drop(1))
         }
         else ??? //TODO: invalid samples, domains not comparable
       } else (acc, c1, c2)
@@ -88,12 +96,12 @@ class OuterJoin(joinType: OuterJoinType = OuterJoinType.Full) extends Join {
     // Note, we can't do this test above because they may be empty while recursing.
     if (c1.isEmpty && c2.isEmpty) (Chunk.empty, Chunk.empty, Chunk.empty)
     else if (c1.isEmpty) {
-      if (isLeft) (Chunk.empty, Chunk.empty, Chunk.empty)
-      else (fillLeft(model1, c2), Chunk.empty, Chunk.empty)
+      if (fillLeft) (fillLeft(model1, c2), Chunk.empty, Chunk.empty)
+      else (Chunk.empty, Chunk.empty, Chunk.empty)
     }
     else if (c2.isEmpty) {
-      if (isRight) (Chunk.empty, Chunk.empty, Chunk.empty)
-      else (fillRight(model2, c1), Chunk.empty, Chunk.empty)
+      if (fillRight) (fillRight(model2, c1), Chunk.empty, Chunk.empty)
+      else (Chunk.empty, Chunk.empty, Chunk.empty)
     }
     else go(Chunk.empty, c1, c2)
   }
@@ -128,9 +136,16 @@ class OuterJoin(joinType: OuterJoinType = OuterJoinType.Full) extends Join {
     case s: Scalar   => List(s)   //0-arity
   }
 
-  private def isLeft: Boolean  = this.joinType == OuterJoinType.Left
-  private def isRight: Boolean = this.joinType == OuterJoinType.Right
+  /** Should this join include missing samples in the first dataset */
+  private def fillLeft: Boolean =
+    this.joinType == HorizontalJoinType.Right ||
+      this.joinType == HorizontalJoinType.Full
+
+  /** Should this join include missing samples in the second dataset */
+  private def fillRight: Boolean =
+    this.joinType == HorizontalJoinType.Left ||
+      this.joinType == HorizontalJoinType.Full
 }
 
-enum OuterJoinType:
-  case Full, Left, Right
+enum HorizontalJoinType:
+  case Full, Left, Right, Inner
