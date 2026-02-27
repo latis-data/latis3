@@ -43,4 +43,8 @@ class OuterJoinSuite extends CatsEffectSuite {
     val ds = OuterJoin().combine(ds1, ds2)
     ds.show()
   }
+  test("sorted join") {
+    val ds = SortedJoin().combine(ds1, ds2)
+    ds.show()
+  }
 }
