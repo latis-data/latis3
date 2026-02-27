@@ -66,9 +66,7 @@ trait Join extends BinaryOperation2 {
       val chunk2 = leg2.map(_.head).getOrElse(Chunk.empty)
       val (chunk, c1, c2) = joinChunks(model1, chunk1, model2, chunk2)
 
-      //TODO: should we test all empty? or rely on joinChunks?
-      //if (chunk.isEmpty && c1.isEmpty && c2.isEmpty) Pull.done //inf loop looking for more on empty s1
-      if (chunk.isEmpty) Pull.done
+      if (chunk.isEmpty && c1.isEmpty && c2.isEmpty) Pull.done 
       else Pull.output(chunk) >> { //output joined chunk, recurse with the rest
         if (c1.isEmpty && c2.isEmpty) {
           (leg1.flatTraverse(_.stepLeg), leg2.flatTraverse(_.stepLeg))
