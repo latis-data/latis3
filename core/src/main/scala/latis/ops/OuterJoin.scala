@@ -14,10 +14,10 @@ import latis.util.LatisException
 
 /**
  * Binary operation to combine datasets "horizontally".
- * 
+ *
  * This expects that the domains of each match (could be 0-arity)
  * and assumes the range variables are all different. If one has a
- * sample for a given domain value where the other doesn't, fill data 
+ * sample for a given domain value where the other doesn't, fill data
  * will be inserted. If there is no fillValue defined for the variable
  * the fill will be NullData.
  */
@@ -61,26 +61,26 @@ class OuterJoin extends Join2 { //TODO: need model to apply to data
     @tailrec
     def go(
       acc: Chain[Sample],
-      l1: List[Sample],
-      l2: List[Sample]
-    ): (Chain[Sample], List[Sample], List[Sample]) = {
-      if (l1.nonEmpty && l2.nonEmpty) {
-        val sample1 = l1.head
-        val sample2 = l2.head
-        if (ord.eqv(sample1.domain, sample2.domain)) { 
+      c1: Chunk[Sample],
+      c2: Chunk[Sample]
+    ): (Chain[Sample], Chunk[Sample], Chunk[Sample]) = {
+      if (c1.nonEmpty && c2.nonEmpty) {
+        val sample1 = c1.head.get
+        val sample2 = c2.head.get
+        if (ord.eqv(sample1.domain, sample2.domain)) {
           // Same domain so join range
           val s = Sample(sample1.domain, sample1.range ++ sample2.range)
-          go(acc :+ s, l1.tail, l2.tail)
+          go(acc :+ s, c1.drop(1), c2.drop(1))
         }
         else if (ord.lt(sample1.domain, sample2.domain)) {
           // Fill on the right, may be NullData
-          go(acc :+ fillRight(model2, sample1), l1.tail, l2)
+          go(acc :+ fillRight(model2, sample1), c1.drop(1), c2)
         } else if (ord.gt(sample1.domain, sample2.domain)) {
           // Fill on the left, may be NullData
-          go(acc :+ fillLeft(model1, sample2), l1, l2.tail)
+          go(acc :+ fillLeft(model1, sample2), c1, c2.drop(1))
         }
         else ??? //TODO: invalid samples, domains not comparable
-      } else (acc, l1, l2)
+      } else (acc, c1, c2)
     }
 
     // Handle empty chunks by filling or recursively join.
@@ -94,8 +94,8 @@ class OuterJoin extends Join2 { //TODO: need model to apply to data
       val q = c1.map(fillRight(model1, _))
       (q, Chunk.empty, Chunk.empty)
     } else {
-      val (acc, r1, r2) = go(Chain.empty, c1.toList, c2.toList)
-      (Chunk.chain(acc), Chunk.from(r1), Chunk.from(r2))
+      val (acc, r1, r2) = go(Chain.empty, c1, c2)
+      (Chunk.chain(acc), r1, r2)
     }
   }
 
