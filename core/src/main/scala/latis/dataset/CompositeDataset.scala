@@ -24,9 +24,11 @@ class CompositeDataset private (
   granuleOps: List[UnaryOperation] = List.empty, //ops to be applied to granules before the join
   afterOps: List[UnaryOperation] = List.empty    //ops to be applied after the join
 ) extends Dataset {
-  //TODO: support "horizontal" joins: datasets with different models (i.e. diff set of variables, combine "columns")
-
-  //TODO: make richer metadata, prov
+  //TODO!: support "horizontal" joins: datasets with different models (i.e. diff set of variables, combine "columns")
+  // use join for model
+  
+  //TODO!: make richer metadata, prov
+  //  see Join2.combine
   override def metadata: Metadata = md
 
   def operations: List[UnaryOperation] = granuleOps ++ afterOps
@@ -38,8 +40,8 @@ class CompositeDataset private (
   def withOperation(op: UnaryOperation): Dataset = {
     if (nonReappliedAfterOps.isEmpty) op match {
       //TODO: push down other operations?
-      //TODO: make sure granule (after current granuleOps application) has target variable? or no-op?
-        //matters for joins with different models, not Append or Sorted
+      //TODO: make sure granule (after current granuleOps application) has target variable
+      //  matters for joins with different models
       case _: Filter       => copyWithOperationForGranule(op)
       case _: MapOperation => copyWithOperationForGranule(op)
       case _: Rename       => copyWithOperationForGranule(op)
