@@ -2,7 +2,6 @@ package latis.ops
 
 import scala.annotation.tailrec
 
-import cats.data.Chain
 import cats.syntax.all.*
 import cats.PartialOrder
 import fs2.*
@@ -21,16 +20,21 @@ import latis.util.LatisException
  * will be inserted. If there is no fillValue defined for the variable
  * the fill will be NullData.
  */
-class OuterJoin extends Join2 { //TODO: need model to apply to data
+class OuterJoin extends Join2 {
   //TODO: consider chunk size
-  //TODO: do we need to timeout? e.g. no more connections deadlock
-  //  does that mean we need a big connection pool to join a lot of items?
-  //  when is the connection released? after exhausting result set?
-  //TODO: left and right outer join with boolean?
+  //TODO: do we need to timeout? e.g. no more db connections deadlock
+  //  does that mean we need a big/elastic connection pool to join a lot of items?
+
+//TODO: left and right outer join with boolean?, inner
+//  class HorizontalJoin(joinType: String) {
+//  
+//  }
 
   //TODO!!: deal with duplicate names
   //  e.g. all telemetry have dn, value
   //  prepend dataset name? but don't have access to dataset
+  //  append _#?
+  //  do via combine where we do have datasets?
   override def applyToModel(model1: DataType, model2: DataType): Either[LatisException, DataType] = {
     if (equivalentDomain(model1, model2)) {
       val range = Tuple.fromSeq(rangeVariables(model1) ++ rangeVariables(model2))
@@ -60,24 +64,24 @@ class OuterJoin extends Join2 { //TODO: need model to apply to data
 
     @tailrec
     def go(
-      acc: Chain[Sample],
+      acc: Chunk[Sample],
       c1: Chunk[Sample],
       c2: Chunk[Sample]
-    ): (Chain[Sample], Chunk[Sample], Chunk[Sample]) = {
+    ): (Chunk[Sample], Chunk[Sample], Chunk[Sample]) = {
       if (c1.nonEmpty && c2.nonEmpty) {
         val sample1 = c1.head.get
         val sample2 = c2.head.get
         if (ord.eqv(sample1.domain, sample2.domain)) {
           // Same domain so join range
           val s = Sample(sample1.domain, sample1.range ++ sample2.range)
-          go(acc :+ s, c1.drop(1), c2.drop(1))
+          go(acc ++ Chunk(s), c1.drop(1), c2.drop(1))
         }
         else if (ord.lt(sample1.domain, sample2.domain)) {
           // Fill on the right, may be NullData
-          go(acc :+ fillRight(model2, sample1), c1.drop(1), c2)
+          go(acc ++ fillRight(model2, Chunk(sample1)), c1.drop(1), c2)
         } else if (ord.gt(sample1.domain, sample2.domain)) {
           // Fill on the left, may be NullData
-          go(acc :+ fillLeft(model1, sample2), c1, c2.drop(1))
+          go(acc ++ fillLeft(model1, Chunk(sample2)), c1, c2.drop(1))
         }
         else ??? //TODO: invalid samples, domains not comparable
       } else (acc, c1, c2)
@@ -85,28 +89,24 @@ class OuterJoin extends Join2 { //TODO: need model to apply to data
 
     // Handle empty chunks by filling or recursively join.
     // Note, we can't do this test above because they may be empty while recursing.
-    if (c1.isEmpty && c2.isEmpty) { //nothing in, nothing out
-      (Chunk.empty, Chunk.empty, Chunk.empty)
-    } else if (c1.isEmpty) {       //fill left
-      val q = c2.map(fillLeft(model1, _))
-      (q, Chunk.empty, Chunk.empty)
-    } else if (c2.isEmpty) {       //fill right
-      val q = c1.map(fillRight(model1, _))
-      (q, Chunk.empty, Chunk.empty)
-    } else {
-      val (acc, r1, r2) = go(Chain.empty, c1, c2)
-      (Chunk.chain(acc), r1, r2)
+    if (c1.isEmpty && c2.isEmpty) (Chunk.empty, Chunk.empty, Chunk.empty)
+    else if (c1.isEmpty) (fillLeft(model1, c2), Chunk.empty, Chunk.empty)
+    else if (c2.isEmpty) (fillRight(model2, c1), Chunk.empty, Chunk.empty)
+    else go(Chunk.empty, c1, c2)
+  }
+
+  private def fillLeft(model: DataType, chunk: Chunk[Sample]): Chunk[Sample] = {
+    chunk.map { sample =>
+      val range = rangeVariables(model).map(_.fillData) ++ sample.range
+      Sample(sample.domain, range)
     }
   }
 
-  private def fillLeft(model: DataType, sample: Sample): Sample = {
-    val range  = rangeVariables(model).map(_.fillData) ++ sample.range
-    Sample(sample.domain, range)
-  }
-
-  private def fillRight(model: DataType, sample: Sample): Sample = {
-    val range  =  sample.range ++ rangeVariables(model).map(_.fillData)
-    Sample(sample.domain, range)
+  private def fillRight(model: DataType, chunk: Chunk[Sample]): Chunk[Sample] = {
+    chunk.map { sample =>
+      val range = sample.range ++ rangeVariables(model).map(_.fillData)
+      Sample(sample.domain, range)
+    }
   }
 
   /**

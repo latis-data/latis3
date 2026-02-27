@@ -1,14 +1,18 @@
 package latis.ops
 
+import cats.syntax.all.*
 import munit.CatsEffectSuite
 
 import latis.data.DomainData
 import latis.data.RangeData
 import latis.data.Sample
 import latis.data.SampledFunction
+import latis.data.StreamFunction
 import latis.dataset.MemoizedDataset
+import latis.dataset.TappedDataset
 import latis.dsl.*
 import latis.metadata.Metadata
+import latis.time.TimeScale
 import latis.util.Identifier.id
 
 class OnChangeSuite extends CatsEffectSuite {
@@ -80,6 +84,31 @@ class OnChangeSuite extends CatsEffectSuite {
     )
     ds.withOperation(oc).samples.compile.toList.map(_.length)
       .assertEquals(7)
+  }
+
+  test("missing last sample") {
+    import fs2.Stream
+
+    Range.apply(0,10000).toList.traverseVoid { _ =>
+      //println(i)
+      val samples = Stream.range(0, 1000).map { t =>
+        Sample(DomainData(t), RangeData(0))
+      }.chunkN(10).unchunks
+      val ds = new TappedDataset(
+        Metadata(id"test"),
+        model,
+        StreamFunction(samples),
+        List(
+          OnChange.fromArgs(List("y")).fold(_ => fail("Failed to make OnChange"), identity),
+          ConvertTime(TimeScale.Default)
+        )
+      )
+
+      //Range.apply(0,100).foreach { _ =>
+      ds.samples.compile.toList.map { ss =>
+        assertEquals(2, ss.size)
+      }
+    }
   }
 
 }
