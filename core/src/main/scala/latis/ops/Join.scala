@@ -33,12 +33,15 @@ import latis.util.LatisException
  *
  * Joins can be used by a CompositeDataset while enabling operation
  * push-down to member Datasets.
+ *
+ * Joins differ from generic binary operations in that samples with the
+ * same domain type are combined.
  */
-trait Join extends BinaryOperation2 {
+trait Join extends BinaryOperation {
   //TODO: use for CompositeDataset, needs to use join for model, had been assuming vertical join
 
   //TODO!: what to do about combine
-  
+
   // Returns the new chunk and the remainder of the other two
   def joinChunks(
     model1: DataType,
@@ -66,7 +69,7 @@ trait Join extends BinaryOperation2 {
       val chunk2 = leg2.map(_.head).getOrElse(Chunk.empty)
       val (chunk, c1, c2) = joinChunks(model1, chunk1, model2, chunk2)
 
-      if (chunk.isEmpty && c1.isEmpty && c2.isEmpty) Pull.done 
+      if (chunk.isEmpty && c1.isEmpty && c2.isEmpty) Pull.done
       else Pull.output(chunk) >> { //output joined chunk, recurse with the rest
         if (c1.isEmpty && c2.isEmpty) {
           (leg1.flatTraverse(_.stepLeg), leg2.flatTraverse(_.stepLeg))
