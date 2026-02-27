@@ -20,15 +20,10 @@ import latis.util.LatisException
  * will be inserted. If there is no fillValue defined for the variable
  * the fill will be NullData.
  */
-class OuterJoin extends Join {
+class OuterJoin(joinType: OuterJoinType = OuterJoinType.Full) extends Join {
   //TODO: consider chunk size
   //TODO: do we need to timeout? e.g. no more db connections deadlock
   //  does that mean we need a big/elastic connection pool to join a lot of items?
-
-//TODO: left and right outer join with boolean?, inner
-//  class HorizontalJoin(joinType: String) {
-//  
-//  }
 
   //TODO!!: deal with duplicate names
   //  e.g. all telemetry have dn, value
@@ -77,11 +72,13 @@ class OuterJoin extends Join {
           go(acc ++ Chunk(s), c1.drop(1), c2.drop(1))
         }
         else if (ord.lt(sample1.domain, sample2.domain)) {
-          // Fill on the right, may be NullData
-          go(acc ++ fillRight(model2, Chunk(sample1)), c1.drop(1), c2)
+          // Fill on the right if not a right join, may be NullData
+          if (isRight) go(acc, c1.drop(1), c2)
+          else go(acc ++ fillRight(model2, Chunk(sample1)), c1.drop(1), c2)
         } else if (ord.gt(sample1.domain, sample2.domain)) {
-          // Fill on the left, may be NullData
-          go(acc ++ fillLeft(model1, Chunk(sample2)), c1, c2.drop(1))
+          // Fill on the left if not a left join, may be NullData
+          if (isLeft) go(acc, c1, c2.drop(1))
+          else go(acc ++ fillLeft(model1, Chunk(sample2)), c1, c2.drop(1))
         }
         else ??? //TODO: invalid samples, domains not comparable
       } else (acc, c1, c2)
@@ -90,8 +87,14 @@ class OuterJoin extends Join {
     // Handle empty chunks by filling or recursively join.
     // Note, we can't do this test above because they may be empty while recursing.
     if (c1.isEmpty && c2.isEmpty) (Chunk.empty, Chunk.empty, Chunk.empty)
-    else if (c1.isEmpty) (fillLeft(model1, c2), Chunk.empty, Chunk.empty)
-    else if (c2.isEmpty) (fillRight(model2, c1), Chunk.empty, Chunk.empty)
+    else if (c1.isEmpty) {
+      if (isLeft) (Chunk.empty, Chunk.empty, Chunk.empty)
+      else (fillLeft(model1, c2), Chunk.empty, Chunk.empty)
+    }
+    else if (c2.isEmpty) {
+      if (isRight) (Chunk.empty, Chunk.empty, Chunk.empty)
+      else (fillRight(model2, c1), Chunk.empty, Chunk.empty)
+    }
     else go(Chunk.empty, c1, c2)
   }
 
@@ -125,4 +128,9 @@ class OuterJoin extends Join {
     case s: Scalar   => List(s)   //0-arity
   }
 
+  private def isLeft: Boolean  = this.joinType == OuterJoinType.Left
+  private def isRight: Boolean = this.joinType == OuterJoinType.Right
 }
+
+enum OuterJoinType:
+  case Full, Left, Right
