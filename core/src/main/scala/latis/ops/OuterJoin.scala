@@ -20,7 +20,7 @@ import latis.util.LatisException
  * will be inserted. If there is no fillValue defined for the variable
  * the fill will be NullData.
  */
-class OuterJoin extends Join2 {
+class OuterJoin extends Join {
   //TODO: consider chunk size
   //TODO: do we need to timeout? e.g. no more db connections deadlock
   //  does that mean we need a big/elastic connection pool to join a lot of items?
