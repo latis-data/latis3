@@ -54,6 +54,7 @@ class GranuleAppendDataset private (
   listOps: List[UnaryOperation] = List.empty,
   val operations: List[UnaryOperation] = List.empty
 ) extends Dataset {
+  //TODO: GranuleJoinDataset with any Join
 
   def metadata: Metadata = md //TODO: add prov, see AbstractDataset
 

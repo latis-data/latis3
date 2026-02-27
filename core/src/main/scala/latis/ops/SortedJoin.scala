@@ -19,7 +19,7 @@ import latis.util.LatisException
  * If two samples have the same domain values, the sample from the
  * first dataset will be kept.
  */
-class SortedJoin extends Join2 {
+class SortedJoin extends Join {
   //TODO: validate same model
   //TODO: consider chunk size
   //TODO: use generic sortedMerge from latis3-packets?
