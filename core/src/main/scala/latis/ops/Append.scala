@@ -11,7 +11,7 @@ import latis.util.LatisException
 /**
  * Joins two Datasets by appending their Streams of Samples.
  */
-case class Append() extends Join2 {
+case class Append() extends Join {
   //TODO: assert that models are the same
   //TODO: deal with non-Function Data: add index domain? error?
 
