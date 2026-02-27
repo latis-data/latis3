@@ -22,11 +22,12 @@ class CompositeDataset private (
   datasets: NonEmptyList[Dataset],
   joinOperation: Join,
   granuleOps: List[UnaryOperation] = List.empty, //ops to be applied to granules before the join
-  afterOps: List[UnaryOperation] = List.empty    //ops to be applied after the join
+  afterOps: List[UnaryOperation] = List.empty //ops to be applied after the join
 ) extends Dataset {
-  //TODO!: support "horizontal" joins: datasets with different models (i.e. diff set of variables, combine "columns")
+
+  //TODO!: support "horizontal" joins: datasets with different models
   // use join for model
-  
+
   //TODO!: make richer metadata, prov
   //  see Join2.combine
   override def metadata: Metadata = md
@@ -79,10 +80,11 @@ class CompositeDataset private (
    * Computes the model with the operations and join applied.
    * Assumes join does not affect the model, for now.
    */
-  override lazy val model: DataType =
+  override lazy val model: DataType = {
     (granuleOps ++ nonReappliedAfterOps).foldM(datasets.head.model) {
       (mod, op) => op.applyToModel(mod)
     }.fold(throw _, identity)
+  }
 
   /**
    * Return a Dataset's Stream of Samples.
@@ -99,25 +101,25 @@ class CompositeDataset private (
   /**
    * Applies the Operations to generate the new Data.
    */
-  private def applyOperations(): Either[LatisException, Data] = for {
+  private def applyOperations(): Either[LatisException, Stream[IO, Sample]] = for {
     // Apply granule operations
     dss     <- datasets.map(_.withOperations(granuleOps)).asRight
     // Apply join
-    data    <- dss.tail.foldM(StreamFunction(getSamples(dss.head)): Data) { //compiler needs type hint
-      (dat, ds) => joinOperation.applyToData(dat, StreamFunction(getSamples(ds)))
+    samples <- dss.tail.foldM(getSamples(dss.head)) {
+      (stream, ds) => joinOperation.applyToData(model, stream, model, getSamples(ds))
     }
     // Apply other operations
-    newData <- afterOps.foldM((dss.head.model, data)) {
+    newData <- afterOps.foldM((dss.head.model, StreamFunction(samples): Data)) {
       case ((mod, dat), op) =>
         (op.applyToModel(mod), op.applyToData(dat, mod)).mapN((_, _))
     }.map(_._2) //drop model, keep data
-  } yield newData
+  } yield newData.samples
 
   /**
    * Applies the operations and returns a Stream of Samples.
    */
   def samples: Stream[IO, Sample] =
-    applyOperations().fold(Stream.raiseError[IO](_), _.samples)
+    applyOperations().fold(Stream.raiseError[IO](_), identity)
 
   /**
    * Causes the data source to be read and released
