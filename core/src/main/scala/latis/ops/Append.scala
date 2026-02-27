@@ -14,6 +14,7 @@ import latis.util.LatisException
 case class Append() extends Join {
   //TODO: assert that models are the same
   //TODO: deal with non-Function Data: add index domain? error?
+  //TODO: join vs binaryop?
 
   def applyToModel(
     model1: DataType,
