@@ -13,13 +13,8 @@ import latis.model.*
 import latis.util.Identifier
 import latis.util.LatisException
 
-
 /**
  * A Join is a BinaryOperation that combines two or more Datasets.
- *
- * Unlike arbitrary binary operations, Joins provide lawful behavior
- * for distributing operations to the operands before applying the join. //TODO: true? or in Composite
- * This is often important for performance reasons.
  *
  * Properties of Joins:
  *  - Each dataset must have the same domain type.
@@ -43,6 +38,8 @@ trait Join2 extends BinaryOperation2 {
   //TODO: replace Join
   //TODO: use for CompositeDataset, needs to use join for model, had been assuming vertical join
 
+  //TODO!: what to do about combine
+  
   // Returns the new chunk and the remainder of the other two
   def joinChunks(
     model1: DataType,
