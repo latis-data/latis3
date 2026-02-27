@@ -12,7 +12,7 @@ import latis.dsl.*
 import latis.metadata.Metadata
 import latis.util.Identifier.id
 
-class OuterJoinSuite extends CatsEffectSuite {
+class HorizontalJoinSuite extends CatsEffectSuite {
 
   // Prevent test from timing out so we can run in debugger
   import scala.concurrent.duration.DurationInt
@@ -40,7 +40,7 @@ class OuterJoinSuite extends CatsEffectSuite {
   }
 
   test("outer join") {
-    val ds = OuterJoin(OuterJoinType.Full).combine(ds1, ds2)
+    val ds = HorizontalJoin(HorizontalJoinType.Inner).combine(ds1, ds2)
     ds.show()
   }
 }
