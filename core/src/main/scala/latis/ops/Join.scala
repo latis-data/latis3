@@ -7,17 +7,14 @@ import fs2.Pull
 import fs2.Stream
 
 import latis.data.*
-import latis.dataset.*
-import latis.metadata.Metadata
 import latis.model.*
-import latis.util.Identifier
 import latis.util.LatisException
 
 /**
  * A Join is a BinaryOperation that combines two or more Datasets.
  *
  * Properties of Joins:
- *  - Each dataset must have the same domain type.
+ *  - Each dataset must have the same domain type or Index.
  *  - Joins must not generate new variables.
  *  - Joins may add fill data (e.g. outer joins).
  *  - Joins may compute new values only to resolve duplication (e.g. average).
@@ -33,14 +30,8 @@ import latis.util.LatisException
  *
  * Joins can be used by a CompositeDataset while enabling operation
  * push-down to member Datasets.
- *
- * Joins differ from generic binary operations in that samples with the
- * same domain type are combined.
  */
 trait Join extends BinaryOperation {
-  //TODO: use for CompositeDataset, needs to use join for model, had been assuming vertical join
-
-  //TODO!: what to do about combine
 
   // Returns the new chunk and the remainder of the other two
   def joinChunks(
@@ -50,8 +41,10 @@ trait Join extends BinaryOperation {
     c2: Chunk[Sample]
   ): (Chunk[Sample], Chunk[Sample], Chunk[Sample])
 
+  // Implementations must define how to combine models
   def applyToModel(model1: DataType, model2: DataType): Either[LatisException, DataType]
 
+  // Pull samples from each dataset and combine them
   override def applyToData(
     model1: DataType,
     stream1: Stream[IO, Sample],
@@ -63,7 +56,6 @@ trait Join extends BinaryOperation {
       leg1: Option[Stream.StepLeg[IO, Sample]],
       leg2: Option[Stream.StepLeg[IO, Sample]]
     ): Pull[IO, Sample, Unit] = {
-      //TODO: do we need Option?
 
       val chunk1 = leg1.map(_.head).getOrElse(Chunk.empty)
       val chunk2 = leg2.map(_.head).getOrElse(Chunk.empty)
@@ -80,39 +72,15 @@ trait Join extends BinaryOperation {
         } else if (c2.isEmpty) leg2.flatTraverse(_.stepLeg).flatMap {
           case Some(l2) => go(leg1, l2.some)
           case None     => go(leg1, None)
-        } else ??? //leftover samples from both streams, valid case?
+        } else ???
+        //TODO: leftover samples from both streams, valid case?
+        //  request more more for interp...
       }
     }
 
     // Start pulling from the Streams and recurse
     (stream1.pull.stepLeg, stream2.pull.stepLeg)
       .mapN(go).flatten.stream.asRight
-  }
-
-  //TODO: who calls this?
-  //  CompositeDataset only calls applyToData
-  //  Monoid?
-  final def combine(ds1: Dataset, ds2: Dataset): Dataset = {
-    val md = {
-      //TODO: combine other dataset metadata properties?
-      val name1 = ds1.id.map(_.asString).getOrElse("dataset1")
-      val name2 = ds2.id.map(_.asString).getOrElse("dataset2")
-      val props = List(
-        "id" -> s"${name1}_${name2}",
-        "history" -> List (
-          s"""$name1: ${ds1.metadata.getProperty("history")}""",
-          s"""$name2: ${ds2.metadata.getProperty("history")}""",
-          s"Join(name1, name2)"
-        ).mkString(System.lineSeparator)
-      )
-      Metadata(props *)
-    }
-    val model = applyToModel(ds1.model, ds2.model).fold(throw _, identity)
-    val samples = applyToData(
-      ds1.model, ds1.samples,
-      ds2.model, ds2.samples
-    ).fold(throw _, identity)
-    new TappedDataset(md, model, StreamFunction(samples))
   }
 
   /**
@@ -123,12 +91,12 @@ trait Join extends BinaryOperation {
    *
    */
   //TODO: util?
-  //TODO: convert units?
-  final def equivalentDomain(model1: DataType, model2: DataType): Boolean = {
+  final def comparableDomain(model1: DataType, model2: DataType): Boolean = {
     (model1, model2) match {
       case (Function(d1, _), Function(d2, _)) =>
         val d1s = d1.getScalars
         val d2s = d2.getScalars
+        d1.isInstanceOf[Index] || d2.isInstanceOf[Index] ||
         d1s.size == d2s.size &&
           d1s.zip(d2s).forall { pair =>
             (pair._1.id == pair._2.id) &&

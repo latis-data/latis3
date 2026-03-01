@@ -2,10 +2,7 @@ package latis.ops
 
 import munit.CatsEffectSuite
 
-import latis.data.DomainData
-import latis.data.RangeData
-import latis.data.Sample
-import latis.data.SampledFunction
+import latis.data.*
 import latis.dataset.MemoizedDataset
 import latis.dsl.*
 import latis.metadata.Metadata
@@ -13,11 +10,7 @@ import latis.util.Identifier.id
 
 class SortedJoinSuite extends CatsEffectSuite {
 
-  // Prevent test from timing out so we can run in debugger
-  import scala.concurrent.duration.DurationInt
-  override val munitIOTimeout = 5.minutes
-
-  val model = ModelParser.unsafeParse("x: int -> a: double")
+  private val model = ModelParser.unsafeParse("x: int -> a: double")
 
   private lazy val ds1 = {
     val metadata = Metadata(id"test1")
@@ -39,7 +32,13 @@ class SortedJoinSuite extends CatsEffectSuite {
   }
 
   test("sorted join") {
-    val ds = SortedJoin().combine(ds1, ds2)
-    ds.show()
+    (SortedJoin().combine(ds1, ds2) match {
+      case Right(ds) => ds.samples.map {
+        case Sample(_, RangeData(d: Data.DoubleValue)) => d.value
+      }
+      case _ => fail("Failed to zip")
+    }).compile.toList.map { ds =>
+      assertEquals(ds, List(1.2, 2.4, 3.6, 4.8))
+    }
   }
 }

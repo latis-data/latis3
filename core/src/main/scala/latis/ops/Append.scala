@@ -10,11 +10,15 @@ import latis.util.LatisException
 
 /**
  * Joins two Datasets by appending their Streams of Samples.
+ *
+ * This assumes that the model of each dataset is the same and
+ * uses the first. This assumes that there is no overlap in 
+ * coverage, without confirming it. If there may be overlap, 
+ * use SortedJoin.
  */
 case class Append() extends Join {
   //TODO: assert that models are the same
   //TODO: deal with non-Function Data: add index domain? error?
-  //TODO: join vs binaryop?
 
   def applyToModel(
     model1: DataType,
@@ -30,11 +34,12 @@ case class Append() extends Join {
   ): Either[LatisException, Stream[IO, Sample]] =
     (stream1 ++ stream2).asRight
 
-  // Unused abstract method from Join2
+  // Unused abstract method from Join
   override def joinChunks(
-    model1: DataType, 
-    c1: Chunk[Sample], 
-    model2: DataType, 
+    model1: DataType,
+    c1: Chunk[Sample],
+    model2: DataType,
     c2: Chunk[Sample]
-  ): (Chunk[Sample], Chunk[Sample], Chunk[Sample]) = ???
+  ): (Chunk[Sample], Chunk[Sample], Chunk[Sample]) =
+    (Chunk.empty, Chunk.empty, Chunk.empty)
 }
