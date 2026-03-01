@@ -21,16 +21,16 @@ import latis.util.LatisException
  */
 class SortedJoin extends Join {
   //TODO: validate same model
-  //TODO: consider chunk size
   //TODO: use generic sortedMerge from latis3-packets?
   //TODO: consider other tie breakers: keep second, average, ...
   //      use Interpolation?
 
-  // Models must be the same and do not change.
-  override def applyToModel(model1: DataType, model2: DataType): Either[LatisException, DataType] =
-    model1.asRight
+  // Models must be the same and do not change, use first.
+  override def applyToModel(
+    model1: DataType,
+    model2: DataType
+  ): Either[LatisException, DataType] = model1.asRight
 
-  // Returns a new chunk and the remainder of the other two
   override def joinChunks(
     model1: DataType,
     c1: Chunk[Sample],
@@ -67,7 +67,7 @@ class SortedJoin extends Join {
           // Right comes first, keep it
           go(acc ++ Chunk(sample2), c1, c2.drop(1))
         }
-        else ??? //TODO: invalid samples, domains not comparable
+        else (Chunk.empty, Chunk.empty, Chunk.empty) //invalid samples, domains not comparable
       } else (acc, c1, c2)
     }
 
