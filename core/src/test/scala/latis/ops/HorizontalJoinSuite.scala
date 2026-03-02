@@ -139,8 +139,8 @@ class HorizontalJoinSuite extends CatsEffectSuite {
     }
   }
 
-  test("duplicate id") {
-    val m1 = Scalar(id"a", IntValueType)
+  test("duplicate id previously disambiguated") {
+    val m1 = Scalar(id"a_1", IntValueType)
     val m2 = Scalar(id"a", IntValueType)
     HorizontalJoin().applyToModel(m1, m2) match {
       case Right(Tuple(a: Scalar, b: Scalar)) =>
