@@ -18,10 +18,10 @@ import latis.util.LatisException
  * Binary operation to combine datasets "horizontally".
  *
  * The resulting domain will be that of the first dataset (should be the
- * same or Index) and the resulting range will be a concatenation of the 
- * range variables from each dataset. There is no restriction on the data 
+ * same or Index) and the resulting range will be a concatenation of the
+ * range variables from each dataset. There is no restriction on the data
  * types. The join will only be applied to the outer Function.
- * 
+ *
  * This expects that the domains of each dataset are comparable.
  * These could be 0-arity or include an Index which will always match.
  * If one has a sample for a given domain value where the other doesn't,
@@ -121,15 +121,15 @@ class HorizontalJoin(joinType: HorizontalJoinType = HorizontalJoinType.Full) ext
   /** Concatenate the range variables, disambiguating ids appending "_#" */
   private def concatRange(model1: DataType, model2: DataType): List[DataType] = {
     val vars = model1.rangeVariables ++ model2.rangeVariables
-    
-    // Count number of occurrences of each variable
+
+    // Count number of occurrences of each variable ignoring previous "_#"
     val idCount = vars.groupMapReduce(variableId)(_ => 1)(_ + _)
-    
+
     // Keep track of the counters used
     val used = vars.foldLeft(mutable.Map[Identifier, Int]()) { (m, v) =>
       m += (variableId(v) -> 0)
     }
-    
+
     vars.map { v =>
       val id = variableId(v)
       if (idCount(id) == 1) v
@@ -142,20 +142,23 @@ class HorizontalJoin(joinType: HorizontalJoinType = HorizontalJoinType.Full) ext
     }
   }
 
-  /** Get a variable identifier or generate one */
-  //TODO: util, require all vars to have ids
+  /**
+   * Get a variable identifier (or generate one).
+   * Drop any previous "_#" disambiguators, TODO: risky consequences?
+   */
+  //TODO: beef up handling of other types
   private def variableId(variable: DataType): Identifier = variable match {
-    case s: Scalar    => s.id
+    case s: Scalar    => Identifier.fromString("_\\d+$".r.replaceAllIn(s.id.asString, "")).get
     case t: Tuple     => t.id.getOrElse(id"tup")
     case f: Function  => f.id.getOrElse(id"func")
   }
 
   /**
-   * If the join type permits, make fill data for the first 
-   * dataset using the given model. Use the domains from a 
-   * chunk of samples from the second dataset and append its 
+   * If the join type permits, make fill data for the first
+   * dataset using the given model. Use the domains from a
+   * chunk of samples from the second dataset and append its
    * range variables to the fill data.
-   * 
+   *
    * Note that this may result in NullData.
    */
   private def fillLeft(model: DataType, chunk: Chunk[Sample]): Option[Chunk[Sample]] = {
@@ -171,9 +174,9 @@ class HorizontalJoin(joinType: HorizontalJoinType = HorizontalJoinType.Full) ext
   }
 
   /**
-   * If the join type permits, make fill data for the second 
-   * dataset using the given model. Use the domains from a 
-   * chunk of samples from the first dataset and prepend its 
+   * If the join type permits, make fill data for the second
+   * dataset using the given model. Use the domains from a
+   * chunk of samples from the first dataset and prepend its
    * range variables to the fill data.
    *
    * Note that this may result in NullData.
@@ -196,7 +199,7 @@ class HorizontalJoin(joinType: HorizontalJoinType = HorizontalJoinType.Full) ext
       case Function(_: Index, _) => true
       case _ => false
     }
-    
+
 }
 
 /** Enumeration of join types */
