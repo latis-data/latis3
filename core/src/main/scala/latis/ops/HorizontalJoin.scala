@@ -95,7 +95,7 @@ class HorizontalJoin(joinType: HorizontalJoinType = HorizontalJoinType.Full) ext
           go(acc ++ chunk, c1.drop(1), c2)
         } else if (ord.gt(sample1.domain, sample2.domain)) {
           // Maybe fill on the left
-          val chunk = fillRight(model2, Chunk(sample1)).getOrElse(Chunk.empty)
+          val chunk = fillLeft(model1, Chunk(sample2)).getOrElse(Chunk.empty)
           go(acc ++ chunk, c1, c2.drop(1))
         }
         else (Chunk.empty, Chunk.empty, Chunk.empty) //invalid samples, domains not comparable
@@ -110,7 +110,7 @@ class HorizontalJoin(joinType: HorizontalJoinType = HorizontalJoinType.Full) ext
       (chunk, Chunk.empty, Chunk.empty)
     }
     else if (c2.isEmpty) {
-      val chunk = fillLeft(model2, c1).getOrElse(Chunk.empty)
+      val chunk = fillRight(model2, c1).getOrElse(Chunk.empty)
       (chunk, Chunk.empty, Chunk.empty)
     }
     else go(Chunk.empty, c1, c2)
