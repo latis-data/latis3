@@ -56,7 +56,6 @@ trait Join extends BinaryOperation {
       leg1: Option[Stream.StepLeg[IO, Sample]],
       leg2: Option[Stream.StepLeg[IO, Sample]]
     ): Pull[IO, Sample, Unit] = {
-      //TODO: can we do this without option? setHead(Chunk.empty)? or already empty
 
       val chunk1 = leg1.map(_.head).getOrElse(Chunk.empty)
       val chunk2 = leg2.map(_.head).getOrElse(Chunk.empty)
