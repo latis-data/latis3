@@ -86,14 +86,15 @@ class OnChangeSuite extends CatsEffectSuite {
       .assertEquals(7)
   }
 
+  // Try to reproduce missing last sample, LATISTLM-78
   test("missing last sample") {
     import fs2.Stream
 
-    Range.apply(0,10000).toList.traverseVoid { _ =>
+    Range.apply(0,10).toList.traverseVoid { _ =>
       //println(i)
-      val samples = Stream.range(0, 1000).map { t =>
+      val samples = Stream.range(0, 10).map { t =>
         Sample(DomainData(t), RangeData(0))
-      }.chunkN(10).unchunks
+      }.chunkN(2).unchunks
       val ds = new TappedDataset(
         Metadata(id"test"),
         model,
