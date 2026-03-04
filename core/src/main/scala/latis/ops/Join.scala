@@ -56,6 +56,7 @@ trait Join extends BinaryOperation {
       leg1: Option[Stream.StepLeg[IO, Sample]],
       leg2: Option[Stream.StepLeg[IO, Sample]]
     ): Pull[IO, Sample, Unit] = {
+      //TODO: can we do this without option? setHead(Chunk.empty)? or already empty
 
       val chunk1 = leg1.map(_.head).getOrElse(Chunk.empty)
       val chunk2 = leg2.map(_.head).getOrElse(Chunk.empty)
@@ -67,11 +68,11 @@ trait Join extends BinaryOperation {
           (leg1.flatTraverse(_.stepLeg), leg2.flatTraverse(_.stepLeg))
             .mapN(go).flatten
         } else if (c1.isEmpty) leg1.flatTraverse(_.stepLeg).flatMap {
-          case Some(l1) => go(l1.some, leg2)
-          case None     => go(None, leg2)
+          case Some(l1) => go(l1.some, leg2.map(_.setHead(c2)))
+          case None     => go(None, leg2.map(_.setHead(c2)))
         } else if (c2.isEmpty) leg2.flatTraverse(_.stepLeg).flatMap {
-          case Some(l2) => go(leg1, l2.some)
-          case None     => go(leg1, None)
+          case Some(l2) => go(leg1.map(_.setHead(c1)), l2.some)
+          case None     => go(leg1.map(_.setHead(c1)), None)
         } else ???
         //TODO: leftover samples from both streams, valid case?
         //  request more more for interp...

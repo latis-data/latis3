@@ -106,6 +106,7 @@ class HorizontalJoin(joinType: HorizontalJoinType = HorizontalJoinType.Full) ext
     // Note, we can't do this test above because they may be empty while recursing.
     if (c1.isEmpty && c2.isEmpty) (Chunk.empty, Chunk.empty, Chunk.empty)
     else if (c1.isEmpty) {
+  //TODO: c2 has all, not just samples since last fill
       val chunk = fillLeft(model1, c2).getOrElse(Chunk.empty)
       (chunk, Chunk.empty, Chunk.empty)
     }
