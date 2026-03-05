@@ -20,13 +20,16 @@ lazy val commonSettings = Seq(
     "co.fs2"        %% "fs2-core"    % fs2Version,
     "co.fs2"        %% "fs2-io"      % fs2Version,
     "com.typesafe"   % "config"      % "1.4.6",
-    "org.scalacheck" %% "scalacheck" % "1.19.0" % Test,
-    "org.scalameta" %% "munit"       % "1.2.4" % Test,
-    "org.typelevel" %% "munit-cats-effect" % "2.2.0" % Test,
-    "org.scalameta" %% "munit-scalacheck" % "1.2.0" % Test
+
+    "org.scalacheck" %% "scalacheck"              % "1.19.0" % Test,
+    "org.scalameta"  %% "munit"                   % "1.2.4"  % Test,
+    "org.typelevel"  %% "munit-cats-effect"       % "2.2.0"  % Test,
+    "org.scalameta"  %% "munit-scalacheck"        % "1.2.0"  % Test,
+    "org.typelevel"  %% "scalacheck-effect"       % "2.1.0"  % Test,
+    "org.typelevel"  %% "scalacheck-effect-munit" % "2.1.0"  % Test
   ),
- // Test / fork := true,
- // scalacOptions -= "-Xfatal-warnings",
+  Test / fork := true,
+  scalacOptions -= "-Xfatal-warnings",
   scalacOptions += {
     if (insideCI.value) "-Wconf:any:e" else "-Wconf:any:w"
   },
@@ -103,7 +106,7 @@ lazy val core = project
       "org.scodec"             %% "scodec-core"         % "2.3.3",
       "org.scodec"             %% "scodec-stream"       % "3.0.2",
       "org.http4s"             %% "http4s-ember-client" % http4sVersion,
-      "org.gnieh"              %% "fs2-data-csv"        % "1.8.1"
+      "org.gnieh"              %% "fs2-data-csv"        % "1.12.1"
     )
   )
 
@@ -242,7 +245,7 @@ lazy val jdbc = project
   .settings(
     name := "latis3-jdbc",
     libraryDependencies ++= Seq(
-      "org.tpolecat"   %% "doobie-core" % "1.0.0-RC12",
+      "org.tpolecat"   %% "doobie-core" % "1.0.0-RC11",
       "com.h2database"  % "h2"          % "2.2.224" % Test
     )
   )
