@@ -48,7 +48,7 @@ class OnChange private (variableID: Identifier) extends StreamOperation {
             } else {
               // Unchanged, make sure to keep last sample to preserve coverage
               tail.pull.peek1.flatMap {
-                case Some(_) => go(curr, tail)
+                case Some((_, tail)) => go(curr, tail)
                 case None    => Pull.output1(curr) >> Pull.done
               }
             }
