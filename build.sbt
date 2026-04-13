@@ -21,7 +21,7 @@ lazy val commonSettings = Seq(
     "co.fs2"        %% "fs2-io"      % fs2Version,
     "com.typesafe"   % "config"      % "1.4.6",
     "org.scalacheck" %% "scalacheck" % "1.19.0" % Test,
-    "org.scalameta" %% "munit"       % "1.2.4" % Test,
+    "org.scalameta" %% "munit"       % "1.3.0" % Test,
     "org.typelevel" %% "munit-cats-effect" % "2.2.0" % Test,
     "org.scalameta" %% "munit-scalacheck" % "1.2.0" % Test
   ),
