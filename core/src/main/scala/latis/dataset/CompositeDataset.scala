@@ -15,21 +15,19 @@ import latis.util.LatisException
  * Defines a Dataset with data provided via a list of Datasets to be
  * combined with the given join operation.
  *
- * This assumes that each dataset has the same model, for now.
+ * This assumes that each dataset has the same model
+ * and will be joined vertically, for now.
  */
 class CompositeDataset private (
   md: Metadata,
   datasets: NonEmptyList[Dataset],
-  joinOperation: Join,
+  joinOperation: VerticalJoin,
   granuleOps: List[UnaryOperation] = List.empty, //ops to be applied to granules before the join
   afterOps: List[UnaryOperation] = List.empty //ops to be applied after the join
 ) extends Dataset {
+  //TODO: HorizontalJoin or any BinaryOperation?, complicates operation handling
 
-  //TODO!: support "horizontal" joins: datasets with different models
-  // use join for model
-
-  //TODO!: make richer metadata, prov
-  //  see Join2.combine
+  //TODO: make richer metadata, prov, see BinaryOperation.combine
   override def metadata: Metadata = md
 
   def operations: List[UnaryOperation] = granuleOps ++ afterOps
@@ -39,13 +37,16 @@ class CompositeDataset private (
    * applied to this one.
    */
   def withOperation(op: UnaryOperation): Dataset = {
+    // Preserve order of operation by preventing application to granules
+    // if there are already post operations with unknown behavior.
+    // If the post-operation is reapplied here (e.g. Taking), don't
+    // let that alone prevent pushdown.
     if (nonReappliedAfterOps.isEmpty) op match {
-      //TODO: push down other operations?
-      //TODO: make sure granule (after current granuleOps application) has target variable
-      //  matters for joins with different models
       case _: Filter       => copyWithOperationForGranule(op)
       case _: MapOperation => copyWithOperationForGranule(op)
       case _: Rename       => copyWithOperationForGranule(op)
+      // Taking operations can be applied to granules,
+      // but after they are joined, we need to reapply.
       case _: Taking       => copyWithOperationForBoth(op)
       case _               => copyWithOperationAfterJoin(op)
     }
@@ -72,7 +73,11 @@ class CompositeDataset private (
 
   /**
    * Defines the list of operations to be applied after the join
-   * that haven't already been applied to the granules.
+   * not including those that are being reapplied (e.g. Taking).
+   *
+   * This is used to determine if a subsequent operation can't be
+   * pushed down due to an existing operation with unknown behavior,
+   * preserving order of operation.
    */
   private def nonReappliedAfterOps: List[UnaryOperation] = afterOps.filterNot(_.isInstanceOf[Taking])
 
@@ -142,7 +147,7 @@ object CompositeDataset {
    */
   def apply(
     md: Metadata,
-    joinOperation: Join,
+    joinOperation: VerticalJoin,
     ds1: Dataset,
     ds2: Dataset,
     rest: List[Dataset] = List.empty
