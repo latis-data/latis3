@@ -2,7 +2,7 @@ package latis.ops
 
 import cats.syntax.all.*
 
-import latis.data.Data
+import latis.data.*
 import latis.dataset.*
 import latis.model.DataType
 import latis.util.LatisException
@@ -17,15 +17,20 @@ case class PartiallyAppliedBinaryOperation(
 ) extends UnaryOperation {
   //TODO: provide both left and right versions
   //TODO: capture 1st dataset in prov
+  //TODO: method on BinaryOperation
 
   override def applyToModel(model: DataType): Either[LatisException, DataType] =
     binOp.applyToModel(dataset.model, model)
 
   override def applyToData(data: Data, model: DataType): Either[LatisException, Data] = {
     (dataset match {
-      case ad: AdaptedDataset => ad.tap().map(_.data)
-      case td: TappedDataset  => td.data.asRight
-      case _ => throw LatisException("Invalid dataset for PartiallyAppliedBinaryOperation")
-    }).flatMap(binOp.applyToData(_, data))
+      case ad: AdaptedDataset => ad.tap().map(_.samples)
+      case td: TappedDataset  => td.samples.asRight
+      case _ => LatisException("Invalid dataset for PartiallyAppliedBinaryOperation").asLeft
+    }).flatMap { samples =>
+      binOp.applyToData(dataset.model, samples, model, data.samples).map { ss =>
+        StreamFunction(ss)
+      }
+    }
   }
 }
