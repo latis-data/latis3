@@ -99,7 +99,7 @@ lazy val core = project
       "org.typelevel"          %% "cats-effect-testkit" % catsEffectVersion % Test,
       "io.circe"               %% "circe-core"          % circeVersion,
       "io.circe"               %% "circe-literal"       % circeVersion % Test,
-      "org.scodec"             %% "scodec-cats"         % "1.2.0",
+      "org.scodec"             %% "scodec-cats"         % "1.3.0",
       "org.scodec"             %% "scodec-core"         % "2.3.3",
       "org.scodec"             %% "scodec-stream"       % "3.0.2",
       "org.http4s"             %% "http4s-ember-client" % http4sVersion,
