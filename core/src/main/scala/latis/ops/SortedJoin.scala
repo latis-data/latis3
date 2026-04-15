@@ -2,14 +2,12 @@ package latis.ops
 
 import scala.annotation.tailrec
 
-import cats.syntax.all.*
 import cats.PartialOrder
 import fs2.*
 
 import latis.data.*
 import latis.model.*
 import latis.util.CartesianDomainOrdering
-import latis.util.LatisException
 
 /**
  * Binary operation to combine datasets with overlapping coverage.
@@ -19,17 +17,10 @@ import latis.util.LatisException
  * If two samples have the same domain values, the sample from the
  * first dataset will be kept.
  */
-class SortedJoin extends Join {
-  //TODO: validate same model
+class SortedJoin extends VerticalJoin {
   //TODO: use generic sortedMerge from latis3-packets?
   //TODO: consider other tie breakers: keep second, average, ...
   //      use Interpolation?
-
-  // Models must be the same and do not change, use first.
-  override def applyToModel(
-    model1: DataType,
-    model2: DataType
-  ): Either[LatisException, DataType] = model1.asRight
 
   override def joinChunks(
     model1: DataType,
