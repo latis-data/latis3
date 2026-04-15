@@ -67,11 +67,9 @@ trait Join extends BinaryOperation {
           (leg1.flatTraverse(_.stepLeg), leg2.flatTraverse(_.stepLeg))
             .mapN(go).flatten
         } else if (c1.isEmpty) leg1.flatTraverse(_.stepLeg).flatMap {
-          case Some(l1) => go(l1.some, leg2.map(_.setHead(c2)))
-          case None     => go(None, leg2.map(_.setHead(c2)))
+          go(_, leg2.map(_.setHead(c2)))
         } else if (c2.isEmpty) leg2.flatTraverse(_.stepLeg).flatMap {
-          case Some(l2) => go(leg1.map(_.setHead(c1)), l2.some)
-          case None     => go(leg1.map(_.setHead(c1)), None)
+          go(leg1.map(_.setHead(c1)), _)
         } else ???
         //TODO: leftover samples from both streams, valid case?
         //  request more more for interp...
