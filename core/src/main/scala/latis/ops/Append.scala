@@ -16,15 +16,8 @@ import latis.util.LatisException
  * coverage, without confirming it. If there may be overlap, 
  * use SortedJoin.
  */
-case class Append() extends Join {
-  //TODO: assert that models are the same
+case class Append() extends VerticalJoin {
   //TODO: deal with non-Function Data: add index domain? error?
-
-  def applyToModel(
-    model1: DataType,
-    model2: DataType
-  ): Either[LatisException, DataType] =
-    model1.asRight
 
   override def applyToData(
     model1: DataType,
@@ -35,6 +28,7 @@ case class Append() extends Join {
     (stream1 ++ stream2).asRight
 
   // Unused abstract method from Join
+  // since a simple append can be optimized
   override def joinChunks(
     model1: DataType,
     c1: Chunk[Sample],
