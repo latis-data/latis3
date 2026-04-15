@@ -15,6 +15,10 @@ import latis.model.*
 import latis.ops.HorizontalJoinType.*
 import latis.util.Identifier.*
 
+/**
+ * Generates random Datasets to check that HorizontalJoins
+ * behave as expected.
+ */
 class HorizontalJoinCheck extends CatsEffectSuite with ScalaCheckEffectSuite {
 
   private val model = {
