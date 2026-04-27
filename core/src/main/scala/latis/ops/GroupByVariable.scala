@@ -54,7 +54,7 @@ case class GroupByVariable(ids: Identifier*) extends GroupOperation {
     scalars.length match {
       case 0 => ???
       case 1 => scalars.head
-      case 2 => Tuple.fromSeq(scalars).fold(throw _, identity)  //TODO: .flatten?
+      case _ => Tuple.fromSeq(scalars).fold(throw _, identity)  //TODO: .flatten?
     }
   }
 
