@@ -20,7 +20,6 @@ import latis.util.CartesianDomainOrdering
 class SortedJoin extends VerticalJoin {
   //TODO: use generic sortedMerge from latis3-packets?
   //TODO: consider other tie breakers: keep second, average, ...
-  //      use Interpolation?
 
   override def joinChunks(
     model1: DataType,
@@ -45,8 +44,8 @@ class SortedJoin extends VerticalJoin {
       c2: Chunk[Sample]
     ): (Chunk[Sample], Chunk[Sample], Chunk[Sample]) = {
       if (c1.nonEmpty && c2.nonEmpty) {
-        val sample1 = c1.head.get
-        val sample2 = c2.head.get
+        val sample1 = c1.head.get //confirmed not empty
+        val sample2 = c2.head.get //confirmed not empty
         if (ord.eqv(sample1.domain, sample2.domain)) {
           // Same domain, keep left
           go(acc ++ Chunk(sample1), c1.drop(1), c2.drop(1))
@@ -59,7 +58,7 @@ class SortedJoin extends VerticalJoin {
           go(acc ++ Chunk(sample2), c1, c2.drop(1))
         }
         else (Chunk.empty, Chunk.empty, Chunk.empty) //invalid samples, domains not comparable
-      } else (acc, c1, c2)
+      } else (acc, c1, c2) //TODO: explain why this works
     }
 
     if (c1.isEmpty && c2.isEmpty) (Chunk.empty, Chunk.empty, Chunk.empty)
