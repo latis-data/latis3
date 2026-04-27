@@ -28,13 +28,13 @@ import latis.util.LatisException
  * the HorizontalJoinType will specify the behavior:
  *
  *  - [[Full]] All samples are kept with fill values
- *  - [[Left]] All samples from the first dataset are kept
+ *  - [[Left]] All samples from the first dataset are kept //TODO: getting scala.util.Left
  *             with fill values for the second
  *  - [[Right]] All samples from the second dataset are kept
  *              with fill values for the first
  *  - [[Inner]] Only samples with equivalent domain values are kept
  */
-class HorizontalJoin(joinType: HorizontalJoinType = HorizontalJoinType.Full) extends Join {
+class HorizontalJoin(joinType: HorizontalJoinType) extends Join {
   //TODO: consider chunk size
   //TODO: do we need to timeout? e.g. no more db connections deadlock
   //  does that mean we need a big/elastic connection pool to join a lot of items?
@@ -72,6 +72,7 @@ class HorizontalJoin(joinType: HorizontalJoinType = HorizontalJoinType.Full) ext
     }
 
     @tailrec
+    //TODO: comment go interface
     def go(
       acc: Chunk[Sample],
       c1: Chunk[Sample],
@@ -203,6 +204,7 @@ class HorizontalJoin(joinType: HorizontalJoinType = HorizontalJoinType.Full) ext
 
 }
 
+//TODO: how are these used if private?
 /** Enumeration of join types */
 private enum HorizontalJoinType:
   case Full, Left, Right, Inner

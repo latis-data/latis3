@@ -12,8 +12,8 @@ import latis.util.LatisException
  * Joins two Datasets by appending their Streams of Samples.
  *
  * This assumes that the model of each dataset is the same and
- * uses the first. This assumes that there is no overlap in 
- * coverage, without confirming it. If there may be overlap, 
+ * uses the first. This assumes that there is no overlap in
+ * coverage, without confirming it. If there may be overlap,
  * use SortedJoin.
  */
 case class Append() extends VerticalJoin {

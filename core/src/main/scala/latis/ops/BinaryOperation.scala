@@ -17,7 +17,7 @@ trait BinaryOperation extends Operation {
 
   /** Combines the models of two Datasets. */
   def applyToModel(
-    model1: DataType, 
+    model1: DataType,
     model2: DataType
   ): Either[LatisException, DataType]
 
@@ -53,12 +53,13 @@ trait BinaryOperation extends Operation {
       TappedDataset(md, model, StreamFunction(samples))
     }
   }
-  
+
   /** Partially applies the first dataset to get a unary operation. */
   final def partialApply(dataset: Dataset): UnaryOperation = {
-    //TODO: need to update metadata like "combine" does, 
+    //TODO: replace PartiallyAppliedBinaryOperation?
+    //TODO: need to update metadata like "combine" does,
     //      but can't modify Dataset here
-    
+
     new UnaryOperation {
       override def applyToModel(model: DataType): Either[LatisException, DataType] =
         BinaryOperation.this.applyToModel(dataset.model, model)
@@ -66,11 +67,11 @@ trait BinaryOperation extends Operation {
       override def applyToData(data: Data, model: DataType): Either[LatisException, Data] =
         BinaryOperation.this.applyToData(
           dataset.model,
-          dataset.samples, 
-          model, 
+          dataset.samples,
+          model,
           data.samples
         ).map(StreamFunction.apply)
     }
   }
-    
+
 }
