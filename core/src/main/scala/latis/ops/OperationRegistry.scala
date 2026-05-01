@@ -17,7 +17,7 @@ object OperationRegistry {
     val ops = List(
       "contains"        -> Contains.builder,
       "convertTime"     -> ConvertTime.builder,
-      "count"           -> CountAggregation.builder,
+      "count"           -> CountAggregation2.builder,
       "countBy"         -> CountBy.builder,
       "curry"           -> Curry.builder,
       "curryRight"      -> CurryRight.builder,

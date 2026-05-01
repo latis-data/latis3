@@ -17,14 +17,15 @@ import latis.util.LatisException
  * aggregating the results of a Group Operation.
  */
 trait Aggregation2 extends StreamOperation { self =>
-  //TODO: replace Aggregation with this
+  //TODO: replace Aggregation with this (https://github.com/latis-data/latis3/issues/886)
+  //TODO: ensure aggregated Data is memoized
+  //TODO: be mindful of chunk sizes
 
   /** Define the function to combine samples */
   def aggregateFunction(model: DataType): Stream[IO, Sample] => IO[Data]
 
   /** Aggregate Samples and pack into a single Sample */
   override def pipe(model: DataType): Pipe[IO, Sample, Sample] =
-    //TODO: be mindful of chunking
     val aggF = aggregateFunction(model)
     samples => Stream.eval(
       aggF(samples).map(d => Sample(DomainData(), RangeData(d)))
