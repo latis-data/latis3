@@ -57,7 +57,7 @@ package object dsl {
     def take(n: Int): Dataset                      = dataset.withOperation(Take(n))
     def takeRight(n: Int): Dataset                 = dataset.withOperation(TakeRight(n))
     def transpose(): Dataset                       = dataset.withOperation(Transpose())
-    def count(): Dataset                           = dataset.withOperation(CountAggregation())
+    def count(): Dataset                           = dataset.withOperation(CountAggregation2())
     def countBy(id: Identifier, ids: Identifier*): Dataset =
       dataset.withOperation(new CountBy(NonEmptyList.of(id, ids *)))
 
