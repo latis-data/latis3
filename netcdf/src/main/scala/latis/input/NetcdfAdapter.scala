@@ -16,19 +16,21 @@ import latis.util.Identifier
 import latis.util.dap2.parser.ast.*
 
 /**
- * Adapter for accessing data from the netcdf-java API. This should
- * support netCDF, HDF, and other file formats supported by the library.
+ * Adapter for accessing data from the netcdf-java API.
+ *
+ * This should support netCDF, HDF, and other file formats supported
+ * by the library.
  *
  * This delegates to the NetcdfWrapper helper class which encapsulates
- * a NetcdfFile and manages a latis.util.Section which specifies the subset of
- * the multi-dimensional variables to read. Some operations will be
+ * a NetcdfFile and manages a latis.util.Section which specifies the subset
+ * of the multidimensional variables to read. Some operations will be
  * handled by modifying the section being read. The section will be
  * chunked so this can stream large datasets with minimal impact on
  * memory. Use the chunkSize configuration property to specify the
  * nominal number of elements being read at one time. Only the first
  * dimension will be broken into chunks so the resulting chunk
- * size may be slightly larger than the requested chunkSize for multi-dimensional
- * datasets.
+ * size may be slightly larger than the requested chunkSize for
+ * multidimensional datasets.
  *
  * Note that the netCDF data model does not capture the notion of
  * nested Functions. As a result, this adapter does not support
@@ -40,7 +42,6 @@ import latis.util.dap2.parser.ast.*
  * domain Scalars must match the number of dimensions. Each range
  * variable must have the same shape in the netCDF file, representing
  * the product set of the domain variables.
- *
  */
 class NetcdfAdapter(
   model: DataType,
@@ -89,7 +90,7 @@ class NetcdfAdapter(
     }
 
     List(Lt, LtEq, Gt, GtEq).contains(sel.operator) &&
-      isOuterDomainVariable(sel.id) &&
+      isOuterDomainVariable(sel.id) && //TODO: outer domain only?
       hasCadenceAndStart(sel.id)
   }
 

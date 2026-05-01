@@ -5,8 +5,8 @@ import fs2.Pure
 import fs2.Stream
 
 /**
- * A Section supports multi-dimensional array algebra by managing the indices
- * of a multi-dimensional Cartesian domain set.
+ * A Section supports multidimensional array algebra by managing the indices
+ * of a multidimensional Cartesian domain set.
  *
  * The length of each dimension is limited to Int.MaxValue (2147483647).
  * The overall length (product of the dimension lengths) is a Long.
@@ -20,6 +20,7 @@ import fs2.Stream
  * Cartesian indexing logic.
  */
 sealed abstract case class Section private (ranges: List[NonEmptyRange]) {
+  //TODO: consider Bounds
 
   /**
    * Returns the total number of elements represented by this Section
@@ -38,7 +39,7 @@ sealed abstract case class Section private (ranges: List[NonEmptyRange]) {
    * Returns a List of dimension lengths.
    *
    * A "-1" indicates an unlimited dimension length.
-   * Only the the first dimension may be unlimited.
+   * Only the first dimension may be unlimited.
    */
   def shape: List[Int] = ranges.map {
     case r if r.isUnlimited => -1
@@ -58,7 +59,9 @@ sealed abstract case class Section private (ranges: List[NonEmptyRange]) {
   }
 
   //TODO: last, only if not unlimited
-  //TODO: take? needs to be multiple of inner dimensions, round up? just use iterator or stream?
+  //TODO: take? needs to be multiple of inner dimensions, 
+  //  round up? just use iterator or stream?
+  //  outer dimension only?
 
   /** Returns the IndexRange for the given dimension. */
   def range(dim: Int): Either[LatisException, NonEmptyRange] =
@@ -73,7 +76,7 @@ sealed abstract case class Section private (ranges: List[NonEmptyRange]) {
       section  <- Section.fromRanges(ranges.updated(dim, newRange))
     } yield section
 
-  /** Returns a new Section with a multi-dimensional stride applied to this Section. */
+  /** Returns a new Section with a multidimensional stride applied to this Section. */
   def stride(strides: Seq[Int]): Either[LatisException, Section] =
     if (isEmpty) this.asRight
     else if (strides.length != rank)
@@ -83,10 +86,12 @@ sealed abstract case class Section private (ranges: List[NonEmptyRange]) {
     }.flatMap(Section.fromRanges)
 
   /**
-   * Breaks this Section into a Stream of contiguous Sections with the target number of elements.
+   * Breaks this Section into a Stream of contiguous Sections 
+   * with the target number of elements.
    *
-   * This will break the Section along the outer dimension so the actual size
-   * of a chunk may be greater than the target size but no more than double.
+   * This will break the Section along the outer dimension so 
+   * the actual size of a chunk may be greater than the target 
+   * size but no more than double.
    */
    def chunk(size: Int): Stream[Pure, Section] =
      //TODO: deal with size <= 0, don't raise error in stream?
@@ -132,13 +137,14 @@ sealed abstract case class Section private (ranges: List[NonEmptyRange]) {
   override def hashCode(): Int = 37 + toString().hashCode()
 
   /**
-   * Represents this Section as a comma separated list of IndexRange expressions.
+   * Represents this Section as a comma separated list of 
+   * IndexRange expressions.
    *
    * This form is suitable for netcdf-java Section construction.
    * This will return "empty" for an empty Section.
    */
   override def toString: String =
-    if (isEmpty) "empty"
+    if (isEmpty) "empty" //TODO: ""?
     else ranges.map(_.toString).mkString(",")
 }
 
