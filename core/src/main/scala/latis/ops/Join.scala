@@ -19,12 +19,12 @@ import latis.util.LatisException
  *  - Joins may add fill data (e.g. outer joins).
  *  - Joins may compute new values only to resolve duplication (e.g. average).
  *
- * The following classes of UnaryOperations can be distributed over the Join
+ * The following types of UnaryOperations can be distributed over the Join
  * operation and applied to the operands:
  *  - Filter (e.g. Selection)
  *  - MapOperation (e.g. Projection)
  *
- * Some classes of UnaryOperations can be applied to the operands
+ * Some types of UnaryOperations can be applied to the operands
  * but also need to be reapplied after the join:
  *  - Taking (Head, Take, TakeRight, Last)
  *
@@ -33,7 +33,10 @@ import latis.util.LatisException
  */
 trait Join extends BinaryOperation {
 
-  // Returns the new chunk and the remainder of the other two
+  /**
+   * Implementations must define how to combine two chunks,
+   * returning a new chunk and the remainder of the other two.
+   */
   def joinChunks(
     model1: DataType,
     c1: Chunk[Sample],
@@ -41,10 +44,10 @@ trait Join extends BinaryOperation {
     c2: Chunk[Sample]
   ): (Chunk[Sample], Chunk[Sample], Chunk[Sample])
 
-  // Implementations must define how to combine models
+  /** Implementations must define how to combine models */
   def applyToModel(model1: DataType, model2: DataType): Either[LatisException, DataType]
 
-  // Pull samples from each dataset and combine them
+  /** Pulls samples from two datasets and combine them */
   override def applyToData(
     model1: DataType,
     stream1: Stream[IO, Sample],
@@ -52,27 +55,46 @@ trait Join extends BinaryOperation {
     stream2: Stream[IO, Sample],
   ): Either[LatisException, Stream[IO, Sample]] = {
 
+    // Recursive function to pull and combine samples from two sources via StepLegs
     def go(
       leg1: Option[Stream.StepLeg[IO, Sample]],
       leg2: Option[Stream.StepLeg[IO, Sample]]
     ): Pull[IO, Sample, Unit] = {
-
+      // First chunk of leg1
       val chunk1 = leg1.map(_.head).getOrElse(Chunk.empty)
+      // First chunk of leg2
       val chunk2 = leg2.map(_.head).getOrElse(Chunk.empty)
+      // New chunk and remainders of the other two to be used in next iteration
       val (chunk, c1, c2) = joinChunks(model1, chunk1, model2, chunk2)
 
+      // If no chunk was made and there are no leftovers, we are done joining
       if (chunk.isEmpty && c1.isEmpty && c2.isEmpty) Pull.done
-      else Pull.output(chunk) >> { //output joined chunk, recurse with the rest
+      // If we have some samples, output the joined chunk, recurse with the rest
+      else Pull.output(chunk) >> {
+        // Neither source has remaining chunks so get more from each source, recurse
         if (c1.isEmpty && c2.isEmpty) {
           (leg1.flatTraverse(_.stepLeg), leg2.flatTraverse(_.stepLeg))
             .mapN(go).flatten
+
+        // No leftover samples from the first source so get more and recurse.
+        // Put the remaining samples back onto the second leg for use in the
+        // next iteration.
         } else if (c1.isEmpty) leg1.flatTraverse(_.stepLeg).flatMap {
           go(_, leg2.map(_.setHead(c2)))
+
+        // No leftover samples from the second source so get more and recurse.
+        // Put the remaining samples back onto the first leg for use in the
+        // next iteration.
         } else if (c2.isEmpty) leg2.flatTraverse(_.stepLeg).flatMap {
           go(leg1.map(_.setHead(c1)), _)
-        } else ???
-        //TODO: leftover samples from both streams, valid case?
-        //  request more more for interp...
+
+        // Leftover samples from both sources. No valid use case.
+        // Maybe need for more samples for interpolation, but not yet.
+        // Blindly pulling more from both sources may yield big chunks.
+        } else {
+          val msg = "Can't join leftover samples from both sources"
+          Pull.raiseError(LatisException(msg))
+        }
       }
     }
 
@@ -86,8 +108,8 @@ trait Join extends BinaryOperation {
    *
    * Tests only that the domain variable ids, types, and units match.
    * Note, relational algebra goes by attribute (i.e. column name) only.
-   *
    */
+  //TODO: test with all 1st class scalar properties, e.g. binWidth...
   //TODO: util?
   final def comparableDomain(model1: DataType, model2: DataType): Boolean = {
     (model1, model2) match {
