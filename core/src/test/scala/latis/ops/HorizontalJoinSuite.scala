@@ -52,7 +52,7 @@ class HorizontalJoinSuite extends CatsEffectSuite {
   }
 
   test("Full outer join") {
-    (HorizontalJoin().combine(ds1, ds2) match {
+    (HorizontalJoin(HorizontalJoinType.Full).combine(ds1, ds2) match {
       case Right(ds) => ds.samples.map {
         case Sample(_, RangeData(a: Data.DoubleValue, b: Data.DoubleValue)) =>
           (a.value, b.value)
@@ -110,7 +110,7 @@ class HorizontalJoinSuite extends CatsEffectSuite {
       Metadata(id"b"), b,
       SampledFunction(List(Sample(DomainData(), RangeData(DoubleValue(1.2)))))
     )
-    HorizontalJoin().combine(ds1, ds2).fold(throw _, identity).samples.map {
+    HorizontalJoin(HorizontalJoinType.Full).combine(ds1, ds2).fold(throw _, identity).samples.map {
       case Sample(d, RangeData(a: IntValue, b: DoubleValue)) =>
         assertEquals(a.value, 1)
         assertEquals(b.value, 1.2)
@@ -127,7 +127,7 @@ class HorizontalJoinSuite extends CatsEffectSuite {
       )
       new MemoizedDataset(metadata, model, SampledFunction(samples))
     }
-    (HorizontalJoin().combine(ds1, ds2) match {
+    (HorizontalJoin(HorizontalJoinType.Full).combine(ds1, ds2) match {
       case Right(ds) => ds.samples.map {
         case Sample(
           DomainData(x: IntValue), RangeData(a: Data.DoubleValue, b: Data.DoubleValue)
@@ -142,7 +142,7 @@ class HorizontalJoinSuite extends CatsEffectSuite {
   test("duplicate id previously disambiguated") {
     val m1 = Scalar(id"a_1", IntValueType)
     val m2 = Scalar(id"a", IntValueType)
-    HorizontalJoin().applyToModel(m1, m2) match {
+    HorizontalJoin(HorizontalJoinType.Full).applyToModel(m1, m2) match {
       case Right(Tuple(a: Scalar, b: Scalar)) =>
         assertEquals(a.id, id"a_1")
         assertEquals(b.id, id"a_2")
