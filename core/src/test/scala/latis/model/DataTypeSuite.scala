@@ -219,6 +219,11 @@ class DataTypeSuite extends FunSuite {
     assertEquals(fWithNestedTupDomain.dimension, 3)
   }
 
+  test("non Function") {
+    assertEquals(x.arity, 0)
+    assertEquals(x.dimension, 0)
+  }
+
   //---- Range variables ----//
 
   // f: x -> a
