@@ -10,16 +10,16 @@ import latis.model.*
 import latis.util.CartesianDomainOrdering
 
 /**
- * Binary operation to combine datasets with overlapping coverage.
+ * Vertical join to combine datasets with overlapping coverage.
  *
- * This expects that both datasets have the same model.
+ * This expects that both datasets have the same (or compatible) model.
  * Samples from each dataset will be interleaved to preserve order.
  * If two samples have the same domain values, the sample from the
  * first dataset will be kept.
  */
 class SortedJoin extends VerticalJoin {
   //TODO: use generic sortedMerge from latis3-packets?
-  //TODO: consider other tie breakers: keep second, average, ...
+  //TODO: consider other tie breakers: keep second, average,...
 
   override def joinChunks(
     model1: DataType,
@@ -29,12 +29,15 @@ class SortedJoin extends VerticalJoin {
   ): (Chunk[Sample], Chunk[Sample], Chunk[Sample]) = {
 
     // Define a PartialOrder for domain data
-    val ord = PartialOrder.fromPartialOrdering {
-      model1 match {
-        case Function(domain, _) =>
+    val ord: PartialOrder[DomainData] = model1 match {
+      case Function(domain, _) =>
+        PartialOrder.fromPartialOrdering(
+          //TODO: does it have to be cartesian?
           CartesianDomainOrdering(domain.getScalars.map(_.ordering))
-        case _ => CartesianDomainOrdering(List.empty) //TODO: no domain, always eqv
-      }
+        )
+      case _ => 
+        // Not a Function, 0-length domain is always equivalent       
+        (_, _) => 0.0 //shortcut for single partialCompare method
     }
 
     @tailrec
@@ -59,6 +62,7 @@ class SortedJoin extends VerticalJoin {
         }
         else (Chunk.empty, Chunk.empty, Chunk.empty) //invalid samples, domains not comparable
       } else (acc, c1, c2) //TODO: explain why this works
+      +++ terminate because we need more from at least one stream
     }
 
     if (c1.isEmpty && c2.isEmpty) (Chunk.empty, Chunk.empty, Chunk.empty)
