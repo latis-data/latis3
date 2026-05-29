@@ -17,7 +17,6 @@ import latis.util.LatisException
  * use SortedJoin.
  */
 case class Append() extends VerticalJoin {
-  //TODO: deal with non-Function Data: add index domain? error?
 
   override def applyToData(
     model1: DataType,

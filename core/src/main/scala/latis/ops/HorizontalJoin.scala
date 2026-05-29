@@ -75,6 +75,7 @@ class HorizontalJoin(joinType: HorizontalJoinType) extends Join {
   ): (Chunk[Sample], Chunk[Sample], Chunk[Sample]) = {
 
     // Define a PartialOrder for domain data, assumes Cartesion
+  //TODO: util from SortedJoin
     val ord = PartialOrder.fromPartialOrdering {
       model1 match {
         case Function(domain, _) =>
@@ -115,6 +116,7 @@ class HorizontalJoin(joinType: HorizontalJoinType) extends Join {
         }
         else (Chunk.empty, Chunk.empty, Chunk.empty) //invalid samples, domains not comparable
       } else (acc, c1, c2) //terminate if a chunk is empty, code below will fill as needed
+      +++
     }
 
     // If both chunks are not empty, recursively join the samples.

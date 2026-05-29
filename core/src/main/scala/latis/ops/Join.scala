@@ -110,7 +110,7 @@ trait Join extends BinaryOperation {
    * Note, relational algebra goes by attribute (i.e. column name) only.
    */
   //TODO: test with all 1st class scalar properties, e.g. binWidth...
-  //TODO: util?
+//TODO: util?
   final def comparableDomain(model1: DataType, model2: DataType): Boolean = {
     (model1, model2) match {
       case (Function(d1, _), Function(d2, _)) =>
