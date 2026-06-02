@@ -4,6 +4,7 @@ import scala.util.Properties.lineSeparator
 
 import munit.CatsEffectSuite
 
+import latis.data.*
 import latis.dataset.Dataset
 import latis.dsl.*
 import latis.util.Identifier.*
@@ -43,5 +44,11 @@ class TextEncoderSuite extends CatsEffectSuite {
     } yield {
       assertEquals(ss1, ss2)
     }
+  }
+
+  test("null data for Function") {
+    val model = ModelParser.unsafeParse("x -> a")
+    val data = List(NullData)
+    assertEquals(enc.encodeData(model, data), "null")
   }
 }
