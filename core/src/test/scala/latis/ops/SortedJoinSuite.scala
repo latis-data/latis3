@@ -36,7 +36,7 @@ class SortedJoinSuite extends CatsEffectSuite {
       case Right(ds) => ds.samples.map {
         case Sample(_, RangeData(d: Data.DoubleValue)) => d.value
       }
-      case _ => fail("Failed to zip")
+      case _ => fail("Failed to combine")
     }).compile.toList.map { ds =>
       assertEquals(ds, List(1.2, 2.4, 3.6, 4.8))
     }
