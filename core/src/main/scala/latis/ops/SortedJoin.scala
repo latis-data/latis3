@@ -61,8 +61,10 @@ class SortedJoin extends VerticalJoin {
           go(acc ++ Chunk(sample2), c1, c2.drop(1))
         }
         else (Chunk.empty, Chunk.empty, Chunk.empty) //invalid samples, domains not comparable
-      } else (acc, c1, c2) //TODO: explain why this works
-      +++ terminate because we need more from at least one stream
+      } else {
+        // If a chunk is empty, terminate so the caller will provide more samples
+        (acc, c1, c2)
+      } 
     }
 
     if (c1.isEmpty && c2.isEmpty) (Chunk.empty, Chunk.empty, Chunk.empty)
