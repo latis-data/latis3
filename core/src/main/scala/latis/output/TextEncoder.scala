@@ -80,7 +80,8 @@ class TextEncoder extends Encoder[IO, String] {
       case f: Function =>
         ds.pop() match {
           case sf: MemoizedFunction => encodeFunction(f, sf)
-          case _ => ??? //Oops, model and data not consistent
+          case NullData => "null"
+          case _ => "Error: model and data not consistent"
         }
     }
 
