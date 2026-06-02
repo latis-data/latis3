@@ -115,8 +115,10 @@ class HorizontalJoin(joinType: HorizontalJoinType) extends Join {
           go(acc ++ chunk, c1, c2.drop(1))
         }
         else (Chunk.empty, Chunk.empty, Chunk.empty) //invalid samples, domains not comparable
-      } else (acc, c1, c2) //terminate if a chunk is empty, code below will fill as needed
-      +++
+      } else {
+        // If a chunk is empty, terminate so the caller will provide more samples
+        (acc, c1, c2)
+      }
     }
 
     // If both chunks are not empty, recursively join the samples.
@@ -168,6 +170,7 @@ class HorizontalJoin(joinType: HorizontalJoinType) extends Join {
    * Drop any previous "_#" disambiguators, assuming they were added by a previous join.
    */
   //TODO: risk that variable may have an id with "_#" for legitimate reasons
+ //TODO: disambiguate with dataset name like join service in latis-telemetry?
   private def variableId(variable: DataType): Identifier = variable match {
     case s: Scalar    => Identifier.fromString("_\\d+$".r.replaceAllIn(s.id.asString, "")).get
     case t: Tuple     => t.id.getOrElse(id"tup")
