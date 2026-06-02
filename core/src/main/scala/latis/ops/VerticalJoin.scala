@@ -15,12 +15,12 @@ import latis.util.LatisException
  * will have the model of the first dataset.
  */
 trait VerticalJoin extends Join {
-  //TODO: validate that models are the same, compatible?
+  //TODO: validate that models are the same, compatible
 
   // Model is the same and unchanged, use the first
-  def applyToModel(model1: DataType, model2: DataType):
+  final def applyToModel(model1: DataType, model2: DataType):
     Either[LatisException, DataType] = {
-    // Combine Scalars or Tuples as Function of Index //TODO: test
+    // Combine Scalars or Tuples as Function of Index
     if (model1.arity == 0) Function.from(Index(), model1)
     else model1.asRight
   }
