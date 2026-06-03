@@ -7,7 +7,6 @@ import fs2.*
 
 import latis.data.*
 import latis.model.*
-import latis.util.CartesianDomainOrdering
 
 /**
  * Vertical join to combine datasets with overlapping coverage.
@@ -28,17 +27,8 @@ class SortedJoin extends VerticalJoin {
     c2: Chunk[Sample]
   ): (Chunk[Sample], Chunk[Sample], Chunk[Sample]) = {
 
-    // Define a PartialOrder for domain data
-    val ord: PartialOrder[DomainData] = model1 match {
-      case Function(domain, _) =>
-        PartialOrder.fromPartialOrdering(
-          //TODO: does it have to be cartesian?
-          CartesianDomainOrdering(domain.getScalars.map(_.ordering))
-        )
-      case _ => 
-        // Not a Function, 0-length domain is always equivalent       
-        (_, _) => 0.0 //shortcut for single partialCompare method
-    }
+    // Define a PartialOrder for samples, assumes Cartesion
+    val ord: PartialOrder[Sample] = cartesianOrder(model1)
 
     @tailrec
     def go(
@@ -49,14 +39,14 @@ class SortedJoin extends VerticalJoin {
       if (c1.nonEmpty && c2.nonEmpty) {
         val sample1 = c1.head.get //confirmed not empty
         val sample2 = c2.head.get //confirmed not empty
-        if (ord.eqv(sample1.domain, sample2.domain)) {
+        if (ord.eqv(sample1, sample2)) {
           // Same domain, keep left
           go(acc ++ Chunk(sample1), c1.drop(1), c2.drop(1))
         }
-        else if (ord.lt(sample1.domain, sample2.domain)) {
+        else if (ord.lt(sample1, sample2)) {
           // Left comes first, keep it
           go(acc ++ Chunk(sample1), c1.drop(1), c2)
-        } else if (ord.gt(sample1.domain, sample2.domain)) {
+        } else if (ord.gt(sample1, sample2)) {
           // Right comes first, keep it
           go(acc ++ Chunk(sample2), c1, c2.drop(1))
         }
@@ -64,7 +54,7 @@ class SortedJoin extends VerticalJoin {
       } else {
         // If a chunk is empty, terminate so the caller will provide more samples
         (acc, c1, c2)
-      } 
+      }
     }
 
     if (c1.isEmpty && c2.isEmpty) (Chunk.empty, Chunk.empty, Chunk.empty)
