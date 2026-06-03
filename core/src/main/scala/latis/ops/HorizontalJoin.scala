@@ -9,7 +9,6 @@ import fs2.*
 
 import latis.data.*
 import latis.model.*
-import latis.util.CartesianDomainOrdering
 import latis.util.Identifier
 import latis.util.Identifier.*
 import latis.util.LatisException
@@ -74,15 +73,8 @@ class HorizontalJoin(joinType: HorizontalJoinType) extends Join {
     c2: Chunk[Sample]
   ): (Chunk[Sample], Chunk[Sample], Chunk[Sample]) = {
 
-    // Define a PartialOrder for domain data, assumes Cartesion
-  //TODO: util from SortedJoin
-    val ord = PartialOrder.fromPartialOrdering {
-      model1 match {
-        case Function(domain, _) =>
-          CartesianDomainOrdering(domain.getScalars.map(_.ordering))
-        case _ => CartesianDomainOrdering(List.empty) //always equivalent
-      }
-    }
+    // Define a PartialOrder for samples, assumes Cartesian
+    val ord: PartialOrder[Sample] = cartesianOrder(model1)
 
     // Recursive function to accumulate joined samples.
     // Returns the combined samples and remainder.
@@ -99,24 +91,24 @@ class HorizontalJoin(joinType: HorizontalJoinType) extends Join {
         if (
           domainIsIndex(model1) ||
           domainIsIndex(model2) ||
-          ord.eqv(sample1.domain, sample2.domain)
+          ord.eqv(sample1, sample2)
         ) {
           // Equivalent domain value so combine range variables
           val chunk = Chunk(Sample(sample1.domain, sample1.range ++ sample2.range))
           go(acc ++ chunk, c1.drop(1), c2.drop(1))
         }
-        else if (ord.lt(sample1.domain, sample2.domain)) {
+        else if (ord.lt(sample1, sample2)) {
           // Maybe fill on the right
           val chunk = fillRight(model2, Chunk(sample1)).getOrElse(Chunk.empty)
           go(acc ++ chunk, c1.drop(1), c2)
-        } else if (ord.gt(sample1.domain, sample2.domain)) {
+        } else if (ord.gt(sample1, sample2)) {
           // Maybe fill on the left
           val chunk = fillLeft(model1, Chunk(sample2)).getOrElse(Chunk.empty)
           go(acc ++ chunk, c1, c2.drop(1))
         }
         else (Chunk.empty, Chunk.empty, Chunk.empty) //invalid samples, domains not comparable
       } else {
-        // If a chunk is empty, terminate so the caller will provide more samples
+        // If a chunk is empty, terminate so the caller can provide more samples
         (acc, c1, c2)
       }
     }
@@ -170,19 +162,21 @@ class HorizontalJoin(joinType: HorizontalJoinType) extends Join {
    * Drop any previous "_#" disambiguators, assuming they were added by a previous join.
    */
   //TODO: risk that variable may have an id with "_#" for legitimate reasons
- //TODO: disambiguate with dataset name like join service in latis-telemetry?
+  //TODO: disambiguate with dataset name like join service in latis-telemetry?
+  //  but don't have access to dataset to get id
   private def variableId(variable: DataType): Identifier = variable match {
     case s: Scalar    => Identifier.fromString("_\\d+$".r.replaceAllIn(s.id.asString, "")).get
     case t: Tuple     => t.id.getOrElse(id"tup")
     case f: Function  => f.id.getOrElse(id"func")
   }
 
-//TODO: improve wording
   /**
-   * If the join type permits, make fill data for the first
-   * dataset using the given model. Use the domains from a
-   * chunk of samples from the second dataset and append its
-   * range variables to the fill data.
+   * Maybe adds fill data for the first dataset.
+   *
+   * If the join type is Full or Right, use the given model
+   * of the first dataset to create fill data for each sample
+   * in the given Chunk from the second dataset, creating a
+   * new sample with the range variables combined.
    *
    * Note that this may result in NullData.
    */
@@ -199,10 +193,12 @@ class HorizontalJoin(joinType: HorizontalJoinType) extends Join {
   }
 
   /**
-   * If the join type permits, make fill data for the second
-   * dataset using the given model. Use the domains from a
-   * chunk of samples from the first dataset and prepend its
-   * range variables to the fill data.
+   * Maybe adds fill data for the second dataset.
+   *
+   * If the join type is Full or Left, use the given model
+   * of the second dataset to create fill data for each sample
+   * in the given Chunk from the first dataset, creating a
+   * new sample with the range variables combined.
    *
    * Note that this may result in NullData.
    */

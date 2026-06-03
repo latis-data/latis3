@@ -30,7 +30,11 @@ trait BinaryOperation extends Operation {
   ): Either[LatisException, Stream[IO, Sample]]
 
 
-  /** Combines two datasets. */
+  /** Combines two datasets.
+   *
+   * This uses the abstract apply methods to combine two datasets
+   * and add some history metadata.
+   */
   final def combine(ds1: Dataset, ds2: Dataset): Either[LatisException, Dataset] = {
     val md = {
       //TODO: combine other dataset metadata properties?
@@ -56,7 +60,6 @@ trait BinaryOperation extends Operation {
 
   /** Partially applies the first dataset to get a unary operation. */
   final def partialApply(dataset: Dataset): UnaryOperation = {
-    //TODO: replace PartiallyAppliedBinaryOperation?
     //TODO: need to update metadata like "combine" does,
     //      but can't modify Dataset here
 

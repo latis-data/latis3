@@ -2,6 +2,7 @@ package latis.ops
 
 import cats.effect.IO
 import cats.syntax.all.*
+import cats.PartialOrder
 import fs2.Chunk
 import fs2.Pull
 import fs2.Stream
@@ -9,6 +10,7 @@ import fs2.Stream
 import latis.data.*
 import latis.model.*
 import latis.util.LatisException
+import latis.util.LatisOrdering
 
 /**
  * A Join is a BinaryOperation that combines two or more Datasets.
@@ -110,7 +112,7 @@ trait Join extends BinaryOperation {
    * Note, relational algebra goes by attribute (i.e. column name) only.
    */
   //TODO: test with all 1st class scalar properties, e.g. binWidth...
-//TODO: util?
+  //TODO: move this to DataTypeAlgebra
   final def comparableDomain(model1: DataType, model2: DataType): Boolean = {
     (model1, model2) match {
       case (Function(d1, _), Function(d2, _)) =>
@@ -124,6 +126,24 @@ trait Join extends BinaryOperation {
               (pair._1.units == pair._2.units)
           }
       case (_, _) => true //scalar or tuple, 0-arity
+    }
+  }
+  
+  /** 
+   * Gets a PartialOrder for Samples of the given type
+   * assuming a Cartesian topology.
+   */
+  //TODO: move to core, update LatisOrdering to use cats Order
+  final def cartesianOrder(model: DataType): PartialOrder[Sample] = {
+    model match {
+      case f: Function =>
+        //TODO: test if Function has Cartesian topology
+        PartialOrder.fromPartialOrdering(
+          LatisOrdering.sampleOrdering(f)
+        )
+      case _ =>
+        // Not a Function, 0-length domain is always equivalent       
+        (_, _) => 0.0 //shortcut for single partialCompare method
     }
   }
 }
