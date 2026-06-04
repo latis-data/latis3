@@ -20,7 +20,11 @@ object JsonCatalogEncoder {
         case (id, cat) => encode(cat, Some(id)) 
       }
       dss  <- catalog.datasets.compile.toList.map { dss =>
-        dss.sortBy(_.id.get).map(datasetToJson) // Note: Datasets are expected to have an id
+        // NOTE: Datasets are expected to have an identifier. Getting
+        // the identifier using the 'id' method is slow because we
+        // check that they are valid. Here we assume they are valid
+        // and just sort by the stored strings.
+        dss.sortBy(_.metadata.unsafeGet("id")).map(datasetToJson)
       }
     } yield {
       val fields = List(
@@ -33,7 +37,9 @@ object JsonCatalogEncoder {
 
   /** Provides a JSON representation of a Dataset in a catalog. */
   private def datasetToJson(dataset: Dataset): Json = {
-    val id = dataset.id.map(_.asString).getOrElse("unknown")
+    // NOTE: Getting identifier via metadata to avoid slow valid
+    // identifier check.
+    val id = dataset.metadata.unsafeGet("id")
     Json.obj(
       "identifier" -> id.asJson,
       "title"      -> dataset.metadata.getProperty("title", id).asJson
