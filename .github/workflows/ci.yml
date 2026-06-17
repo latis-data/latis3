@@ -11,7 +11,7 @@ jobs:
         with:
           jvm: temurin:8
           apps: sbt
-      - uses: coursier/cache-action@v6
+      - uses: coursier/cache-action@v8
       - name: Update package lists
         run: sudo apt-get update
       - name: Install libhdf5-dev
