@@ -1,0 +1,4 @@
+before_install:
+  - sdk update
+  - sdk install java 8.0.492-tem
+  - sdk use java 8.0.492-tem
