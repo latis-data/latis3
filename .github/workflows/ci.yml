@@ -22,7 +22,7 @@ jobs:
         run: echo "NETCDF_PATH=$HOME/netcdf" >> $GITHUB_ENV
       - name: Cache NetCDF installation
         id: cache-netcdf
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         with:
           path: ${{ env.NETCDF_PATH }}
           key: ${{ runner.os }}-netcdf-4.7.4
