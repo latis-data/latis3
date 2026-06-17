@@ -232,7 +232,7 @@ lazy val netcdf = project
       "ch.qos.logback" % "logback-classic"  % logbackVersion  % Test
     ),
     resolvers ++= Seq(
-      "Unidata" at "https://artifacts.unidata.ucar.edu/repository/unidata-all"
+      "Unidata" at "https://artifacts.unidata.ucar.edu/repository/unidata-releases"
     )
   )
 
