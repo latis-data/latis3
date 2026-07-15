@@ -19,6 +19,12 @@ class JsonCatalogEncoderSuite extends CatsEffectSuite {
       .addCatalog(id"cat1", Catalog(ds1))
   }
 
+  private lazy val nestedCatalog: Catalog = {
+    Catalog()
+      .addCatalog(id"a1", Catalog().addCatalog(id"b1", catalog))
+      .addCatalog(id"a2", Catalog().addCatalog(id"b2", catalog))
+  }
+
   test("json catalog with ordering") {
     val expected =
       """{
@@ -53,13 +59,33 @@ class JsonCatalogEncoderSuite extends CatsEffectSuite {
       assertEquals(json.toString, expected)
     }
   }
-  
+
   test("dataset ordering") {
     val cat = Catalog(ds1, ds0)
     JsonCatalogEncoder.encode(cat).map { json =>
       json.hcursor.downField("dataset").downArray.downField("identifier").as[String].map { id =>
         assertEquals(id, "ds0")
       }
+    }
+  }
+
+  test("empty catalog with 0 depth") {
+    JsonCatalogEncoder.encode(nestedCatalog, depth = Some(0)).map { json =>
+      val empty = json.asObject.map(obj => obj.isEmpty)
+      assert(empty.contains(true))
+    }
+  }
+
+  test("catalog depth of 3") {
+    JsonCatalogEncoder.encode(nestedCatalog, depth = Some(3)).map { json =>
+      val cat1 = json.hcursor
+        .downField("catalog")
+        .downArray.downField("catalog")
+        .downArray.downField("catalog")
+      val id = cat1.downArray.downField("identifier").as[String]
+      assert(id.contains("cat1"))
+      assert(cat1.downArray.downField("dataset").failed)
+      assert(cat1.downArray.downField("catalog").failed)
     }
   }
 

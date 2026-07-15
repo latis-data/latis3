@@ -17,6 +17,7 @@ import org.http4s.circe.*
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.Accept
 import org.http4s.scalatags.scalatagsEncoder
+import org.http4s.Query
 import org.typelevel.ci.*
 
 import latis.catalog.Catalog
@@ -45,7 +46,7 @@ class Dap2Service(catalog: Catalog, operationRegistry: OperationRegistry)
 
   /** Handles GET requests for a Catalog or Dataset. */
   private def handleGetRequest(path: Path, query: String, headers: Headers): IO[Response[IO]] = {
-    if (path.isEmpty) catalogResponse(catalog, headers)
+    if (path.isEmpty) catalogResponse(catalog, query, headers)
     else parsePath(path) match {
       case (Some(id), ext) => catalog.findDataset(id).flatMap {
         case Some(ds) =>
@@ -53,7 +54,7 @@ class Dap2Service(catalog: Catalog, operationRegistry: OperationRegistry)
           if (path.endsWithSlash) NotFound(s"Resource not found: $path")
           else datasetResponse(ds, ext, query)
         case None     => catalog.findCatalog(id).flatMap {
-          case Some(cat) => catalogResponse(cat, headers)
+          case Some(cat) => catalogResponse(cat, query, headers)
           case None      => NotFound(s"Resource not found: $path")
         }
       }
@@ -95,17 +96,26 @@ class Dap2Service(catalog: Catalog, operationRegistry: OperationRegistry)
    * If both match or there is no Accept header, JSON will be used over HTML. If none match,
    * this will respond with a NotAcceptable (406).
    */
-  private def catalogResponse(catalog: Catalog, headers: Headers): IO[Response[IO]] =
+  private def catalogResponse(
+    catalog: Catalog,
+    query: String,
+    headers: Headers
+  ): IO[Response[IO]] = {
+    val depth = Query.unsafeFromString(query).params.get("depth")
+      .flatMap(_.toIntOption)
     headers.get[Accept] match {
       case Some(accept) =>
         accept.values.map(_.mediaRange).map { mr =>
-          if (MediaType.application.json.satisfies(mr)) JsonCatalogEncoder.encode(catalog).flatMap(Ok(_)).some
-          else if (MediaType.text.html.satisfies(mr)) HtmlCatalogEncoder.encode(catalog).flatMap(Ok(_)).some
+          if (MediaType.application.json.satisfies(mr))
+            JsonCatalogEncoder.encode(catalog, depth = depth).flatMap(Ok(_)).some
+          else if (MediaType.text.html.satisfies(mr))
+            HtmlCatalogEncoder.encode(catalog).flatMap(Ok(_)).some
           else None
         }.toList.unite.headOption //take first nonNone response
          .getOrElse(NotAcceptable("A catalogs is available only as JSON or HTML."))
       case None => JsonCatalogEncoder.encode(catalog).flatMap(Ok(_))
     }
+  }
 
   /** Provides a response for a Dataset request. */
   private def datasetResponse(
