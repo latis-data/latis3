@@ -256,3 +256,15 @@ lazy val `test-utils` = project
       "org.scalatest" %% "scalatest" % "3.2.20"
     ),
   )
+
+lazy val `sql-service` = project
+  .dependsOn(core)
+  .dependsOn(`service-interface`)
+  .settings(commonSettings)
+  .settings(
+    name := "latis3-sql-service",
+    libraryDependencies ++= Seq(
+      "org.typelevel" %% "cats-parse" % "1.1.0",
+      "org.http4s" %% "http4s-dsl" % http4sVersion % Provided
+    )
+  )
