@@ -4,6 +4,7 @@ package parser
 import cats.data.NonEmptyList
 import cats.parse.Numbers
 import cats.parse.Parser
+import cats.parse.Parser0
 import cats.parse.Rfc5234
 import cats.syntax.all.*
 
@@ -19,6 +20,9 @@ object SqlParser {
 
   def parse(str: String): Either[ParseError, Query] =
     query.parseAll(str).leftMap(err => ParseError(err.toString))
+
+  private val newlines: Parser0[Unit] =
+    (Parser.char('\n') | Parser.string("\r\n")).rep0.void
 
   private val whitespace: Parser[Unit] =
     Rfc5234.wsp.rep.void
@@ -75,8 +79,12 @@ object SqlParser {
   }
 
   private val query: Parser[Query] =
-    ((select *> projection) ~ (from *> identifier) ~ (whitespace *> where *> selection).?)
-      .map { case ((pj, ds), ss) =>
-        Query(ds, pj, ss.map(_.toList).getOrElse(List.empty))
-      }
+    (
+      (select *> projection) ~
+      (from *> identifier) ~
+      (whitespace *> where *> selection).? <*
+      newlines
+    ).map { case ((pj, ds), ss) =>
+      Query(ds, pj, ss.map(_.toList).getOrElse(List.empty))
+    }
 }

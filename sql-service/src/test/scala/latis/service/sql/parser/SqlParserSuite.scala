@@ -33,4 +33,13 @@ final class SqlParserSuite extends munit.FunSuite {
       query => assertEquals(query, expected)
     )
   }
+
+  test("handle trailing newlines") {
+    val expected = Query(id"dataset", List.empty, List.empty)
+
+    SqlParser.parse("select * from dataset\n\r\n").fold(
+      err => fail(s"$err"),
+      query => assertEquals(query, expected)
+    )
+  }
 }
