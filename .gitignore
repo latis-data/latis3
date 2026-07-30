@@ -1,2 +1,5 @@
+project/metals.sbt
+project/project/
 target/
 .bsp/
+.metals/
