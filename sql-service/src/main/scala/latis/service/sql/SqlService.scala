@@ -55,14 +55,15 @@ final class SqlService(catalog: Catalog)
 
   private def getDataset(id: Identifier): IO[Dataset] =
     OptionT(catalog.findDataset(id)).cataF(
-      IO.raiseError(DatasetResolutionFailure(s"Dataset not found: ${id.asString}")),
+      IO.raiseError(DatasetResolutionFailure(id)),
       _.pure[IO]
     )
 
   private def handleServiceErrors(err: SqlServiceError): IO[Response[IO]] =
     err match {
-      case DatasetResolutionFailure(msg) => BadRequest(msg)
-      case ParseError(msg)               => BadRequest(msg)
+      case DatasetResolutionFailure(dataset) =>
+        BadRequest(s"Dataset not found: ${dataset.asString}")
+      case ParseError(err) => BadRequest(err.show)
     }
 
   private def toLatisOps(q: Query): List[UnaryOperation] = {

@@ -1,10 +1,16 @@
 package latis.service.sql
 
-enum SqlServiceError extends Throwable {
+import scala.util.control.NoStackTrace
 
-  /** TODO */
-  case DatasetResolutionFailure(msg: String)
+import cats.parse.Parser
 
-  /** TODO */
-  case ParseError(msg: String)
+import latis.util.Identifier
+
+enum SqlServiceError extends NoStackTrace {
+
+  /** Error indicating that a dataset could not be found. */
+  case DatasetResolutionFailure(dataset: Identifier)
+
+  /** Error indicating an issue parsing the query. */
+  case ParseError(unwrap: Parser.Error)
 }

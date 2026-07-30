@@ -19,7 +19,7 @@ import SqlServiceError.*
 object SqlParser {
 
   def parse(str: String): Either[ParseError, Query] =
-    query.parseAll(str).leftMap(err => ParseError(err.toString))
+    query.parseAll(str).leftMap(ParseError(_))
 
   /**
    * Convert a parser into a parser that consumes trailing whitespace

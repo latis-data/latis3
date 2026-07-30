@@ -1,6 +1,8 @@
 package latis.service.sql
 package parser
 
+import cats.syntax.all.*
+
 import latis.util.Identifier.*
 
 final class SqlParserSuite extends munit.FunSuite {
@@ -9,7 +11,7 @@ final class SqlParserSuite extends munit.FunSuite {
     val expected = Query(id"dataset", List.empty, List.empty)
 
     SqlParser.parse("select * from dataset").fold(
-      err => fail(s"$err"),
+      err => fail(err.unwrap.show),
       query => assertEquals(query, expected)
     )
   }
@@ -18,7 +20,7 @@ final class SqlParserSuite extends munit.FunSuite {
     val expected = Query(id"dataset", List(id"a", id"b", id"c"), List.empty)
 
     SqlParser.parse("select a, b, c from dataset").fold(
-      err => fail(s"$err"),
+      err => fail(err.unwrap.show),
       query => assertEquals(query, expected)
     )
   }
@@ -29,7 +31,7 @@ final class SqlParserSuite extends munit.FunSuite {
     ))
 
     SqlParser.parse("select * from dataset where a < 1 and b > 2").fold(
-      err => fail(s"$err"),
+      err => fail(err.unwrap.show),
       query => assertEquals(query, expected)
     )
   }
@@ -40,7 +42,7 @@ final class SqlParserSuite extends munit.FunSuite {
     ))
 
     SqlParser.parse("select * from dataset\r\nwhere a < 1 and b > 2").fold(
-      err => fail(s"$err"),
+      err => fail(err.unwrap.show),
       query => assertEquals(query, expected)
     )
   }
@@ -49,7 +51,7 @@ final class SqlParserSuite extends munit.FunSuite {
     val expected = Query(id"dataset", List.empty, List.empty)
 
     SqlParser.parse(" \t \n \r\nselect * from dataset").fold(
-      err => fail(s"$err"),
+      err => fail(err.unwrap.show),
       query => assertEquals(query, expected)
     )
   }
@@ -58,7 +60,7 @@ final class SqlParserSuite extends munit.FunSuite {
     val expected = Query(id"dataset", List.empty, List.empty)
 
     SqlParser.parse("select * from dataset \t \n \r\n").fold(
-      err => fail(s"$err"),
+      err => fail(err.unwrap.show),
       query => assertEquals(query, expected)
     )
   }
