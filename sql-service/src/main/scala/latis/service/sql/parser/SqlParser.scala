@@ -24,8 +24,8 @@ object SqlParser {
   private val newlines: Parser0[Unit] =
     (Parser.char('\n') | Parser.string("\r\n")).rep0.void
 
-  private val whitespace: Parser[Unit] =
-    Rfc5234.wsp.rep.void
+  private val whitespace: Parser0[Unit] =
+    Rfc5234.wsp.rep0.void
 
   // NOTE: Under our definition, one or more underscores is a valid
   // LaTiS identifier, and I've kept that behavior here. I did not
