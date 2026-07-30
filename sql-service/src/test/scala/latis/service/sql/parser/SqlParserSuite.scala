@@ -34,10 +34,30 @@ final class SqlParserSuite extends munit.FunSuite {
     )
   }
 
-  test("handle trailing newlines") {
+  test("parse a query on multiple lines") {
+    val expected = Query(id"dataset", List.empty, List(
+      Selection(id"a", Selection.Lt, "1"), Selection(id"b", Selection.Gt, "2")
+    ))
+
+    SqlParser.parse("select * from dataset\r\nwhere a < 1 and b > 2").fold(
+      err => fail(s"$err"),
+      query => assertEquals(query, expected)
+    )
+  }
+
+  test("handle leading whitespace") {
     val expected = Query(id"dataset", List.empty, List.empty)
 
-    SqlParser.parse("select * from dataset\n\r\n").fold(
+    SqlParser.parse(" \t \n \r\nselect * from dataset").fold(
+      err => fail(s"$err"),
+      query => assertEquals(query, expected)
+    )
+  }
+
+  test("handle trailing whitespace") {
+    val expected = Query(id"dataset", List.empty, List.empty)
+
+    SqlParser.parse("select * from dataset \t \n \r\n").fold(
       err => fail(s"$err"),
       query => assertEquals(query, expected)
     )

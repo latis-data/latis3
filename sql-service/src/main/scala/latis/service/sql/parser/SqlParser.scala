@@ -21,11 +21,22 @@ object SqlParser {
   def parse(str: String): Either[ParseError, Query] =
     query.parseAll(str).leftMap(err => ParseError(err.toString))
 
-  private val newlines: Parser0[Unit] =
-    (Parser.char('\n') | Parser.string("\r\n")).rep0.void
+  /**
+   * Convert a parser into a parser that consumes trailing whitespace
+   * (horizontal and vertical).
+   */
+  private def token[A](parser: Parser[A]): Parser[A] =
+    parser <* ws
 
-  private val whitespace: Parser0[Unit] =
-    Rfc5234.wsp.rep0.void
+  /**
+   * Parse a string (case insensitive) and consume trailing whitespace
+   * (horizontal and vertical).
+   */
+  private def token(str: String): Parser[Unit] =
+    token(Parser.ignoreCase(str))
+
+  private val ws: Parser0[Unit] =
+    (Rfc5234.wsp | Rfc5234.lf | Rfc5234.crlf).rep0.void
 
   // NOTE: Under our definition, one or more underscores is a valid
   // LaTiS identifier, and I've kept that behavior here. I did not
@@ -37,41 +48,41 @@ object SqlParser {
       underscore :: Rfc5234.alpha :: Rfc5234.digit :: Nil
     ).rep0
 
-    (first ~ rest).string.map { id =>
+    val p = (first ~ rest).string.map { id =>
       Identifier.fromString(id).get
     }
+
+    token(p)
   }
 
-  private val select: Parser[Unit] =
-    Parser.ignoreCase("select") <* whitespace
+  private val select: Parser[Unit] = token("select")
 
   private val projection: Parser[List[Identifier]] = {
     val star = Parser.char('*').as(List.empty)
-    val list = identifier.repSep(Parser.char(',') <* whitespace).map(_.toList)
+    val list = identifier.repSep(token(",")).map(_.toList)
 
-    (star | list) <* whitespace
+    token(star | list)
   }
 
-  private val from: Parser[Unit] =
-    Parser.ignoreCase("from") <* whitespace
+  private val from: Parser[Unit] = token("from")
 
-  private val where: Parser[Unit] =
-    Parser.ignoreCase("where") <* whitespace
+  private val where: Parser[Unit] = token("where")
 
   val selection: Parser[NonEmptyList[Selection]] = {
-    val and = Parser.ignoreCase("and") <* whitespace
+    val and = token("and")
 
-    val op = Parser.oneOf(List(
-      Parser.string("=").as(Selection.Eq),
-      Parser.string(">=").as(Selection.GtEq),
-      Parser.string(">").as(Selection.Gt),
-      Parser.string("<=").as(Selection.LtEq),
-      Parser.string("<").as(Selection.Lt)
-    )) <* whitespace.?
+    val op = Parser.oneOf(
+      token("=").as(Selection.Eq)
+      :: token(">=").as(Selection.GtEq)
+      :: token(">").as(Selection.Gt)
+      :: token("<=").as(Selection.LtEq)
+      :: token("<").as(Selection.Lt)
+      :: Nil
+    )
 
-    val value: Parser[String] = Numbers.jsonNumber
+    val value: Parser[String] = token(Numbers.jsonNumber)
 
-    ((identifier <* whitespace.?) ~ op ~ value).repSep(whitespace *> and).map {
+    (identifier ~ op ~ value).repSep(and).map {
       _.map {
         case ((id, p), v) => Selection(id, p, v)
       }
@@ -80,10 +91,9 @@ object SqlParser {
 
   private val query: Parser[Query] =
     (
-      (select *> projection) ~
+      (ws.with1 *> select *> projection) ~
       (from *> identifier) ~
-      (whitespace *> where *> selection).? <*
-      newlines
+      (where *> selection).?
     ).map { case ((pj, ds), ss) =>
       Query(ds, pj, ss.map(_.toList).getOrElse(List.empty))
     }
