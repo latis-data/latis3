@@ -50,6 +50,22 @@ trait DataTypeAlgebra { dataType: DataType =>
   def nonIndexScalars: List[Scalar] =
     getScalars.filterNot(_.isInstanceOf[Index])
 
+  /** 
+   * Returns the range variables without flattening, i.e. not just Scalars. 
+   * 
+   * Element of an anonymous outer range Tuple will be extracted.
+   * 
+   * Note that Scalars and Tuples are the range of a 0-arity Function.
+   */
+  def rangeVariables: List[DataType] = this match {
+    case Function(_, range) => range match {
+      case t: Tuple => if (t.id.isEmpty) t.elements else List(t)
+      case v        => List(v)
+    }
+    case t: Tuple  => if (t.id.isEmpty) t.elements else List(t)
+    case s: Scalar => List(s)
+  }
+
   /** Replaces the identifier of this DataType. */
   def rename(id: Identifier): DataType = dataType match {
     case s: Scalar      =>
