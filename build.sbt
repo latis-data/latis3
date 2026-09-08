@@ -95,7 +95,7 @@ lazy val core = project
   .settings(
     name := "latis3-core",
     libraryDependencies ++= Seq(
-      "org.scala-lang.modules" %% "scala-xml"           % "2.4.0",
+      "org.scala-lang.modules" %% "scala-xml"           % "2.5.0",
       "org.typelevel"          %% "cats-effect-testkit" % catsEffectVersion % Test,
       "io.circe"               %% "circe-core"          % circeVersion,
       "io.circe"               %% "circe-literal"       % circeVersion % Test,
