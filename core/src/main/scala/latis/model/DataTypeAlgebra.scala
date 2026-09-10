@@ -45,7 +45,7 @@ trait DataTypeAlgebra { dataType: DataType =>
     }
     go(dataType)
   }
-  
+
   /** Returns Scalars in the model that are not an Index. */
   def nonIndexScalars: List[Scalar] =
     getScalars.filterNot(_.isInstanceOf[Index])
@@ -60,21 +60,55 @@ trait DataTypeAlgebra { dataType: DataType =>
   }
 
   /**
+   * Returns the top level domain variables without flattening.
+   *
+   * Element of an anonymous outer domain (placeholder) Tuple will be extracted.
+   * Note that Scalars and Tuples are the range of a 0-arity Function.
+   */
+  def domainVariables: List[DataType] = dataType match {
+    case Function(domain, _) => domain match {
+      case t: Tuple => if (t.id.isEmpty) t.elements else List(t)
+      case v => List(v)
+    }
+    case _ => List.empty
+  }
+
+  /**
+   * Returns the top level range variables without flattening.
+   *
+   * Element of an anonymous outer range (placeholder) Tuple will be extracted.
+   * Note that Scalars and Tuples are the range of a 0-arity Function.
+   */
+  def rangeVariables: List[DataType] = dataType match {
+    case Function(_, range) => range match {
+      case t: Tuple => if (t.id.isEmpty) t.elements else List(t)
+      case v => List(v)
+    }
+    case t: Tuple => if (t.id.isEmpty) t.elements else List(t)
+    case s: Scalar => List(s)
+  }
+
+  /**
    * Returns the arity of this DataType.
    *
-   * For a Function, this is the number of top level types (non-flattened)
-   * in the domain. For Scalar and Tuple, there is no domain so the arity is 0.
-   *
-   * Beware that this is not the same as dimensionality since a nested tuple
-   * counts as one towards arity.
+   * For a Function, arity is the number of top level variables in the
+   * domain. Other than an outer anonymous Tuple which is used
+   * only to contain multiple domain variables, a Tuple will count as a single
+   * variable as opposed to counting the variables nested within it
+   * (as opposed to `dimension`). For a Scalar or Tuple, there is no
+   * domain so the arity is 0. This is akin to the number of arguments
+   * in a function call.
    */
-  def arity: Int = dataType match {
-    case Function(domain, _) =>
-      domain match {
-        case _: Scalar   => 1
-        case t: Tuple    => t.elements.length
-        case _: Function => ??? //bug, Function not allowed in domain
-      }
+  def arity: Int = dataType.domainVariables.size
+
+  /**
+   * Returns the number of dimensions covered by this DataType.
+   *
+   * The dimension is the number of Scalars in the domain of a Function.
+   * A lone Tuple or Scalar has zero dimensions.
+   */
+  def dimension: Int = dataType match {
+    case Function(domain, _) => domain.getScalars.size
     case _ => 0
   }
 
