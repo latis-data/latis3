@@ -7,6 +7,7 @@ import io.circe.Json
 import io.circe.syntax.*
 
 import latis.catalog.Catalog
+import latis.catalog.Catalog2
 import latis.dataset.Dataset
 import latis.util.Identifier
 import latis.util.Identifier.*
@@ -19,6 +20,8 @@ object JsonCatalogEncoder {
    * This method may be called recursively as the catalog is traversed.
    * An optional depth will limit how far the recursion will proceed.
    * A depth of 0 will result in an empty JSON object.
+   *
+   * This will include properties of the experimental Catalog2.
    *
    * @param catalog The Catalog to be encoded
    * @param id Optional identifier fot the given catalog
@@ -46,7 +49,18 @@ object JsonCatalogEncoder {
       }
     } yield {
       val fields = List(
-        id.map(id => "identifier" -> id.asString.asJson),
+        catalog match {
+          case cat: Catalog2 => Some("identifier" -> cat.id.asString.asJson)
+          case _ => id.map("identifier" -> _.asString.asJson)
+        },
+        catalog match {
+          case cat: Catalog2 => cat.title.map("title" -> _.asJson)
+          case _ => None
+        },
+        catalog match {
+          case cat: Catalog2 => cat.description.map("description" -> _.asJson)
+          case _ => None
+        },
         NonEmptyList.fromList(cats).map(cats => "catalog" -> cats.asJson),
         NonEmptyList.fromList(dss).map(dss => "dataset" -> dss.asJson)
       ).unite //keep only fields that are defined
