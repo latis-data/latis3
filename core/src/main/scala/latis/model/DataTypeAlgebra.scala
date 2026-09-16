@@ -108,6 +108,38 @@ trait DataTypeAlgebra { dataType: DataType =>
     go(this)
   }
 
+  /**
+   * Determines if data for a given variable is missing. Checks for the value given in 
+   * metadata for `missingValue`, and if not defined, the value given in metadata for
+   * `fillValue`. Also checks if `missingValue` is NaN. Data for a `Tuple` is considered
+   * missing if it contains one or more elements that are missing. A function is considered 
+   * missing if the data is `NullData`.
+   * 
+   * @params data Data from a Sample
+   */
+  def isMissing(data: Data): Boolean = {
+    def go(dt: DataType): Boolean = dt match {
+      case s: Scalar =>
+        s.missingValue
+          .orElse(s.fillValue) // look for fillValue if missingValue is not defined
+          .map { missingVal =>
+            missingVal match {
+              case Real(v) if v.isNaN() => false
+              case _ => (data == missingVal)
+            }
+          }
+          .getOrElse(false) // no-op
+      case t: Tuple =>
+        t.elements.map(go).forall(identity) // I don't know if this works recursively
+      case f: Function => false
+    }
+
+    data match {
+      case Real(n) if n.isNaN() => true
+      case NullData => true
+      case _ => go(dataType)
+    }
+  }
 
   /** Makes fill data for this data type. */
   def fillData: Data = {
