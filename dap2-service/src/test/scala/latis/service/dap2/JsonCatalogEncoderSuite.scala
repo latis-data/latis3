@@ -1,12 +1,14 @@
 package latis.service.dap2
 
 import cats.effect.IO
+import java.time.LocalDate
 import munit.CatsEffectSuite
 
 import latis.catalog.Catalog
 import latis.catalog.Catalog2
 import latis.dataset.MemoizedDataset
 import latis.metadata.Metadata
+import latis.util.Bounds
 import latis.util.Identifier.*
 
 class JsonCatalogEncoderSuite extends CatsEffectSuite {
@@ -92,12 +94,14 @@ class JsonCatalogEncoderSuite extends CatsEffectSuite {
   }
 
   test("catalog2") {
+    import org.typelevel.cats.time.*
     val cat = Catalog2(
       id"root",
       Some("Root Catalog"),
       catalog = IO(List(Catalog2(
         id"inner",
         description = Some("myDesc"),
+        timeBounds = Some(Bounds.closedLower(LocalDate.of(2026, 1, 1))),
         catalog = IO(List()),
         dataset = IO(List())
       ))),
@@ -110,7 +114,8 @@ class JsonCatalogEncoderSuite extends CatsEffectSuite {
       |  "catalog" : [
       |    {
       |      "identifier" : "inner",
-      |      "description" : "myDesc"
+      |      "description" : "myDesc",
+      |      "temporal" : "2026-01-01/"
       |    }
       |  ]
       |}""".stripMargin
