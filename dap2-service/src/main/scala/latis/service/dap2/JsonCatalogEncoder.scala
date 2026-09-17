@@ -9,8 +9,9 @@ import io.circe.syntax.*
 import latis.catalog.Catalog
 import latis.catalog.Catalog2
 import latis.dataset.Dataset
-import latis.util.Identifier
+import latis.util.*
 import latis.util.Identifier.*
+
 
 object JsonCatalogEncoder {
 
@@ -55,11 +56,30 @@ object JsonCatalogEncoder {
         },
         catalog match {
           case cat: Catalog2 => cat.title.map("title" -> _.asJson)
-          case _ => None
+          case _ => None // not defined in Catalog
         },
         catalog match {
           case cat: Catalog2 => cat.description.map("description" -> _.asJson)
-          case _ => None
+          case _ => None // not defined in Catalog
+        },
+        catalog match {
+          case cat: Catalog2 => cat.timeBounds.flatMap {
+            // Note, LocalDate.toString will use yyyy-MM-dd format as documented.
+            // Catalog time coverage metadata should be interpreted as closed,
+            // but for completeness...
+            case PointBounds(v) => s"$v".some
+            case NonEmptyBounds(ClosedBound(l),  ClosedBound(u))  => s"$l/$u".some
+            case NonEmptyBounds(ClosedBound(l),  OpenBound(u))    => s"$l/$u".some
+            case NonEmptyBounds(ClosedBound(l),  InfiniteBound()) => s"$l/".some
+            case NonEmptyBounds(OpenBound(l),    ClosedBound(u))  => s"$l/$u".some
+            case NonEmptyBounds(OpenBound(l),    OpenBound(u))    => s"$l/$u".some
+            case NonEmptyBounds(OpenBound(l),    InfiniteBound()) => s"$l/".some
+            case NonEmptyBounds(InfiniteBound(), ClosedBound(u))  => s"/$u".some
+            case NonEmptyBounds(InfiniteBound(), OpenBound(u))    => s"/$u".some
+            case NonEmptyBounds(InfiniteBound(), InfiniteBound()) => None
+            case EmptyBounds() => None
+          }.map("temporal" -> _.asJson)
+          case _ => None // not defined in Catalog
         },
         NonEmptyList.fromList(cats).map(cats => "catalog" -> cats.asJson),
         NonEmptyList.fromList(dss).map(dss => "dataset" -> dss.asJson)
