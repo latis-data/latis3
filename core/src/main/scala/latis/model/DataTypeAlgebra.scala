@@ -6,6 +6,7 @@ import cats.syntax.all.*
 
 import latis.data.*
 import latis.util.Identifier
+import latis.util.LatisException
 
 trait DataTypeAlgebra { dataType: DataType =>
 
@@ -112,32 +113,42 @@ trait DataTypeAlgebra { dataType: DataType =>
    * Determines if data for a given variable is missing. Checks for the value given in 
    * metadata for `missingValue`, and if not defined, the value given in metadata for
    * `fillValue`. Also checks if `missingValue` is NaN. Data for a `Tuple` is considered
-   * missing if it contains one or more elements that are missing. A function is considered 
-   * missing if the data is `NullData`.
+   * missing if it contains one or more elements that are missing.
    * 
    * @params data Data from a Sample
    */
   def isMissing(data: Data): Boolean = {
-    def go(dt: DataType): Boolean = dt match {
+    dataType match {
       case s: Scalar =>
-        s.missingValue
-          .orElse(s.fillValue) // look for fillValue if missingValue is not defined
-          .map { missingVal =>
-            missingVal match {
-              case Real(v) if v.isNaN() => false
-              case _ => (data == missingVal)
-            }
-          }
-          .getOrElse(false) // no-op
+        // if data is null or NaN, the value is missing
+        data match {
+          case Real(n) if n.isNaN() => true
+          case NullData => true
+          case _ =>
+            // if data looks okay, look for model attributes
+            s.missingValue
+              .orElse(s.fillValue) // look for fillValue if missingValue is not defined
+              .map {
+                case Real(v) if v.isNaN() => false
+                case v => (data == v)
+              }
+              .getOrElse(false) // no missingValue or fillValue defined -> no-op
+        }
       case t: Tuple =>
-        t.elements.map(go).forall(identity) // I don't know if this works recursively
-      case f: Function => false
-    }
-
-    data match {
-      case Real(n) if n.isNaN() => true
-      case NullData => true
-      case _ => go(dataType)
+        data match {
+          case TupleData(d @ _*) =>
+            t.flatElements.zip(d).exists((dt, ds) => dt.isMissing(ds))
+          case _ =>
+            throw LatisException("Expected TupleData for isMissing() call")
+        }
+      case f: Function => 
+        // we only care if the function itself is missing
+        data match {
+          case SeqFunction(ss, _) =>
+            ss.isEmpty
+          case NullData => true
+          case _ => false
+        }
     }
   }
 
