@@ -6,6 +6,7 @@ import cats.syntax.all.*
 
 import latis.data.*
 import latis.util.Identifier
+import latis.util.LatisException
 
 trait DataTypeAlgebra { dataType: DataType =>
 
@@ -108,6 +109,48 @@ trait DataTypeAlgebra { dataType: DataType =>
     go(this)
   }
 
+  /**
+   * Determines if data for a given variable is missing. Checks for the value given in 
+   * metadata for `missingValue`, and if not defined, the value given in metadata for
+   * `fillValue`. Also checks if `missingValue` is NaN. Data for a `Tuple` is considered
+   * missing if it contains one or more elements that are missing.
+   * 
+   * @params data Data from a Sample
+   */
+  def isMissing(data: Data): Boolean = {
+    dataType match {
+      case s: Scalar =>
+        // if data is null or NaN, the value is missing
+        data match {
+          case Real(n) if n.isNaN() => true
+          case NullData => true
+          case _ =>
+            // if data looks okay, look for model attributes
+            s.missingValue
+              .orElse(s.fillValue) // look for fillValue if missingValue is not defined
+              .map {
+                case Real(v) if v.isNaN() => false
+                case v => (data == v)
+              }
+              .getOrElse(false) // no missingValue or fillValue defined -> no-op
+        }
+      case t: Tuple =>
+        data match {
+          case TupleData(d @ _*) =>
+            t.flatElements.zip(d).exists((dt, ds) => dt.isMissing(ds))
+          case _ =>
+            throw LatisException("Expected TupleData for isMissing() call")
+        }
+      case f: Function => 
+        // we only care if the function itself is missing
+        data match {
+          case SeqFunction(ss, _) =>
+            ss.isEmpty
+          case NullData => true
+          case _ => false
+        }
+    }
+  }
 
   /** Makes fill data for this data type. */
   def fillData: Data = {

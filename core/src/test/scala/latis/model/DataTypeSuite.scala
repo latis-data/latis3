@@ -2,10 +2,8 @@ package latis.model
 
 import munit.FunSuite
 
-import latis.data.DomainPosition
-import latis.data.NullData
-import latis.data.RangePosition
-import latis.data.TupleData
+import latis.data.*
+import latis.metadata.Metadata
 import latis.util.Identifier.*
 
 class DataTypeSuite extends FunSuite {
@@ -179,5 +177,75 @@ class DataTypeSuite extends FunSuite {
 
   test("complex nested function is complex") {
     assert(nestedFInTup.isComplex)
+  }
+
+  //---- missing ----//
+
+  private lazy val nonNullableScalar = Scalar(id"nns", IntValueType)
+  private lazy val scalarWithFill    = Scalar.fromMetadata(Metadata("id" -> "swf", "type" -> "int", "fillValue" -> "-1"))
+    .fold(fail("failed to construct scalar", _), identity)
+  private lazy val scalarWithMissing = Scalar.fromMetadata(Metadata("id" -> "swm", "type" -> "int", "missingValue" -> "-9"))
+    .fold(fail("failed to construct scalar", _), identity)
+  private lazy val tuple: Tuple = Tuple.fromElements(
+    scalarWithMissing,
+    scalarWithFill
+  ).fold(fail("failed to construct tuple", _), identity)
+  private lazy val nestedTuple: Tuple = Tuple.fromElements(
+    scalarWithMissing,
+    tuple
+  ).fold(fail("failed to construct tuple", _), identity)
+  private lazy val function: Function = Function.from(nonNullableScalar, scalarWithFill)
+    .fold(fail("failed to construct function", _), identity)
+
+  test("scalar with missing value") {
+    assert(scalarWithMissing.isMissing(Data.IntValue(-9)))
+  }
+
+  test("scalar with fill value") {
+    assert(scalarWithFill.isMissing(Data.IntValue(-1)))
+  }
+
+  test("scalar without missing or fill value") {
+    assert(!nonNullableScalar.isMissing(Data.IntValue(4)))
+  }
+
+  test("scalar data is NaN") {
+    assert(scalarWithFill.isMissing(Data.FloatValue(Float.NaN)))
+  }
+
+  test("scalar data is NullData") {
+    assert(scalarWithFill.isMissing(NullData))
+  }
+
+  test("tuple with one missing value") {
+    tuple.isMissing(TupleData(Data.IntValue(0), Data.IntValue(-9)))
+  }
+
+  test("tuple with no missing values") {
+    !(tuple.isMissing(TupleData(Data.IntValue(8), Data.IntValue(4))))
+  }
+
+  test("nested tuple with none missing") {
+    !(nestedTuple.isMissing(TupleData(Data.IntValue(3), TupleData(Data.IntValue(2), Data.IntValue(0)))))
+  }
+
+  test("nested tuple with NullData") {
+    nestedTuple.isMissing(TupleData(Data.IntValue(0), TupleData(Data.IntValue(1), NullData)))
+  }
+
+  test("nested tuple with NaN") {
+    nestedTuple.isMissing(TupleData(Data.IntValue(0), TupleData(Data.FloatValue(Float.NaN), Data.IntValue(2))))
+  }
+
+  test("nested tuple with two missing") {
+    nestedTuple.isMissing(TupleData(Data.IntValue(3), TupleData(Data.IntValue(-9), Data.IntValue(-1))))
+  }
+
+  test("function") {
+    function.isMissing(SampledFunction(List()))
+  }
+
+  test("function containing nulldata") {
+    function.isMissing(NullData)
   }
 }
