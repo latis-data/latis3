@@ -218,44 +218,34 @@ class DataTypeSuite extends FunSuite {
   }
 
   test("tuple with one missing value") {
-    (tuple, TupleData(Data.IntValue(0), Data.IntValue(-9))) match {
-      case (t, TupleData(ds @ _*)) =>
-        t.elements.zip(ds).exists((v, d) => v.isMissing(d))
-    }
+    tuple.isMissing(TupleData(Data.IntValue(0), Data.IntValue(-9)))
   }
 
   test("tuple with no missing values") {
-    (tuple, TupleData(Data.IntValue(8), Data.IntValue(4))) match {
-      case (t, TupleData(ds @ _*)) =>
-        !(t.elements.zip(ds).exists((v, d) => v.isMissing(d)))
-    }
+    !(tuple.isMissing(TupleData(Data.IntValue(8), Data.IntValue(4))))
   }
 
   test("nested tuple with none missing") {
-    (nestedTuple, TupleData(Data.IntValue(3), TupleData(Data.IntValue(2), Data.IntValue(0)))) match {
-      case (t, TupleData(ds @ _*)) =>
-        !(t.flatElements.zip(ds).exists((v, d) => v.isMissing(d)))
-    }
+    !(nestedTuple.isMissing(TupleData(Data.IntValue(3), TupleData(Data.IntValue(2), Data.IntValue(0)))))
+  }
+
+  test("nested tuple with NullData") {
+    nestedTuple.isMissing(TupleData(Data.IntValue(0), TupleData(Data.IntValue(1), NullData)))
+  }
+
+  test("nested tuple with NaN") {
+    nestedTuple.isMissing(TupleData(Data.IntValue(0), TupleData(Data.FloatValue(Float.NaN), Data.IntValue(2))))
   }
 
   test("nested tuple with two missing") {
-    (nestedTuple, TupleData(Data.IntValue(3), TupleData(Data.IntValue(-9), Data.IntValue(-1)))) match {
-      case (t, TupleData(ds @ _*)) =>
-        t.flatElements.zip(ds).exists((v, d) => v.isMissing(d))
-    }
+    nestedTuple.isMissing(TupleData(Data.IntValue(3), TupleData(Data.IntValue(-9), Data.IntValue(-1))))
   }
 
   test("function") {
-    val sample = Sample(DomainData(Data.IntValue(3)), RangeData(Data.IntValue(4)))
-    (function, sample) match {
-      case (Function((_, v)), Sample(_, r)) => v.isMissing(r(0))
-    }
+    function.isMissing(SampledFunction(List()))
   }
 
   test("function containing nulldata") {
-    val sample = Sample(DomainData(Data.IntValue(3)), RangeData(NullData))
-    (function, sample) match {
-      case (Function((_, v)), Sample(_, r)) => !v.isMissing(r(0))
-    }
+    function.isMissing(NullData)
   }
 }
