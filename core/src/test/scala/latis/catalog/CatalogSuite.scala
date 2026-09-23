@@ -125,4 +125,22 @@ class CatalogSuite extends CatsEffectSuite {
     }
   }
 
+  test("Catalog2 behaves as Catalog") {
+    val cat = Catalog2(
+      id"root",
+      catalog = IO(List(Catalog2(
+        id"inner",
+        catalog = IO(List()),
+        dataset = IO(List())
+      ))),
+      dataset = IO(List(ds1)),
+    )
+    cat.catalog.map { cats =>
+      assertEquals(1, cats.size)
+    } >>
+    cat.dataset.map { dss =>
+      assertEquals(1, dss.size)
+    }
+  }
+
 }
