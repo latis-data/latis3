@@ -112,8 +112,11 @@ trait DataTypeAlgebra { dataType: DataType =>
   /**
    * Determines if data for a given variable is missing. Checks for the value given in 
    * metadata for `missingValue`, and if not defined, the value given in metadata for
-   * `fillValue`. Also checks if `missingValue` is NaN. Data for a `Tuple` is considered
-   * missing if it contains one or more elements that are missing.
+   * `fillValue`. If the Data matches these values it is considered missing. If Data is
+   * NaN or NullData it is considered missing. Also checks if `missingValue` is NaN, 
+   * wherein the Data would not be considered missing. Data for a `Tuple` is considered
+   * missing if it contains one or more elements that are missing. Nested tuples are not
+   * fully supported.
    * 
    * @params data Data from a Sample
    */
@@ -129,7 +132,7 @@ trait DataTypeAlgebra { dataType: DataType =>
             s.missingValue
               .orElse(s.fillValue) // look for fillValue if missingValue is not defined
               .map {
-                case Real(v) if v.isNaN() => false
+                case Real(v) if v.isNaN() => false // metadata value is NaN, data isNaN() check is above
                 case v => (data == v)
               }
               .getOrElse(false) // no missingValue or fillValue defined -> no-op
@@ -145,7 +148,7 @@ trait DataTypeAlgebra { dataType: DataType =>
         // we only care if the function itself is missing
         data match {
           case SeqFunction(ss, _) =>
-            ss.isEmpty
+            !ss.isEmpty
           case NullData => true
           case _ => false
         }
