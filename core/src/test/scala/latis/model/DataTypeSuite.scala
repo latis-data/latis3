@@ -194,8 +194,20 @@ class DataTypeSuite extends FunSuite {
     scalarWithMissing,
     tuple
   ).fold(fail("failed to construct tuple", _), identity)
+  private lazy val doubleNestedTuple: Tuple = Tuple.fromElements(
+    scalarWithMissing,
+    nestedTuple
+  ).fold(fail("failed to construct tuple", _), identity)
   private lazy val function: Function = Function.from(nonNullableScalar, scalarWithFill)
     .fold(fail("failed to construct function", _), identity)
+  private lazy val tupleWFunc: Tuple = Tuple.fromElements(
+    scalarWithMissing,
+    function
+  ).fold(fail("failed to construct tuple", _), identity)
+  private lazy val nestedTupleWFunc: Tuple = Tuple.fromElements(
+    tupleWFunc,
+    scalarWithMissing
+  ).fold(fail("failed to construct tuple", _), identity)
 
   test("scalar with missing value") {
     assert(scalarWithMissing.isMissing(Data.IntValue(-9)))
@@ -218,34 +230,46 @@ class DataTypeSuite extends FunSuite {
   }
 
   test("tuple with one missing value") {
-    tuple.isMissing(TupleData(Data.IntValue(0), Data.IntValue(-9)))
+    assert(tuple.isMissing(TupleData(Data.IntValue(0), Data.IntValue(-1))))
+  }
+
+  test("tuple with function") {
+    assert(!tupleWFunc.isMissing(TupleData(Data.IntValue(0), SampledFunction(List()))))
   }
 
   test("tuple with no missing values") {
-    !(tuple.isMissing(TupleData(Data.IntValue(8), Data.IntValue(4))))
+    assert(!tuple.isMissing(TupleData(Data.IntValue(8), Data.IntValue(4))))
   }
 
   test("nested tuple with none missing") {
-    !(nestedTuple.isMissing(TupleData(Data.IntValue(3), TupleData(Data.IntValue(2), Data.IntValue(0)))))
+    assert(!nestedTuple.isMissing(TupleData(Data.IntValue(3), TupleData(Data.IntValue(2), Data.IntValue(0)))))
   }
 
   test("nested tuple with NullData") {
-    nestedTuple.isMissing(TupleData(Data.IntValue(0), TupleData(Data.IntValue(1), NullData)))
+    assert(nestedTuple.isMissing(TupleData(Data.IntValue(0), TupleData(Data.IntValue(1), NullData))))
   }
 
   test("nested tuple with NaN") {
-    nestedTuple.isMissing(TupleData(Data.IntValue(0), TupleData(Data.FloatValue(Float.NaN), Data.IntValue(2))))
+    assert(nestedTuple.isMissing(TupleData(Data.IntValue(0), TupleData(Data.FloatValue(Float.NaN), Data.IntValue(2)))))
   }
 
   test("nested tuple with two missing") {
-    nestedTuple.isMissing(TupleData(Data.IntValue(3), TupleData(Data.IntValue(-9), Data.IntValue(-1))))
+    assert(nestedTuple.isMissing(TupleData(Data.IntValue(3), TupleData(Data.IntValue(-9), Data.IntValue(-1)))))
+  }
+
+  test("nested tuple with function") {
+    assert(!nestedTupleWFunc.isMissing(TupleData(TupleData(Data.IntValue(4), SampledFunction(List())), Data.IntValue(0))))
+  }
+
+  test("doubly nested tuple with missing") {
+    assert(doubleNestedTuple.isMissing(TupleData(Data.IntValue(0), TupleData(Data.IntValue(3), TupleData(Data.IntValue(-9), Data.IntValue(-1))))))
   }
 
   test("function") {
-    function.isMissing(SampledFunction(List()))
+    assert(!function.isMissing(SampledFunction(List())))
   }
 
   test("function containing nulldata") {
-    function.isMissing(NullData)
+    assert(function.isMissing(NullData))
   }
 }
