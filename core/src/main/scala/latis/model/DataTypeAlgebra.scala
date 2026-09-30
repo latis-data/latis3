@@ -147,8 +147,6 @@ trait DataTypeAlgebra { dataType: DataType =>
       case f: Function => 
         // we only care if the function itself is missing
         data match {
-          case SeqFunction(ss, _) =>
-            !ss.isEmpty
           case NullData => true
           case _ => false
         }
