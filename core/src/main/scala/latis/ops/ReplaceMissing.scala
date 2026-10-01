@@ -20,31 +20,6 @@ import latis.util.LatisException
  * @params replacement A string of the new value to replace missing values
  */
 case class ReplaceMissing(id: Identifier, replacement: String) extends MapOperation {
-   /**
-   * Checks if data in a sample should be replaced if it matches the value for missing data. 
-   * Checks for the value given in metadata for `missingValue`, and if not defined, the value 
-   * given in metadata for `fillValue`. Also checks if `missingValue` is NaN.
-   * 
-   * @params scalar The Scalar variable with the target id
-   * @params data Data from a Sample
-   */
-  private def isMissing(scalar: Scalar, data: Data): Boolean = {
-    scalar.missingValue
-      .orElse(scalar.fillValue) // look for fillValue if missingValue is not defined
-      .map { missingVal =>
-        missingVal match {
-          case Real(v) if v.isNaN() =>
-            data match {
-              case Real(d) => d.isNaN()
-              case _ => false
-            }
-          case _ =>
-            (data == missingVal)
-        }
-      }
-      .getOrElse(false) // no-op
-  }
-
   def mapFunction(model: DataType): Sample => Sample = {
     val position = model.findPath(id) match {
       case Some(head :: Nil) =>
@@ -67,7 +42,7 @@ case class ReplaceMissing(id: Identifier, replacement: String) extends MapOperat
         case Some(d) =>
           val newScalar = scalar.convertValue(replacement).fold(throw _, identity)
 
-          if (isMissing(scalar, d)) {
+          if (scalar.isMissing(d)) {
             sample.updatedValue(position, newScalar)
           } else {
             sample
