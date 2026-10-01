@@ -112,7 +112,8 @@ trait DataTypeAlgebra { dataType: DataType =>
   /**
    * Determines if data for a given variable is missing. Checks for the value given in 
    * metadata for `missingValue`, and if not defined, the value given in metadata for
-   * `fillValue`. If the Data matches these values it is considered missing. If Data is
+   * `fillValue`. If the Data matches these values it is considered missing. Note that
+   * the data type and the variable's `valueType` are assumed to be the same. If Data is
    * NaN or NullData it is considered missing. Also checks if `missingValue` is NaN, 
    * wherein the Data would not be considered missing. Data for a `Tuple` is considered
    * missing if it contains one or more elements that are missing. Nested tuples are not
