@@ -17,7 +17,7 @@ class MapOperationSuite extends CatsEffectSuite {
         def mapFunction(model: DataType): Sample => Sample =
           (sample: Sample) => sample match {
             case s@Sample(DomainData(Integer(a)), _) =>
-              if (a != 1) s else throw new LatisException("skip")
+              if (a != 1) s else throw  LatisException("skip")
             case _ => fail("")
           }
         def applyToModel(model: DataType) = model.asRight

@@ -277,7 +277,7 @@ object FileListAdapter extends AdapterFactory {
       Either.catchOnly[NumberFormatException] {
         cols.split(";").map(_.split(",").map(_.toInt).toList).toList
       }.leftMap {
-        new LatisException("Column specification must contain only numbers", _)
+         LatisException("Column specification must contain only numbers", _)
       }
 
     private def parsePattern(
