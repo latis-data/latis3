@@ -24,6 +24,7 @@ lazy val commonSettings = Seq(
     "org.scalacheck" %% "scalacheck" % "1.20.0" % Test,
     "org.scalameta" %% "munit"       % "1.3.6" % Test,
     "org.typelevel" %% "munit-cats-effect" % "2.2.1" % Test,
+    "org.typelevel" %% "scalacheck-effect-munit" % "2.1.0" % Test,
     "org.scalameta" %% "munit-scalacheck" % "1.3.1" % Test
   ),
  // Test / fork := true,
