@@ -17,25 +17,35 @@ class DataTypeSuite extends FunSuite {
 
   private lazy val i = Index()
   private lazy val x = Scalar(id"x", IntValueType)
-  //private lazy val y = Scalar(id"y", IntValueType)
   private lazy val z = Scalar(id"z", IntValueType)
   private lazy val a = Scalar(id"a", IntValueType)
   private lazy val b = Scalar(id"b", DoubleValueType)
   private lazy val c = Scalar(id"c", StringValueType)
-  private lazy val namedTup  = Tuple.fromElements(id"t", a, b)             // t: (a, b)
+  private lazy val namedTup = Tuple.fromElements(id"t", a, b) // t: (a, b)
     .fold(fail("failed to construct tuple", _), identity)
-  //private lazy val anonTup   = Tuple.fromElements(a, b).value              // (a, b)
-  private lazy val nestedTup = Tuple.fromElements(namedTup, c)             // (t: (a, b), c)
+  private lazy val anonTup = Tuple.fromElements(a, b) // (a, b)
     .fold(fail("failed to construct tuple", _), identity)
-  private lazy val f = Function.from(id"f", x, a)                          // f: x -> a
-    .fold(fail("failed to construct function", _), identity)
-  private lazy val fWithTup = Function.from(id"f", x, namedTup)            // f: x -> t: (a, b)
-    .fold(fail("failed to construct function", _), identity)
-  private lazy val tupWithF = Tuple.fromElements(a, fWithTup)              // (a, f: x -> t: (a, b))
+  private lazy val nestedTup = Tuple.fromElements(namedTup, c) // (t: (a, b), c)
     .fold(fail("failed to construct tuple", _), identity)
-  private lazy val nestedF = Function.from(id"g", z, f)                    // g: z -> f: x -> a
+  private lazy val f = Function.from(id"f", x, a) // f: x -> a
     .fold(fail("failed to construct function", _), identity)
-  private lazy val nestedFInTup = Function.from(id"g", i, tupWithF)        // g: _i -> (a, f: x -> t: (a, b))
+  private lazy val fWithTup = Function.from(id"f", x, namedTup) // f: x -> t: (a, b)
+    .fold(fail("failed to construct function", _), identity)
+  private lazy val fWithAnonTup = Function.from(id"f", x, anonTup) // f: x -> (a, b)
+    .fold(fail("failed to construct function", _), identity)
+  private lazy val fWithNestedTup = Function.from(id"f", x, nestedTup) // f: x -> (t: (a, b), c)
+    .fold(fail("failed to construct function", _), identity)
+  private lazy val tupWithF = Tuple.fromElements(a, fWithTup) // (a, f: x -> t: (a, b))
+    .fold(fail("failed to construct tuple", _), identity)
+  private lazy val nestedF = Function.from(id"g", z, f) // g: z -> f: x -> a
+    .fold(fail("failed to construct function", _), identity)
+  private lazy val nestedFInTup = Function.from(id"g", i, tupWithF) // g: _i -> (a, f: x -> t: (a, b))
+    .fold(fail("failed to construct function", _), identity)
+  private lazy val fWithAnonTupDomain = Function.from(anonTup, z) // (a, b) -> z
+    .fold(fail("failed to construct function", _), identity)
+  private lazy val fWithNamedTupDomain = Function.from(namedTup, z) // t: (a, b) -> z
+    .fold(fail("failed to construct function", _), identity)
+  private lazy val fWithNestedTupDomain = Function.from(nestedTup, z) // (t: (a, b), c) -> z
     .fold(fail("failed to construct function", _), identity)
 
   test("to string") {
@@ -105,11 +115,11 @@ class DataTypeSuite extends FunSuite {
   }
 
   test("path to scalar in nested function") {
-    assert(nestedF.findPath(id"a").contains(List(RangePosition(0),RangePosition(0))))
+    assert(nestedF.findPath(id"a").contains(List(RangePosition(0), RangePosition(0))))
   }
 
   test("path to scalar in nested function in tuple") {
-    assert(nestedFInTup.findPath(id"b").contains(List(RangePosition(1),RangePosition(1))))
+    assert(nestedFInTup.findPath(id"b").contains(List(RangePosition(1), RangePosition(1))))
   }
 
   //---- fillData ----//
@@ -134,7 +144,7 @@ class DataTypeSuite extends FunSuite {
   }
 
   test("not exists") {
-    assert(! f.exists(_.isInstanceOf[Tuple]))
+    assert(!f.exists(_.isInstanceOf[Tuple]))
   }
 
   test("self exists") {
@@ -144,11 +154,11 @@ class DataTypeSuite extends FunSuite {
   //---- simply nested function ---//
 
   test("scalar is not simply nested") {
-    assert(! x.isSimplyNested)
+    assert(!x.isSimplyNested)
   }
 
   test("tuple is not simply nested") {
-    assert(! namedTup.isSimplyNested)
+    assert(!namedTup.isSimplyNested)
   }
 
   test("nested function is simply nested") {
@@ -156,17 +166,17 @@ class DataTypeSuite extends FunSuite {
   }
 
   test("complex nested function is not simply nested") {
-    assert(! nestedFInTup.isSimplyNested)
+    assert(!nestedFInTup.isSimplyNested)
   }
 
   //---- complexity ----//
 
   test("scalar is not complex") {
-    assert(! x.isComplex)
+    assert(!x.isComplex)
   }
 
   test("nested tuple is not complex") {
-    assert(! nestedTup.isComplex)
+    assert(!nestedTup.isComplex)
   }
 
   test("tuple with function is complex") {
@@ -174,10 +184,70 @@ class DataTypeSuite extends FunSuite {
   }
 
   test("simply nested function is not complex") {
-    assert(! nestedF.isComplex)
+    assert(!nestedF.isComplex)
   }
 
   test("complex nested function is complex") {
     assert(nestedFInTup.isComplex)
+  }
+
+  //---- dimension, and arity ----//
+
+  // Note that `arity` effectively tests `domainVariables`
+
+  // f: x -> a
+  test("scalar domain") {
+    assertEquals(f.arity, 1)
+    assertEquals(f.dimension, 1)
+  }
+
+  // (a, b) -> z
+  test("anon tuple domain") {
+    assertEquals(fWithAnonTupDomain.arity, 2)
+    assertEquals(fWithAnonTupDomain.dimension, 2)
+  }
+
+  // t: (a, b) -> z
+  test("named tuple domain") {
+    assertEquals(fWithNamedTupDomain.arity, 1)
+    assertEquals(fWithNamedTupDomain.dimension, 2)
+  }
+
+  // (t: (a, b), c) -> z
+  test("nested tuple domain list") {
+    assertEquals(fWithNestedTupDomain.arity, 2)
+    assertEquals(fWithNestedTupDomain.dimension, 3)
+  }
+
+  test("non Function") {
+    assertEquals(x.arity, 0)
+    assertEquals(x.dimension, 0)
+  }
+
+  //---- Range variables ----//
+
+  // f: x -> a
+  test("scalar range list") {
+    assertEquals(f.rangeVariables.size, 1)
+  }
+
+  // f: x -> (a, b)
+  test("anon tuple range list") {
+    assertEquals(fWithAnonTup.rangeVariables.size, 2)
+  }
+
+  // f: x -> t: (a, b)
+  test("named tuple range list") {
+    assertEquals(fWithTup.rangeVariables.size, 1)
+  }
+
+  // f: x -> (t: (a, b), c)
+  test("nested tuple range list") {
+    assertEquals(fWithNestedTup.rangeVariables.size, 2)
+  }
+
+  // g: _i -> (a, f: x -> t: (a, b))
+  test("nested function range list") {
+    assertEquals(nestedFInTup.rangeVariables.size, 2)
   }
 }
