@@ -27,12 +27,24 @@ case class ExcludeMissing() extends Filter {
             LatisException("Expected range of Sample for a Scalar to hold one value").asLeft
           }
         case t: Tuple =>
-          t.elements.zip(range).map { (dt, ds) =>
-            go(dt, List(ds))
-          }.sequence.map { boolList => boolList.exists(identity)}
+          val tupleElements = t.elements
+
+          if (tupleElements.length == range.length) {
+            tupleElements.zip(range).map { (dt, ds) =>
+              go(dt, RangeData(ds))
+            }.sequence.map { boolList => boolList.contains(true)}
+          } else {
+            LatisException("Expected range of Sample for a Tuple to hold same number of elements").asLeft
+          }
         case Function(_, rn) =>
           range match {
             case List(SeqFunction(List(func), _)) =>
+              // case List(MemoizedFunction(sampleSeq)) =>
+              // sampleSeq.map {sample =>
+              //   println(rn)
+              //   println(sample.range)
+              //   go(rn, sample.range)
+              // }
               func match {
                 case (_, r: List[_]) =>
                   go(rn, r.asInstanceOf[List[Data]])
@@ -45,6 +57,7 @@ case class ExcludeMissing() extends Filter {
     }
       
     val boolResult = (sample: Sample) => 
+      // TODO: pass in model.range?
       go(model, sample.range) match {
         case Left(err) => throw err
         case Right(bool) => bool
