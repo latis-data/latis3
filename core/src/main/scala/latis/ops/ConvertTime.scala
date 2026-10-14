@@ -38,13 +38,13 @@ case class ConvertTime(scale: TimeScale) extends TimeOperation {
               .map(t => converter.convert(t.toDouble))
               .flatMap(Data.fromValue)
               .fold(throw _, identity)
-          case _ => throw new LatisException(s"Data does not match string value type: $d")
+          case _ => throw  LatisException(s"Data does not match string value type: $d")
         }
       case _ =>
         (d : Datum) => d match {
           case Number(d) =>
             Data.fromValue(converter.convert(d)).fold(throw _, identity)
-          case _ => throw new LatisException(s"Data is not a numeric value type: $d")
+          case _ => throw  LatisException(s"Data is not a numeric value type: $d")
         }
     }
   }

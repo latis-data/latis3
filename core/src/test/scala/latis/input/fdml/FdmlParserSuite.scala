@@ -2,7 +2,6 @@ package latis.input.fdml
 
 import java.net.URI
 
-import cats.syntax.all.*
 import munit.FunSuite
 
 import latis.model.DoubleValueType
@@ -134,11 +133,10 @@ final class FdmlParserSuite extends FunSuite {
 
   test("require a valid source URI") {
     withFdmlFile("fdml-parser/invalid-source-uri.fdml") { fdml =>
-      assertEquals(
-        // don't care about testing the cause
-        fdml.leftMap(_.copy(cause = null)),
-        Left(LatisException("Source URI is malformed"))
-      )
+      fdml match {
+        case Left(le) => assertEquals(le.message, "Source URI is malformed")
+        case _ => fail("Exception expected")
+      }
     }
   }
 
