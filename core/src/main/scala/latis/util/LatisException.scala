@@ -1,5 +1,7 @@
 package latis.util
 
+// For discussion of this approach, see https://github.com/latis-data/latis3/pull/954
+
 /** Base class of a sealed set of exceptions. */
 sealed abstract class LatisException(
   val message: String,
