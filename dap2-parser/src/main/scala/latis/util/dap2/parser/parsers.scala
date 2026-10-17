@@ -27,14 +27,21 @@ object parsers {
   def selectionOp: Parser[SelectionOp] = choice(
     string("~")   ~> ok(Tilde),
     string(">=")  ~> ok(GtEq),
+    string("ge")  ~> ok(GtEq),
     string("<=")  ~> ok(LtEq),
+    string("le")  ~> ok(LtEq),
     string("==")  ~> ok(EqEq),
+    string("eq")  ~> ok(EqEq),
     string("=~")  ~> ok(EqTilde),
     string("!=~") ~> ok(NeEqTilde),
     string("!=")  ~> ok(NeEq),
+    string("ne")  ~> ok(NeEq),
     string(">")   ~> ok(Gt),
+    string("gt")  ~> ok(Gt),
     string("<")   ~> ok(Lt),
-    string("=")   ~> ok(Eq)
+    string("lt")  ~> ok(Lt),
+    string("=")   ~> ok(Eq),
+    string("eq")  ~> ok(Eq)
   )
 
   def selection: Parser[CExpr] = for {
