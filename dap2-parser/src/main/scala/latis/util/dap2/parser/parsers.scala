@@ -25,16 +25,22 @@ object parsers {
     sepBy1(identifier.token, char(',').token).map(xs => Projection(xs.toList))
 
   def selectionOp: Parser[SelectionOp] = choice(
-    string("~")   ~> ok(Tilde),
-    string(">=")  ~> ok(GtEq),
-    string("<=")  ~> ok(LtEq),
-    string("==")  ~> ok(EqEq),
-    string("=~")  ~> ok(EqTilde),
-    string("!=~") ~> ok(NeEqTilde),
-    string("!=")  ~> ok(NeEq),
-    string(">")   ~> ok(Gt),
-    string("<")   ~> ok(Lt),
-    string("=")   ~> ok(Eq)
+    string("~")    ~> ok(Tilde),
+    string(">=")   ~> ok(GtEq),
+    string("gteq") ~> ok(GtEq),
+    string("<=")   ~> ok(LtEq),
+    string("lteq") ~> ok(LtEq),
+    string("==")   ~> ok(EqEq),
+    string("=~")   ~> ok(EqTilde),
+    string("!=~")  ~> ok(NeEqTilde),
+    string("!=")   ~> ok(NeEq),
+    string("ne")   ~> ok(NeEq),
+    string(">")    ~> ok(Gt),
+    string("gt")   ~> ok(Gt),
+    string("<")    ~> ok(Lt),
+    string("lt")   ~> ok(Lt),
+    string("=")    ~> ok(Eq),
+    string("eq")   ~> ok(Eq)
   )
 
   def selection: Parser[CExpr] = for {
