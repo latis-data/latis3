@@ -1,70 +1,70 @@
 package latis.ops
 
+import cats.effect.IO
 import cats.syntax.all.*
+import fs2.*
 
 import latis.data.*
 import latis.model.*
 import latis.util.LatisException
 
-/**
- * Operation to keep only Samples that are not missing data
- * 
- * This operation acts upon an entire Dataset, and recurses into each Sample to check if the data
- * it contains is considered missing. Note that this operation does not work with nested tuples 
- * but does work with nested functions. If any data is considered missing, the Sample will be 
- * removed. Data is considered missing according to the return value of `isMissing`.
- * 
- * As a Filter, a predicate determines the fate of a Sample based only on the state of that Sample.
- */
-case class ExcludeMissing() extends Filter {
-  def predicate(model: DataType): Either[LatisException, Sample => Boolean] = {
-    def go(dt: DataType, range: RangeData): Either[LatisException, Boolean] = {
-      dt match {
-        case s: Scalar =>
-          if (range.length == 1) {
-            s.isMissing(range(0)).asRight
-          } else {
-            LatisException("Expected range of Sample for a Scalar to hold one value").asLeft
-          }
-        case t: Tuple =>
-          val tupleElements = t.elements
-
-          if (tupleElements.length == range.length) {
-            tupleElements.zip(range).map { (dt, ds) =>
-              go(dt, RangeData(ds))
-            }.sequence.map { boolList => boolList.contains(true)}
-          } else {
-            LatisException("Expected range of Sample for a Tuple to hold same number of elements").asLeft
-          }
-        case Function(_, rn) =>
-          range match {
-            case List(SeqFunction(List(func), _)) =>
-              // case List(MemoizedFunction(sampleSeq)) =>
-              // sampleSeq.map {sample =>
-              //   println(rn)
-              //   println(sample.range)
-              //   go(rn, sample.range)
-              // }
-              func match {
-                case (_, r: List[_]) =>
-                  go(rn, r.asInstanceOf[List[Data]])
-                case _ =>
-                  LatisException("Expected SeqFunction to contain a tuple of List[Data]").asLeft
+case class ExcludeMissing() extends StreamOperation {
+  def pipe(model: DataType): Pipe[IO, Sample, Sample] = {
+    def predicate(model: DataType, rangedata: RangeData): Option[List[Data]] = {
+    
+      def go(dt: DataType, range: RangeData): Option[List[Data]] = {
+        dt match {
+          case s: Scalar =>
+            if (range.length == 1) {
+              if (s.isMissing(range(0))) {
+                None
+              } else {
+                Some(range)
               }
-            case _ => go(rn, range)
-          }
+            } else {
+              throw LatisException("Expected range of Sample for a Scalar to hold one value")
+            }
+          case t: Tuple =>
+            val tupleElements = t.elements
+
+            if (tupleElements.length == range.length) {
+              val newList: Option[List[List[Data]]] = tupleElements.zip(range).map { (dt, ds) =>
+                go(dt, RangeData(ds))
+              }.sequence
+
+              newList.map(_.flatten)
+            } else {
+              throw LatisException("Expected range of Sample for a Tuple to hold same number of elements")
+            }
+          case Function(_, rn) =>
+            range match {
+              case List(MemoizedFunction(sampleSeq)) =>
+                val newSampleSeq: Seq[Sample] = sampleSeq.collect { sample =>
+                  go(rn, sample.range) match {
+                    case Some(newRange) => Sample(sample.domain, newRange)
+                  }
+                }
+                Some(List(SampledFunction(newSampleSeq)))
+              case _ => go(rn, range)
+            }
+        }
+      }
+
+      go(model, rangedata)
+    }
+
+    (stream: Stream[IO, Sample]) => {
+      stream.collect { sample => 
+        predicate(model, sample.range) match {
+          case Some(newRange) => Sample(sample.domain, newRange)
+        }
       }
     }
-      
-    val boolResult = (sample: Sample) => 
-      // TODO: pass in model.range?
-      go(model, sample.range) match {
-        case Left(err) => throw err
-        case Right(bool) => bool
-      }
-
-    boolResult.asRight[LatisException]
   }
+
+  // model is unchanged
+  override def applyToModel(model: DataType): Either[LatisException, DataType] = 
+    model.asRight
 }
 
 object ExcludeMissing {
