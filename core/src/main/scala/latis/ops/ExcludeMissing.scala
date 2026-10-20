@@ -10,8 +10,8 @@ import latis.util.LatisException
 
 case class ExcludeMissing() extends StreamOperation {
   def pipe(model: DataType): Pipe[IO, Sample, Sample] = {
-    def predicate(model: DataType, rangedata: RangeData): Option[List[Data]] = {
     
+    def detSampleRange(model: DataType, rangedata: RangeData): Option[List[Data]] = {
       def go(dt: DataType, range: RangeData): Option[List[Data]] = {
         dt match {
           case s: Scalar =>
@@ -55,7 +55,7 @@ case class ExcludeMissing() extends StreamOperation {
 
     (stream: Stream[IO, Sample]) => {
       stream.collect { sample => 
-        predicate(model, sample.range) match {
+        detSampleRange(model, sample.range) match {
           case Some(newRange) => Sample(sample.domain, newRange)
         }
       }
