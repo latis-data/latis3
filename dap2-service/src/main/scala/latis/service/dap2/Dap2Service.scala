@@ -18,6 +18,7 @@ import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.Accept
 import org.http4s.scalatags.scalatagsEncoder
 import org.http4s.Query
+import org.http4s.Status
 import org.typelevel.ci.*
 
 import latis.catalog.Catalog
@@ -48,16 +49,18 @@ class Dap2Service(catalog: Catalog, operationRegistry: OperationRegistry)
   private def handleGetRequest(path: Path, query: String, headers: Headers): IO[Response[IO]] = {
     if (path.isEmpty) catalogResponse(catalog, query, headers)
     else parsePath(path) match {
-      case (Some(id), ext) => catalog.findDataset(id).flatMap {
-        case Some(ds) =>
-          // Dataset path should not end with slash
-          if (path.endsWithSlash) NotFound(s"Resource not found: $path")
-          else datasetResponse(ds, ext, query)
-        case None     => catalog.findCatalog(id).flatMap {
-          case Some(cat) => catalogResponse(cat, query, headers)
-          case None      => NotFound(s"Resource not found: $path")
+      case (Some(id), ext) =>
+        if (id.asString == "coffee") IO.pure(Response[IO](status = Status.ImATeapot))
+        else catalog.findDataset(id).flatMap {
+          case Some(ds) =>
+            // Dataset path should not end with slash
+            if (path.endsWithSlash) NotFound(s"Resource not found: $path")
+            else datasetResponse(ds, ext, query)
+          case None => catalog.findCatalog(id).flatMap {
+            case Some(cat) => catalogResponse(cat, query, headers)
+            case None => NotFound(s"Resource not found: $path")
+          }
         }
-      }
       case (None, _) => NotFound(s"Resource not found: $path")
     }
   }
