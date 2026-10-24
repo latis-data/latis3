@@ -50,15 +50,16 @@ class Dap2Service(catalog: Catalog, operationRegistry: OperationRegistry)
     if (path.isEmpty) catalogResponse(catalog, query, headers)
     else parsePath(path) match {
       case (Some(id), ext) =>
-        if (id.asString == "coffee") IO.pure(Response[IO](status = Status.ImATeapot))
-        else catalog.findDataset(id).flatMap {
+        catalog.findDataset(id).flatMap {
           case Some(ds) =>
             // Dataset path should not end with slash
             if (path.endsWithSlash) NotFound(s"Resource not found: $path")
             else datasetResponse(ds, ext, query)
           case None => catalog.findCatalog(id).flatMap {
             case Some(cat) => catalogResponse(cat, query, headers)
-            case None => NotFound(s"Resource not found: $path")
+            case None =>
+              if (id.asString == "coffee") IO.pure(Response[IO](status = Status.ImATeapot))
+              else NotFound(s"Resource not found: $path")
           }
         }
       case (None, _) => NotFound(s"Resource not found: $path")
