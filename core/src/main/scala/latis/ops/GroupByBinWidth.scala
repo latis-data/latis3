@@ -1,11 +1,14 @@
 package latis.ops
 
+import java.time.Instant
+
 import cats.effect.IO
 import cats.syntax.all.*
 import fs2.*
 
 import latis.data.*
 import latis.data.Data.DoubleValue
+import latis.data.Data.StringValue
 import latis.model.*
 import latis.util.LatisException
 
@@ -38,19 +41,35 @@ class GroupByBinWidth private (
       case Sample(DomainData(Number(x)), _) =>
         // Round domain value down to start of bin
         Math.floor(x / width) * width
+      case Sample(DomainData(Text(x)), _) =>
+        val epochTime = Instant.parse(x).toEpochMilli
+        Math.floor(epochTime / width) * width
       case _ => throw LatisException("Data sample does not match model")
     }.evalMap { case (value, chunk) =>
       aggF(Stream.chunk(chunk)).map { d =>
-        Sample(
-          DomainData(DoubleValue(value)),
-          RangeData(d)
-        )
+        model match {
+          case Function(t: Scalar, _) =>
+            if (t.valueType == StringValueType) {
+              val time = Instant.ofEpochMilli(value.toLong).toString
+              Sample(
+                DomainData(StringValue(time)),
+                RangeData(d)
+              )
+            } else {
+              // we already converted everything to a double
+              Sample(
+                DomainData(DoubleValue(value)),
+                RangeData(d)
+              )
+            }
+          case _ => throw LatisException("Incorrect model for GroupByBinWidth")
+        }
       }
     }
 
   def applyToModel(model: DataType): Either[LatisException, DataType] = model match {
     case f @ Function(domain: Scalar, _) => domain.valueType match {
-      case _: NumericType =>
+      case _: NumericType | StringValueType =>
         aggregation.applyToModel(f).flatMap { range =>
           val newDomain = updateDomainMetadata(domain)
           Function.from(newDomain, range)

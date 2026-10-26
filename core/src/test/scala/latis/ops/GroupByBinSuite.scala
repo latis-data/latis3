@@ -29,6 +29,22 @@ class GroupByBinSuite extends CatsEffectSuite {
 
   private lazy val ds = new MemoizedDataset(Metadata(id"test"), model, data)
 
+  val model2 =  ModelParser.unsafeParse("x:string -> (a, b)")
+  private lazy val samples2 = List(
+    Sample(DomainData("2018-10-22T18:17:08Z"), RangeData(1, 1)),
+    Sample(DomainData("2018-10-23T00:00:00Z"), RangeData(2, 4)),
+    Sample(DomainData("2018-10-24T00:00:00Z"), RangeData(3, 9)),
+    Sample(DomainData("2018-10-25T00:00:00Z"), RangeData(4, 16)),
+    Sample(DomainData("2018-10-26T00:00:00Z"), RangeData(5, 25)),
+    Sample(DomainData("2018-10-27T00:00:00Z"), RangeData(6, 36)),
+    Sample(DomainData("2018-10-28T00:00:00Z"), RangeData(7, 49)),
+    Sample(DomainData("2018-10-29T00:00:00Z"), RangeData(8, 64)),
+    Sample(DomainData("2018-10-30T00:00:00Z"), RangeData(9, 81)),
+    Sample(DomainData("2018-10-31T00:00:00Z"), RangeData(10, 100)),
+  )
+  private lazy val data2 = SampledFunction(samples2)
+  private lazy val ds2 = new MemoizedDataset(Metadata(id"test2"), model2, data2)
+
   test("group by bin") {
     ds.withOperation(GroupByBinWidth.from(3.0).fold(e => fail(e.getMessage), identity))
       .samples.compile.lastOrError.flatMap {
@@ -36,6 +52,17 @@ class GroupByBinSuite extends CatsEffectSuite {
           assertEquals(x, 9.0)
           f.samples.compile.toList.assertEquals(
             List(Sample(List(9), List(10, 100)))
+          )
+      }
+  }
+
+  test("group by bin with string domain") {
+    ds2.withOperation(GroupByBinWidth.from(3.0).fold(e => fail(e.getMessage), identity))
+      .samples.compile.lastOrError.flatMap {
+        case Sample(DomainData(Text(x)), RangeData(f)) =>
+          assertEquals(x, "2018-10-31T00:00:00Z")
+          f.samples.compile.toList.assertEquals(
+            List(Sample(List("2018-10-31T00:00:00Z"), List(10, 100)))
           )
       }
   }
