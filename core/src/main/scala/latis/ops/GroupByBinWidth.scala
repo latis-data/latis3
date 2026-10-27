@@ -1,7 +1,5 @@
 package latis.ops
 
-import java.time.Instant
-
 import cats.effect.IO
 import cats.syntax.all.*
 import fs2.*
@@ -10,15 +8,17 @@ import latis.data.*
 import latis.data.Data.DoubleValue
 import latis.data.Data.StringValue
 import latis.model.*
+import latis.time.Time
 import latis.util.LatisException
 
 /**
  * Group Samples by binning the domain variable for a given width.
  *
- * This requires a Function with a one-dimensional, numeric domain.
- * The [[width]] is assumed to be in the units of the domain variable.
- * The resulting domain values will be the start of the bin, but bins
- * with no samples will be dropped.
+ * This requires a Function with a one-dimensional, numeric or string 
+ * domain. The [[width]] is assumed to be in the units of the domain 
+ * variable. In the case of a string domain variable, the [[width]] is
+ * assumed to be milliseconds. The resulting domain values will be the 
+ * start of the bin, but bins with no samples will be dropped.
  * The optional [[aggregation]] operation will reduce the binned Samples
  * into a single Data object. By default, this will be a nested Function.
  */
@@ -27,7 +27,6 @@ class GroupByBinWidth private (
   aggregation: Aggregation2
 ) extends StreamOperation {
   //TODO: keep empty bins, preserve cadence and contiguity; use GroupByBin with DomainSet?
-  //TODO: formatted time data
   //TODO: width as ISO duration
   //TODO: Index
   //TODO: support units
@@ -42,39 +41,48 @@ class GroupByBinWidth private (
         // Round domain value down to start of bin
         Math.floor(x / width) * width
       case Sample(DomainData(Text(x)), _) =>
-        val epochTime = Instant.parse(x).toEpochMilli
-        Math.floor(epochTime / width) * width
+        val time = model.match {
+          case Function(t: Time, _) =>
+            t.valueAsDouble(x)
+          case _ => throw LatisException("Incorrect model for GroupByBinWidth")
+        }
+        Math.floor(time / width) * width
       case _ => throw LatisException("Data sample does not match model")
     }.evalMap { case (value, chunk) =>
       aggF(Stream.chunk(chunk)).map { d =>
         model match {
+          case Function(t: Time, _) =>
+            val msg = "Time variable should have an associated TimeFormat"
+            val timeformat = t.timeFormat.getOrElse(throw LatisException(msg))
+            val time = timeformat.format(value.toLong)
+            Sample(
+              DomainData(StringValue(time)),
+              RangeData(d)
+            )
           case Function(t: Scalar, _) =>
-            if (t.valueType == StringValueType) {
-              val time = Instant.ofEpochMilli(value.toLong).toString
-              Sample(
-                DomainData(StringValue(time)),
-                RangeData(d)
-              )
-            } else {
-              // we already converted everything to a double
-              Sample(
-                DomainData(DoubleValue(value)),
-                RangeData(d)
-              )
-            }
+            Sample(
+              DomainData(DoubleValue(value)),
+              RangeData(d)
+            )
           case _ => throw LatisException("Incorrect model for GroupByBinWidth")
         }
       }
     }
 
   def applyToModel(model: DataType): Either[LatisException, DataType] = model match {
-    case f @ Function(domain: Scalar, _) => domain.valueType match {
-      case _: NumericType | StringValueType =>
-        aggregation.applyToModel(f).flatMap { range =>
-          val newDomain = updateDomainMetadata(domain)
-          Function.from(newDomain, range)
-        }
-      case _ => LatisException("GroupByBinWidth expects a numeric domain variable").asLeft
+    case f @ Function(domain: Scalar, _) =>
+      (domain, domain.valueType) match { 
+        case (d: Time, StringValueType) =>
+          aggregation.applyToModel(f).flatMap { range =>
+            val newDomain = updateDomainMetadata(domain)
+            Function.from(newDomain, range)
+          }
+        case (_, _: NumericType) =>
+          aggregation.applyToModel(f).flatMap { range =>
+            val newDomain = updateDomainMetadata(domain)
+            Function.from(newDomain, range)
+          }
+      case _ => LatisException("GroupByBinWidth expects a numeric domain or string time variable").asLeft
     }
     case _ => LatisException("GroupByBinWidth expects a single domain variable").asLeft
   }

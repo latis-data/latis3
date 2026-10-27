@@ -6,6 +6,8 @@ import latis.data.*
 import latis.dataset.*
 import latis.dsl.*
 import latis.metadata.Metadata
+import latis.model.*
+import latis.time.Time
 import latis.util.Identifier.*
 
 class GroupByBinSuite extends CatsEffectSuite {
@@ -29,7 +31,19 @@ class GroupByBinSuite extends CatsEffectSuite {
 
   private lazy val ds = new MemoizedDataset(Metadata(id"test"), model, data)
 
-  val model2 =  ModelParser.unsafeParse("x:string -> (a, b)")
+  private lazy val scalar    = Scalar.fromMetadata(Metadata("id" -> "a", "type" -> "int", "fillValue" -> "-1"))
+    .fold(fail("failed to construct scalar", _), identity)
+  private lazy val scalar2   = Scalar.fromMetadata(Metadata("id" -> "b", "type" -> "int", "fillValue" -> "0"))
+    .fold(fail("failed to construct scalar", _), identity)
+  private lazy val tuple: Tuple = Tuple.fromElements(
+    scalar,
+    scalar2
+  ).fold(fail("failed to construct tuple", _), identity)
+  private lazy val timeScalar = Time.fromMetadata(Metadata("id" -> "x", "type" -> "string", "units" -> "yyyy-MM-dd'T'HH:mm:ss'Z'"))
+    .fold(fail("failed to construct scalar", _), identity)
+  private lazy val model2: Function = Function.from(timeScalar, tuple)
+    .fold(fail("failed to construct function", _), identity)
+
   private lazy val samples2 = List(
     Sample(DomainData("2018-10-22T18:17:08Z"), RangeData(1, 1)),
     Sample(DomainData("2018-10-23T00:00:00Z"), RangeData(2, 4)),
