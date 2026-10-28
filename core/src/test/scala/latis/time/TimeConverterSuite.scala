@@ -66,7 +66,7 @@ class TimeConverterSuite extends FunSuite {
   test("civil to atomic with time before later epoch") {
     val converter = TimeConverter(civil1981, atomic1982)
     val t = converter.convert(2d * 86400) // 2 days
-    assertEqualsDouble(t, - 363d * 86400 + 1, 1) // -year + 2 days + leap second between epochs
+    assertEqualsDouble(t, -363d * 86400 + 1, 1) // -year + 2 days + leap second between epochs
   }
 
   /*
@@ -87,7 +87,7 @@ class TimeConverterSuite extends FunSuite {
   */
   test("civil to atomic with earlier epoch, negative") {
     val converter = TimeConverter(civil1982, atomic1981)
-    val t = converter.convert(- 363d * 86400) // 1 year ago + 2 days
+    val t = converter.convert(-363d * 86400) // 1 year ago + 2 days
     assertEquals(t, 2d * 86400 + 1) // 2 days + leap second
   }
 
@@ -110,7 +110,7 @@ class TimeConverterSuite extends FunSuite {
   test("atomic to civil with time before later epoch") {
     val converter = TimeConverter(atomic1981, civil1982)
     val t = converter.convert(2d * 86400 + 1) // 2 days + 1 ls
-    assertEquals(t, - 363d * 86400) // -year + 2 days
+    assertEquals(t, -363d * 86400) // -year + 2 days
   }
 
   /*
