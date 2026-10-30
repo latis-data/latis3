@@ -14,10 +14,10 @@ import latis.util.LatisException
 /**
  * Group Samples by binning the domain variable for a given width.
  *
- * This requires a Function with a one-dimensional, numeric or string 
- * domain. The [[width]] is assumed to be in the units of the domain 
- * variable. In the case of a string domain variable, the [[width]] is
- * assumed to be milliseconds. The resulting domain values will be the 
+ * This requires a Function with a one-dimensional, numeric or formatted 
+ * time string domain. The [[width]] is assumed to be in the units of the 
+ * domain variable. In the case of a string domain variable, the [[width]]
+ * is assumed to be milliseconds. The resulting domain values will be the 
  * start of the bin, but bins with no samples will be dropped.
  * The optional [[aggregation]] operation will reduce the binned Samples
  * into a single Data object. By default, this will be a nested Function.
@@ -41,7 +41,7 @@ class GroupByBinWidth private (
         // Round domain value down to start of bin
         Math.floor(x / width) * width
       case Sample(DomainData(Text(x)), _) =>
-        val time = model.match {
+        val time = model match {
           case Function(t: Time, _) =>
             t.valueAsDouble(x)
           case _ => throw LatisException("Incorrect model for GroupByBinWidth")
@@ -82,8 +82,8 @@ class GroupByBinWidth private (
             val newDomain = updateDomainMetadata(domain)
             Function.from(newDomain, range)
           }
-      case _ => LatisException("GroupByBinWidth expects a numeric domain or string time variable").asLeft
-    }
+        case _ => LatisException("GroupByBinWidth expects a numeric domain or formatted string time variable").asLeft
+      }
     case _ => LatisException("GroupByBinWidth expects a single domain variable").asLeft
   }
 

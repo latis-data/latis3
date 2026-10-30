@@ -71,7 +71,7 @@ class GroupByBinSuite extends CatsEffectSuite {
   }
 
   test("group by bin with string domain") {
-    ds2.withOperation(GroupByBinWidth.from(3.0).fold(e => fail(e.getMessage), identity))
+    ds2.withOperation(GroupByBinWidth.from(8.64E7).fold(e => fail(e.getMessage), identity))
       .samples.compile.lastOrError.flatMap {
         case Sample(DomainData(Text(x)), RangeData(f)) =>
           assertEquals(x, "2018-10-31T00:00:00Z")
