@@ -40,11 +40,11 @@ class GroupByBinWidth private (
       case Sample(DomainData(Number(x)), _) =>
         // Round domain value down to start of bin
         Math.floor(x / width) * width
-      case Sample(DomainData(Text(x)), _) =>
+      case Sample(DomainData(x: Text), _) =>
         val time = model match {
           case Function(t: Time, _) =>
             t.valueAsDouble(x)
-          case _ => throw LatisException("Incorrect model for GroupByBinWidth")
+          case _ => throw LatisException("String domain assumes a Time scalar")
         }
         Math.floor(time / width) * width
       case _ => throw LatisException("Data sample does not match model")
@@ -52,13 +52,21 @@ class GroupByBinWidth private (
       aggF(Stream.chunk(chunk)).map { d =>
         model match {
           case Function(t: Time, _) =>
-            val msg = "Time variable should have an associated TimeFormat"
-            val timeformat = t.timeFormat.getOrElse(throw LatisException(msg))
-            val time = timeformat.format(value.toLong)
-            Sample(
-              DomainData(StringValue(time)),
-              RangeData(d)
-            )
+            t.timeFormat match {
+              case Some(tf) =>
+                // a string
+                val time = tf.format(value.toLong)
+                Sample(
+                  DomainData(StringValue(time)),
+                  RangeData(d)
+                )
+              case None =>
+                // a number
+                Sample(
+                  DomainData(DoubleValue(value)),
+                  RangeData(d)
+                )
+            }
           case Function(t: Scalar, _) =>
             Sample(
               DomainData(DoubleValue(value)),
@@ -69,12 +77,13 @@ class GroupByBinWidth private (
       }
     }
 
+  /** Updating model based on binWidth property */
   def applyToModel(model: DataType): Either[LatisException, DataType] = model match {
     case f @ Function(domain: Scalar, _) =>
       (domain, domain.valueType) match { 
         case (d: Time, StringValueType) =>
           aggregation.applyToModel(f).flatMap { range =>
-            val newDomain = updateDomainMetadata(domain)
+            val newDomain = updateDomainMetadata(d)
             Function.from(newDomain, range)
           }
         case (_, _: NumericType) =>
@@ -91,7 +100,12 @@ class GroupByBinWidth private (
   private def updateDomainMetadata(s: Scalar): Scalar = {
     //TODO: update cadence/resolution metadata
     val meta = s.metadata + ("binWidth" -> width.toString)
-    Scalar.fromMetadata(meta).fold(throw _, identity) //should be safe
+    s match {
+      case t: Time =>
+        Time.fromMetadata(meta).fold(throw _, identity)
+      case _ =>
+        Scalar.fromMetadata(meta).fold(throw _, identity) //should be safe
+    }
   }
 
   override def toString = s"GroupByBinWidth($width) with $aggregation"
