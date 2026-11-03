@@ -29,6 +29,7 @@ import latis.output.*
 import latis.server.ServiceInterface
 import latis.service.dap2.error.*
 import latis.util.Identifier
+import latis.util.Identifier.*
 import latis.util.dap2.parser.ConstraintParser
 import latis.util.dap2.parser.ast
 
@@ -107,13 +108,13 @@ class Dap2Service(catalog: Catalog, operationRegistry: OperationRegistry)
       case Some(accept) =>
         accept.values.map(_.mediaRange).map { mr =>
           if (MediaType.application.json.satisfies(mr))
-            JsonCatalogEncoder.encode(catalog, depth = depth).flatMap(Ok(_)).some
+            JsonCatalogEncoder.encode(catalog, id"root", depth).flatMap(Ok(_)).some
           else if (MediaType.text.html.satisfies(mr))
             HtmlCatalogEncoder.encode(catalog).flatMap(Ok(_)).some
           else None
         }.toList.unite.headOption //take first nonNone response
          .getOrElse(NotAcceptable("A catalogs is available only as JSON or HTML."))
-      case None => JsonCatalogEncoder.encode(catalog).flatMap(Ok(_))
+      case None => JsonCatalogEncoder.encode(catalog, id"root").flatMap(Ok(_))
     }
   }
 

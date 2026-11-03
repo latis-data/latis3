@@ -29,17 +29,23 @@ object JsonCatalogEncoder {
    */
   def encode(
     catalog: Catalog,
-    id: Option[Identifier] = None,
+    id: Identifier,
     depth: Option[Int] = None
   ): IO[Json] = {
+    val props = {
+      val identifier = ("identifier" -> id.asString.asJson)
+      catalog match {
+        case cat: Catalog2 => identifier +: catalogProperties(cat)
+        case cat: Catalog  => List(identifier)
+      }
+    }
     if (depth.contains(0)) {
-      val json = id.map(id => Json.obj("identifier" -> id.asString.asJson))
-        .getOrElse(Json.obj())
-      IO.pure(json)
+      // Just the catalog metadata with no subcatalogs or datasets
+      Json.obj(props *).pure
     } else for {
       subs <- catalog.catalogs
       cats <- subs.toList.sortBy(_._1).traverse {
-        case (id, cat) => encode(cat, Some(id), depth.map(_ - 1))
+        case (id, cat) => encode(cat, id, depth.map(_ - 1))
       }
       dss  <- catalog.datasets.compile.toList.map { dss =>
         // NOTE: Datasets are expected to have an identifier. Getting
@@ -49,43 +55,37 @@ object JsonCatalogEncoder {
         dss.sortBy(_.metadata.unsafeGet("id")).map(datasetToJson)
       }
     } yield {
-      val fields = List(
-        catalog match {
-          case cat: Catalog2 => Some("identifier" -> cat.id.asString.asJson)
-          case _ => id.map("identifier" -> _.asString.asJson)
-        },
-        catalog match {
-          case cat: Catalog2 => cat.title.map("title" -> _.asJson)
-          case _ => None // not defined in Catalog
-        },
-        catalog match {
-          case cat: Catalog2 => cat.description.map("description" -> _.asJson)
-          case _ => None // not defined in Catalog
-        },
-        catalog match {
-          case cat: Catalog2 => cat.timeBounds.flatMap {
-            // Note, LocalDate.toString will use yyyy-MM-dd format as documented.
-            // Catalog time coverage metadata should be interpreted as closed,
-            // but for completeness...
-            case PointBounds(v) => s"$v".some
-            case NonEmptyBounds(ClosedBound(l),  ClosedBound(u))  => s"$l/$u".some
-            case NonEmptyBounds(ClosedBound(l),  OpenBound(u))    => s"$l/$u".some
-            case NonEmptyBounds(ClosedBound(l),  InfiniteBound()) => s"$l/".some
-            case NonEmptyBounds(OpenBound(l),    ClosedBound(u))  => s"$l/$u".some
-            case NonEmptyBounds(OpenBound(l),    OpenBound(u))    => s"$l/$u".some
-            case NonEmptyBounds(OpenBound(l),    InfiniteBound()) => s"$l/".some
-            case NonEmptyBounds(InfiniteBound(), ClosedBound(u))  => s"/$u".some
-            case NonEmptyBounds(InfiniteBound(), OpenBound(u))    => s"/$u".some
-            case NonEmptyBounds(InfiniteBound(), InfiniteBound()) => None
-            case EmptyBounds() => None
-          }.map("temporal" -> _.asJson)
-          case _ => None // not defined in Catalog
-        },
+      // Add subcatalogs and datasets to the catalog properties
+      val fields = props ++ List(
         NonEmptyList.fromList(cats).map(cats => "catalog" -> cats.asJson),
         NonEmptyList.fromList(dss).map(dss => "dataset" -> dss.asJson)
-      ).unite //keep only fields that are defined
+      ).unite
       Json.obj(fields *)
     }
+  }
+
+  /** Extra properties from a Catalog2 */
+  private def catalogProperties(cat: Catalog2): List[(String, Json)] = {
+    List(
+      cat.title.map("title" -> _.asJson),
+      cat.description.map("description" -> _.asJson),
+      cat.timeBounds.flatMap {
+          // Note, LocalDate.toString will use yyyy-MM-dd format as documented.
+          // Catalog time coverage metadata should be interpreted as closed,
+          // but for completeness...
+          case PointBounds(v) => s"$v".some
+          case NonEmptyBounds(ClosedBound(l), ClosedBound(u)) => s"$l/$u".some
+          case NonEmptyBounds(ClosedBound(l), OpenBound(u)) => s"$l/$u".some
+          case NonEmptyBounds(ClosedBound(l), InfiniteBound()) => s"$l/".some
+          case NonEmptyBounds(OpenBound(l), ClosedBound(u)) => s"$l/$u".some
+          case NonEmptyBounds(OpenBound(l), OpenBound(u)) => s"$l/$u".some
+          case NonEmptyBounds(OpenBound(l), InfiniteBound()) => s"$l/".some
+          case NonEmptyBounds(InfiniteBound(), ClosedBound(u)) => s"/$u".some
+          case NonEmptyBounds(InfiniteBound(), OpenBound(u)) => s"/$u".some
+          case NonEmptyBounds(InfiniteBound(), InfiniteBound()) => None
+          case EmptyBounds() => None
+        }.map("temporal" -> _.asJson)
+    ).unite //keep only fields that are defined
   }
 
   /** Provides a JSON representation of a Dataset in a catalog. */
