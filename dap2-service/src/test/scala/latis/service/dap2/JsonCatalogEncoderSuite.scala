@@ -127,4 +127,26 @@ class JsonCatalogEncoderSuite extends CatsEffectSuite {
     }
   }
 
+  test("leaf catalog has all properties") {
+    val cat = Catalog2(
+      id"root",
+      Some("Root Catalog"),
+      catalog = IO(
+        List(
+          Catalog2(
+            id"inner",
+            description = Some("myDesc")
+          )
+        )
+      )
+    )
+    JsonCatalogEncoder.encode(cat, id"root", Some(1)).map { json =>
+      val desc = json.hcursor
+        .downField("catalog")
+        .downArray.downField("description")
+        .as[String]
+      assert(desc.contains("myDesc"))
+    }
+  }
+
 }
