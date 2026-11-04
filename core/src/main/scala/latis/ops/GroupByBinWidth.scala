@@ -77,16 +77,11 @@ class GroupByBinWidth private (
       }
     }
 
-  /** Updating model based on binWidth property */
+  /** Updating model's binWidth property */
   def applyToModel(model: DataType): Either[LatisException, DataType] = model match {
     case f @ Function(domain: Scalar, _) =>
       (domain, domain.valueType) match { 
-        case (d: Time, StringValueType) =>
-          aggregation.applyToModel(f).flatMap { range =>
-            val newDomain = updateDomainMetadata(d)
-            Function.from(newDomain, range)
-          }
-        case (_, _: NumericType) =>
+        case (_: Time, StringValueType) | (_, _: NumericType)=>
           aggregation.applyToModel(f).flatMap { range =>
             val newDomain = updateDomainMetadata(domain)
             Function.from(newDomain, range)
@@ -100,12 +95,7 @@ class GroupByBinWidth private (
   private def updateDomainMetadata(s: Scalar): Scalar = {
     //TODO: update cadence/resolution metadata
     val meta = s.metadata + ("binWidth" -> width.toString)
-    s match {
-      case t: Time =>
-        Time.fromMetadata(meta).fold(throw _, identity)
-      case _ =>
-        Scalar.fromMetadata(meta).fold(throw _, identity) //should be safe
-    }
+    Scalar.fromMetadata(meta).fold(throw _, identity) //should be safe
   }
 
   override def toString = s"GroupByBinWidth($width) with $aggregation"
