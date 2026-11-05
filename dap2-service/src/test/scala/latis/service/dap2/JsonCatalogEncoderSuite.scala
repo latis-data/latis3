@@ -32,7 +32,6 @@ class JsonCatalogEncoderSuite extends CatsEffectSuite {
   test("json catalog with ordering") {
     val expected =
       """{
-        |  "identifier" : "root",
         |  "catalog" : [
         |    {
         |      "identifier" : "cat1",
@@ -60,14 +59,14 @@ class JsonCatalogEncoderSuite extends CatsEffectSuite {
         |    }
         |  ]
         |}""".stripMargin
-    JsonCatalogEncoder.encode(catalog, id"root").map { json =>
+    JsonCatalogEncoder.encode(catalog).map { json =>
       assertEquals(json.toString, expected)
     }
   }
 
   test("dataset ordering") {
     val cat = Catalog(ds1, ds0)
-    JsonCatalogEncoder.encode(cat, id"root").map { json =>
+    JsonCatalogEncoder.encode(cat).map { json =>
       json.hcursor.downField("dataset").downArray.downField("identifier").as[String].map { id =>
         assertEquals(id, "ds0")
       }
@@ -75,16 +74,14 @@ class JsonCatalogEncoderSuite extends CatsEffectSuite {
   }
 
   test("empty catalog with 0 depth") {
-    val expected = """{
-    |  "identifier" : "root"
-    |}""".stripMargin
-    JsonCatalogEncoder.encode(nestedCatalog, id"root", Some(0)).map { json =>
-      assertEquals(json.toString, expected)
+    JsonCatalogEncoder.encode(nestedCatalog, depth = Some(0)).map { json =>
+      val empty = json.asObject.map(obj => obj.isEmpty)
+      assert(empty.contains(true))
     }
   }
 
   test("catalog depth of 3") {
-    JsonCatalogEncoder.encode(nestedCatalog, id"root", Some(3)).map { json =>
+    JsonCatalogEncoder.encode(nestedCatalog, depth = Some(3)).map { json =>
       val cat1 = json.hcursor
         .downField("catalog")
         .downArray.downField("catalog")
@@ -112,7 +109,6 @@ class JsonCatalogEncoderSuite extends CatsEffectSuite {
     )
     val expected =
       """{
-      |  "identifier" : "root",
       |  "title" : "Root Catalog",
       |  "catalog" : [
       |    {
@@ -122,7 +118,7 @@ class JsonCatalogEncoderSuite extends CatsEffectSuite {
       |    }
       |  ]
       |}""".stripMargin
-    JsonCatalogEncoder.encode(cat, id"root").map { json =>
+    JsonCatalogEncoder.encode(cat).map { json =>
       assertEquals(json.toString, expected)
     }
   }
@@ -140,7 +136,7 @@ class JsonCatalogEncoderSuite extends CatsEffectSuite {
         )
       )
     )
-    JsonCatalogEncoder.encode(cat, id"root", Some(1)).map { json =>
+    JsonCatalogEncoder.encode(cat, depth = Some(1)).map { json =>
       val desc = json.hcursor
         .downField("catalog")
         .downArray.downField("description")
