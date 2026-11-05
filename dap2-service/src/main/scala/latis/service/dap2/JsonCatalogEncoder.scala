@@ -70,21 +70,21 @@ object JsonCatalogEncoder {
       cat.title.map("title" -> _.asJson),
       cat.description.map("description" -> _.asJson),
       cat.timeBounds.flatMap {
-          // Note, LocalDate.toString will use yyyy-MM-dd format as documented.
-          // Catalog time coverage metadata should be interpreted as closed,
-          // but for completeness...
-          case PointBounds(v) => s"$v".some
-          case NonEmptyBounds(ClosedBound(l), ClosedBound(u)) => s"$l/$u".some
-          case NonEmptyBounds(ClosedBound(l), OpenBound(u)) => s"$l/$u".some
-          case NonEmptyBounds(ClosedBound(l), InfiniteBound()) => s"$l/".some
-          case NonEmptyBounds(OpenBound(l), ClosedBound(u)) => s"$l/$u".some
-          case NonEmptyBounds(OpenBound(l), OpenBound(u)) => s"$l/$u".some
-          case NonEmptyBounds(OpenBound(l), InfiniteBound()) => s"$l/".some
-          case NonEmptyBounds(InfiniteBound(), ClosedBound(u)) => s"/$u".some
-          case NonEmptyBounds(InfiniteBound(), OpenBound(u)) => s"/$u".some
-          case NonEmptyBounds(InfiniteBound(), InfiniteBound()) => None
-          case EmptyBounds() => None
-        }.map("temporal" -> _.asJson)
+        // Note, LocalDate.toString will use yyyy-MM-dd format as documented.
+        // Catalog time coverage metadata should be interpreted as closed,
+        // but for completeness...
+        case PointBounds(v) => s"$v".some
+        case NonEmptyBounds(ClosedBound(l), ClosedBound(u)) => s"$l/$u".some
+        case NonEmptyBounds(ClosedBound(l), OpenBound(u)) => s"$l/$u".some
+        case NonEmptyBounds(ClosedBound(l), InfiniteBound()) => s"$l/".some
+        case NonEmptyBounds(OpenBound(l), ClosedBound(u)) => s"$l/$u".some
+        case NonEmptyBounds(OpenBound(l), OpenBound(u)) => s"$l/$u".some
+        case NonEmptyBounds(OpenBound(l), InfiniteBound()) => s"$l/".some
+        case NonEmptyBounds(InfiniteBound(), ClosedBound(u)) => s"/$u".some
+        case NonEmptyBounds(InfiniteBound(), OpenBound(u)) => s"/$u".some
+        case NonEmptyBounds(InfiniteBound(), InfiniteBound()) => None
+        case EmptyBounds() => None
+      }.map("temporal" -> _.asJson)
     ).unite //keep only fields that are defined
   }
 
