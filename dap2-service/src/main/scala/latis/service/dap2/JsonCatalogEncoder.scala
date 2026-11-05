@@ -29,14 +29,14 @@ object JsonCatalogEncoder {
    */
   def encode(
     catalog: Catalog,
-    id: Identifier,
+    id: Option[Identifier] = None,
     depth: Option[Int] = None
   ): IO[Json] = {
     val props = {
-      val identifier = ("identifier" -> id.asString.asJson)
+      val identifier = id.map(id => ("identifier" -> id.asString.asJson))
       catalog match {
-        case cat: Catalog2 => identifier +: catalogProperties(cat)
-        case cat: Catalog  => List(identifier)
+        case cat: Catalog2 => identifier.toList ++ catalogProperties(cat)
+        case cat: Catalog  => identifier.toList
       }
     }
     if (depth.contains(0)) {
@@ -45,7 +45,7 @@ object JsonCatalogEncoder {
     } else for {
       subs <- catalog.catalogs
       cats <- subs.toList.sortBy(_._1).traverse {
-        case (id, cat) => encode(cat, id, depth.map(_ - 1))
+        case (id, cat) => encode(cat, id.some, depth.map(_ - 1))
       }
       dss  <- catalog.datasets.compile.toList.map { dss =>
         // NOTE: Datasets are expected to have an identifier. Getting
