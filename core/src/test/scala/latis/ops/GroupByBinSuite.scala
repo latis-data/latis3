@@ -60,7 +60,7 @@ class GroupByBinSuite extends CatsEffectSuite {
   private lazy val ds2 = new MemoizedDataset(Metadata(id"test2"), model2, data2)
 
   test("group by bin") {
-    ds.withOperation(GroupByBinWidth.from(3.0).fold(e => fail(e.getMessage), identity))
+    ds.withOperation(GroupByBinWidth.from("3.0").fold(e => fail(e.getMessage), identity))
       .samples.compile.lastOrError.flatMap {
         case Sample(DomainData(Number(x)), RangeData(f)) =>
           assertEquals(x, 9.0)
@@ -71,7 +71,7 @@ class GroupByBinSuite extends CatsEffectSuite {
   }
 
   test("group by bin with string domain") {
-    ds2.withOperation(GroupByBinWidth.from(8.64E7).fold(e => fail(e.getMessage), identity))
+    ds2.withOperation(GroupByBinWidth.from("8.64E7").fold(e => fail(e.getMessage), identity))
       .samples.compile.lastOrError.flatMap {
         case Sample(DomainData(Text(x)), RangeData(f)) =>
           assertEquals(x, "2018-10-31T00:00:00Z")
@@ -82,7 +82,7 @@ class GroupByBinSuite extends CatsEffectSuite {
   }
 
   test("group by bin with count") {
-    ds.withOperation(GroupByBinWidth.from(3.0, CountAggregation2()).fold(e => fail(e.getMessage), identity))
+    ds.withOperation(GroupByBinWidth.from("3.0", CountAggregation2()).fold(e => fail(e.getMessage), identity))
       .samples.head.compile.toList.map {
         case List(Sample(_, RangeData(Integer(cnt)))) =>
           assertEquals(cnt, 3L)
@@ -91,7 +91,7 @@ class GroupByBinSuite extends CatsEffectSuite {
   }
 
   test("empty dataset") {
-    val gb = GroupByBinWidth.from(3.0).fold(e => fail(e.getMessage), identity)
+    val gb = GroupByBinWidth.from("3.0").fold(e => fail(e.getMessage), identity)
     ds.withOperation(Take(0))
       .withOperation(gb)
       .samples.compile.count.map { cnt =>
@@ -100,11 +100,11 @@ class GroupByBinSuite extends CatsEffectSuite {
   }
 
   test("non-positive bin width") {
-    assert(GroupByBinWidth.from(0).isLeft)
+    assert(GroupByBinWidth.from("0").isLeft)
   }
 
   test("NaN bin width") {
-    assert(GroupByBinWidth.from(Double.NaN).isLeft)
+    assert(GroupByBinWidth.from("NaN").isLeft)
   }
 
   test("from no args") {

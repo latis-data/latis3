@@ -1,5 +1,7 @@
 package latis.ops
 
+import java.time.Duration
+
 import cats.effect.IO
 import cats.syntax.all.*
 import fs2.*
@@ -23,11 +25,10 @@ import latis.util.LatisException
  * into a single Data object. By default, this will be a nested Function.
  */
 class GroupByBinWidth private (
-  width: Double,
+  width: String,
   aggregation: Aggregation2
 ) extends StreamOperation {
   //TODO: keep empty bins, preserve cadence and contiguity; use GroupByBin with DomainSet?
-  //TODO: width as ISO duration
   //TODO: Index
   //TODO: support units
   //TODO: deal with duplicate id of inner and outer domain?
@@ -35,18 +36,22 @@ class GroupByBinWidth private (
   //TODO: inspect resulting chunk size for performance impact
 
   def pipe(model: DataType): Pipe[IO, Sample, Sample] = stream =>
+    val parsedWidth = width.toDoubleOption match {
+      case Some(w) => w.toLong
+      case None => Duration.parse(width).toMillis()
+    }
     val aggF = aggregation.aggregateFunction(model)
     stream.groupAdjacentBy {
       case Sample(DomainData(Number(x)), _) =>
         // Round domain value down to start of bin
-        Math.floor(x / width) * width
+        Math.floor(x / parsedWidth) * parsedWidth
       case Sample(DomainData(x: Text), _) =>
         val time = model match {
           case Function(t: Time, _) =>
             t.valueAsDouble(x)
           case _ => throw LatisException("String domain assumes a Time scalar")
         }
-        Math.floor(time / width) * width
+        Math.floor(time / parsedWidth) * parsedWidth
       case _ => throw LatisException("Data sample does not match model")
     }.evalMap { case (value, chunk) =>
       aggF(Stream.chunk(chunk)).map { d =>
@@ -106,19 +111,15 @@ object GroupByBinWidth {
   def builder: OperationBuilder = (args: List[String]) => args match {
     case width :: agg :: Nil =>
       for {
-        w  <- parseWidth(width)
         a  <- parseAggregation(agg)
-        gb <- GroupByBinWidth.from(w, a)
+        gb <- GroupByBinWidth.from(width, a)
       } yield gb
     case width :: Nil =>
-      parseWidth(width).flatMap(GroupByBinWidth.from(_))
+      GroupByBinWidth.from(width)
     case _ =>
       val msg = "GroupByBinWidth expects a 'width' argument and an optional 'aggregation'"
       LatisException(msg).asLeft
   }
-
-  private def parseWidth(width: String): Either[LatisException, Double] =
-    width.toDoubleOption.toRight(LatisException("Bin width must be numeric"))
 
   private def parseAggregation(agg: String): Either[LatisException, Aggregation2] = agg match {
     case "count" => CountAggregation2().asRight
@@ -127,11 +128,21 @@ object GroupByBinWidth {
   }
 
   def from(
-    width: Double,
+    width: String,
     aggregation: Aggregation2 = DefaultAggregation2()
   ): Either[LatisException, GroupByBinWidth] = {
-    Either.cond(width > 0, width, "Bin width must be a positive number")
-      .map(GroupByBinWidth(_, aggregation))
-      .leftMap(LatisException(_))
+    width.toDoubleOption match {
+      case Some(w) =>
+        Either.cond(w > 0, w.toString, "Bin width must be a positive number")
+          .map(GroupByBinWidth(_, aggregation))
+          .leftMap(LatisException(_))
+      case None => 
+        // an iso 8601 duration can't be negative
+        if (width == "NaN") {
+          Left(LatisException("Bin width must be a positive number"))
+        } else {
+          Right(GroupByBinWidth(width, aggregation))
+        }
+    }
   }
 }
