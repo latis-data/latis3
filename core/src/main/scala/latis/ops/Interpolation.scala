@@ -32,6 +32,7 @@ object Interpolation {
    * Constructs an Interpolation by its (case-insensitive) name.
    *
    * Supported interpolation strategies:
+   *  - `fill`: Uses fill data to interpolate between the bounding Samples
    *  - `floor`: Returns the "lowest" of the bounding Samples
    *  - `linear`: Computes a linear interpolation between the bounding Samples
    *  - `near/nearest`: Returns the nearest of the bounding Samples
@@ -39,6 +40,7 @@ object Interpolation {
    */
   def fromName(name: String): Either[LatisException, Interpolation] =
     name.toLowerCase match {
+      case "fill" => FillInterpolation().asRight
       case "floor" => FloorInterpolation().asRight
       case "linear" => LinearInterpolation().asRight
       case "near" | "nearest" => NearestInterpolation().asRight
@@ -266,5 +268,42 @@ case class LinearInterpolation() extends Interpolation {
         val msg = "Numeric data expected"
         LatisException(msg).asLeft
     }
+  }
+}
+
+//==== Fill Interpolation ====//
+
+/**
+ * Interpolates between samples using fill data.
+ *
+ * If the given domain value is between given samples,
+ * a new Sample will be created with fill data in the range.
+ * If the value matches a sample, that sample will be returned.
+ */
+case class FillInterpolation() extends Interpolation {
+
+  override def interpolate(
+    model: DataType,
+    samples: List[Sample],
+    value: Datum
+  ): Either[LatisException, Sample] = {
+    for {
+      domainVar <- getDomainVar(model)
+      ordering   = domainVar.ordering
+      before    <- samples.filterA { sample =>
+        getDomainData(sample).map(ordering.lteq(_, value))
+      }
+      last      <- before.lastOption.toRight {
+        LatisException("Interpolation cannot extrapolate")
+      }
+      sample    <- getDomainData(last).flatMap { n =>
+        if (ordering.equiv(n, value)) last.asRight
+        else {
+          // getDomainVar above ensures that model is a Function
+          val fill = model.asInstanceOf[Function].range.fillData
+          Sample(DomainData(value), RangeData(fill)).asRight
+        }
+      }
+    } yield sample
   }
 }
