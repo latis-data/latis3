@@ -25,7 +25,7 @@ import latis.util.LatisException
  * into a single Data object. By default, this will be a nested Function.
  */
 class GroupByBinWidth private (
-  width: String,
+  width: Double,
   aggregation: Aggregation2
 ) extends StreamOperation {
   //TODO: keep empty bins, preserve cadence and contiguity; use GroupByBin with DomainSet?
@@ -36,22 +36,28 @@ class GroupByBinWidth private (
   //TODO: inspect resulting chunk size for performance impact
 
   def pipe(model: DataType): Pipe[IO, Sample, Sample] = stream =>
-    val parsedWidth = width.toDoubleOption match {
-      case Some(w) => w.toLong
-      case None => Duration.parse(width).toMillis()
-    }
     val aggF = aggregation.aggregateFunction(model)
     stream.groupAdjacentBy {
       case Sample(DomainData(Number(x)), _) =>
-        // Round domain value down to start of bin
-        Math.floor(x / parsedWidth) * parsedWidth
+        model match {
+          case Function(t: Time, _) =>
+            // converting the width to the proper units
+            val multiplier = t.timeScale.baseMultiplier
+            val parsedWidth = width * multiplier
+            Math.floor(x / parsedWidth) * parsedWidth
+          case _ =>
+            // Round domain value down to start of bin
+            Math.floor(x / width) * width
+        }
       case Sample(DomainData(x: Text), _) =>
+        println("string time")
+        // a string domain assumes width is in ms
         val time = model match {
           case Function(t: Time, _) =>
             t.valueAsDouble(x)
           case _ => throw LatisException("String domain assumes a Time scalar")
         }
-        Math.floor(time / parsedWidth) * parsedWidth
+        Math.floor(time / width) * width
       case _ => throw LatisException("Data sample does not match model")
     }.evalMap { case (value, chunk) =>
       aggF(Stream.chunk(chunk)).map { d =>
@@ -133,7 +139,7 @@ object GroupByBinWidth {
   ): Either[LatisException, GroupByBinWidth] = {
     width.toDoubleOption match {
       case Some(w) =>
-        Either.cond(w > 0, w.toString, "Bin width must be a positive number")
+        Either.cond(w > 0, w, "Bin width must be a positive number")
           .map(GroupByBinWidth(_, aggregation))
           .leftMap(LatisException(_))
       case None => 
@@ -141,7 +147,8 @@ object GroupByBinWidth {
         if (width == "NaN") {
           Left(LatisException("Bin width must be a positive number"))
         } else {
-          Right(GroupByBinWidth(width, aggregation))
+          val parsedWidth = Duration.parse(width).toMillis().toDouble
+          Right(GroupByBinWidth(parsedWidth, aggregation))
         }
     }
   }

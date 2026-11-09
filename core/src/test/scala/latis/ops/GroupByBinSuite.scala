@@ -43,6 +43,10 @@ class GroupByBinSuite extends CatsEffectSuite {
     .fold(fail("failed to construct scalar", _), identity)
   private lazy val model2: Function = Function.from(timeScalar, tuple)
     .fold(fail("failed to construct function", _), identity)
+  private lazy val numericTimeScalar = Time.fromMetadata(Metadata("id" -> "x", "type" -> "int", "units" -> "microseconds since 1970"))
+    .fold(fail("failed to construct scalar", _), identity)
+  private lazy val model3: Function = Function.from(numericTimeScalar, tuple)
+    .fold(fail("failed to construct function", _), identity)
 
   private lazy val samples2 = List(
     Sample(DomainData("2018-10-22T18:17:08Z"), RangeData(1, 1)),
@@ -59,6 +63,22 @@ class GroupByBinSuite extends CatsEffectSuite {
   private lazy val data2 = SampledFunction(samples2)
   private lazy val ds2 = new MemoizedDataset(Metadata(id"test2"), model2, data2)
 
+  // same times as above but in microseconds
+  private lazy val samples3 = List(
+    Sample(DomainData(1.540232228E15), RangeData(1, 1)),
+    Sample(DomainData(1.5402528E15), RangeData(2, 4)),
+    Sample(DomainData(1.5403392E15), RangeData(3, 9)),
+    Sample(DomainData(1.5404256E15), RangeData(4, 16)),
+    Sample(DomainData(1.540512E15), RangeData(5, 25)),
+    Sample(DomainData(1.5405984E15), RangeData(6, 36)),
+    Sample(DomainData(1.5406848E15), RangeData(7, 49)),
+    Sample(DomainData(1.5407712E15), RangeData(8, 64)),
+    Sample(DomainData(1.5408576E15), RangeData(9, 81)),
+    Sample(DomainData(1.540944E15), RangeData(10, 100)),
+  )
+  private lazy val data3 = SampledFunction(samples3)
+  private lazy val ds3 = new MemoizedDataset(Metadata(id"test3"), model3, data3)
+
   test("group by bin") {
     ds.withOperation(GroupByBinWidth.from("3.0").fold(e => fail(e.getMessage), identity))
       .samples.compile.lastOrError.flatMap {
@@ -70,13 +90,25 @@ class GroupByBinSuite extends CatsEffectSuite {
       }
   }
 
-  test("group by bin with string domain") {
-    ds2.withOperation(GroupByBinWidth.from("8.64E7").fold(e => fail(e.getMessage), identity))
+  test("group by bin time with string domain") {
+    // width for string time domain is assumed to be ms
+    ds2.withOperation(GroupByBinWidth.from("2.592E8").fold(e => fail(e.getMessage), identity))
       .samples.compile.lastOrError.flatMap {
         case Sample(DomainData(Text(x)), RangeData(f)) =>
           assertEquals(x, "2018-10-31T00:00:00Z")
           f.samples.compile.toList.assertEquals(
             List(Sample(List("2018-10-31T00:00:00Z"), List(10, 100)))
+          )
+      }
+  }
+
+  test("group by bin time with numeric domain") {
+    ds3.withOperation(GroupByBinWidth.from("2.592E11").fold(e => fail(e.getMessage), identity))
+      .samples.compile.lastOrError.flatMap {
+        case Sample(DomainData(Number(x)), RangeData(f)) =>
+          assertEquals(x, 1.540944E15)
+          f.samples.compile.toList.assertEquals(
+            List(Sample(List(1.540944E15), List(10, 100)))
           )
       }
   }
