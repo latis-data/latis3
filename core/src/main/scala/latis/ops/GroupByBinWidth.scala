@@ -1,8 +1,7 @@
 package latis.ops
 
 import java.time.Duration
-
-import scala.util.Try
+import java.time.format.DateTimeParseException
 
 import cats.effect.IO
 import cats.syntax.all.*
@@ -155,7 +154,8 @@ object GroupByBinWidth {
         if (width == "NaN") {
           Left(LatisException("Bin width must be a positive number"))
         } else {
-          Try(Duration.parse(width).toMillis().toDouble).toEither
+          Either.catchOnly[DateTimeParseException]
+            (Duration.parse(width).toMillis().toDouble)
             .map(GroupByBinWidth(_, Units.Ms, aggregation))
             .leftMap(LatisException(_))
         }
