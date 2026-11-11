@@ -47,17 +47,20 @@ class GroupByBinWidth private (
             // ISO duration
             model match {
               case Function(t: Time, _) =>
+                println("case 1")
                 // converting the width to the proper units
                 val multiplier = t.timeScale.baseMultiplier
-                val parsedWidth = width * 1000 * multiplier
+                val parsedWidth = width / 1000 * multiplier
                 Math.floor(x / parsedWidth) * parsedWidth
               case _ => throw LatisException("ISO duration width is incompatible with a numeric non-time domain")
             }
           case Domain =>
+            println("case 2")
             // Round domain value down to start of bin
             Math.floor(x / width) * width
         }
       case Sample(DomainData(x: Text), _) =>
+        println("case 3")
         // a string domain assumes width is in ms
         val time = model match {
           case Function(t: Time, _) =>
