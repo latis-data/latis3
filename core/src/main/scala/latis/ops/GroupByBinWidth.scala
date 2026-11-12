@@ -1,5 +1,8 @@
 package latis.ops
 
+import java.time.Duration
+import java.time.format.DateTimeParseException
+
 import cats.effect.IO
 import cats.syntax.all.*
 import fs2.*
@@ -24,23 +27,38 @@ import latis.util.LatisException
  */
 class GroupByBinWidth private (
   width: Double,
+  units: GroupByBinWidth.Units,
   aggregation: Aggregation2
 ) extends StreamOperation {
   //TODO: keep empty bins, preserve cadence and contiguity; use GroupByBin with DomainSet?
-  //TODO: width as ISO duration
   //TODO: Index
   //TODO: support units
   //TODO: deal with duplicate id of inner and outer domain?
   //TODO: Should we require the aggregation to memoize? in the interest of serializing outer samples
   //TODO: inspect resulting chunk size for performance impact
+  import GroupByBinWidth.Units.*
 
   def pipe(model: DataType): Pipe[IO, Sample, Sample] = stream =>
     val aggF = aggregation.aggregateFunction(model)
     stream.groupAdjacentBy {
       case Sample(DomainData(Number(x)), _) =>
-        // Round domain value down to start of bin
-        Math.floor(x / width) * width
+        units match {
+          case Ms =>
+            // ISO duration
+            model match {
+              case Function(t: Time, _) =>
+                // converting the width to the proper units
+                val multiplier = t.timeScale.baseMultiplier
+                val parsedWidth = width / 1000 * (1/multiplier)
+                Math.floor(x / parsedWidth) * parsedWidth
+              case _ => throw LatisException("ISO duration width is incompatible with a numeric non-time domain")
+            }
+          case Domain =>
+            // Round domain value down to start of bin
+            Math.floor(x / width) * width
+        }
       case Sample(DomainData(x: Text), _) =>
+        // a string domain assumes width is in ms
         val time = model match {
           case Function(t: Time, _) =>
             t.valueAsDouble(x)
@@ -106,19 +124,15 @@ object GroupByBinWidth {
   def builder: OperationBuilder = (args: List[String]) => args match {
     case width :: agg :: Nil =>
       for {
-        w  <- parseWidth(width)
         a  <- parseAggregation(agg)
-        gb <- GroupByBinWidth.from(w, a)
+        gb <- GroupByBinWidth.from(width, a)
       } yield gb
     case width :: Nil =>
-      parseWidth(width).flatMap(GroupByBinWidth.from(_))
+      GroupByBinWidth.from(width)
     case _ =>
       val msg = "GroupByBinWidth expects a 'width' argument and an optional 'aggregation'"
       LatisException(msg).asLeft
   }
-
-  private def parseWidth(width: String): Either[LatisException, Double] =
-    width.toDoubleOption.toRight(LatisException("Bin width must be numeric"))
 
   private def parseAggregation(agg: String): Either[LatisException, Aggregation2] = agg match {
     case "count" => CountAggregation2().asRight
@@ -127,11 +141,27 @@ object GroupByBinWidth {
   }
 
   def from(
-    width: Double,
+    width: String,
     aggregation: Aggregation2 = DefaultAggregation2()
   ): Either[LatisException, GroupByBinWidth] = {
-    Either.cond(width > 0, width, "Bin width must be a positive number")
-      .map(GroupByBinWidth(_, aggregation))
-      .leftMap(LatisException(_))
+    width.toDoubleOption match {
+      case Some(w) =>
+        Either.cond(w > 0, w, "Bin width must be a positive number")
+          .map(GroupByBinWidth(_, Units.Domain, aggregation))
+          .leftMap(LatisException(_))
+      case None => 
+        // an iso 8601 duration can't be negative
+        if (width == "NaN") {
+          Left(LatisException("Bin width must be a positive number"))
+        } else {
+          Either.catchOnly[DateTimeParseException]
+            (Duration.parse(width).toMillis().toDouble)
+            .map(GroupByBinWidth(_, Units.Ms, aggregation))
+            .leftMap(LatisException(_))
+        }
+    }
   }
+
+  enum Units:
+    case Ms, Domain
 }
