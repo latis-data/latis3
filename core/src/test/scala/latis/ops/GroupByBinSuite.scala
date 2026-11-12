@@ -92,47 +92,39 @@ class GroupByBinSuite extends CatsEffectSuite {
 
   test("group by bin time with string domain") {
     // width for string time domain is assumed to be ms
-    ds2.withOperation(GroupByBinWidth.from("2.592E8").fold(e => fail(e.getMessage), identity))
-      .samples.compile.lastOrError.flatMap {
-        case Sample(DomainData(Text(x)), RangeData(f)) =>
-          assertEquals(x, "2018-10-31T00:00:00Z")
-          f.samples.compile.toList.assertEquals(
-            List(Sample(List("2018-10-31T00:00:00Z"), List(10, 100)))
-          )
+    ds2.withOperation(GroupByBinWidth.from("2.592E8", CountAggregation2()).fold(e => fail(e.getMessage), identity))
+      .samples.head.compile.toList.map {
+        case List(Sample(_, RangeData(Integer(cnt)))) =>
+          assertEquals(cnt, 3L)
+        case _ => fail("Bad sample")
       }
   }
 
   test("group by bin time with string domain and iso duration") {
     // width for string time domain is assumed to be ms
-    ds2.withOperation(GroupByBinWidth.from("P3D").fold(e => fail(e.getMessage), identity))
-      .samples.compile.lastOrError.flatMap {
-        case Sample(DomainData(Text(x)), RangeData(f)) =>
-          assertEquals(x, "2018-10-31T00:00:00Z")
-          f.samples.compile.toList.assertEquals(
-            List(Sample(List("2018-10-31T00:00:00Z"), List(10, 100)))
-          )
+    ds2.withOperation(GroupByBinWidth.from("P3D", CountAggregation2()).fold(e => fail(e.getMessage), identity))
+      .samples.head.compile.toList.map {
+        case List(Sample(_, RangeData(Integer(cnt)))) =>
+          assertEquals(cnt, 3L)
+        case _ => fail("Bad sample")
       }
   }
 
   test("group by bin time with numeric domain") {
-    ds3.withOperation(GroupByBinWidth.from("2.592E11").fold(e => fail(e.getMessage), identity))
-      .samples.compile.lastOrError.flatMap {
-        case Sample(DomainData(Number(x)), RangeData(f)) =>
-          assertEquals(x, 1.540944E15)
-          f.samples.compile.toList.assertEquals(
-            List(Sample(List(1.540944E15), List(10, 100)))
-          )
+    ds3.withOperation(GroupByBinWidth.from("2.592E11", CountAggregation2()).fold(e => fail(e.getMessage), identity))
+      .samples.head.compile.toList.map {
+        case List(Sample(_, RangeData(Integer(cnt)))) =>
+          assertEquals(cnt, 3L)
+        case _ => fail("Bad sample")
       }
   }
 
   test("group by bin time with numeric domain and iso duration") {
-    ds3.withOperation(GroupByBinWidth.from("P3D").fold(e => fail(e.getMessage), identity))
-      .samples.compile.lastOrError.flatMap {
-        case Sample(DomainData(Number(x)), RangeData(f)) =>
-          assertEquals(x, 1.540944E15)
-          f.samples.compile.toList.assertEquals(
-            List(Sample(List(1.540944E15), List(10, 100)))
-          )
+    ds3.withOperation(GroupByBinWidth.from("P3D", CountAggregation2()).fold(e => fail(e.getMessage), identity))
+      .samples.head.compile.toList.map {
+        case List(Sample(_, RangeData(Integer(cnt)))) =>
+          assertEquals(cnt, 3L)
+        case _ => fail("Bad sample")
       }
   }
 

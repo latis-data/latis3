@@ -49,7 +49,7 @@ class GroupByBinWidth private (
               case Function(t: Time, _) =>
                 // converting the width to the proper units
                 val multiplier = t.timeScale.baseMultiplier
-                val parsedWidth = width / 1000 * multiplier
+                val parsedWidth = width / 1000 * (1/multiplier)
                 Math.floor(x / parsedWidth) * parsedWidth
               case _ => throw LatisException("ISO duration width is incompatible with a numeric non-time domain")
             }
