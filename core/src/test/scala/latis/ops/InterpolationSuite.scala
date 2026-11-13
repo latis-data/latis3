@@ -4,6 +4,7 @@ import munit.FunSuite
 
 import latis.data.*
 import latis.data.Data.*
+import latis.metadata.Metadata
 import latis.model.*
 import latis.util.Identifier.id
 
@@ -136,6 +137,26 @@ class InterpolationSuite extends FunSuite {
       case Sample(DomainData(d: IntValue), RangeData(Number(r))) =>
         assertEquals(d.value, 2)
         assertEquals(r, 2.0)
+    }
+  }
+
+  test("Fill interpolation") {
+    val model = (for {
+      range <- Scalar.fromMetadata(Metadata(
+        "id" -> "a",
+        "type" -> "double",
+        "fillValue" -> "-999"
+      ))
+      func <- Function.from(Scalar(id"x", IntValueType), range)
+    } yield func).fold(throw _, identity)
+    val samples = List(
+      Sample(DomainData(1), RangeData(1.0)),
+      Sample(DomainData(3), RangeData(3.0))
+    )
+    FillInterpolation().interpolate(model, samples, IntValue(2))
+      .fold(_ => fail("Failed to interpolate"), identity) match {
+      case Sample(_, RangeData(Real(n))) =>
+        assertEquals(n, -999.0)
     }
   }
 
