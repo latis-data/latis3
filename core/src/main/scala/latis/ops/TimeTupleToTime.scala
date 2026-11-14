@@ -43,7 +43,7 @@ case class TimeTupleToTime(id: Identifier = id"time") extends MapOperation {
     }
     val timeLen: Int = model.findVariable(id)
       .getOrElse {
-        throw new LatisException(s"Cannot find variable: ${id.asString}")
+        throw  LatisException(s"Cannot find variable: ${id.asString}")
       } match {
           case t: Tuple => t match { //TODO: was t.flatten
             case tf: Tuple => tf.elements.length //TODO: is this "dimensionality"? Should it be a first class citizen?

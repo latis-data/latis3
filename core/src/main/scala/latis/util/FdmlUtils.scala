@@ -71,7 +71,7 @@ object FdmlUtils {
             "  " + spe.getMessage
           LatisException(msg, spe)
         case le: LatisException => le
-        case _                  => LatisException(cause = t)
+        case _                  => LatisException(t)
       }
     }
     // Note, the validation Exception's toString provides line numbers that the message doesn't.
