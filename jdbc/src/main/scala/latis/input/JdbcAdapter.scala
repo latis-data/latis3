@@ -8,9 +8,9 @@ import scala.util.*
 
 import cats.effect.IO
 import cats.syntax.all.*
-import doobie.*
-import doobie.implicits.*
-import doobie.util.stream.repeatEvalChunks
+import org.typelevel.doobie.*
+import org.typelevel.doobie.implicits.*
+import org.typelevel.doobie.util.stream.repeatEvalChunks
 import fs2.Stream
 import fs2.Stream.bracket
 import fs2.Stream.eval

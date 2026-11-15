@@ -4,8 +4,8 @@ import java.net.URI
 
 import cats.effect.IO
 import cats.syntax.all.*
-import doobie.*
-import doobie.implicits.*
+import org.typelevel.doobie.*
+import org.typelevel.doobie.implicits.*
 import fs2.io.file.Files
 import munit.CatsEffectSuite
 
