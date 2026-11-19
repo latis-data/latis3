@@ -1,28 +1,32 @@
 package latis.ops
 
-import latis.data.StreamFunction
-import latis.dataset.*
+import cats.effect.IO
+import cats.syntax.all.*
+import cats.PartialOrder
+import fs2.Chunk
+import fs2.Pull
+import fs2.Stream
 
+import latis.data.*
+import latis.model.*
+import latis.util.LatisException
+import latis.util.LatisOrdering
 
 /**
  * A Join is a BinaryOperation that combines two or more Datasets.
  *
- * Unlike arbitrary binary operations, Joins provide lawful behavior
- * for distributing operations to the operands before applying the join.
- * This is often important for performance reasons.
- *
  * Properties of Joins:
- *  - Each dataset must have the same domain type.
+ *  - Each dataset must have the same domain type or Index.
  *  - Joins must not generate new variables.
  *  - Joins may add fill data (e.g. outer joins).
  *  - Joins may compute new values only to resolve duplication (e.g. average).
  *
- * The following classes of UnaryOperations can be distributed over the Join
+ * The following types of UnaryOperations can be distributed over the Join
  * operation and applied to the operands:
  *  - Filter (e.g. Selection)
  *  - MapOperation (e.g. Projection)
  *
- * Some classes of UnaryOperations can be applied to the operands
+ * Some types of UnaryOperations can be applied to the operands
  * but also need to be reapplied after the join:
  *  - Taking (Head, Take, TakeRight, Last)
  *
@@ -31,10 +35,115 @@ import latis.dataset.*
  */
 trait Join extends BinaryOperation {
 
-  final def combine(ds1: Dataset, ds2: Dataset): Dataset = {
-    val md = ds1.metadata //TODO: combine metadata
-    val model = applyToModel(ds1.model, ds2.model).fold(throw _, identity)
-    val data = applyToData(StreamFunction(ds1.samples), StreamFunction(ds2.samples)).fold(throw _, identity)
-    new TappedDataset(md, model, data)
+  /**
+   * Implementations must define how to combine two chunks,
+   * returning a new chunk and the remainder of the other two.
+   */
+  def joinChunks(
+    model1: DataType,
+    c1: Chunk[Sample],
+    model2: DataType,
+    c2: Chunk[Sample]
+  ): (Chunk[Sample], Chunk[Sample], Chunk[Sample])
+
+  /** Implementations must define how to combine models */
+  def applyToModel(model1: DataType, model2: DataType): Either[LatisException, DataType]
+
+  /** Pulls samples from two datasets and combine them */
+  override def applyToData(
+    model1: DataType,
+    stream1: Stream[IO, Sample],
+    model2: DataType,
+    stream2: Stream[IO, Sample],
+  ): Either[LatisException, Stream[IO, Sample]] = {
+
+    // Recursive function to pull and combine samples from two sources via StepLegs
+    def go(
+      leg1: Option[Stream.StepLeg[IO, Sample]],
+      leg2: Option[Stream.StepLeg[IO, Sample]]
+    ): Pull[IO, Sample, Unit] = {
+      // First chunk of leg1
+      val chunk1 = leg1.map(_.head).getOrElse(Chunk.empty)
+      // First chunk of leg2
+      val chunk2 = leg2.map(_.head).getOrElse(Chunk.empty)
+      // New chunk and remainders of the other two to be used in next iteration
+      val (chunk, c1, c2) = joinChunks(model1, chunk1, model2, chunk2)
+
+      // If no chunk was made and there are no leftovers, we are done joining
+      if (chunk.isEmpty && c1.isEmpty && c2.isEmpty) Pull.done
+      // If we have some samples, output the joined chunk, recurse with the rest
+      else Pull.output(chunk) >> {
+        // Neither source has remaining chunks so get more from each source, recurse
+        if (c1.isEmpty && c2.isEmpty) {
+          (leg1.flatTraverse(_.stepLeg), leg2.flatTraverse(_.stepLeg))
+            .mapN(go).flatten
+
+        // No leftover samples from the first source so get more and recurse.
+        // Put the remaining samples back onto the second leg for use in the
+        // next iteration.
+        } else if (c1.isEmpty) leg1.flatTraverse(_.stepLeg).flatMap {
+          go(_, leg2.map(_.setHead(c2)))
+
+        // No leftover samples from the second source so get more and recurse.
+        // Put the remaining samples back onto the first leg for use in the
+        // next iteration.
+        } else if (c2.isEmpty) leg2.flatTraverse(_.stepLeg).flatMap {
+          go(leg1.map(_.setHead(c1)), _)
+
+        // Leftover samples from both sources. No valid use case.
+        // Maybe need for more samples for interpolation, but not yet.
+        // Blindly pulling more from both sources may yield big chunks.
+        } else {
+          val msg = "Can't join leftover samples from both sources"
+          Pull.raiseError(LatisException(msg))
+        }
+      }
+    }
+
+    // Start pulling from the Streams and recurse
+    (stream1.pull.stepLeg, stream2.pull.stepLeg)
+      .mapN(go).flatten.stream.asRight
+  }
+
+  /**
+   * Tests whether the domain variables from two models are equivalent.
+   *
+   * Tests only that the domain variable ids, types, and units match.
+   * Note, relational algebra goes by attribute (i.e. column name) only.
+   */
+  //TODO: test with all 1st class scalar properties, e.g. binWidth...
+  //TODO: move this to DataTypeAlgebra
+  final def comparableDomain(model1: DataType, model2: DataType): Boolean = {
+    (model1, model2) match {
+      case (Function(d1, _), Function(d2, _)) =>
+        val d1s = d1.getScalars
+        val d2s = d2.getScalars
+        d1.isInstanceOf[Index] || d2.isInstanceOf[Index] ||
+        d1s.size == d2s.size &&
+          d1s.zip(d2s).forall { pair =>
+            (pair._1.id == pair._2.id) &&
+              (pair._1.valueType == pair._2.valueType) &&
+              (pair._1.units == pair._2.units)
+          }
+      case (_, _) => true //scalar or tuple, 0-arity
+    }
+  }
+  
+  /** 
+   * Gets a PartialOrder for Samples of the given type
+   * assuming a Cartesian topology.
+   */
+  //TODO: move to core, update LatisOrdering to use cats Order
+  final def cartesianOrder(model: DataType): PartialOrder[Sample] = {
+    model match {
+      case f: Function =>
+        //TODO: test if Function has Cartesian topology
+        PartialOrder.fromPartialOrdering(
+          LatisOrdering.sampleOrdering(f)
+        )
+      case _ =>
+        // Not a Function, 0-length domain is always equivalent       
+        (_, _) => 0.0 //shortcut for single partialCompare method
+    }
   }
 }
