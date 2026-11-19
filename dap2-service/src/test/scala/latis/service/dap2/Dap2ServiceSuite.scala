@@ -350,4 +350,11 @@ class Dap2ServiceSuite extends CatsEffectSuite {
       }
     }
   }
+
+  test("teapot") {
+    val req = Request[IO](Method.GET, uri"/coffee")
+    service(req).map { res =>
+      assertEquals(res.status, Status.ImATeapot, "expect teapot")
+    }
+  }
 }
