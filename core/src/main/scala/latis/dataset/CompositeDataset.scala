@@ -15,18 +15,19 @@ import latis.util.LatisException
  * Defines a Dataset with data provided via a list of Datasets to be
  * combined with the given join operation.
  *
- * This assumes that each dataset has the same model, for now.
+ * This assumes that each dataset has the same model
+ * and will be joined vertically, for now.
  */
 class CompositeDataset private (
   md: Metadata,
   datasets: NonEmptyList[Dataset],
-  joinOperation: Join,
+  joinOperation: VerticalJoin,
   granuleOps: List[UnaryOperation] = List.empty, //ops to be applied to granules before the join
-  afterOps: List[UnaryOperation] = List.empty    //ops to be applied after the join
+  afterOps: List[UnaryOperation] = List.empty //ops to be applied after the join
 ) extends Dataset {
-  //TODO: support "horizontal" joins: datasets with different models (i.e. diff set of variables, combine "columns")
+  //TODO: HorizontalJoin or any BinaryOperation?, complicates operation handling
 
-  //TODO: make richer metadata, prov
+  //TODO: make richer metadata, prov, see BinaryOperation.combine
   override def metadata: Metadata = md
 
   def operations: List[UnaryOperation] = granuleOps ++ afterOps
@@ -36,13 +37,16 @@ class CompositeDataset private (
    * applied to this one.
    */
   def withOperation(op: UnaryOperation): Dataset = {
+    // Preserve order of operation by preventing application to granules
+    // if there are already post operations with unknown behavior.
+    // If the post-operation is reapplied here (e.g. Taking), don't
+    // let that alone prevent pushdown.
     if (nonReappliedAfterOps.isEmpty) op match {
-      //TODO: push down other operations?
-      //TODO: make sure granule (after current granuleOps application) has target variable? or no-op?
-        //matters for joins with different models, not Append or Sorted
       case _: Filter       => copyWithOperationForGranule(op)
       case _: MapOperation => copyWithOperationForGranule(op)
       case _: Rename       => copyWithOperationForGranule(op)
+      // Taking operations can be applied to granules,
+      // but after they are joined, we need to reapply.
       case _: Taking       => copyWithOperationForBoth(op)
       case _               => copyWithOperationAfterJoin(op)
     }
@@ -69,7 +73,11 @@ class CompositeDataset private (
 
   /**
    * Defines the list of operations to be applied after the join
-   * that haven't already been applied to the granules.
+   * not including those that are being reapplied (e.g. Taking).
+   *
+   * This is used to determine if a subsequent operation can't be
+   * pushed down due to an existing operation with unknown behavior,
+   * preserving order of operation.
    */
   private def nonReappliedAfterOps: List[UnaryOperation] = afterOps.filterNot(_.isInstanceOf[Taking])
 
@@ -77,10 +85,11 @@ class CompositeDataset private (
    * Computes the model with the operations and join applied.
    * Assumes join does not affect the model, for now.
    */
-  override lazy val model: DataType =
+  override lazy val model: DataType = {
     (granuleOps ++ nonReappliedAfterOps).foldM(datasets.head.model) {
       (mod, op) => op.applyToModel(mod)
     }.fold(throw _, identity)
+  }
 
   /**
    * Return a Dataset's Stream of Samples.
@@ -97,25 +106,25 @@ class CompositeDataset private (
   /**
    * Applies the Operations to generate the new Data.
    */
-  private def applyOperations(): Either[LatisException, Data] = for {
+  private def applyOperations(): Either[LatisException, Stream[IO, Sample]] = for {
     // Apply granule operations
     dss     <- datasets.map(_.withOperations(granuleOps)).asRight
     // Apply join
-    data    <- dss.tail.foldM(StreamFunction(getSamples(dss.head)): Data) { //compiler needs type hint
-      (dat, ds) => joinOperation.applyToData(dat, StreamFunction(getSamples(ds)))
+    samples <- dss.tail.foldM(getSamples(dss.head)) {
+      (stream, ds) => joinOperation.applyToData(model, stream, model, getSamples(ds))
     }
     // Apply other operations
-    newData <- afterOps.foldM((dss.head.model, data)) {
+    newData <- afterOps.foldM((dss.head.model, StreamFunction(samples): Data)) {
       case ((mod, dat), op) =>
         (op.applyToModel(mod), op.applyToData(dat, mod)).mapN((_, _))
     }.map(_._2) //drop model, keep data
-  } yield newData
+  } yield newData.samples
 
   /**
    * Applies the operations and returns a Stream of Samples.
    */
   def samples: Stream[IO, Sample] =
-    applyOperations().fold(Stream.raiseError[IO](_), _.samples)
+    applyOperations().fold(Stream.raiseError[IO](_), identity)
 
   /**
    * Causes the data source to be read and released
@@ -138,7 +147,7 @@ object CompositeDataset {
    */
   def apply(
     md: Metadata,
-    joinOperation: Join,
+    joinOperation: VerticalJoin,
     ds1: Dataset,
     ds2: Dataset,
     rest: List[Dataset] = List.empty
